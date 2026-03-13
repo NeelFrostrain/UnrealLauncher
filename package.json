@@ -1,7 +1,7 @@
 {
-  "name": "vite-project",
+  "name": "unreallauncher",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "main": "electron/main.js",
   "homepage": "./",
   "type": "module",
@@ -49,10 +49,19 @@
     },
     "files": [
       "dist/**",
-      "electron/**"
+      "electron/**",
+      "public/Icon.png",
+      "public/Icon.ico"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "public/Icon.ico"
+    },
+    "mac": {
+      "icon": "public/Icon.png"
+    },
+    "linux": {
+      "icon": "public/Icon.png"
     }
   }
 }

@@ -33,9 +33,8 @@ const Titlebar = () => {
   const noDragStyle = { WebkitAppRegion: "no-drag" } as React.CSSProperties;
 
   return (
-    <div className="w-full h-10 bg-[#1a1a1a] border-b border-white/10 flex items-center px-3 select-none">
-      <div className="flex-1 h-full flex items-center" style={dragStyle}>
-        {/* Empty draggable area */}
+    <div className="w-full h-10 bg-[#1a1a1a] border-b border-white/10 flex items-center px-1 select-none">
+      <div className="flex-1 h-full flex items-center gap-2" style={dragStyle}>
       </div>
 
       <div className="flex items-center gap-0.5" style={noDragStyle}>

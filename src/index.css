@@ -2,17 +2,22 @@
 
 /* width */
 ::-webkit-scrollbar {
-  width: 0px;
+  width: 8px;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
-  box-shadow: inset 0 0 5px grey;
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: red;
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }

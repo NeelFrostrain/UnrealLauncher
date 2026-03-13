@@ -16,5 +16,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteProject: (projectPath) => ipcRenderer.invoke('delete-project', projectPath),
   onSizeCalculated: (callback) => {
     ipcRenderer.on('size-calculated', (event, data) => callback(data));
-  }
+  },
+  calculateEngineSize: (directoryPath) => ipcRenderer.invoke('calculate-engine-size', directoryPath),
+  calculateProjectSize: (projectPath) => ipcRenderer.invoke('calculate-project-size', projectPath),
+  loadImage: (imagePath) => ipcRenderer.invoke('load-image', imagePath)
 });

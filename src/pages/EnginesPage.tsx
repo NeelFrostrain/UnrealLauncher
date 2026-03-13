@@ -23,6 +23,31 @@ const EngineCard: FC<
   onDelete,
 }) => {
   const [currentGradient] = useState(gradient || generateGradient());
+  const [launching, setLaunching] = useState(false);
+  const [calculating, setCalculating] = useState(false);
+  const [currentSize, setCurrentSize] = useState(folderSize);
+
+  const handleLaunch = async () => {
+    setLaunching(true);
+    await onLaunch(exePath);
+    setTimeout(() => setLaunching(false), 3000);
+  };
+
+  const handleCalculateSize = async () => {
+    if (calculating) return;
+    setCalculating(true);
+    setCurrentSize("Calculating...");
+    
+    if (window.electronAPI) {
+      const result = await window.electronAPI.calculateEngineSize(directoryPath);
+      if (result.success && result.size) {
+        setCurrentSize(result.size);
+      } else {
+        setCurrentSize("Error");
+      }
+    }
+    setCalculating(false);
+  };
 
   return (
     <div className="w-full h-30 bg-[#161616] overflow-hidden rounded-md border border-white/5 flex group hover:border-white/10 transition-all duration-150 ease-in-out select-text">
@@ -64,10 +89,22 @@ const EngineCard: FC<
         <div className="flex items-center justify-between">
           <div className="flex gap-4">
             <div className="flex flex-col">
-              <span className="text-[9px] uppercase text-white/30 tracking-wide font-semibold">
-                Size
-              </span>
-              <span className="text-xs text-white/70">{folderSize}</span>
+              <div className="flex items-center gap-1 mb-0.5">
+                <span className="text-[9px] uppercase text-white/30 tracking-wide font-semibold">
+                  Size
+                </span>
+                {currentSize.startsWith('~') && (
+                  <button
+                    onClick={handleCalculateSize}
+                    disabled={calculating}
+                    className="text-[8px] px-1 py-0.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded cursor-pointer disabled:opacity-50 transition-colors"
+                    title="Calculate exact size"
+                  >
+                    calc
+                  </button>
+                )}
+              </div>
+              <span className="text-xs text-white/70">{currentSize}</span>
             </div>
             <div className="flex flex-col">
               <span className="text-[9px] uppercase text-white/30 tracking-wide font-semibold">
@@ -87,12 +124,17 @@ const EngineCard: FC<
               Directory
             </button>
             <button
-              onClick={() => onLaunch(exePath)}
-              className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold transition-all shadow-lg shadow-blue-600/20 cursor-pointer"
+              onClick={handleLaunch}
+              disabled={launching}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded text-xs font-bold transition-all shadow-lg ${
+                launching
+                  ? "bg-green-600 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-500 cursor-pointer shadow-blue-600/20"
+              }`}
               title="Launch Engine"
             >
-              <Play size={14} fill="currentColor" />
-              Launch
+              <Play size={14} fill="currentColor" className={launching ? "animate-pulse" : ""} />
+              {launching ? "Launching..." : "Launch"}
             </button>
           </div>
         </div>
@@ -152,6 +194,20 @@ const EnginesPage = () => {
       const result = await window.electronAPI.launchEngine(exePath);
       if (!result.success) {
         alert("Failed to launch engine: " + result.error);
+      } else {
+        // Update the last launch time in UI
+        setEngines((prev) =>
+          prev.map((e) => {
+            if (e.exePath === exePath) {
+              const now = new Date();
+              return {
+                ...e,
+                lastLaunch: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+              };
+            }
+            return e;
+          })
+        );
       }
     }
   };

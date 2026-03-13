@@ -9,9 +9,11 @@ const baseUrl = import.meta.env.BASE_URL || "./";
 
 const resolveAsset = (path?: string) => {
   if (!path) return `${baseUrl}assets/ProjectDefault.avif`;
-  // If it's a file path (local screenshot), convert to file:// URL
-  if (path.includes('\\') || path.includes('/')) {
-    return `file:///${path.replace(/\\/g, '/')}`;
+  // If it's an absolute file path (local screenshot), convert to file:// URL
+  if (path.includes(':\\') || (path.includes('/') && !path.startsWith('http'))) {
+    // Normalize path separators and ensure proper file:// format
+    const normalizedPath = path.replace(/\\/g, '/');
+    return `file:///${normalizedPath}`;
   }
   if (path.startsWith("http") || path.startsWith("data:") || path.startsWith("file:")) return path;
   return `${baseUrl}${path.replace(/^\//, "")}`;
@@ -54,13 +56,54 @@ const ProjectCard: FC<
   onOpenDir,
   onDelete,
 }) => {
+  const [launching, setLaunching] = useState(false);
+  const [currentSize, setCurrentSize] = useState(size);
+  const [imageSrc, setImageSrc] = useState<string>(resolveAsset(undefined));
+
+  useEffect(() => {
+    const loadThumbnail = async () => {
+      if (thumbnail && window.electronAPI) {
+        const dataUrl = await window.electronAPI.loadImage(thumbnail);
+        if (dataUrl) {
+          setImageSrc(dataUrl);
+        } else {
+          setImageSrc(resolveAsset(undefined));
+        }
+      } else {
+        setImageSrc(resolveAsset(undefined));
+      }
+    };
+    loadThumbnail();
+  }, [thumbnail]);
+
+  useEffect(() => {
+    setCurrentSize(size);
+  }, [size]);
+
+  const handleLaunch = async () => {
+    if (!projectPath) return;
+    setLaunching(true);
+    await onLaunch(projectPath);
+    setTimeout(() => setLaunching(false), 3000);
+  };
+
   return (
     <div className="w-full h-52 bg-[#121212] rounded-md border border-white/10 cursor-pointer overflow-hidden hover:border-blue-500/50 hover:bg-[#1a1a1a] transition-all duration-200 ease-in-out group relative">
+      {/* Launching Overlay */}
+      {launching && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-2"></div>
+            <p className="text-sm text-white/90 font-medium">Launching...</p>
+          </div>
+        </div>
+      )}
+
       {/* Hover Overlay Buttons */}
       <div className="absolute inset-0 z-20 flex items-center justify-center gap-4 bg-black/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <ProjectCardButton
           icon={<Play size={16} />}
-          onClick={() => projectPath && onLaunch(projectPath)}
+          onClick={handleLaunch}
           title="Launch Project"
         />
         <ProjectCardButton
@@ -77,6 +120,14 @@ const ProjectCard: FC<
 
       {/* Thumbnail Section */}
       <div className="w-full h-28 relative overflow-hidden">
+        <img
+          src={imageSrc}
+          alt={name}
+          className="w-full h-full object-cover opacity-100 group-hover:opacity-40 transition-opacity"
+          onError={(e) => {
+            e.currentTarget.src = resolveAsset(undefined);
+          }}
+        />
         <img
           src={resolveAsset(thumbnail)}
           alt={name}
@@ -110,7 +161,7 @@ const ProjectCard: FC<
             <span className="text-[10px] text-gray-500 uppercase font-bold">
               Size
             </span>
-            <span className="text-xs text-gray-400 font-mono">{size}</span>
+            <span className="text-xs text-gray-400 font-mono">{currentSize}</span>
           </div>
         </div>
       </div>
@@ -155,7 +206,24 @@ const ProjectsPage = () => {
     if (window.electronAPI) {
       try {
         const scannedProjects = await window.electronAPI.scanProjects();
-        setProjects(scannedProjects);
+        setProjects([...scannedProjects]);
+        
+        // Calculate sizes for all projects with estimates
+        for (const project of scannedProjects) {
+          if (project.projectPath && project.size.startsWith('~')) {
+            window.electronAPI.calculateProjectSize(project.projectPath).then(result => {
+              if (result.success && result.size) {
+                setProjects(prev => 
+                  prev.map(p => 
+                    p.projectPath === project.projectPath 
+                      ? { ...p, size: result.size! } 
+                      : p
+                  )
+                );
+              }
+            });
+          }
+        }
       } catch (err) {
         console.error("Failed to scan projects:", err);
       }
@@ -202,6 +270,21 @@ const ProjectsPage = () => {
       return;
     }
     setProjects((prev) => [project, ...prev]);
+    
+    // Calculate size for the new project if it has an estimate
+    if (project.projectPath && project.size.startsWith('~')) {
+      window.electronAPI.calculateProjectSize(project.projectPath).then(result => {
+        if (result.success && result.size) {
+          setProjects(prev => 
+            prev.map(p => 
+              p.projectPath === project.projectPath 
+                ? { ...p, size: result.size! } 
+                : p
+            )
+          );
+        }
+      });
+    }
   };
 
   return (
@@ -218,7 +301,7 @@ const ProjectsPage = () => {
         scanning={scanning}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto py-px px-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto py-px px-2 mt-2">
         {projects.length > 0 ? (
           projects.map((data, index) => (
             <ProjectCard

@@ -8,9 +8,9 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
         <div className="w-full h-full bg-black/50 p-0.5">
           <div className="w-full h-full bg-[#242424] flex flex-col">
             <Titlebar />
-            <div className="flex-1 flex">
+            <div className="flex-1 flex min-h-0">
               <Sidebar />
-              <div className="flex-1 h-full p-3.5">{children}</div>
+              <div className="flex-1 min-h-0 p-3.5 overflow-auto">{children}</div>
             </div>
           </div>
         </div>
