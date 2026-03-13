@@ -9,20 +9,22 @@ interface SidebarCardData {
   icon: ReactNode;
 }
 
+const baseUrl = import.meta.env.BASE_URL || "./";
+
 const SidebarCards: SidebarCardData[] = [
   {
     title: "Engines",
-    imageSrc: "/assets/Engines_BG.webp",
+    imageSrc: `${baseUrl}assets/Engines_BG.webp`,
     icon: <Zap size={15.5} strokeWidth={1.8} />,
   },
   {
     title: "Projects",
-    imageSrc: "/assets/Projects_BG.jpg",
+    imageSrc: `${baseUrl}assets/Projects_BG.jpg`,
     icon: <Package size={15.5} strokeWidth={1.8} />,
   },
   {
     title: "About",
-    imageSrc: "/assets/About_BG.jpg",
+    imageSrc: `${baseUrl}assets/ProjectDefault.avif`,
     icon: <Activity size={15.5} strokeWidth={1.8} />,
   },
 ];
@@ -46,16 +48,24 @@ const SidebarCard: FC<SidebarCardProps> = ({
   return (
     <button
       onClick={onClick}
-      className={`w-full relative ${isActive ? "border-blue-600" : "hover:border-white/5"} cursor-pointer h-24 rounded-md border-[#171717] border-2 overflow-hidden`}
+      className={`w-full relative ${
+        isActive 
+          ? "border-blue-600 shadow-lg shadow-blue-600/20" 
+          : "border-[#171717] hover:border-white/10"
+      } cursor-pointer h-24 rounded-md border-2 overflow-hidden transition-all duration-200`}
     >
       <img
         src={imageSrc}
         alt={title}
-        className="w-full h-full object-cover rounded-md"
+        className={`w-full h-full object-cover rounded-md transition-all duration-200 ${
+          isActive ? "scale-105" : "group-hover:scale-105"
+        }`}
       />
 
       <div
-        className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent opacity-80 z-10 rounded-md"
+        className={`absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-10 rounded-md transition-opacity duration-200 ${
+          isActive ? "opacity-90" : "opacity-80 hover:opacity-90"
+        }`}
         aria-hidden="true"
       />
 
