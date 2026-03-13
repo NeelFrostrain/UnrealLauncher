@@ -1,29 +1,35 @@
-import type { FC } from "react";
+import type { FC, ReactNode } from "react";
 import usePagesStore from "../stores/usePagesStore";
 import type { PageType } from "../types";
+import { Activity, Package, Zap } from "lucide-react";
 
 interface SidebarCardData {
   title: PageType;
   imageSrc: string;
+  icon: ReactNode;
 }
 
 const SidebarCards: SidebarCardData[] = [
   {
     title: "Engines",
     imageSrc: "/assets/Engines_BG.webp",
+    icon: <Zap size={15.5} strokeWidth={1.8} />,
   },
   {
     title: "Projects",
     imageSrc: "/assets/Projects_BG.jpg",
+    icon: <Package size={15.5} strokeWidth={1.8} />,
   },
   {
     title: "About",
     imageSrc: "/assets/About_BG.jpg",
+    icon: <Activity size={15.5} strokeWidth={1.8} />,
   },
 ];
 
 interface SidebarCardProps {
   title: PageType;
+  icon: ReactNode;
   imageSrc: string;
   isActive?: boolean;
   currentActivePage?: PageType;
@@ -32,6 +38,7 @@ interface SidebarCardProps {
 
 const SidebarCard: FC<SidebarCardProps> = ({
   title,
+  icon,
   imageSrc,
   isActive,
   onClick,
@@ -52,9 +59,10 @@ const SidebarCard: FC<SidebarCardProps> = ({
         aria-hidden="true"
       />
 
-      <p className="absolute bottom-1 left-2 text-white text-base font-semibold p-1 uppercase z-20">
+      <div className="absolute bottom-1 left-2 text-white text-base font-semibold p-1 flex justify-center items-center gap-1.5 uppercase z-20">
+        {icon}
         {title}
-      </p>
+      </div>
     </button>
   );
 };
@@ -74,6 +82,7 @@ const Sidebar = () => {
         {SidebarCards.map((card, index) => (
           <SidebarCard
             key={index}
+            icon={card.icon}
             title={card.title}
             imageSrc={card.imageSrc}
             isActive={currentPage === card.title}
