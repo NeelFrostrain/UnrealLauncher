@@ -1,4 +1,6 @@
 import { app, BrowserWindow, ipcMain, dialog, screen, shell } from 'electron';
+import pkg from 'electron-updater';
+const { autoUpdater } = pkg;
 import path from 'path';
 import fs from 'fs';
 import { spawn } from 'child_process';
@@ -7,6 +9,20 @@ import { fileURLToPath } from 'url';
 import { Worker } from 'worker_threads';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Configure auto-updater
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
+
+// Enable dev mode for testing (remove in production)
+if (process.env.NODE_ENV === 'development') {
+  autoUpdater.forceDevUpdateConfig = true;
+  // You can set a custom update server for testing
+  // autoUpdater.setFeedURL({
+  //   provider: 'generic',
+  //   url: 'http://localhost:3000/updates'
+  // });
+}
 
 // Gradient generator function
 function generateGradient() {
@@ -129,7 +145,61 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+  
+  // Check for updates after app is ready (only in production)
+  if (process.env.NODE_ENV === 'production') {
+    setTimeout(() => {
+      autoUpdater.checkForUpdates();
+    }, 3000);
+  }
+});
+
+// Auto-updater events
+autoUpdater.on('update-available', (info) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update Available',
+      message: `A new version (${info.version}) is available. Do you want to download it now?`,
+      buttons: ['Download', 'Later']
+    }).then((result) => {
+      if (result.response === 0) {
+        autoUpdater.downloadUpdate();
+      }
+    });
+  }
+});
+
+autoUpdater.on('update-downloaded', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update Ready',
+      message: 'Update downloaded. The app will restart to install the update.',
+      buttons: ['Restart Now', 'Later']
+    }).then((result) => {
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
+  }
+});
+
+autoUpdater.on('error', (err) => {
+  console.error('Auto-updater error:', err);
+  // Don't show error dialogs for 404s (no releases yet)
+  if (!err.message.includes('404') && !err.message.includes('latest.yml')) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      dialog.showMessageBox(mainWindow, {
+        type: 'error',
+        title: 'Update Error',
+        message: 'Failed to check for updates. Please try again later.'
+      });
+    }
+  }
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -141,6 +211,61 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
+});
+
+// IPC handler for manual update check
+ipcMain.handle('check-for-updates', async () => {
+  try {
+    // In development, return mock data
+    if (process.env.NODE_ENV === 'development') {
+      return { 
+        success: true, 
+        updateInfo: null,
+        message: 'Update check works! (Dev mode - build and publish a release to test updates)'
+      };
+    }
+    
+    const result = await autoUpdater.checkForUpdates();
+    
+    if (!result || !result.updateInfo) {
+      return { 
+        success: true, 
+        updateInfo: null,
+        message: 'You are using the latest version'
+      };
+    }
+    
+    return { success: true, updateInfo: result.updateInfo };
+  } catch (err) {
+    console.error('Update check error:', err);
+    
+    // Handle common errors gracefully
+    if (err.message.includes('latest.yml') || err.message.includes('404')) {
+      return { 
+        success: true, 
+        updateInfo: null,
+        message: 'No releases found. Create a GitHub release to enable updates.'
+      };
+    }
+    
+    return { 
+      success: false, 
+      error: 'Unable to check for updates. Please try again later.'
+    };
+  }
+});
+
+ipcMain.handle('download-update', async () => {
+  try {
+    await autoUpdater.downloadUpdate();
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('install-update', () => {
+  autoUpdater.quitAndInstall();
 });
 
 // IPC handlers

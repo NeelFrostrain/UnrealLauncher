@@ -1,13 +1,60 @@
 import PageWrapper from "../layout/PageWrapper";
 import PageTitleBar from "../components/PageTitlebar";
-import { Github, Zap, Package, Activity, AlertCircle, BookOpen, Code } from "lucide-react";
+import { Github, Zap, Package, Activity, AlertCircle, BookOpen, Code, Download, RefreshCw, CheckCircle } from "lucide-react";
+import { useState } from "react";
 
 const AboutPage = () => {
+  const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'no-update' | 'error'>('idle');
+  const [updateMessage, setUpdateMessage] = useState('');
+  const [updateVersion, setUpdateVersion] = useState('');
+
+  const handleCheckForUpdates = async () => {
+    if (!window.electronAPI?.checkForUpdates) return;
+    
+    setUpdateStatus('checking');
+    setUpdateMessage('Checking for updates...');
+    
+    const result = await window.electronAPI.checkForUpdates();
+    
+    if (result.success && result.updateInfo) {
+      setUpdateStatus('available');
+      setUpdateVersion(result.updateInfo.version);
+      setUpdateMessage(`Version ${result.updateInfo.version} is available!`);
+    } else if (result.success) {
+      setUpdateStatus('no-update');
+      setUpdateMessage(result.message || 'You are using the latest version');
+    } else {
+      setUpdateStatus('error');
+      setUpdateMessage(result.error || 'Failed to check for updates');
+    }
+  };
+
+  const handleDownloadUpdate = async () => {
+    if (!window.electronAPI?.downloadUpdate) return;
+    
+    setUpdateStatus('downloading');
+    setUpdateMessage('Downloading update...');
+    
+    const result = await window.electronAPI.downloadUpdate();
+    
+    if (result.success) {
+      setUpdateStatus('ready');
+      setUpdateMessage('Update downloaded and ready to install');
+    } else {
+      setUpdateStatus('error');
+      setUpdateMessage(result.error || 'Failed to download update');
+    }
+  };
+
+  const handleInstallUpdate = () => {
+    if (!window.electronAPI?.installUpdate) return;
+    window.electronAPI.installUpdate();
+  };
   return (
     <PageWrapper>
       <PageTitleBar title="About" description="Information about Unreal Launcher" />
 
-      <div className="w-full h-full py-3 px-2 min-h-0">
+      <div className="flex-1 overflow-y-auto py-3 px-2">
         <div className="max-w-4xl mx-auto space-y-6 pb-8">
           {/* Header */}
           {/* <div className="text-center space-y-4">
@@ -175,6 +222,78 @@ const AboutPage = () => {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-white/50">License</span>
                 <span className="text-sm text-white/90">MIT</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Update Section */}
+          <div>
+            <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
+              <RefreshCw size={20} className="text-blue-400" />
+              Updates
+            </h2>
+            <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm text-white/90 mb-1">Check for updates</p>
+                  {updateMessage && (
+                    <p className={`text-xs ${
+                      updateStatus === 'error' ? 'text-red-400' :
+                      updateStatus === 'available' ? 'text-yellow-400' :
+                      updateStatus === 'ready' ? 'text-green-400' :
+                      'text-white/50'
+                    }`}>
+                      {updateMessage}
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  {(updateStatus === 'idle' || updateStatus === 'no-update' || updateStatus === 'error') && (
+                    <button
+                      onClick={handleCheckForUpdates}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 border border-blue-500/50 rounded-lg text-sm transition-colors cursor-pointer"
+                    >
+                      <RefreshCw size={16} />
+                      Check for Updates
+                    </button>
+                  )}
+                  {updateStatus === 'checking' && (
+                    <button
+                      disabled
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600/50 border border-blue-500/50 rounded-lg text-sm cursor-not-allowed"
+                    >
+                      <RefreshCw size={16} className="animate-spin" />
+                      Checking...
+                    </button>
+                  )}
+                  {updateStatus === 'available' && (
+                    <button
+                      onClick={handleDownloadUpdate}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 border border-green-500/50 rounded-lg text-sm transition-colors cursor-pointer"
+                    >
+                      <Download size={16} />
+                      Download v{updateVersion}
+                    </button>
+                  )}
+                  {updateStatus === 'downloading' && (
+                    <button
+                      disabled
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600/50 border border-green-500/50 rounded-lg text-sm cursor-not-allowed"
+                    >
+                      <Download size={16} className="animate-pulse" />
+                      Downloading...
+                    </button>
+                  )}
+                  {updateStatus === 'ready' && (
+                    <button
+                      onClick={handleInstallUpdate}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 border border-purple-500/50 rounded-lg text-sm transition-colors cursor-pointer"
+                    >
+                      <CheckCircle size={16} />
+                      Install & Restart
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>

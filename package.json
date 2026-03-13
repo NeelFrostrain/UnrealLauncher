@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
+    "electron-updater": "^6.8.3",
     "lucide-react": "^0.577.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -73,6 +74,11 @@
     },
     "linux": {
       "icon": "public/Icon.png"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "NeelFrostrain",
+      "repo": "UnrealLauncher"
     }
   }
 }

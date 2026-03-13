@@ -51,6 +51,9 @@ declare global {
       openExternal: (
         url: string,
       ) => Promise<{ success: boolean; error?: string }>;
+      checkForUpdates: () => Promise<{ success: boolean; updateInfo?: any; message?: string; error?: string }>;
+      downloadUpdate: () => Promise<{ success: boolean; error?: string }>;
+      installUpdate: () => void;
     };
   }
 }
