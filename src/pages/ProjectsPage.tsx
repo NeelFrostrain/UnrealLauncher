@@ -10,9 +10,9 @@ const baseUrl = import.meta.env.BASE_URL || "./";
 const resolveAsset = (path?: string) => {
   if (!path) return `${baseUrl}assets/ProjectDefault.avif`;
   // If it's an absolute file path (local screenshot), convert to file:// URL
-  if (path.includes(':\\') || (path.includes('/') && !path.startsWith('http'))) {
+  if (path.includes(":\\") || (path.includes("/") && !path.startsWith("http"))) {
     // Normalize path separators and ensure proper file:// format
-    const normalizedPath = path.replace(/\\/g, '/');
+    const normalizedPath = path.replace(/\\/g, "/");
     return `file:///${normalizedPath}`;
   }
   if (path.startsWith("http") || path.startsWith("data:") || path.startsWith("file:")) return path;
@@ -45,17 +45,7 @@ const ProjectCard: FC<
     onOpenDir: (dirPath: string) => void;
     onDelete: (projectPath: string) => void;
   }
-> = ({
-  createdAt,
-  name,
-  size,
-  version,
-  thumbnail,
-  projectPath,
-  onLaunch,
-  onOpenDir,
-  onDelete,
-}) => {
+> = ({ createdAt, name, size, version, thumbnail, projectPath, onLaunch, onOpenDir, onDelete }) => {
   const [launching, setLaunching] = useState(false);
   const [currentSize, setCurrentSize] = useState(size);
   const [imageSrc, setImageSrc] = useState<string>(resolveAsset(undefined));
@@ -111,8 +101,8 @@ const ProjectCard: FC<
           onClick={() => projectPath && onOpenDir(projectPath)}
           title="Open Directory"
         />
-        <ProjectCardButton 
-          icon={<Trash2 size={16} />} 
+        <ProjectCardButton
+          icon={<Trash2 size={16} />}
           onClick={() => projectPath && onDelete(projectPath)}
           title="Remove from list"
         />
@@ -124,7 +114,7 @@ const ProjectCard: FC<
           src={imageSrc}
           alt={name}
           className="w-full h-full object-cover opacity-100 group-hover:opacity-40 transition-opacity"
-          onError={(e) => {
+          onError={e => {
             e.currentTarget.src = resolveAsset(undefined);
           }}
         />
@@ -132,11 +122,11 @@ const ProjectCard: FC<
           src={resolveAsset(thumbnail)}
           alt={name}
           className="w-full h-full object-cover opacity-100 group-hover:opacity-40 transition-opacity"
-          onError={(e) => {
+          onError={e => {
             e.currentTarget.src = resolveAsset(undefined);
           }}
         />
-        <div className="absolute top-2 right-2 z-10 bg-black/60 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded text-[10px] font-mono text-blue-400">
+        <div className="absolute top-2 right-2 z-10 bg-black/60 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded text-xs font-mono text-blue-500">
           {version}
         </div>
       </div>
@@ -146,21 +136,20 @@ const ProjectCard: FC<
 
       {/* Info Section */}
       <div className="w-full p-3 flex flex-col justify-between h-[calc(100%-114px)]">
-        <p className="text-sm font-semibold truncate text-gray-200 uppercase tracking-wider" title={name}>
+        <p
+          className="text-sm font-semibold truncate text-gray-200 uppercase tracking-wider"
+          title={name}
+        >
           {name}
         </p>
 
         <div className="flex justify-between items-center mt-auto">
           <div className="flex flex-col">
-            <span className="text-[10px] text-gray-500 uppercase font-bold">
-              Created
-            </span>
+            <span className="text-[10px] text-gray-500 uppercase font-bold">Created</span>
             <span className="text-xs text-gray-400">{createdAt}</span>
           </div>
           <div className="flex flex-col text-right">
-            <span className="text-[10px] text-gray-500 uppercase font-bold">
-              Size
-            </span>
+            <span className="text-[10px] text-gray-500 uppercase font-bold">Size</span>
             <span className="text-xs text-gray-400 font-mono">{currentSize}</span>
           </div>
         </div>
@@ -186,15 +175,13 @@ const ProjectsPage = () => {
       }
     };
     loadSavedProjects();
-    
+
     // Listen for size updates
     if (window.electronAPI) {
-      window.electronAPI.onSizeCalculated((data) => {
-        if (data.type === 'project') {
-          setProjects((prev) =>
-            prev.map((p) =>
-              p.projectPath === data.path ? { ...p, size: data.size } : p
-            )
+      window.electronAPI.onSizeCalculated(data => {
+        if (data.type === "project") {
+          setProjects(prev =>
+            prev.map(p => (p.projectPath === data.path ? { ...p, size: data.size } : p))
           );
         }
       });
@@ -207,17 +194,15 @@ const ProjectsPage = () => {
       try {
         const scannedProjects = await window.electronAPI.scanProjects();
         setProjects([...scannedProjects]);
-        
+
         // Calculate sizes for all projects with estimates
         for (const project of scannedProjects) {
-          if (project.projectPath && project.size.startsWith('~')) {
+          if (project.projectPath && project.size.startsWith("~")) {
             window.electronAPI.calculateProjectSize(project.projectPath).then(result => {
               if (result.success && result.size) {
-                setProjects(prev => 
-                  prev.map(p => 
-                    p.projectPath === project.projectPath 
-                      ? { ...p, size: result.size! } 
-                      : p
+                setProjects(prev =>
+                  prev.map(p =>
+                    p.projectPath === project.projectPath ? { ...p, size: result.size! } : p
                   )
                 );
               }
@@ -248,7 +233,7 @@ const ProjectsPage = () => {
 
   const handleDelete = async (projectPath: string) => {
     if (confirm("Remove this project from the list? (Files will not be deleted)")) {
-      setProjects((prev) => prev.filter((p) => p.projectPath !== projectPath));
+      setProjects(prev => prev.filter(p => p.projectPath !== projectPath));
       if (window.electronAPI) {
         await window.electronAPI.deleteProject(projectPath);
       }
@@ -259,9 +244,7 @@ const ProjectsPage = () => {
     if (!window.electronAPI) return;
     const project = await window.electronAPI.selectProjectFolder();
     if (!project) {
-      alert(
-        "Project already exists or no valid Unreal project folder found.",
-      );
+      alert("Project already exists or no valid Unreal project folder found.");
       return;
     }
     // Check if already in UI state
@@ -269,17 +252,15 @@ const ProjectsPage = () => {
       alert("This project is already added.");
       return;
     }
-    setProjects((prev) => [project, ...prev]);
-    
+    setProjects(prev => [project, ...prev]);
+
     // Calculate size for the new project if it has an estimate
-    if (project.projectPath && project.size.startsWith('~')) {
+    if (project.projectPath && project.size.startsWith("~")) {
       window.electronAPI.calculateProjectSize(project.projectPath).then(result => {
         if (result.success && result.size) {
-          setProjects(prev => 
-            prev.map(p => 
-              p.projectPath === project.projectPath 
-                ? { ...p, size: result.size! } 
-                : p
+          setProjects(prev =>
+            prev.map(p =>
+              p.projectPath === project.projectPath ? { ...p, size: result.size! } : p
             )
           );
         }
@@ -315,7 +296,9 @@ const ProjectsPage = () => {
         ) : (
           <div className="col-span-full flex flex-col items-center justify-center h-full text-center text-white/50">
             <p className="text-lg mb-2">No projects found</p>
-            <p className="text-sm text-white/30 mb-4">Click "Scan for Projects" to search or add manually</p>
+            <p className="text-sm text-white/30 mb-4">
+              Click "Scan for Projects" to search or add manually
+            </p>
           </div>
         )}
       </div>
