@@ -38,10 +38,19 @@ declare global {
       windowIsMaximized: () => Promise<boolean>;
       deleteEngine: (directoryPath: string) => Promise<boolean>;
       deleteProject: (projectPath: string) => Promise<boolean>;
-      onSizeCalculated: (callback: (data: { type: string; path: string; size: string }) => void) => void;
-      calculateEngineSize: (directoryPath: string) => Promise<{ success: boolean; size?: string; error?: string }>;
-      calculateProjectSize: (projectPath: string) => Promise<{ success: boolean; size?: string; error?: string }>;
+      onSizeCalculated: (
+        callback: (data: { type: string; path: string; size: string }) => void,
+      ) => void;
+      calculateEngineSize: (
+        directoryPath: string,
+      ) => Promise<{ success: boolean; size?: string; error?: string }>;
+      calculateProjectSize: (
+        projectPath: string,
+      ) => Promise<{ success: boolean; size?: string; error?: string }>;
       loadImage: (imagePath: string) => Promise<string | null>;
+      openExternal: (
+        url: string,
+      ) => Promise<{ success: boolean; error?: string }>;
     };
   }
 }

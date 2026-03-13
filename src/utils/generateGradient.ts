@@ -21,7 +21,8 @@ export const generateGradient = (): string => {
     "#f59e0b",
   ];
 
-  const random = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
+  const random = <T>(arr: T[]): T =>
+    arr[Math.floor(Math.random() * arr.length)];
 
   const dirKey = random(Object.keys(directions));
   const from = random(colors);

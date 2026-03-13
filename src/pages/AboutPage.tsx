@@ -1,6 +1,15 @@
 import PageWrapper from "../layout/PageWrapper";
 import PageTitleBar from "../components/PageTitlebar";
-import { Github, Heart, Zap, Package, Activity, AlertCircle, BookOpen, Code } from "lucide-react";
+import {
+  Github,
+  Heart,
+  Zap,
+  Package,
+  Activity,
+  AlertCircle,
+  BookOpen,
+  Code,
+} from "lucide-react";
 
 const AboutPage = () => {
   return (
@@ -9,7 +18,7 @@ const AboutPage = () => {
         title="About"
         description="Information about Unreal Launcher"
       />
-      
+
       <div className="w-full h-full py-3 px-2 min-h-0">
         <div className="max-w-4xl mx-auto space-y-6 pb-8">
           {/* Header */}
@@ -21,7 +30,9 @@ const AboutPage = () => {
               Unreal Launcher
             </h1>
             <p className="text-white/50 text-sm max-w-xl mx-auto">
-              A modern, lightweight launcher for managing Unreal Engine installations and projects. Built with Electron, React, and TypeScript for a fast and responsive experience.
+              A modern, lightweight launcher for managing Unreal Engine
+              installations and projects. Built with Electron, React, and
+              TypeScript for a fast and responsive experience.
             </p>
           </div>
 
@@ -35,30 +46,47 @@ const AboutPage = () => {
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
                   <Package className="text-blue-400" size={20} />
-                  <h3 className="text-sm font-semibold text-white/90">Engine Management</h3>
+                  <h3 className="text-sm font-semibold text-white/90">
+                    Engine Management
+                  </h3>
                 </div>
-                <p className="text-xs text-white/50">Scan and manage multiple Unreal Engine versions (UE4 & UE5)</p>
+                <p className="text-xs text-white/50">
+                  Scan and manage multiple Unreal Engine versions (UE4 & UE5)
+                </p>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
                   <Activity className="text-purple-400" size={20} />
-                  <h3 className="text-sm font-semibold text-white/90">Project Tracking</h3>
+                  <h3 className="text-sm font-semibold text-white/90">
+                    Project Tracking
+                  </h3>
                 </div>
-                <p className="text-xs text-white/50">Automatically find and organize your Unreal projects with thumbnails</p>
+                <p className="text-xs text-white/50">
+                  Automatically find and organize your Unreal projects with
+                  thumbnails
+                </p>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
                   <Zap className="text-green-400" size={20} />
-                  <h3 className="text-sm font-semibold text-white/90">Quick Launch</h3>
+                  <h3 className="text-sm font-semibold text-white/90">
+                    Quick Launch
+                  </h3>
                 </div>
-                <p className="text-xs text-white/50">Launch engines and projects with a single click</p>
+                <p className="text-xs text-white/50">
+                  Launch engines and projects with a single click
+                </p>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
                   <Code className="text-yellow-400" size={20} />
-                  <h3 className="text-sm font-semibold text-white/90">Size Calculation</h3>
+                  <h3 className="text-sm font-semibold text-white/90">
+                    Size Calculation
+                  </h3>
                 </div>
-                <p className="text-xs text-white/50">Calculate exact folder sizes with background processing</p>
+                <p className="text-xs text-white/50">
+                  Calculate exact folder sizes with background processing
+                </p>
               </div>
             </div>
           </div>
@@ -71,20 +99,42 @@ const AboutPage = () => {
             </h2>
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-white/90">1. Scan for Engines & Projects</h3>
-                <p className="text-xs text-white/50">Click "Scan for Engines" or "Scan for Projects" to automatically detect installations. The app searches common locations and calculates sizes in the background.</p>
+                <h3 className="text-sm font-semibold text-white/90">
+                  1. Scan for Engines & Projects
+                </h3>
+                <p className="text-xs text-white/50">
+                  Click "Scan for Engines" or "Scan for Projects" to
+                  automatically detect installations. The app searches common
+                  locations and calculates sizes in the background.
+                </p>
               </div>
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-white/90">2. Add Manually</h3>
-                <p className="text-xs text-white/50">Use "Add Engine" or "Add Project" buttons to manually select folders if they're in custom locations.</p>
+                <h3 className="text-sm font-semibold text-white/90">
+                  2. Add Manually
+                </h3>
+                <p className="text-xs text-white/50">
+                  Use "Add Engine" or "Add Project" buttons to manually select
+                  folders if they're in custom locations.
+                </p>
               </div>
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-white/90">3. Launch & Manage</h3>
-                <p className="text-xs text-white/50">Click the Launch button to start engines or projects. Hover over cards to access additional options like opening directories or removing from the list.</p>
+                <h3 className="text-sm font-semibold text-white/90">
+                  3. Launch & Manage
+                </h3>
+                <p className="text-xs text-white/50">
+                  Click the Launch button to start engines or projects. Hover
+                  over cards to access additional options like opening
+                  directories or removing from the list.
+                </p>
               </div>
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-white/90">4. Track Usage</h3>
-                <p className="text-xs text-white/50">The app automatically tracks when you last launched each engine, helping you manage your installations.</p>
+                <h3 className="text-sm font-semibold text-white/90">
+                  4. Track Usage
+                </h3>
+                <p className="text-xs text-white/50">
+                  The app automatically tracks when you last launched each
+                  engine, helping you manage your installations.
+                </p>
               </div>
             </div>
           </div>
@@ -98,26 +148,40 @@ const AboutPage = () => {
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-3">
               <div className="flex gap-3">
                 <span className="text-yellow-400 mt-0.5">•</span>
-                <p className="text-xs text-white/50">Size calculation may take time for large folders (30+ GB). The app remains responsive during calculation.</p>
+                <p className="text-xs text-white/50">
+                  Size calculation may take time for large folders (30+ GB). The
+                  app remains responsive during calculation.
+                </p>
               </div>
               <div className="flex gap-3">
                 <span className="text-yellow-400 mt-0.5">•</span>
-                <p className="text-xs text-white/50">Removing engines or projects from the list does NOT delete files from disk - only removes them from the launcher.</p>
+                <p className="text-xs text-white/50">
+                  Removing engines or projects from the list does NOT delete
+                  files from disk - only removes them from the launcher.
+                </p>
               </div>
               <div className="flex gap-3">
                 <span className="text-yellow-400 mt-0.5">•</span>
-                <p className="text-xs text-white/50">Project thumbnails are loaded from Saved/AutoScreenshot.png if available.</p>
+                <p className="text-xs text-white/50">
+                  Project thumbnails are loaded from Saved/AutoScreenshot.png if
+                  available.
+                </p>
               </div>
               <div className="flex gap-3">
                 <span className="text-yellow-400 mt-0.5">•</span>
-                <p className="text-xs text-white/50">The app scans these default paths: D:\Engine\UnrealEditors, C:\Program Files\Epic Games, Documents\Unreal Projects</p>
+                <p className="text-xs text-white/50">
+                  The app scans these default paths: D:\Engine\UnrealEditors,
+                  C:\Program Files\Epic Games, Documents\Unreal Projects
+                </p>
               </div>
             </div>
           </div>
 
           {/* Technical Info */}
           <div>
-            <h2 className="text-xl font-bold text-white/90 mb-4">Technical Details</h2>
+            <h2 className="text-xl font-bold text-white/90 mb-4">
+              Technical Details
+            </h2>
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-white/50">Version</span>
@@ -149,27 +213,33 @@ const AboutPage = () => {
           {/* Footer */}
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-4">
-              <a
-                href="https://github.com/yourusername/unreallauncher"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() =>
+                  window.electronAPI.openExternal(
+                    "https://github.com/NeelFrostrain/UnrealLauncher",
+                  )
+                }
                 className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors cursor-pointer"
               >
                 <Github size={16} />
                 View on GitHub
-              </a>
-              <a
-                href="https://github.com/yourusername/unreallauncher/issues"
-                target="_blank"
-                rel="noopener noreferrer"
+              </button>
+              <button
+                onClick={() =>
+                  window.electronAPI.openExternal(
+                    "https://github.com/NeelFrostrain/UnrealLauncher/issues",
+                  )
+                }
                 className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors cursor-pointer"
               >
                 <AlertCircle size={16} />
                 Report Issue
-              </a>
+              </button>
             </div>
             <p className="text-xs text-white/30 flex items-center justify-center gap-1">
-              Made with <Heart size={12} className="text-red-500" fill="currentColor" /> for the Unreal Engine community
+              Made with{" "}
+              <Heart size={12} className="text-red-500" fill="currentColor" />{" "}
+              for the Unreal Engine community
             </p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, screen, shell } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { spawn } from 'child_process';
@@ -648,6 +648,14 @@ ipcMain.handle('calculate-project-size', async (event, projectPath) => {
     }
     
     return { success: true, size: sizeStr };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+ipcMain.handle('open-external', async (event, url) => {
+  try {
+    await shell.openExternal(url);
+    return { success: true };
   } catch (err) {
     return { success: false, error: err.message };
   }

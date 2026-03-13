@@ -4,6 +4,10 @@
   "version": "1.0.0",
   "main": "electron/main.js",
   "homepage": "./",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NeelFrostrain/UnrealLauncher.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -44,6 +48,7 @@
   "build": {
     "appId": "com.unreal.launcher",
     "productName": "Unreal Launcher",
+    "forceCodeSigning": false,
     "directories": {
       "output": "dist-electron"
     },
@@ -55,7 +60,13 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "public/Icon.ico"
+      "icon": "public/Icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
     },
     "mac": {
       "icon": "public/Icon.png"
