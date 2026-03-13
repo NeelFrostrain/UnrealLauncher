@@ -185,7 +185,7 @@ const AboutPage = () => {
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-white/50">Version</span>
-                <span className="text-sm font-mono text-white/90">1.0.0</span>
+                <span className="text-sm font-mono text-white/90">1.1.0</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-white/50">Framework</span>
