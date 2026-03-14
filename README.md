@@ -193,7 +193,7 @@ If you encounter any issues or have questions:
 
 - 🐛 [Open an Issue](https://github.com/NeelFrostrain/UnrealLauncher/issues)
 - 💬 [Start a Discussion](https://github.com/NeelFrostrain/UnrealLauncher/discussions)
-- 📧 Contact: example.com
+- 📧 Contact: nfrostrain@gmail.com
 
 ### 🙏 Support the Project
 
