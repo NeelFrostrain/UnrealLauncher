@@ -243,13 +243,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ⚛️ **React Team** - For the best frontend library
 - 🎨 **Tailwind CSS** - For the utility-first CSS framework
 
-## 📞 Support
+## � Support & Donations
 
 If you encounter any issues or have questions:
 
 - 🐛 [Open an Issue](https://github.com/NeelFrostrain/UnrealLauncher/issues)
 - 💬 [Start a Discussion](https://github.com/NeelFrostrain/UnrealLauncher/discussions)
 - 📧 Contact: example.com
+
+### 🙏 Support the Project
+
+If you want to help keep Unreal Launcher growing, consider supporting the project:
+
+- 🧡 [Donate](DONATE.md)
+- ⭐ Star the repo to help others find it
 
 ---
 
