@@ -4,7 +4,7 @@
 
 If you discover a security issue in Unreal Launcher, please report it privately.
 
-Send an email to: `security@example.com` (replace with a real address for production use).
+Send an email to: `nfrostrain@gmail.com`.
 
 Please include:
 
