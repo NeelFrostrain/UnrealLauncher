@@ -210,6 +210,15 @@ The app features a dark theme optimized for long development sessions with:
 
 We welcome contributions! 🎉
 
+Before you begin, please read through these documents:
+
+- 📘 [Contributing Guide](CONTRIBUTING.md)
+- 🧾 [Code of Conduct](CODE_OF_CONDUCT.md)
+- 🔐 [Security Policy](SECURITY.md)
+- 📝 [Changelog](CHANGELOG.md)
+
+### How to contribute
+
 1. 🍴 Fork the repository
 2. 🌿 Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. 💾 Commit your changes (`git commit -m 'Add amazing feature'`)

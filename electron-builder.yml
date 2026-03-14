@@ -2,6 +2,7 @@ appId: com.electron.app
 productName: Unreal Launcher
 directories:
   buildResources: build
+  output: dist
 files:
   - '!**/.vscode/*'
   - '!src/*'
@@ -12,10 +13,16 @@ files:
 asarUnpack:
   - resources/**
 forceCodeSigning: false
+compression: maximum
+afterSign: false
+afterAllArtifactBuild: false
 
 win:
   executableName: unreallauncher
   icon: build/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -23,6 +30,9 @@ nsis:
   createDesktopShortcut: always
   oneClick: false
   allowToChangeInstallationDirectory: true
+  include: build/installer.nsh
+  warningsAsErrors: false
+
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
@@ -31,15 +41,23 @@ mac:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
+  target:
+    - target: dmg
+      arch: [x64, arm64]
 dmg:
   artifactName: ${name}-${version}.${ext}
+  background: build/background.png
+  window:
+    width: 540
+    height: 380
+
 linux:
   target:
     - AppImage
-    - snap
     - deb
   maintainer: electronjs.org
   category: Utility
+  executableName: unreallauncher
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false

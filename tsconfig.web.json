@@ -14,6 +14,18 @@
       "@renderer/*": [
         "src/renderer/src/*"
       ]
-    }
+    },
+    "incremental": true,
+    "tsBuildInfoFile": "node_modules/.cache/tsconfig.web.tsbuildinfo",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true
   }
 }

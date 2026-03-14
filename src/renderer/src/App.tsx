@@ -1,15 +1,39 @@
-import AboutPage from './pages/AboutPage'
-import EnginesPage from './pages/EnginesPage'
-import ProjectsPage from './pages/ProjectsPage'
+import { lazy, Suspense } from 'react'
 import usePagesStore from './store/usePagesStore'
+
+// Lazy load pages for better performance
+const AboutPage = lazy(() => import('./pages/AboutPage'))
+const EnginesPage = lazy(() => import('./pages/EnginesPage'))
+const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
+
+// Loading component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+      <p className="text-white/70">Loading...</p>
+    </div>
+  </div>
+)
 
 const App = () => {
   const { currentPage } = usePagesStore()
 
-  if (currentPage === 'Engines') return <EnginesPage />
-  if (currentPage === 'Projects') return <ProjectsPage />
-  if (currentPage === 'About') return <AboutPage />
-  return <div className="uppercase">Restart App</div>
+  return (
+    <Suspense fallback={<PageLoader />}>
+      {currentPage === 'Engines' && <EnginesPage />}
+      {currentPage === 'Projects' && <ProjectsPage />}
+      {currentPage === 'About' && <AboutPage />}
+      {!['Engines', 'Projects', 'About'].includes(currentPage) && (
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-white mb-4">Restart App</h1>
+            <p className="text-white/70">Please restart the application</p>
+          </div>
+        </div>
+      )}
+    </Suspense>
+  )
 }
 
 export default App

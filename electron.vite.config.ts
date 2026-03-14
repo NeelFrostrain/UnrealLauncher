@@ -12,6 +12,22 @@ export default defineConfig({
         '@renderer': resolve('src/renderer/src')
       }
     },
-    plugins: [react(), tailwindcss()]
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom'],
+            ui: ['lucide-react', 'zustand']
+          }
+        }
+      },
+      minify: 'terser',
+      sourcemap: false,
+      assetsInlineLimit: 4096
+    },
+    plugins: [react(), tailwindcss()],
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'lucide-react', 'zustand']
+    }
   }
 })
