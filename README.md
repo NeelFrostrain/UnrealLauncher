@@ -206,5 +206,4 @@ If you want to help keep Unreal Launcher growing, consider supporting the projec
 
 <div align="center">
   <p><strong>Made By</strong> Neel Frostrain</p>
-  <p>⭐ Star this repo if you find it helpful!</p>
 </div>
