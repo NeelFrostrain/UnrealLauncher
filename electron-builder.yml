@@ -14,8 +14,6 @@ asarUnpack:
   - resources/**
 forceCodeSigning: false
 compression: maximum
-afterSign: false
-afterAllArtifactBuild: false
 
 win:
   executableName: unreallauncher

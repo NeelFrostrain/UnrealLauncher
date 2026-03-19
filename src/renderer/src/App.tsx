@@ -8,9 +8,9 @@ const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
 
 // Loading component
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
+  <div className="flex items-center justify-center min-h-screen">
     <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+      {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"></div> */}
       <p className="text-white/70">Loading...</p>
     </div>
   </div>
@@ -25,7 +25,7 @@ const App = () => {
       {currentPage === 'Projects' && <ProjectsPage />}
       {currentPage === 'About' && <AboutPage />}
       {!['Engines', 'Projects', 'About'].includes(currentPage) && (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-slate-900 to-slate-800">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-white mb-4">Restart App</h1>
             <p className="text-white/70">Please restart the application</p>
