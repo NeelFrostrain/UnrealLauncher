@@ -204,6 +204,6 @@ If you want to help keep Unreal Launcher growing, consider supporting the projec
 
 ---
 
-<div align="center">
+<div align="left">
   <p><strong>Made By</strong> Neel Frostrain</p>
 </div>
