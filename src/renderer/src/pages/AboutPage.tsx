@@ -222,10 +222,10 @@ const AboutPage = (): React.ReactElement => {
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
                   <RefreshIcon className="text-orange-400" sx={{ fontSize: 20 }} />
-                  <h3 className="text-sm font-semibold text-white/90">Favorites System</h3>
+                  <h3 className="text-sm font-semibold text-white/90">Recent Projects</h3>
                 </div>
                 <p className="text-xs text-white/50">
-                  Mark and quickly access your favorite projects
+                  Sorted by actual last-opened time using Saved/Logs timestamps
                 </p>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
@@ -685,31 +685,25 @@ const AboutPage = (): React.ReactElement => {
           <div>
             <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
               <MenuBookIcon sx={{ fontSize: 20 }} className="text-yellow-400" />
-              What&apos;s New in v1.7.0
+              What&apos;s New (dev)
             </h2>
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-green-400">✅ Added</h3>
                 <ul className="text-xs text-white/50 space-y-1 ml-4">
-                  <li>• Settings Page: Complete settings interface for customizing app behavior</li>
-                  <li>• Favorites System: Mark and quickly access favorite projects</li>
-                  <li>
-                    • Advanced Animations: Beautiful framer-motion animations throughout the UI
-                  </li>
-                  <li>• Enhanced Search: Improved search functionality with better UX</li>
-                  <li>• Toast Notifications: Real-time feedback for user actions</li>
-                  <li>• Single Instance Lock: Prevents multiple app instances</li>
-                  <li>• Global Button Animations: Hover and click effects across the app</li>
-                  <li>• Asset Resolver: Better handling of project thumbnails</li>
+                  <li>• Recent Projects tab now sorted by actual last-opened time from Saved/Logs</li>
+                  <li>• Migrated all icons from lucide-react to MUI icons-material</li>
+                  <li>• GitHub Version Check: compare installed vs latest GitHub release</li>
+                  <li>• App Version IPC: renderer now reads the real app version</li>
                 </ul>
               </div>
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-blue-400">🛠️ Fixed</h3>
                 <ul className="text-xs text-white/50 space-y-1 ml-4">
-                  <li>• Updated About page to display correct app version</li>
-                  <li>• Improved TypeScript configuration compatibility</li>
-                  <li>• Fixed HTML entity escaping in JSX components</li>
-                  <li>• Enhanced search bar styling and functionality</li>
+                  <li>• lastOpenedAt was missing from ProjectData type — now flows to renderer correctly</li>
+                  <li>• ProjectCard useEffect missing async wrapper caused a parse error on await</li>
+                  <li>• Log scanner now only reads top-level Saved/Logs files, not subdirectories</li>
+                  <li>• Recent tab no longer falls back to createdAt for projects never opened</li>
                 </ul>
               </div>
               <button
