@@ -177,8 +177,8 @@ const ProjectsPage = (): React.ReactElement => {
   const [allProjects, setAllProjects] = useState<Project[]>([])
 
   // Define loadProjectsForTab first before using it in useEffect
-  const loadProjectsForTab = useCallback(async (tab: TabType): Promise<void> => {
-    if (!window.electronAPI) return
+  const loadProjectsForTab = useCallback(async (tab: TabType): Promise<Project[]> => {
+    if (!window.electronAPI) return []
 
     try {
       // Always fetch fresh data from the file system
@@ -219,8 +219,11 @@ const ProjectsPage = (): React.ReactElement => {
           })
         }
       }
+
+      return filtered
     } catch (err) {
       console.error('Failed to load projects for tab:', tab, err)
+      return []
     }
   }, [])
 
@@ -271,29 +274,11 @@ const ProjectsPage = (): React.ReactElement => {
 
   const handleScan = async (): Promise<void> => {
     setScanning(true)
-    if (window.electronAPI) {
-      try {
-        const scannedProjects = await window.electronAPI.scanProjects()
-        setAllProjects(scannedProjects)
-        setProjects(scannedProjects)
-
-        // Calculate sizes for all projects with estimates
-        for (const project of scannedProjects) {
-          if (project.projectPath && project.size.startsWith('~')) {
-            window.electronAPI.calculateProjectSize(project.projectPath).then((result) => {
-              if (result.success && result.size) {
-                setProjects((prev) =>
-                  prev.map((p) =>
-                    p.projectPath === project.projectPath ? { ...p, size: result.size! } : p
-                  )
-                )
-              }
-            })
-          }
-        }
-      } catch (err) {
-        console.error('Failed to scan projects:', err)
-      }
+    const filteredProjects = await loadProjectsForTab(currentTab)
+    if (filteredProjects.length === 0 && currentTab === 'all') {
+      alert(
+        'No Unreal projects were found in your standard scan locations. Use Add Project to add one manually.'
+      )
     }
     setScanning(false)
   }
