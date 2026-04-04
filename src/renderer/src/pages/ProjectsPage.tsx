@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import { useEffect, useState, useCallback } from 'react'
 import PageWrapper from '../layout/PageWrapper'
 import type { Project } from '../types'
-import { FolderOpen, Play, Trash2, RefreshCw, Plus, Search } from 'lucide-react'
+import { FolderOpen, Play, Trash2, RefreshCw, Plus, Search, Star, StarOff } from 'lucide-react'
 
 const baseUrl = import.meta.env.BASE_URL || './'
 
@@ -42,6 +42,8 @@ const ProjectCardButton = ({
 
 const ProjectCard: FC<
   Project & {
+    isFavorite: boolean
+    onToggleFavorite: (projectPath: string) => void
     onLaunch: (projectPath: string) => void
     onOpenDir: (dirPath: string) => void
     onDelete: (projectPath: string) => void
@@ -53,6 +55,8 @@ const ProjectCard: FC<
   version,
   thumbnail,
   projectPath,
+  isFavorite,
+  onToggleFavorite,
   onLaunch,
   onOpenDir,
   onDelete
@@ -108,6 +112,11 @@ const ProjectCard: FC<
           title="Launch Project"
         />
         <ProjectCardButton
+          icon={isFavorite ? <Star size={16} /> : <StarOff size={16} />}
+          onClick={() => projectPath && onToggleFavorite(projectPath)}
+          title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        />
+        <ProjectCardButton
           icon={<FolderOpen size={16} />}
           onClick={() => projectPath && onOpenDir(projectPath)}
           title="Open Directory"
@@ -138,7 +147,7 @@ const ProjectCard: FC<
           }}
         />
         <div className="absolute top-2 right-2 z-10 bg-black/60 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded text-xs font-mono text-blue-500">
-          {version}
+          {version.length > 10 ? version.slice(0, 5) + '...' : version}
         </div>
       </div>
 
@@ -177,6 +186,34 @@ const ProjectsPage = (): React.ReactElement => {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
+  const getFavoritePaths = (): string[] => {
+    try {
+      return JSON.parse(localStorage.getItem('projectFavorites') || '[]')
+    } catch {
+      return []
+    }
+  }
+
+  const saveFavoritePaths = (paths: string[]): void => {
+    localStorage.setItem('projectFavorites', JSON.stringify(paths))
+  }
+
+  const toggleFavoritePath = (projectPath: string): void => {
+    const favorites = getFavoritePaths()
+    const updated = favorites.includes(projectPath)
+      ? favorites.filter((path) => path !== projectPath)
+      : [...favorites, projectPath]
+    saveFavoritePaths(updated)
+
+    if (currentTab === 'favorites') {
+      void loadProjectsForTab('favorites')
+    } else {
+      setProjects((prev) =>
+        prev.map((project) => (project.projectPath === projectPath ? { ...project } : project))
+      )
+    }
+  }
+
   // Define loadProjectsForTab first before using it in useEffect
   const loadProjectsForTab = useCallback(async (tab: TabType): Promise<Project[]> => {
     if (!window.electronAPI) return []
@@ -195,11 +232,8 @@ const ProjectsPage = (): React.ReactElement => {
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 20) // Limit to 20 most recent
       } else if (tab === 'favorites') {
-        // Filter by favorites (you can implement via localStorage or backend)
-        filtered = scannedProjects.filter((p) => {
-          const favorites = JSON.parse(localStorage.getItem('projectFavorites') || '[]')
-          return favorites.includes(p.projectPath)
-        })
+        const favorites = getFavoritePaths()
+        filtered = scannedProjects.filter((p) => favorites.includes(p.projectPath))
       }
       // 'all' tab shows all projects (no filtering)
 
@@ -300,8 +334,15 @@ const ProjectsPage = (): React.ReactElement => {
     if (confirm('Remove this project from the list? (Files will not be deleted)')) {
       setProjects((prev) => prev.filter((p) => p.projectPath !== projectPath))
       setAllProjects((prev) => prev.filter((p) => p.projectPath !== projectPath))
+      const favorites = getFavoritePaths()
+      if (favorites.includes(projectPath)) {
+        saveFavoritePaths(favorites.filter((path) => path !== projectPath))
+      }
       if (window.electronAPI) {
         await window.electronAPI.deleteProject(projectPath)
+      }
+      if (currentTab === 'favorites') {
+        await loadProjectsForTab('favorites')
       }
     }
   }
@@ -341,11 +382,18 @@ const ProjectsPage = (): React.ReactElement => {
     { id: 'favorites', label: 'Favorites' }
   ]
 
-  const visibleProjects = searchQuery.trim()
-    ? projects.filter((project) =>
-        project.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
-      )
-    : projects
+  const favoritePaths = getFavoritePaths()
+
+  const visibleProjects = (
+    searchQuery.trim()
+      ? projects.filter((project) =>
+          project.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+        )
+      : projects
+  ).map((project) => ({
+    ...project,
+    isFavorite: project.projectPath ? favoritePaths.includes(project.projectPath) : false
+  }))
 
   return (
     <PageWrapper>
@@ -413,6 +461,8 @@ const ProjectsPage = (): React.ReactElement => {
             <ProjectCard
               key={`${data.projectPath}-${index}`}
               {...data}
+              isFavorite={data.isFavorite}
+              onToggleFavorite={toggleFavoritePath}
               onLaunch={handleLaunch}
               onOpenDir={handleOpenDir}
               onDelete={handleDelete}
