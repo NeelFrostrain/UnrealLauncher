@@ -1,13 +1,18 @@
 import { useEffect, useState, memo } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../types'
-import { FolderOpen, Play, Trash2, Star, StarOff } from 'lucide-react'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import FolderOpenIcon from '@mui/icons-material/FolderOpen'
+import DeleteIcon from '@mui/icons-material/Delete'
+import StarIcon from '@mui/icons-material/Star'
+import StarBorderIcon from '@mui/icons-material/StarBorder'
 import ProjectCardButton from './ProjectCardButton'
 import { resolveAsset } from '../utils/resolveAsset'
 
 const ProjectCard = memo(
   ({
     createdAt,
+    lastOpenedAt,
     name,
     size,
     version,
@@ -28,6 +33,18 @@ const ProjectCard = memo(
     const [launching, setLaunching] = useState(false)
     const [currentSize, setCurrentSize] = useState(size)
     const [imageSrc, setImageSrc] = useState<string>(resolveAsset(undefined))
+
+    const formatDate = (dateString: string): string => {
+      try {
+        return new Date(dateString).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        })
+      } catch {
+        return dateString
+      }
+    }
 
     useEffect(() => {
       const loadThumbnail = async (): Promise<void> => {
@@ -62,7 +79,7 @@ const ProjectCard = memo(
         className="w-full h-52 bg-[#121212] rounded-md border border-white/10 cursor-pointer overflow-hidden hover:border-blue-500/50 hover:bg-[#1a1a1a] transition-all duration-200 ease-in-out group relative"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        whileHover={{ y: -2 }}
+        whileHover={{ scale: 1.01 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
         {launching && (
@@ -74,24 +91,30 @@ const ProjectCard = memo(
           </div>
         )}
 
-        <div className="absolute inset-0 z-20 flex items-center justify-center gap-4 bg-black/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="absolute inset-0 z-20 flex flex-wrap items-center justify-center gap-3 bg-black/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <ProjectCardButton
-            icon={<Play size={16} />}
+            icon={<PlayArrowIcon sx={{ fontSize: 16 }} />}
             onClick={handleLaunch}
             title="Launch Project"
           />
           <ProjectCardButton
-            icon={isFavorite ? <Star size={16} /> : <StarOff size={16} />}
+            icon={
+              isFavorite ? (
+                <StarIcon sx={{ fontSize: 16 }} />
+              ) : (
+                <StarBorderIcon sx={{ fontSize: 16 }} />
+              )
+            }
             onClick={() => projectPath && onToggleFavorite(projectPath)}
             title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           />
           <ProjectCardButton
-            icon={<FolderOpen size={16} />}
+            icon={<FolderOpenIcon sx={{ fontSize: 16 }} />}
             onClick={() => projectPath && onOpenDir(projectPath)}
             title="Open Directory"
           />
           <ProjectCardButton
-            icon={<Trash2 size={16} />}
+            icon={<DeleteIcon sx={{ fontSize: 16 }} />}
             onClick={() => projectPath && onDelete(projectPath)}
             title="Remove from list"
           />
@@ -123,8 +146,12 @@ const ProjectCard = memo(
 
           <div className="flex justify-between items-center mt-auto">
             <div className="flex flex-col">
-              <span className="text-[10px] text-gray-500 uppercase font-bold">Created</span>
-              <span className="text-xs text-gray-400">{createdAt}</span>
+              <span className="text-[10px] text-gray-500 uppercase font-bold">
+                {lastOpenedAt ? 'Last Opened' : 'Created'}
+              </span>
+              <span className="text-xs text-gray-400">
+                {lastOpenedAt ? formatDate(lastOpenedAt) : createdAt}
+              </span>
             </div>
             <div className="flex flex-col text-right">
               <span className="text-[10px] text-gray-500 uppercase font-bold">Size</span>

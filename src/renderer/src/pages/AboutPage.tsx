@@ -1,17 +1,15 @@
 import PageWrapper from '../layout/PageWrapper'
-import {
-  Github,
-  Zap,
-  Package,
-  Activity,
-  AlertCircle,
-  BookOpen,
-  Code,
-  Download,
-  RefreshCw,
-  CheckCircle
-} from 'lucide-react'
-import { useState } from 'react'
+import GitHubIcon from '@mui/icons-material/GitHub'
+import FlashOnIcon from '@mui/icons-material/FlashOn'
+import Inventory2Icon from '@mui/icons-material/Inventory2'
+import TimelineIcon from '@mui/icons-material/Timeline'
+import WarningIcon from '@mui/icons-material/Warning'
+import MenuBookIcon from '@mui/icons-material/MenuBook'
+import CodeIcon from '@mui/icons-material/Code'
+import DownloadIcon from '@mui/icons-material/Download'
+import RefreshIcon from '@mui/icons-material/Refresh'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import { useEffect, useState } from 'react'
 
 const AboutPage = (): React.ReactElement => {
   const [updateStatus, setUpdateStatus] = useState<
@@ -19,6 +17,84 @@ const AboutPage = (): React.ReactElement => {
   >('idle')
   const [updateMessage, setUpdateMessage] = useState('')
   const [updateVersion, setUpdateVersion] = useState('')
+  const [githubVersion, setGithubVersion] = useState('')
+  const [githubStatus, setGithubStatus] = useState<'idle' | 'checking' | 'success' | 'error'>(
+    'idle'
+  )
+  const [githubMessage, setGithubMessage] = useState('')
+  const [appVersion, setAppVersion] = useState('')
+
+  useEffect(() => {
+    const loadAppVersion = async (): Promise<void> => {
+      if (window.electronAPI?.getAppVersion) {
+        try {
+          const version = await window.electronAPI.getAppVersion()
+          setAppVersion(version)
+        } catch (error) {
+          console.error('Failed to get app version:', error)
+        }
+      }
+    }
+
+    void loadAppVersion()
+  }, [])
+
+  const checkGitHubVersion = async (): Promise<string> => {
+    setGithubStatus('checking')
+
+    try {
+      if (!window.electronAPI?.checkGithubVersion) {
+        throw new Error('GitHub version check is not available')
+      }
+
+      const result = await window.electronAPI.checkGithubVersion()
+
+      if (!result.success) {
+        throw new Error(result.error || 'GitHub version check failed')
+      }
+
+      const latestVersion = result.latestVersion || ''
+      const currentVersion = result.currentVersion || appVersion || '1.7.0'
+
+      if (!latestVersion) {
+        throw new Error('Latest release version not found')
+      }
+
+      setGithubVersion(latestVersion)
+
+      if (compareVersions(latestVersion, currentVersion)) {
+        setGithubStatus('success')
+        return `New version ${latestVersion} available on GitHub!`
+      }
+
+      if (compareVersions(currentVersion, latestVersion)) {
+        setGithubStatus('success')
+        return `Installed version ${currentVersion} is newer than GitHub latest ${latestVersion}.`
+      }
+
+      setGithubStatus('success')
+      return `You have the latest version (${currentVersion}). GitHub latest is ${latestVersion}.`
+    } catch (error) {
+      setGithubStatus('error')
+      console.error('Failed to check GitHub version:', error)
+      return `Failed to check GitHub: ${error instanceof Error ? error.message : 'Unknown error'}`
+    }
+  }
+
+  const compareVersions = (version1: string, version2: string): boolean => {
+    const v1 = version1.split('.').map(Number)
+    const v2 = version2.split('.').map(Number)
+
+    for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
+      const num1 = v1[i] || 0
+      const num2 = v2[i] || 0
+
+      if (num1 > num2) return true
+      if (num1 < num2) return false
+    }
+
+    return false // versions are equal
+  }
 
   const handleCheckForUpdates = async (): Promise<void> => {
     if (!window.electronAPI?.checkForUpdates) return
@@ -27,11 +103,28 @@ const AboutPage = (): React.ReactElement => {
     setUpdateMessage('Checking for updates...')
 
     const result = await window.electronAPI.checkForUpdates()
+    const currentVersion =
+      appVersion ||
+      (window.electronAPI?.getAppVersion ? await window.electronAPI.getAppVersion() : '1.7.0')
 
     if (result.success && result.updateInfo) {
-      setUpdateStatus('available')
-      setUpdateVersion(result.updateInfo.version)
-      setUpdateMessage(`Version ${result.updateInfo.version} is available!`)
+      const latestVersion = String(result.updateInfo.version || '').replace(/^v/i, '')
+      const isUpdateNewer = compareVersions(latestVersion, currentVersion)
+      const isCurrentNewer = compareVersions(currentVersion, latestVersion)
+
+      if (isUpdateNewer) {
+        setUpdateStatus('available')
+        setUpdateVersion(latestVersion)
+        setUpdateMessage(`Version ${latestVersion} is available!`)
+      } else if (isCurrentNewer || latestVersion === currentVersion) {
+        setUpdateStatus('no-update')
+        setUpdateMessage(
+          `No update available. Installed version ${currentVersion} is newer or equal to ${latestVersion}.`
+        )
+      } else {
+        setUpdateStatus('no-update')
+        setUpdateMessage(result.message || 'You are using the latest version')
+      }
     } else if (result.success) {
       setUpdateStatus('no-update')
       setUpdateMessage(result.message || 'You are using the latest version')
@@ -86,13 +179,13 @@ const AboutPage = (): React.ReactElement => {
           {/* Features */}
           <div>
             <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-              <Zap size={20} className="text-blue-400" />
+              <FlashOnIcon sx={{ fontSize: 20 }} className="text-blue-400" />
               Features
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
-                  <Package className="text-blue-400" size={20} />
+                  <Inventory2Icon className="text-blue-400" sx={{ fontSize: 20 }} />
                   <h3 className="text-sm font-semibold text-white/90">Engine Management</h3>
                 </div>
                 <p className="text-xs text-white/50">
@@ -101,7 +194,7 @@ const AboutPage = (): React.ReactElement => {
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
-                  <Activity className="text-purple-400" size={20} />
+                  <TimelineIcon className="text-purple-400" sx={{ fontSize: 20 }} />
                   <h3 className="text-sm font-semibold text-white/90">Project Tracking</h3>
                 </div>
                 <p className="text-xs text-white/50">
@@ -110,7 +203,7 @@ const AboutPage = (): React.ReactElement => {
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
-                  <Zap className="text-green-400" size={20} />
+                  <FlashOnIcon className="text-green-400" sx={{ fontSize: 20 }} />
                   <h3 className="text-sm font-semibold text-white/90">Quick Launch</h3>
                 </div>
                 <p className="text-xs text-white/50">
@@ -119,7 +212,7 @@ const AboutPage = (): React.ReactElement => {
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
-                  <Code className="text-yellow-400" size={20} />
+                  <CodeIcon className="text-yellow-400" sx={{ fontSize: 20 }} />
                   <h3 className="text-sm font-semibold text-white/90">Size Calculation</h3>
                 </div>
                 <p className="text-xs text-white/50">
@@ -128,16 +221,16 @@ const AboutPage = (): React.ReactElement => {
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
-                  <RefreshCw className="text-orange-400" size={20} />
-                  <h3 className="text-sm font-semibold text-white/90">Favorites System</h3>
+                  <RefreshIcon className="text-orange-400" sx={{ fontSize: 20 }} />
+                  <h3 className="text-sm font-semibold text-white/90">Recent Projects</h3>
                 </div>
                 <p className="text-xs text-white/50">
-                  Mark and quickly access your favorite projects
+                  Sorted by actual last-opened time using Saved/Logs timestamps
                 </p>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="text-cyan-400" size={20} />
+                  <WarningIcon className="text-cyan-400" sx={{ fontSize: 20 }} />
                   <h3 className="text-sm font-semibold text-white/90">Toast Notifications</h3>
                 </div>
                 <p className="text-xs text-white/50">
@@ -146,14 +239,14 @@ const AboutPage = (): React.ReactElement => {
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
-                  <BookOpen className="text-pink-400" size={20} />
+                  <MenuBookIcon className="text-pink-400" sx={{ fontSize: 20 }} />
                   <h3 className="text-sm font-semibold text-white/90">Settings Page</h3>
                 </div>
                 <p className="text-xs text-white/50">Customize app behavior and user preferences</p>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-2">
-                  <Activity className="text-indigo-400" size={20} />
+                  <TimelineIcon className="text-indigo-400" sx={{ fontSize: 20 }} />
                   <h3 className="text-sm font-semibold text-white/90">Smooth Animations</h3>
                 </div>
                 <p className="text-xs text-white/50">
@@ -166,7 +259,7 @@ const AboutPage = (): React.ReactElement => {
           {/* Usage */}
           <div>
             <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-              <BookOpen size={20} className="text-green-400" />
+              <MenuBookIcon sx={{ fontSize: 20 }} className="text-green-400" />
               How to Use
             </h2>
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
@@ -221,7 +314,7 @@ const AboutPage = (): React.ReactElement => {
           {/* Known Issues */}
           <div>
             <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-              <AlertCircle size={20} className="text-yellow-400" />
+              <WarningIcon sx={{ fontSize: 20 }} className="text-yellow-400" />
               Known Issues & Notes
             </h2>
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-3">
@@ -289,7 +382,7 @@ const AboutPage = (): React.ReactElement => {
           {/* Contributing */}
           <div>
             <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-              <Github size={20} className="text-green-400" />
+              <GitHubIcon sx={{ fontSize: 20 }} className="text-green-400" />
               Contributing
             </h2>
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
@@ -325,7 +418,7 @@ const AboutPage = (): React.ReactElement => {
                 }
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 border border-green-500/50 rounded-lg text-sm transition-colors cursor-pointer"
               >
-                <BookOpen size={16} />
+                <MenuBookIcon sx={{ fontSize: 16 }} />
                 Read Contributing Guide
               </button>
             </div>
@@ -334,7 +427,7 @@ const AboutPage = (): React.ReactElement => {
           {/* Code of Conduct */}
           <div>
             <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-              <AlertCircle size={20} className="text-blue-400" />
+              <WarningIcon sx={{ fontSize: 20 }} className="text-blue-400" />
               Code of Conduct
             </h2>
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
@@ -359,7 +452,7 @@ const AboutPage = (): React.ReactElement => {
                 }
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 border border-blue-500/50 rounded-lg text-sm transition-colors cursor-pointer"
               >
-                <BookOpen size={16} />
+                <MenuBookIcon sx={{ fontSize: 16 }} />
                 Read Code of Conduct
               </button>
             </div>
@@ -368,7 +461,7 @@ const AboutPage = (): React.ReactElement => {
           {/* Security */}
           <div>
             <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-              <AlertCircle size={20} className="text-red-400" />
+              <WarningIcon sx={{ fontSize: 20 }} className="text-red-400" />
               Security
             </h2>
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
@@ -396,7 +489,7 @@ const AboutPage = (): React.ReactElement => {
                 }
                 className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 border border-red-500/50 rounded-lg text-sm transition-colors cursor-pointer"
               >
-                <BookOpen size={16} />
+                <MenuBookIcon sx={{ fontSize: 16 }} />
                 Read Security Policy
               </button>
             </div>
@@ -405,7 +498,7 @@ const AboutPage = (): React.ReactElement => {
           {/* Support & Donations */}
           <div>
             <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-              <Zap size={20} className="text-purple-400" />
+              <FlashOnIcon sx={{ fontSize: 20 }} className="text-purple-400" />
               Support the Project
             </h2>
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
@@ -442,7 +535,7 @@ const AboutPage = (): React.ReactElement => {
                 }
                 className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 border border-purple-500/50 rounded-lg text-sm transition-colors cursor-pointer"
               >
-                <BookOpen size={16} />
+                <MenuBookIcon sx={{ fontSize: 16 }} />
                 More Ways to Support
               </button>
             </div>
@@ -451,13 +544,14 @@ const AboutPage = (): React.ReactElement => {
           {/* Update Section */}
           <div>
             <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-              <RefreshCw size={20} className="text-blue-400" />
+              <RefreshIcon sx={{ fontSize: 20 }} className="text-blue-400" />
               Updates
             </h2>
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+              {/* Auto-Update Check */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-sm text-white/90 mb-1">Check for updates</p>
+                  <p className="text-sm text-white/90 mb-1">Auto-Update Check</p>
                   {updateMessage && (
                     <p
                       className={`text-xs ${
@@ -482,8 +576,8 @@ const AboutPage = (): React.ReactElement => {
                       onClick={handleCheckForUpdates}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 border border-blue-500/50 rounded-lg text-sm transition-colors cursor-pointer"
                     >
-                      <RefreshCw size={16} />
-                      Check for Updates
+                      <RefreshIcon sx={{ fontSize: 16 }} />
+                      Check Updates
                     </button>
                   )}
                   {updateStatus === 'checking' && (
@@ -491,7 +585,7 @@ const AboutPage = (): React.ReactElement => {
                       disabled
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600/50 border border-blue-500/50 rounded-lg text-sm cursor-not-allowed"
                     >
-                      <RefreshCw size={16} className="animate-spin" />
+                      <RefreshIcon sx={{ fontSize: 16 }} className="animate-spin" />
                       Checking...
                     </button>
                   )}
@@ -500,7 +594,7 @@ const AboutPage = (): React.ReactElement => {
                       onClick={handleDownloadUpdate}
                       className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 border border-green-500/50 rounded-lg text-sm transition-colors cursor-pointer"
                     >
-                      <Download size={16} />
+                      <DownloadIcon sx={{ fontSize: 16 }} />
                       Download v{updateVersion}
                     </button>
                   )}
@@ -509,7 +603,7 @@ const AboutPage = (): React.ReactElement => {
                       disabled
                       className="flex items-center gap-2 px-4 py-2 bg-green-600/50 border border-green-500/50 rounded-lg text-sm cursor-not-allowed"
                     >
-                      <Download size={16} className="animate-pulse" />
+                      <DownloadIcon sx={{ fontSize: 16 }} className="animate-pulse" />
                       Downloading...
                     </button>
                   )}
@@ -518,12 +612,111 @@ const AboutPage = (): React.ReactElement => {
                       onClick={handleInstallUpdate}
                       className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 border border-purple-500/50 rounded-lg text-sm transition-colors cursor-pointer"
                     >
-                      <CheckCircle size={16} />
+                      <CheckCircleIcon sx={{ fontSize: 16 }} />
                       Install & Restart
                     </button>
                   )}
                 </div>
               </div>
+
+              {/* GitHub Version Check */}
+              <div className="border-t border-white/10 pt-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm text-white/90 mb-1">GitHub Version Check</p>
+                    {githubVersion && (
+                      <p className="text-xs text-white/50">Latest on GitHub: v{githubVersion}</p>
+                    )}
+                    {githubMessage && <p className="text-xs text-white/70 mt-1">{githubMessage}</p>}
+                  </div>
+                  <div className="flex gap-2">
+                    {githubStatus === 'idle' && (
+                      <button
+                        onClick={async () => {
+                          const message = await checkGitHubVersion()
+                          setGithubMessage(message)
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 border border-purple-500/50 rounded-lg text-sm transition-colors cursor-pointer"
+                      >
+                        <GitHubIcon sx={{ fontSize: 16 }} />
+                        Check GitHub
+                      </button>
+                    )}
+                    {githubStatus === 'checking' && (
+                      <button
+                        disabled
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600/50 border border-purple-500/50 rounded-lg text-sm cursor-not-allowed"
+                      >
+                        <RefreshIcon sx={{ fontSize: 16 }} className="animate-spin" />
+                        Checking...
+                      </button>
+                    )}
+                    {githubStatus === 'success' && (
+                      <button
+                        onClick={async () => {
+                          const message = await checkGitHubVersion()
+                          setGithubMessage(message)
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 border border-purple-500/50 rounded-lg text-sm transition-colors cursor-pointer"
+                      >
+                        <GitHubIcon sx={{ fontSize: 16 }} />
+                        Recheck
+                      </button>
+                    )}
+                    {githubStatus === 'error' && (
+                      <button
+                        onClick={async () => {
+                          const message = await checkGitHubVersion()
+                          setGithubMessage(message)
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 border border-red-500/50 rounded-lg text-sm transition-colors cursor-pointer"
+                      >
+                        <RefreshIcon sx={{ fontSize: 16 }} />
+                        Retry
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Changelog */}
+          <div>
+            <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
+              <MenuBookIcon sx={{ fontSize: 20 }} className="text-yellow-400" />
+              What&apos;s New (dev)
+            </h2>
+            <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-green-400">✅ Added</h3>
+                <ul className="text-xs text-white/50 space-y-1 ml-4">
+                  <li>• Recent Projects tab now sorted by actual last-opened time from Saved/Logs</li>
+                  <li>• Migrated all icons from lucide-react to MUI icons-material</li>
+                  <li>• GitHub Version Check: compare installed vs latest GitHub release</li>
+                  <li>• App Version IPC: renderer now reads the real app version</li>
+                </ul>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-blue-400">🛠️ Fixed</h3>
+                <ul className="text-xs text-white/50 space-y-1 ml-4">
+                  <li>• lastOpenedAt was missing from ProjectData type — now flows to renderer correctly</li>
+                  <li>• ProjectCard useEffect missing async wrapper caused a parse error on await</li>
+                  <li>• Log scanner now only reads top-level Saved/Logs files, not subdirectories</li>
+                  <li>• Recent tab no longer falls back to createdAt for projects never opened</li>
+                </ul>
+              </div>
+              <button
+                onClick={() =>
+                  window.electronAPI.openExternal(
+                    'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CHANGELOG.md'
+                  )
+                }
+                className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-500 border border-yellow-500/50 rounded-lg text-sm transition-colors cursor-pointer"
+              >
+                <MenuBookIcon sx={{ fontSize: 16 }} />
+                View Full Changelog
+              </button>
             </div>
           </div>
 
@@ -581,7 +774,7 @@ const AboutPage = (): React.ReactElement => {
                 }
                 className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors cursor-pointer"
               >
-                <Github size={16} />
+                <GitHubIcon sx={{ fontSize: 16 }} />
                 GitHub
               </button>
               <button
@@ -592,7 +785,7 @@ const AboutPage = (): React.ReactElement => {
                 }
                 className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors cursor-pointer"
               >
-                <BookOpen size={16} />
+                <MenuBookIcon sx={{ fontSize: 16 }} />
                 Changelog
               </button>
               <button
@@ -603,7 +796,7 @@ const AboutPage = (): React.ReactElement => {
                 }
                 className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors cursor-pointer"
               >
-                <Code size={16} />
+                <CodeIcon sx={{ fontSize: 16 }} />
                 Contribute
               </button>
               <button
@@ -614,7 +807,7 @@ const AboutPage = (): React.ReactElement => {
                 }
                 className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors cursor-pointer"
               >
-                <AlertCircle size={16} />
+                <WarningIcon sx={{ fontSize: 16 }} />
                 Issues
               </button>
               <button

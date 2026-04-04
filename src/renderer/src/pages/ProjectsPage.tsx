@@ -54,9 +54,11 @@ const ProjectsPage = (): React.ReactElement => {
 
       // Filter based on tab
       if (tab === 'recent') {
-        // Sort by creation date, most recent first
         filtered = scannedProjects
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .filter((p) => !!p.lastOpenedAt)
+          .sort((a, b) => {
+            return new Date(b.lastOpenedAt!).getTime() - new Date(a.lastOpenedAt!).getTime()
+          })
           .slice(0, 20) // Limit to 20 most recent
       } else if (tab === 'favorites') {
         const favorites = getFavoritePaths()

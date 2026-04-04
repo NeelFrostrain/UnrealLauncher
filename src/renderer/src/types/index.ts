@@ -15,6 +15,7 @@ export interface Project {
   version: string
   size: string
   createdAt: string
+  lastOpenedAt?: string
   thumbnail?: string
   projectPath?: string
   projectId?: string

@@ -4,6 +4,10 @@
 
 ---
 
+![S1](./docs/S1.png)
+![S2](./docs/S2.png)
+
+
 ## ✅ What This Project Is
 
 **Unreal Launcher** is an Electron + React desktop application that helps you:
@@ -98,13 +102,16 @@ unreal-launcher/
 - **Engine Detection** — automatically scans standard Unreal Engine install paths
 - **One-click Launch** — start the editor with a single click
 - **Project Browser** — locate and open Unreal projects with thumbnail previews
+- **Recent Projects** — accurately sorted by last opened time via `Saved/Logs` timestamps
 - **Favorites System** — mark and quickly access your favorite projects
 - **Advanced Search** — powerful search functionality across engines and projects
 - **Settings Page** — customize app behavior and preferences
 - **Smooth Animations** — beautiful framer-motion animations throughout the UI
 - **Toast Notifications** — real-time feedback for user actions
 - **Single Instance Lock** — prevents multiple app instances
+- **GitHub Version Check** — compare installed version against latest GitHub release
 - **Auto-updates** — keeps the launcher updated (GitHub Releases-based)
+- **Material Icons** — consistent Material Design icons via `@mui/icons-material`
 - **Custom UI** — dark mode, gradients, responsive layout with hover effects
 
 |                Command | Description                            |

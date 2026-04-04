@@ -35,6 +35,10 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.9",
+    "@mui/material": "^7.3.9",
     "@tailwindcss/vite": "^4.2.1",
     "electron-updater": "^6.8.3",
     "framer-motion": "^12.38.0",

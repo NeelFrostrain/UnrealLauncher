@@ -41,6 +41,8 @@ if (process.contextIsolated) {
       checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
       downloadUpdate: () => ipcRenderer.invoke('download-update'),
       installUpdate: () => ipcRenderer.invoke('install-update'),
+      getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+      checkGithubVersion: () => ipcRenderer.invoke('check-github-version'),
       onDownloadProgress: (callback: (progress: any) => void): (() => void) => {
         const listener = (_event: any, progress: any): void => callback(progress)
         ipcRenderer.on('download-progress', listener)
