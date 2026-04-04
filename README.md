@@ -95,11 +95,11 @@ unreal-launcher/
 
 ## 🧩 Features
 
--  **Engine Detection** — automatically scans standard Unreal Engine install paths
--  **One-click Launch** — start the editor with a single click
--  **Project Browser** — locate and open Unreal projects
--  **Auto-updates** — keeps the launcher updated (GitHub Releases-based)
--  **Custom UI** — dark mode, gradients, responsive layout
+- **Engine Detection** — automatically scans standard Unreal Engine install paths
+- **One-click Launch** — start the editor with a single click
+- **Project Browser** — locate and open Unreal projects
+- **Auto-updates** — keeps the launcher updated (GitHub Releases-based)
+- **Custom UI** — dark mode, gradients, responsive layout
 
 ---
 

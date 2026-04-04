@@ -39,7 +39,13 @@ interface SidebarCardProps {
   onClick?: () => void
 }
 
-const SidebarCard: FC<SidebarCardProps> = ({ title, icon, imageSrc, isActive, onClick }) => {
+const SidebarCard: FC<SidebarCardProps> = ({
+  title,
+  icon,
+  imageSrc,
+  isActive,
+  onClick
+}): React.ReactElement => {
   return (
     <button
       onClick={onClick}
@@ -72,10 +78,10 @@ const SidebarCard: FC<SidebarCardProps> = ({ title, icon, imageSrc, isActive, on
   )
 }
 
-const Sidebar = () => {
+const Sidebar = (): React.ReactElement => {
   const { currentPage, setCurrentPage } = usePagesStore()
 
-  const handleCardClick = (page: PageType) => {
+  const handleCardClick = (page: PageType): void => {
     if (currentPage !== page) {
       setCurrentPage(page)
     }

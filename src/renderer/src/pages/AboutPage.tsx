@@ -14,14 +14,14 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
-const AboutPage = () => {
+const AboutPage = (): React.ReactElement => {
   const [updateStatus, setUpdateStatus] = useState<
     'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'no-update' | 'error'
   >('idle')
   const [updateMessage, setUpdateMessage] = useState('')
   const [updateVersion, setUpdateVersion] = useState('')
 
-  const handleCheckForUpdates = async () => {
+  const handleCheckForUpdates = async (): Promise<void> => {
     if (!window.electronAPI?.checkForUpdates) return
 
     setUpdateStatus('checking')
@@ -42,7 +42,7 @@ const AboutPage = () => {
     }
   }
 
-  const handleDownloadUpdate = async () => {
+  const handleDownloadUpdate = async (): Promise<void> => {
     if (!window.electronAPI?.downloadUpdate) return
 
     setUpdateStatus('downloading')
@@ -59,7 +59,7 @@ const AboutPage = () => {
     }
   }
 
-  const handleInstallUpdate = () => {
+  const handleInstallUpdate = (): void => {
     if (!window.electronAPI?.installUpdate) return
     window.electronAPI.installUpdate()
   }
@@ -139,19 +139,19 @@ const AboutPage = () => {
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-white/90">
-                  1. Scan for Engines & Projects
+                  1. Scan for Engines &amp; Projects
                 </h3>
                 <p className="text-xs text-white/50">
-                  Click "Scan for Engines" or "Scan for Projects" to automatically detect
-                  installations. The app searches common locations and calculates sizes in the
-                  background.
+                  Click &quot;Scan for Engines&quot; or &quot;Scan for Projects&quot; to
+                  automatically detect installations. The app searches common locations and
+                  calculates sizes in the background.
                 </p>
               </div>
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-white/90">2. Add Manually</h3>
                 <p className="text-xs text-white/50">
-                  Use "Add Engine" or "Add Project" buttons to manually select folders if they're in
-                  custom locations.
+                  Use &quot;Add Engine&quot; or &quot;Add Project&quot; buttons to manually select
+                  folders if they&apos;re in custom locations.
                 </p>
               </div>
               <div className="space-y-2">

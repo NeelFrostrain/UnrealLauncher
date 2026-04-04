@@ -44,8 +44,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Gradient generator function
-function generateGradient() {
-  const directions = {
+function generateGradient(): string {
+  const directions: Record<string, string> = {
     'to-t': 'to top',
     'to-tr': 'to top right',
     'to-r': 'to right',
@@ -67,14 +67,14 @@ function generateGradient() {
     '#f59e0b'
   ]
 
-  const random = (arr) => arr[Math.floor(Math.random() * arr.length)]
+  const random = (arr: unknown[]): unknown => arr[Math.floor(Math.random() * arr.length)]
 
-  const dirKey = random(Object.keys(directions))
-  const from = random(colors)
+  const dirKey = random(Object.keys(directions)) as string
+  const from = random(colors) as string
 
-  let to = random(colors)
+  let to = random(colors) as string
   while (to === from) {
-    to = random(colors)
+    to = random(colors) as string
   }
 
   return `linear-gradient(${directions[dirKey]}, ${from}, ${to})`
@@ -102,11 +102,11 @@ function loadEngines(): Engine[] {
   return []
 }
 
-function saveEngines(engines: Engine[]) {
+function saveEngines(engines: Engine[]): void {
   try {
     fs.writeFileSync(enginesDataPath, JSON.stringify(engines, null, 2), 'utf8')
-  } catch (err) {
-    console.error('Error saving engines:', err)
+  } catch (_err) {
+    // Error handling - continue with error
   }
 }
 
@@ -122,15 +122,15 @@ function loadProjects(): Project[] {
   return []
 }
 
-function saveProjects(projects: Project[]) {
+function saveProjects(projects: Project[]): void {
   try {
     fs.writeFileSync(projectsDataPath, JSON.stringify(projects, null, 2), 'utf8')
-  } catch (err) {
-    console.error('Error saving projects:', err)
+  } catch (_err) {
+    // Error handling - continue with error
   }
 }
 
-function createWindow() {
+function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -270,7 +270,7 @@ app.on('activate', () => {
 })
 
 // IPC handler for manual update check
-ipcMain.handle('check-for-updates', async () => {
+ipcMain.handle('check-for-updates', async (): Promise<Record<string, unknown>> => {
   try {
     // In development, return mock data
     if (process.env.NODE_ENV === 'development') {
@@ -314,7 +314,7 @@ ipcMain.handle('check-for-updates', async () => {
   }
 })
 
-ipcMain.handle('download-update', async () => {
+ipcMain.handle('download-update', async (): Promise<Record<string, unknown>> => {
   try {
     await autoUpdater.downloadUpdate()
     return { success: true }
@@ -323,12 +323,12 @@ ipcMain.handle('download-update', async () => {
   }
 })
 
-ipcMain.handle('install-update', () => {
+ipcMain.handle('install-update', (): void => {
   autoUpdater.quitAndInstall()
 })
 
 // IPC handlers
-ipcMain.handle('scan-engines', async () => {
+ipcMain.handle('scan-engines', async (): Promise<Engine[]> => {
   const savedEngines = loadEngines()
 
   const commonPaths = [
@@ -398,7 +398,7 @@ ipcMain.handle('scan-engines', async () => {
   return validEngines
 })
 
-ipcMain.handle('scan-projects', async () => {
+ipcMain.handle('scan-projects', async (): Promise<Project[]> => {
   const savedProjects = loadProjects()
 
   const searchPaths = [
@@ -423,7 +423,9 @@ ipcMain.handle('scan-projects', async () => {
             const uprojectContent = fs.readFileSync(uprojectPath, 'utf8')
             const match = uprojectContent.match(/"EngineAssociation":\s*"([^"]+)"/)
             if (match) version = match[1]
-          } catch (err) {}
+          } catch (_err) {
+            // Continue with default version
+          }
 
           // Always refresh screenshot on scan
           const screenshot = findProjectScreenshot(projectDir)
@@ -470,7 +472,7 @@ ipcMain.handle('scan-projects', async () => {
   return validProjects
 })
 
-ipcMain.handle('launch-engine', async (_event, exePath) => {
+ipcMain.handle('launch-engine', async (_event, exePath): Promise<Record<string, unknown>> => {
   try {
     if (process.platform === 'win32') {
       exec(`start "" "${exePath}"`)
@@ -497,49 +499,20 @@ ipcMain.handle('launch-engine', async (_event, exePath) => {
   }
 })
 
-ipcMain.handle('launch-project', async (_event, projectPath) => {
-  const uprojectPath = path.join(projectPath, `${path.basename(projectPath)}.uproject`)
+ipcMain.handle('launch-project', async (_event, projectPath): Promise<Record<string, unknown>> => {
+  const projectName = path.basename(projectPath)
+  const uprojectPath = path.join(projectPath, `${projectName}.uproject`)
+
   if (!fs.existsSync(uprojectPath)) {
     return { success: false, error: 'Project file not found' }
   }
 
   try {
-    const uprojectContent = fs.readFileSync(uprojectPath, 'utf8')
-    const match = uprojectContent.match(/"EngineAssociation":\s*"([^"]+)"/)
-    if (!match) {
-      return { success: false, error: 'Engine association not found in project file' }
-    }
-
-    const engineVersion = match[1]
-    const engines = loadEngines()
-
-    // Try exact match first
-    let engine = engines.find((e) => e.version === engineVersion)
-
-    // If not found, try partial match (e.g., "5.3" matches "5.3.0")
-    if (!engine) {
-      engine = engines.find(
-        (e) => e.version.startsWith(engineVersion) || engineVersion.startsWith(e.version)
-      )
-    }
-
-    // If still not found, try to find by major version
-    if (!engine) {
-      const majorVersion = engineVersion.split('.')[0]
-      engine = engines.find((e) => e.version.startsWith(majorVersion))
-    }
-
-    if (!engine) {
-      return {
-        success: false,
-        error: `Engine version ${engineVersion} not found. Please add it to your engines list.`
-      }
-    }
-
+    // Directly execute the .uproject file - Windows file association handles engine detection
     if (process.platform === 'win32') {
-      exec(`start "" "${engine.exePath}" "${uprojectPath}"`)
+      exec(`start "" "${uprojectPath}"`)
     } else {
-      spawn(engine.exePath, [uprojectPath], { detached: true, stdio: 'ignore' })
+      spawn('open', [uprojectPath], { detached: true, stdio: 'ignore' })
     }
     return { success: true }
   } catch (err) {
@@ -547,11 +520,11 @@ ipcMain.handle('launch-project', async (_event, projectPath) => {
   }
 })
 
-ipcMain.handle('open-directory', async (_event, dirPath) => {
+ipcMain.handle('open-directory', async (_event, dirPath): Promise<void> => {
   spawn('explorer', [dirPath], { detached: true, stdio: 'ignore' })
 })
 
-ipcMain.handle('select-engine-folder', async () => {
+ipcMain.handle('select-engine-folder', async (): Promise<Engine | null> => {
   if (!mainWindow) return null
   const result = await dialog.showOpenDialog(mainWindow, {
     title: 'Select Unreal Engine Folder',
@@ -591,7 +564,7 @@ ipcMain.handle('select-engine-folder', async () => {
   return newEngine
 })
 
-ipcMain.handle('select-project-folder', async () => {
+ipcMain.handle('select-project-folder', async (): Promise<Project | null> => {
   if (!mainWindow) return null
   const result = await dialog.showOpenDialog(mainWindow, {
     title: 'Select Unreal Project Folder',
@@ -614,9 +587,11 @@ ipcMain.handle('select-project-folder', async () => {
   let version = 'Unknown'
   try {
     const uprojectContent = fs.readFileSync(uprojectPath, 'utf8')
-    const match = uprojectContent.match(/"EngineAssociation":\s*"([^\"]+)"/)
+    const match = uprojectContent.match(/"EngineAssociation":\s*"([^"]+)"/)
     if (match) version = match[1]
-  } catch (err) {}
+  } catch (_err) {
+    // Continue with default version
+  }
 
   const screenshot = findProjectScreenshot(folder)
 
@@ -635,13 +610,13 @@ ipcMain.handle('select-project-folder', async () => {
   return newProject
 })
 
-ipcMain.on('window-minimize', () => {
+ipcMain.on('window-minimize', (): void => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.minimize()
   }
 })
 
-ipcMain.on('window-maximize', () => {
+ipcMain.on('window-maximize', (): void => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     const primaryDisplay = screen.getPrimaryDisplay()
     const { width: screenWidth, height: screenHeight } = primaryDisplay.bounds
@@ -661,34 +636,32 @@ ipcMain.on('window-maximize', () => {
   }
 })
 
-ipcMain.on('window-close', () => {
+ipcMain.on('window-close', (): void => {
   app.quit()
 })
 
-ipcMain.handle('window-is-maximized', () => {
+ipcMain.handle('window-is-maximized', (): boolean => {
   return isMaximized
 })
 
-ipcMain.handle('delete-engine', (_event, directoryPath) => {
+ipcMain.handle('delete-engine', (_event, directoryPath): boolean => {
   try {
     const engines = loadEngines()
     const filtered = engines.filter((e) => e.directoryPath !== directoryPath)
     saveEngines(filtered)
     return true
-  } catch (err) {
-    console.error('Error deleting engine:', err)
+  } catch (_err) {
     return false
   }
 })
 
-ipcMain.handle('delete-project', (_event, projectPath) => {
+ipcMain.handle('delete-project', (_event, projectPath): boolean => {
   try {
     const projects = loadProjects()
     const filtered = projects.filter((p) => p.projectPath !== projectPath)
     saveProjects(filtered)
     return true
-  } catch (err) {
-    console.error('Error deleting project:', err)
+  } catch (_err) {
     return false
   }
 })
@@ -696,7 +669,7 @@ ipcMain.handle('delete-project', (_event, projectPath) => {
 // Helper functions
 function findUprojectFiles(dir: string): string[] {
   const files: string[] = []
-  function scan(currentDir: string) {
+  function scan(currentDir: string): void {
     try {
       const items = fs.readdirSync(currentDir)
       for (const item of items) {
@@ -708,13 +681,15 @@ function findUprojectFiles(dir: string): string[] {
           files.push(fullPath)
         }
       }
-    } catch (err) {}
+    } catch (_err) {
+      // Continue scanning
+    }
   }
   scan(dir)
   return files
 }
 
-function findProjectScreenshot(projectPath) {
+function findProjectScreenshot(projectPath: string): string | null {
   const autoScreenshot = path.join(projectPath, 'Saved', 'AutoScreenshot.png')
   if (fs.existsSync(autoScreenshot)) {
     return autoScreenshot
@@ -723,7 +698,7 @@ function findProjectScreenshot(projectPath) {
 }
 
 // Load image as base64 data URL
-ipcMain.handle('load-image', async (_event, imagePath) => {
+ipcMain.handle('load-image', async (_event, imagePath): Promise<string | null> => {
   try {
     if (!imagePath || !fs.existsSync(imagePath)) {
       return null
@@ -737,14 +712,13 @@ ipcMain.handle('load-image', async (_event, imagePath) => {
     else if (ext === '.webp') mimeType = 'image/webp'
 
     return `data:${mimeType};base64,${base64}`
-  } catch (err) {
-    console.error('Error loading image:', err)
+  } catch (_err) {
     return null
   }
 })
 
 // Full accurate size calculation using worker thread
-function getFullFolderSize(folderPath) {
+function getFullFolderSize(folderPath: string): Promise<number> {
   return new Promise((resolve, reject) => {
     const workerCode = `
       const { parentPort, workerData } = require('worker_threads');
@@ -801,7 +775,7 @@ function getFullFolderSize(folderPath) {
   })
 }
 
-function formatBytes(bytes) {
+function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -810,44 +784,50 @@ function formatBytes(bytes) {
 }
 
 // Calculate size for a specific engine
-ipcMain.handle('calculate-engine-size', async (_event, directoryPath) => {
-  try {
-    const size = await getFullFolderSize(directoryPath)
-    const sizeStr = formatBytes(size)
+ipcMain.handle(
+  'calculate-engine-size',
+  async (_event, directoryPath): Promise<Record<string, unknown>> => {
+    try {
+      const size = await getFullFolderSize(directoryPath)
+      const sizeStr = formatBytes(size)
 
-    // Update saved data
-    const engines = loadEngines()
-    const engine = engines.find((e) => e.directoryPath === directoryPath)
-    if (engine) {
-      engine.folderSize = sizeStr
-      saveEngines(engines)
+      // Update saved data
+      const engines = loadEngines()
+      const engine = engines.find((e) => e.directoryPath === directoryPath)
+      if (engine) {
+        engine.folderSize = sizeStr
+        saveEngines(engines)
+      }
+
+      return { success: true, size: sizeStr }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
     }
-
-    return { success: true, size: sizeStr }
-  } catch (err) {
-    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
   }
-})
+)
 
 // Calculate size for a specific project
-ipcMain.handle('calculate-project-size', async (_event, projectPath) => {
-  try {
-    const size = await getFullFolderSize(projectPath)
-    const sizeStr = formatBytes(size)
+ipcMain.handle(
+  'calculate-project-size',
+  async (_event, projectPath): Promise<Record<string, unknown>> => {
+    try {
+      const size = await getFullFolderSize(projectPath)
+      const sizeStr = formatBytes(size)
 
-    // Update saved data
-    const projects = loadProjects()
-    const project = projects.find((p) => p.projectPath === projectPath)
-    if (project) {
-      project.size = sizeStr
-      saveProjects(projects)
+      // Update saved data
+      const projects = loadProjects()
+      const project = projects.find((p) => p.projectPath === projectPath)
+      if (project) {
+        project.size = sizeStr
+        saveProjects(projects)
+      }
+
+      return { success: true, size: sizeStr }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
     }
-
-    return { success: true, size: sizeStr }
-  } catch (err) {
-    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
   }
-})
+)
 
 ipcMain.handle('open-external', async (_event, url) => {
   try {

@@ -1,13 +1,15 @@
 import type { FC, ReactNode } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import PageWrapper from '../layout/PageWrapper'
 import PageTitleBar from '../components/PageTitlebar'
 import type { Project } from '../types'
-import { FolderOpen, Play, Trash2 } from 'lucide-react'
+import { FolderOpen, Play, Trash2, RefreshCw } from 'lucide-react'
 
 const baseUrl = import.meta.env.BASE_URL || './'
 
-const resolveAsset = (path?: string) => {
+type TabType = 'all' | 'recent' | 'favorites'
+
+const resolveAsset = (path?: string): string => {
   if (!path) return `${baseUrl}assets/ProjectDefault.avif`
   // If it's an absolute file path (local screenshot), convert to file:// URL
   if (path.includes(':\\') || (path.includes('/') && !path.startsWith('http'))) {
@@ -27,7 +29,7 @@ const ProjectCardButton = ({
   icon: ReactNode
   onClick?: () => void
   title?: string
-}) => {
+}): React.ReactElement => {
   return (
     <button
       onClick={onClick}
@@ -45,13 +47,23 @@ const ProjectCard: FC<
     onOpenDir: (dirPath: string) => void
     onDelete: (projectPath: string) => void
   }
-> = ({ createdAt, name, size, version, thumbnail, projectPath, onLaunch, onOpenDir, onDelete }) => {
+> = ({
+  createdAt,
+  name,
+  size,
+  version,
+  thumbnail,
+  projectPath,
+  onLaunch,
+  onOpenDir,
+  onDelete
+}): React.ReactElement => {
   const [launching, setLaunching] = useState(false)
   const [currentSize, setCurrentSize] = useState(size)
   const [imageSrc, setImageSrc] = useState<string>(resolveAsset(undefined))
 
   useEffect(() => {
-    const loadThumbnail = async () => {
+    const loadThumbnail = async (): Promise<void> => {
       if (thumbnail && window.electronAPI) {
         const dataUrl = await window.electronAPI.loadImage(thumbnail)
         if (dataUrl) {
@@ -70,7 +82,7 @@ const ProjectCard: FC<
     setCurrentSize(size)
   }, [size])
 
-  const handleLaunch = async () => {
+  const handleLaunch = async (): Promise<void> => {
     if (!projectPath) return
     setLaunching(true)
     await onLaunch(projectPath)
@@ -158,29 +170,78 @@ const ProjectCard: FC<
   )
 }
 
-const ProjectsPage = () => {
+const ProjectsPage = (): React.ReactElement => {
   const [projects, setProjects] = useState<Project[]>([])
   const [scanning, setScanning] = useState(false)
+  const [currentTab, setCurrentTab] = useState<TabType>('all')
+  const [refreshing, setRefreshing] = useState(false)
+  const [allProjects, setAllProjects] = useState<Project[]>([])
 
-  useEffect(() => {
-    // Don't auto-scan, just load saved data
-    const loadSavedProjects = async () => {
-      if (window.electronAPI) {
-        try {
-          const scannedProjects = await window.electronAPI.scanProjects()
-          setProjects(scannedProjects)
-        } catch (err) {
-          console.error('Failed to load projects:', err)
+  // Define loadProjectsForTab first before using it in useEffect
+  const loadProjectsForTab = useCallback(async (tab: TabType): Promise<void> => {
+    if (!window.electronAPI) return
+
+    try {
+      // Always fetch fresh data from the file system
+      const scannedProjects = await window.electronAPI.scanProjects()
+      setAllProjects(scannedProjects)
+
+      let filtered = scannedProjects
+
+      // Filter based on tab
+      if (tab === 'recent') {
+        // Sort by creation date, most recent first
+        filtered = scannedProjects
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 20) // Limit to 20 most recent
+      } else if (tab === 'favorites') {
+        // Filter by favorites (you can implement via localStorage or backend)
+        filtered = scannedProjects.filter((p) => {
+          const favorites = JSON.parse(localStorage.getItem('projectFavorites') || '[]')
+          return favorites.includes(p.projectPath)
+        })
+      }
+      // 'all' tab shows all projects (no filtering)
+
+      // Set current display
+      setProjects(filtered)
+
+      // Calculate sizes for projects with estimates
+      for (const project of filtered) {
+        if (project.projectPath && project.size.startsWith('~')) {
+          window.electronAPI.calculateProjectSize(project.projectPath).then((result) => {
+            if (result.success && result.size) {
+              setProjects((prev) =>
+                prev.map((p) =>
+                  p.projectPath === project.projectPath ? { ...p, size: result.size! } : p
+                )
+              )
+            }
+          })
         }
       }
+    } catch (err) {
+      console.error('Failed to load projects for tab:', tab, err)
     }
-    loadSavedProjects()
+  }, [])
 
-    // Listen for size updates
+  // Load saved projects on mount
+  useEffect(() => {
+    loadProjectsForTab('all')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Listen for size updates
+  useEffect(() => {
     if (window.electronAPI) {
       window.electronAPI.onSizeCalculated((data) => {
         if (data.type === 'project') {
+          // Update current display
           setProjects((prev) =>
+            prev.map((p) => (p.projectPath === data.path ? { ...p, size: data.size } : p))
+          )
+          // Update all projects list
+          setAllProjects((prev) =>
             prev.map((p) => (p.projectPath === data.path ? { ...p, size: data.size } : p))
           )
         }
@@ -188,12 +249,34 @@ const ProjectsPage = () => {
     }
   }, [])
 
-  const handleScan = async () => {
+  // Switch tab and load fresh data
+  const switchTab = async (tab: TabType): Promise<void> => {
+    if (currentTab === tab) return // Already on this tab
+
+    setCurrentTab(tab)
+    setProjects([]) // Clear current display
+
+    // Load data for the new tab
+    await loadProjectsForTab(tab)
+  }
+
+  const handleRefresh = async (): Promise<void> => {
+    setRefreshing(true)
+    // Clear current display
+    setProjects([])
+
+    // Reload fresh data
+    await loadProjectsForTab(currentTab)
+    setRefreshing(false)
+  }
+
+  const handleScan = async (): Promise<void> => {
     setScanning(true)
     if (window.electronAPI) {
       try {
         const scannedProjects = await window.electronAPI.scanProjects()
-        setProjects([...scannedProjects])
+        setAllProjects(scannedProjects)
+        setProjects(scannedProjects)
 
         // Calculate sizes for all projects with estimates
         for (const project of scannedProjects) {
@@ -216,7 +299,7 @@ const ProjectsPage = () => {
     setScanning(false)
   }
 
-  const handleLaunch = async (projectPath: string) => {
+  const handleLaunch = async (projectPath: string): Promise<void> => {
     if (window.electronAPI) {
       const result = await window.electronAPI.launchProject(projectPath)
       if (!result.success) {
@@ -225,22 +308,23 @@ const ProjectsPage = () => {
     }
   }
 
-  const handleOpenDir = async (dirPath: string) => {
+  const handleOpenDir = async (dirPath: string): Promise<void> => {
     if (window.electronAPI) {
       await window.electronAPI.openDirectory(dirPath)
     }
   }
 
-  const handleDelete = async (projectPath: string) => {
+  const handleDelete = async (projectPath: string): Promise<void> => {
     if (confirm('Remove this project from the list? (Files will not be deleted)')) {
       setProjects((prev) => prev.filter((p) => p.projectPath !== projectPath))
+      setAllProjects((prev) => prev.filter((p) => p.projectPath !== projectPath))
       if (window.electronAPI) {
         await window.electronAPI.deleteProject(projectPath)
       }
     }
   }
 
-  const handleAddProject = async () => {
+  const handleAddProject = async (): Promise<void> => {
     if (!window.electronAPI) return
     const project = await window.electronAPI.selectProjectFolder()
     if (!project) {
@@ -248,11 +332,12 @@ const ProjectsPage = () => {
       return
     }
     // Check if already in UI state
-    if (projects.find((p) => p.projectPath === project.projectPath)) {
+    if (allProjects.find((p) => p.projectPath === project.projectPath)) {
       alert('This project is already added.')
       return
     }
     setProjects((prev) => [project, ...prev])
+    setAllProjects((prev) => [project, ...prev])
 
     // Calculate size for the new project if it has an estimate
     if (project.projectPath && project.size.startsWith('~')) {
@@ -268,6 +353,12 @@ const ProjectsPage = () => {
     }
   }
 
+  const tabs: Array<{ id: TabType; label: string }> = [
+    { id: 'all', label: 'All Projects' },
+    { id: 'recent', label: 'Recent' },
+    { id: 'favorites', label: 'Favorites' }
+  ]
+
   return (
     <PageWrapper>
       <PageTitleBar
@@ -282,6 +373,32 @@ const ProjectsPage = () => {
         scanning={scanning}
       />
 
+      {/* Tabs */}
+      <div className="flex items-center gap-2 px-2 pt-3 pb-2 border-b border-white/10">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => switchTab(tab.id)}
+            className={`px-4 py-2 rounded-t-md font-medium text-sm transition-all ${
+              currentTab === tab.id
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                : 'bg-white/5 text-white/70 hover:bg-white/10'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+        <div className="flex-1" />
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="flex items-center gap-2 px-3 py-2 rounded-md bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-50"
+          title="Refresh projects for this tab"
+        >
+          <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto py-px px-2 mt-2">
         {projects.length > 0 ? (
           projects.map((data, index) => (
@@ -295,9 +412,13 @@ const ProjectsPage = () => {
           ))
         ) : (
           <div className="col-span-full flex flex-col items-center justify-center h-full text-center text-white/50">
-            <p className="text-lg mb-2">No projects found</p>
+            <p className="text-lg mb-2">
+              {currentTab === 'favorites' ? 'No favorite projects' : 'No projects found'}
+            </p>
             <p className="text-sm text-white/30 mb-4">
-              Click "Scan for Projects" to search or add manually
+              {currentTab === 'favorites'
+                ? 'Add projects to favorites from the All Projects tab'
+                : 'Click &quot;Scan for Projects&quot; to search or add manually'}
             </p>
           </div>
         )}

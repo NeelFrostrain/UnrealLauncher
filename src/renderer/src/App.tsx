@@ -7,16 +7,16 @@ const EnginesPage = lazy(() => import('./pages/EnginesPage'))
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
 
 // Loading component
-const PageLoader = () => (
+const PageLoader = (): React.ReactNode => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="text-center">
-      {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"></div> */}
+      {/* <div classNa me="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"></div> */}
       <p className="text-white/70">Loading...</p>
     </div>
   </div>
 )
 
-const App = () => {
+const App = (): React.ReactNode => {
   const { currentPage } = usePagesStore()
 
   return (

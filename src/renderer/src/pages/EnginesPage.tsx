@@ -22,19 +22,19 @@ const EngineCard: FC<
   onLaunch,
   onOpenDir,
   onDelete
-}) => {
+}): React.ReactElement => {
   const [currentGradient] = useState(gradient || generateGradient())
   const [launching, setLaunching] = useState(false)
   const [calculating, setCalculating] = useState(false)
   const [currentSize, setCurrentSize] = useState(folderSize)
 
-  const handleLaunch = async () => {
+  const handleLaunch = async (): Promise<void> => {
     setLaunching(true)
     await onLaunch(exePath)
     setTimeout(() => setLaunching(false), 3000)
   }
 
-  const handleCalculateSize = async () => {
+  const handleCalculateSize = async (): Promise<void> => {
     if (calculating) return
     setCalculating(true)
     setCurrentSize('Calculating...')
@@ -138,13 +138,13 @@ const EngineCard: FC<
   )
 }
 
-const EnginesPage = () => {
+const EnginesPage = (): React.ReactElement => {
   const [engines, setEngines] = useState<EngineCardProps[]>([])
   const [scanning, setScanning] = useState(false)
 
   useEffect(() => {
     // Don't auto-scan on mount, just load saved data
-    const loadSavedEngines = async () => {
+    const loadSavedEngines = async (): Promise<void> => {
       if (window.electronAPI) {
         try {
           // Just load from saved data without scanning
@@ -169,7 +169,7 @@ const EnginesPage = () => {
     }
   }, [])
 
-  const handleScan = async () => {
+  const handleScan = async (): Promise<void> => {
     setScanning(true)
     if (window.electronAPI) {
       try {
@@ -182,7 +182,7 @@ const EnginesPage = () => {
     setScanning(false)
   }
 
-  const handleLaunch = async (exePath: string) => {
+  const handleLaunch = async (exePath: string): Promise<void> => {
     if (window.electronAPI) {
       const result = await window.electronAPI.launchEngine(exePath)
       if (!result.success) {
@@ -209,13 +209,13 @@ const EnginesPage = () => {
     }
   }
 
-  const handleOpenDir = async (dirPath: string) => {
+  const handleOpenDir = async (dirPath: string): Promise<void> => {
     if (window.electronAPI) {
       await window.electronAPI.openDirectory(dirPath)
     }
   }
 
-  const handleDelete = async (dirPath: string) => {
+  const handleDelete = async (dirPath: string): Promise<void> => {
     if (confirm('Remove this engine from the list? (Files will not be deleted)')) {
       setEngines((prev) => prev.filter((e) => e.directoryPath !== dirPath))
       if (window.electronAPI) {
@@ -224,7 +224,7 @@ const EnginesPage = () => {
     }
   }
 
-  const handleAddEngine = async () => {
+  const handleAddEngine = async (): Promise<void> => {
     if (!window.electronAPI) return
     const engine = await window.electronAPI.selectEngineFolder()
     if (!engine) {
@@ -268,7 +268,7 @@ const EnginesPage = () => {
           <div className="flex flex-col items-center justify-center h-full text-center text-white/50">
             <p className="text-lg mb-2">No engines found</p>
             <p className="text-sm text-white/30 mb-4">
-              Click "Scan for Engines" to search or add manually
+              Click &quot;Scan for Engines&quot; to search or add manually
             </p>
           </div>
         )}
