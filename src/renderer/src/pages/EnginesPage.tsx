@@ -4,6 +4,7 @@ import PageWrapper from '@renderer/layout/PageWrapper'
 import EnginesToolbar from '@renderer/components/EnginesToolbar'
 import EngineCard from '@renderer/components/EngineCard'
 import { useToast } from '../components/ToastContext'
+import { getSetting } from '../utils/settings'
 
 const EnginesPage = (): React.ReactElement => {
   const [engines, setEngines] = useState<EngineCardProps[]>([])
@@ -55,6 +56,7 @@ const EnginesPage = (): React.ReactElement => {
       if (!result.success) {
         alert('Failed to launch engine: ' + result.error)
       } else {
+        // Update last launch time
         setEngines((prev) =>
           prev.map((e) => {
             if (e.exePath === exePath) {
@@ -71,6 +73,14 @@ const EnginesPage = (): React.ReactElement => {
             return e
           })
         )
+
+        // Check if auto-close on launch is enabled
+        if (getSetting('autoCloseOnLaunch')) {
+          // Close the app after successful launch
+          setTimeout(() => {
+            window.electronAPI?.windowClose()
+          }, 1000) // Small delay to ensure the launch process starts
+        }
       }
     }
   }

@@ -1,4 +1,4 @@
-export type PageType = 'Engines' | 'Projects' | 'About'
+export type PageType = 'Engines' | 'Projects' | 'About' | 'Settings'
 export type TabType = 'all' | 'recent' | 'favorites'
 
 export interface EngineCardProps {

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import type { PageType } from '../types'
-import { Activity, Package, Zap } from 'lucide-react'
+import { Activity, Package, Zap, Settings } from 'lucide-react'
 import usePagesStore from '@renderer/store/usePagesStore'
 import Engine_BG from '@renderer/assets/Engines_BG.webp'
 import Projects_BG from '@renderer/assets/Projects_BG.jpg'
@@ -23,6 +23,11 @@ const SidebarCards: SidebarCardData[] = [
     title: 'Projects',
     imageSrc: Projects_BG,
     icon: <Package size={15.5} strokeWidth={1.8} />
+  },
+  {
+    title: 'Settings',
+    imageSrc: ProjectDefault,
+    icon: <Settings size={15.5} strokeWidth={1.8} />
   },
   {
     title: 'About',

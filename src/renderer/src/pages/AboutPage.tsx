@@ -65,7 +65,7 @@ const AboutPage = (): React.ReactElement => {
   }
   return (
     <PageWrapper>
-      <PageTitleBar title="About" description="Information about Unreal Launcher" />
+      {/* <PageTitleBar title="About" description="Information about Unreal Launcher" /> */}
 
       <div className="flex-1 overflow-y-auto py-3 px-2">
         <div className="max-w-4xl mx-auto space-y-6 pb-8">

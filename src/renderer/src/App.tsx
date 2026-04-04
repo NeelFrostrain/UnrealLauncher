@@ -5,6 +5,7 @@ import usePagesStore from './store/usePagesStore'
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const EnginesPage = lazy(() => import('./pages/EnginesPage'))
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 
 // Loading component
 const PageLoader = (): React.ReactNode => (
@@ -23,8 +24,9 @@ const App = (): React.ReactNode => {
     <Suspense fallback={<PageLoader />}>
       {currentPage === 'Engines' && <EnginesPage />}
       {currentPage === 'Projects' && <ProjectsPage />}
+      {currentPage === 'Settings' && <SettingsPage />}
       {currentPage === 'About' && <AboutPage />}
-      {!['Engines', 'Projects', 'About'].includes(currentPage) && (
+      {!['Engines', 'Projects', 'Settings', 'About'].includes(currentPage) && (
         <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-slate-900 to-slate-800">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-white mb-4">Restart App</h1>

@@ -4,6 +4,7 @@ import ProjectCard from '../components/ProjectCard'
 import ProjectsToolbar from '../components/ProjectsToolbar'
 import type { Project, TabType } from '../types'
 import { useToast } from '../components/ToastContext'
+import { getSetting } from '../utils/settings'
 
 const ProjectsPage = (): React.ReactElement => {
   const [projects, setProjects] = useState<Project[]>([])
@@ -142,6 +143,14 @@ const ProjectsPage = (): React.ReactElement => {
       const result = await window.electronAPI.launchProject(projectPath)
       if (!result.success) {
         alert('Failed to launch project: ' + result.error)
+      } else {
+        // Check if auto-close on launch is enabled
+        if (getSetting('autoCloseOnLaunch')) {
+          // Close the app after successful launch
+          setTimeout(() => {
+            window.electronAPI?.windowClose()
+          }, 1000) // Small delay to ensure the launch process starts
+        }
       }
     }
   }
@@ -210,7 +219,10 @@ const ProjectsPage = (): React.ReactElement => {
         addToast(`Added ${added} new project${added === 1 ? '' : 's'}`, 'success')
       }
       if (duplicates > 0) {
-        addToast(`${duplicates} project${duplicates === 1 ? '' : 's'} already exist${duplicates === 1 ? 's' : ''}`, 'warning')
+        addToast(
+          `${duplicates} project${duplicates === 1 ? '' : 's'} already exist${duplicates === 1 ? 's' : ''}`,
+          'warning'
+        )
       }
       if (invalid > 0) {
         addToast(`${invalid} invalid project${invalid === 1 ? '' : 's'} found`, 'error')
@@ -236,16 +248,19 @@ const ProjectsPage = (): React.ReactElement => {
 
   const favoritePaths = getFavoritePaths()
 
-  const visibleProjects = useMemo(() => (
-    searchQuery.trim()
-      ? projects.filter((project) =>
-          project.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
-        )
-      : projects
-  ).map((project) => ({
-    ...project,
-    isFavorite: project.projectPath ? favoritePaths.includes(project.projectPath) : false
-  })), [projects, searchQuery, favoritePaths])
+  const visibleProjects = useMemo(
+    () =>
+      (searchQuery.trim()
+        ? projects.filter((project) =>
+            project.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+          )
+        : projects
+      ).map((project) => ({
+        ...project,
+        isFavorite: project.projectPath ? favoritePaths.includes(project.projectPath) : false
+      })),
+    [projects, searchQuery, favoritePaths]
+  )
 
   return (
     <PageWrapper>

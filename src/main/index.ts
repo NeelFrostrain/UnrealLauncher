@@ -98,6 +98,21 @@ let mainWindow: BrowserWindow | null = null
 let isMaximized = false
 let previousBounds: { x: number; y: number; width: number; height: number } | null = null
 
+// Single instance lock - prevent multiple instances
+const gotTheLock = app.requestSingleInstanceLock()
+
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    // Someone tried to run a second instance, focus the existing window instead
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
+  })
+}
+
 // Data storage paths
 const userDataPath = app.getPath('userData')
 const enginesDataPath = path.join(userDataPath, 'engines.json')
@@ -832,7 +847,17 @@ function findUprojectFiles(dir: string, maxDepth = 5, maxFiles = 1000): string[]
         const stat = fs.statSync(fullPath)
         if (stat.isDirectory() && !item.startsWith('.') && depth < maxDepth) {
           // Skip common non-project directories to speed up scanning
-          if (!['node_modules', '.git', 'Binaries', 'Intermediate', 'DerivedDataCache', 'Saved', 'Plugins'].includes(item)) {
+          if (
+            ![
+              'node_modules',
+              '.git',
+              'Binaries',
+              'Intermediate',
+              'DerivedDataCache',
+              'Saved',
+              'Plugins'
+            ].includes(item)
+          ) {
             scan(fullPath, depth + 1)
           }
         } else if (item.endsWith('.uproject')) {
