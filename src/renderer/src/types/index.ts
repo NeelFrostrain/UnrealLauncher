@@ -1,4 +1,5 @@
 export type PageType = 'Engines' | 'Projects' | 'About'
+export type TabType = 'all' | 'recent' | 'favorites'
 
 export interface EngineCardProps {
   version: string
