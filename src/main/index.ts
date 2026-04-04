@@ -27,6 +27,20 @@ interface Project {
   createdAt: string
   projectPath: string
   thumbnail: string | null
+  projectId?: string
+}
+
+interface EngineSelectionResult {
+  added: Engine | null
+  duplicate: boolean
+  invalid: boolean
+  message?: string
+}
+
+interface ProjectSelectionResult {
+  addedProjects: Project[]
+  duplicateProjects: Array<{ projectPath: string; name: string; reason: string }>
+  invalidProjects: Array<{ projectPath: string; reason: string }>
 }
 
 // Configure auto-updater
@@ -524,34 +538,108 @@ ipcMain.handle('open-directory', async (_event, dirPath): Promise<void> => {
   spawn('explorer', [dirPath], { detached: true, stdio: 'ignore' })
 })
 
-ipcMain.handle('select-engine-folder', async (): Promise<Engine | null> => {
-  if (!mainWindow) return null
-  const result = await dialog.showOpenDialog(mainWindow, {
-    title: 'Select Unreal Engine Folder',
-    properties: ['openDirectory']
-  })
-  if (result.canceled || result.filePaths.length === 0) return null
-  const folder = result.filePaths[0]
-  const binPath = path.join(folder, 'Engine', 'Binaries', 'Win64')
+function validateEngineInstallation(folder: string): {
+  valid: boolean
+  version: string
+  exePath: string
+  reason?: string
+} {
+  const engineFolder = path.join(folder, 'Engine')
+  const sourceFolder = path.join(engineFolder, 'Source')
+  const buildVersionPath = path.join(engineFolder, 'Build', 'Build.version')
+  const versionFilePath = path.join(folder, 'Engine.version')
+  const binPath = path.join(engineFolder, 'Binaries', 'Win64')
+
+  if (!fs.existsSync(engineFolder) || !fs.existsSync(sourceFolder) || !fs.existsSync(binPath)) {
+    return {
+      valid: false,
+      version: 'Unknown',
+      exePath: '',
+      reason: 'Selected folder does not contain a valid Unreal Engine installation.'
+    }
+  }
 
   let exePath = path.join(binPath, 'UnrealEditor.exe')
   if (!fs.existsSync(exePath)) {
     exePath = path.join(binPath, 'UE4Editor.exe')
   }
 
-  if (!fs.existsSync(exePath)) return null
-
-  const engines = loadEngines()
-  const existing = engines.find((e) => e.directoryPath === folder)
-  if (existing) {
-    return null
+  if (!fs.existsSync(exePath)) {
+    return {
+      valid: false,
+      version: 'Unknown',
+      exePath: '',
+      reason: 'No UnrealEditor executable was found in the selected engine folder.'
+    }
   }
 
-  const version = path.basename(folder).replace('UE_', '')
+  let version = path.basename(folder)
+  if (fs.existsSync(buildVersionPath)) {
+    try {
+      const buildVersionContent = fs.readFileSync(buildVersionPath, 'utf8')
+      const buildVersion = JSON.parse(buildVersionContent)
+      if (buildVersion.MajorVersion != null && buildVersion.MinorVersion != null) {
+        version = `${buildVersion.MajorVersion}.${buildVersion.MinorVersion}`
+      } else if (typeof buildVersion.BranchName === 'string') {
+        version = buildVersion.BranchName
+      }
+    } catch (_err) {
+      // Keep folder name as fallback
+    }
+  } else if (fs.existsSync(versionFilePath)) {
+    try {
+      const versionData = JSON.parse(fs.readFileSync(versionFilePath, 'utf8'))
+      if (typeof versionData.EngineVersion === 'string') {
+        version = versionData.EngineVersion
+      }
+    } catch (_err) {
+      // Keep fallback version
+    }
+  }
+
+  return {
+    valid: true,
+    version,
+    exePath
+  }
+}
+
+ipcMain.handle('select-engine-folder', async (): Promise<EngineSelectionResult | null> => {
+  if (!mainWindow) return null
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Select Unreal Engine Folder',
+    properties: ['openDirectory']
+  })
+  if (result.canceled || result.filePaths.length === 0) return null
+
+  const folder = result.filePaths[0]
+  const validation = validateEngineInstallation(folder)
+  if (!validation.valid) {
+    return {
+      added: null,
+      duplicate: false,
+      invalid: true,
+      message: validation.reason
+    }
+  }
+
+  const engines = loadEngines()
+  const existingByPath = engines.find((e) => e.directoryPath === folder)
+  const existingByVersion = engines.find((e) => e.version === validation.version)
+  if (existingByPath || existingByVersion) {
+    return {
+      added: null,
+      duplicate: true,
+      invalid: false,
+      message: existingByPath
+        ? 'This engine directory has already been added.'
+        : `Engine version ${validation.version} is already added.`
+    }
+  }
 
   const newEngine: Engine = {
-    version,
-    exePath,
+    version: validation.version,
+    exePath: validation.exePath,
     directoryPath: folder,
     folderSize: '~35-45 GB',
     lastLaunch: 'Unknown',
@@ -561,53 +649,114 @@ ipcMain.handle('select-engine-folder', async (): Promise<Engine | null> => {
   engines.push(newEngine)
   saveEngines(engines)
 
-  return newEngine
+  return {
+    added: newEngine,
+    duplicate: false,
+    invalid: false
+  }
 })
 
-ipcMain.handle('select-project-folder', async (): Promise<Project | null> => {
+ipcMain.handle('select-project-folder', async (): Promise<ProjectSelectionResult | null> => {
   if (!mainWindow) return null
   const result = await dialog.showOpenDialog(mainWindow, {
     title: 'Select Unreal Project Folder',
     properties: ['openDirectory']
   })
   if (result.canceled || result.filePaths.length === 0) return null
+
   const folder = result.filePaths[0]
   const uprojectFiles = findUprojectFiles(folder)
-  if (uprojectFiles.length === 0) return null
 
-  const projects = loadProjects()
-  const existing = projects.find((p) => p.projectPath === folder)
-  if (existing) {
-    return null
+  const response: ProjectSelectionResult = {
+    addedProjects: [],
+    duplicateProjects: [],
+    invalidProjects: []
   }
 
-  const uprojectPath = uprojectFiles[0]
-  const projectName = path.basename(folder)
-  const stats = fs.statSync(folder)
-  let version = 'Unknown'
-  try {
-    const uprojectContent = fs.readFileSync(uprojectPath, 'utf8')
-    const match = uprojectContent.match(/"EngineAssociation":\s*"([^"]+)"/)
-    if (match) version = match[1]
-  } catch (_err) {
-    // Continue with default version
+  if (uprojectFiles.length === 0) {
+    response.invalidProjects.push({
+      projectPath: folder,
+      reason: 'No .uproject files were found in the selected folder.'
+    })
+    return response
   }
 
-  const screenshot = findProjectScreenshot(folder)
+  const savedProjects = loadProjects()
+  const knownProjects = [...savedProjects]
 
-  const newProject: Project = {
-    name: projectName,
-    version,
-    size: '~2-5 GB',
-    createdAt: stats.birthtime.toISOString().split('T')[0],
-    projectPath: folder,
-    thumbnail: screenshot
+  for (const uprojectPath of uprojectFiles) {
+    const projectDir = path.dirname(uprojectPath)
+    const projectName = path.basename(projectDir)
+    let projectId: string | undefined
+    let version = 'Unknown'
+
+    try {
+      const uprojectContent = fs.readFileSync(uprojectPath, 'utf8')
+      const projectJson = JSON.parse(uprojectContent)
+      if (typeof projectJson.EngineAssociation === 'string') {
+        version = projectJson.EngineAssociation
+      }
+      if (typeof projectJson.ProjectID === 'string') {
+        projectId = projectJson.ProjectID
+      }
+      if (typeof projectJson.ProjectName === 'string') {
+        // Use declared project name if provided.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // projectName = projectJson.ProjectName
+      }
+    } catch (_err) {
+      response.invalidProjects.push({
+        projectPath: projectDir,
+        reason: 'Invalid or corrupted .uproject file.'
+      })
+      continue
+    }
+
+    const existing = knownProjects.find(
+      (p) =>
+        p.projectPath === projectDir ||
+        (projectId && p.projectId === projectId) ||
+        (!projectId && p.name === projectName)
+    )
+
+    if (existing) {
+      response.duplicateProjects.push({
+        projectPath: projectDir,
+        name: projectName,
+        reason:
+          existing.projectPath === projectDir ? 'Already added' : 'Duplicate project name or ID'
+      })
+      continue
+    }
+
+    try {
+      const stats = fs.statSync(projectDir)
+      const screenshot = findProjectScreenshot(projectDir)
+      const newProject: Project = {
+        name: projectName,
+        version,
+        size: '~2-5 GB',
+        createdAt: stats.birthtime.toISOString().split('T')[0],
+        projectPath: projectDir,
+        thumbnail: screenshot,
+        projectId
+      }
+
+      response.addedProjects.push(newProject)
+      knownProjects.push(newProject)
+    } catch (_err) {
+      response.invalidProjects.push({
+        projectPath: projectDir,
+        reason: 'Unable to read project folder metadata.'
+      })
+    }
   }
 
-  projects.push(newProject)
-  saveProjects(projects)
+  if (response.addedProjects.length > 0) {
+    saveProjects([...savedProjects, ...response.addedProjects])
+  }
 
-  return newProject
+  return response
 })
 
 ipcMain.on('window-minimize', (): void => {
@@ -667,18 +816,29 @@ ipcMain.handle('delete-project', (_event, projectPath): boolean => {
 })
 
 // Helper functions
-function findUprojectFiles(dir: string): string[] {
+function findUprojectFiles(dir: string, maxDepth = 5, maxFiles = 1000): string[] {
   const files: string[] = []
-  function scan(currentDir: string): void {
+  let fileCount = 0
+
+  function scan(currentDir: string, depth = 0): void {
+    if (depth > maxDepth || fileCount > maxFiles) return
+
     try {
       const items = fs.readdirSync(currentDir)
       for (const item of items) {
+        if (fileCount > maxFiles) return
+
         const fullPath = path.join(currentDir, item)
         const stat = fs.statSync(fullPath)
-        if (stat.isDirectory() && !item.startsWith('.')) {
-          scan(fullPath)
+        if (stat.isDirectory() && !item.startsWith('.') && depth < maxDepth) {
+          // Skip common non-project directories to speed up scanning
+          if (!['node_modules', '.git', 'Binaries', 'Intermediate', 'DerivedDataCache', 'Saved', 'Plugins'].includes(item)) {
+            scan(fullPath, depth + 1)
+          }
         } else if (item.endsWith('.uproject')) {
           files.push(fullPath)
+          fileCount++
+          if (fileCount > maxFiles) return
         }
       }
     } catch (_err) {

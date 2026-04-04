@@ -4,11 +4,17 @@ import { Plus, RefreshCw } from 'lucide-react'
 
 interface EnginesToolbarProps {
   scanning: boolean
+  addingEngine: boolean
   onAddEngine: () => void
   onScan: () => void
 }
 
-const EnginesToolbar: FC<EnginesToolbarProps> = ({ scanning, onAddEngine, onScan }) => {
+const EnginesToolbar: FC<EnginesToolbarProps> = ({
+  scanning,
+  addingEngine,
+  onAddEngine,
+  onScan
+}) => {
   return (
     <motion.div
       className="flex items-center gap-2 px-2 py-1 border-b border-white/10"
@@ -26,7 +32,8 @@ const EnginesToolbar: FC<EnginesToolbarProps> = ({ scanning, onAddEngine, onScan
         onClick={onAddEngine}
         whileHover={{ y: -1 }}
         whileTap={{ scale: 0.98 }}
-        className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all"
+        disabled={addingEngine}
+        className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         title="Add Engine"
       >
         <Plus size={16} />

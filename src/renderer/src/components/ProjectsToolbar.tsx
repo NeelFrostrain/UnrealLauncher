@@ -9,6 +9,7 @@ interface ProjectsToolbarProps {
   searchOpen: boolean
   searchQuery: string
   refreshing: boolean
+  addingProject: boolean
   onTabClick: (tab: TabType) => void
   onToggleSearch: () => void
   onSearchChange: (value: string) => void
@@ -22,6 +23,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
   searchOpen,
   searchQuery,
   refreshing,
+  addingProject,
   onTabClick,
   onToggleSearch,
   onSearchChange,
@@ -78,10 +80,11 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       </button>
       <button
         onClick={onAddProject}
-        className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all"
+        disabled={addingProject}
+        className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         title="Add Project"
       >
-        <Plus size={16} />
+        {addingProject ? 'Adding…' : <Plus size={16} />}
       </button>
       <button
         onClick={onRefresh}

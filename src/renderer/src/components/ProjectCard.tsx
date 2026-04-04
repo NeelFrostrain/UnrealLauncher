@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, memo } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../types'
 import { FolderOpen, Play, Trash2, Star, StarOff } from 'lucide-react'
 import ProjectCardButton from './ProjectCardButton'
 import { resolveAsset } from '../utils/resolveAsset'
 
-const ProjectCard = ({
+const ProjectCard = memo(({
   createdAt,
   name,
   size,
@@ -133,6 +133,8 @@ const ProjectCard = ({
       </div>
     </motion.div>
   )
-}
+})
+
+ProjectCard.displayName = 'ProjectCard'
 
 export default ProjectCard

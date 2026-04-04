@@ -17,4 +17,5 @@ export interface Project {
   createdAt: string
   thumbnail?: string
   projectPath?: string
+  projectId?: string
 }

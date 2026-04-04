@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import type { FC, ReactElement } from 'react'
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { FolderOpen, Play, SquareX } from 'lucide-react'
 import type { EngineCardProps } from '../types'
 import { generateGradient } from '@renderer/utils/generateGradient'
@@ -11,7 +11,7 @@ interface EngineCardComponentProps extends EngineCardProps {
   onDelete: (dirPath: string) => void
 }
 
-const EngineCard: FC<EngineCardComponentProps> = ({
+const EngineCard: FC<EngineCardComponentProps> = memo(({
   version,
   exePath,
   directoryPath,
@@ -142,6 +142,8 @@ const EngineCard: FC<EngineCardComponentProps> = ({
       </div>
     </motion.div>
   )
-}
+})
+
+EngineCard.displayName = 'EngineCard'
 
 export default EngineCard

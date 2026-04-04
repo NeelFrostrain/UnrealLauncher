@@ -1,15 +1,47 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
 declare global {
+  interface ProjectData {
+    name: string
+    version: string
+    size: string
+    createdAt: string
+    thumbnail?: string
+    projectPath?: string
+    projectId?: string
+  }
+
+  interface EngineData {
+    version: string
+    exePath: string
+    directoryPath: string
+    folderSize: string
+    lastLaunch: string
+    gradient?: string
+  }
+
+  interface ProjectSelectionResult {
+    addedProjects: ProjectData[]
+    duplicateProjects: Array<{ projectPath: string; name: string; reason: string }>
+    invalidProjects: Array<{ projectPath: string; reason: string }>
+  }
+
+  interface EngineSelectionResult {
+    added: EngineData | null
+    duplicate: boolean
+    invalid: boolean
+    message?: string
+  }
+
   interface Window {
     electronAPI: {
-      scanEngines: () => Promise<EngineCardProps[]>
-      scanProjects: () => Promise<Project[]>
+      scanEngines: () => Promise<EngineData[]>
+      scanProjects: () => Promise<ProjectData[]>
       launchEngine: (exePath: string) => Promise<{ success: boolean; error?: string }>
       launchProject: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       openDirectory: (dirPath: string) => Promise<void>
-      selectEngineFolder: () => Promise<EngineCardProps | null>
-      selectProjectFolder: () => Promise<Project | null>
+      selectEngineFolder: () => Promise<EngineSelectionResult | null>
+      selectProjectFolder: () => Promise<ProjectSelectionResult | null>
       windowMinimize: () => void
       windowMaximize: () => void
       windowClose: () => void

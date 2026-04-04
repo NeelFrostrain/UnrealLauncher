@@ -1,14 +1,16 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import PageWrapper from '../layout/PageWrapper'
 import ProjectCard from '../components/ProjectCard'
 import ProjectsToolbar from '../components/ProjectsToolbar'
 import type { Project, TabType } from '../types'
+import { useToast } from '../components/ToastContext'
 
 const ProjectsPage = (): React.ReactElement => {
   const [projects, setProjects] = useState<Project[]>([])
   const [currentTab, setCurrentTab] = useState<TabType>('all')
   const [refreshing, setRefreshing] = useState(false)
-  const [allProjects, setAllProjects] = useState<Project[]>([])
+  const [addingProject, setAddingProject] = useState(false)
+  const { addToast } = useToast()
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -47,8 +49,6 @@ const ProjectsPage = (): React.ReactElement => {
     try {
       // Always fetch fresh data from the file system
       const scannedProjects = await window.electronAPI.scanProjects()
-      setAllProjects(scannedProjects)
-
       let filtered = scannedProjects
 
       // Filter based on tab
@@ -59,7 +59,7 @@ const ProjectsPage = (): React.ReactElement => {
           .slice(0, 20) // Limit to 20 most recent
       } else if (tab === 'favorites') {
         const favorites = getFavoritePaths()
-        filtered = scannedProjects.filter((p) => favorites.includes(p.projectPath))
+        filtered = scannedProjects.filter((p) => p.projectPath && favorites.includes(p.projectPath))
       }
       // 'all' tab shows all projects (no filtering)
 
@@ -101,10 +101,6 @@ const ProjectsPage = (): React.ReactElement => {
         if (data.type === 'project') {
           // Update current display
           setProjects((prev) =>
-            prev.map((p) => (p.projectPath === data.path ? { ...p, size: data.size } : p))
-          )
-          // Update all projects list
-          setAllProjects((prev) =>
             prev.map((p) => (p.projectPath === data.path ? { ...p, size: data.size } : p))
           )
         }
@@ -158,47 +154,77 @@ const ProjectsPage = (): React.ReactElement => {
 
   const handleDelete = async (projectPath: string): Promise<void> => {
     if (confirm('Remove this project from the list? (Files will not be deleted)')) {
-      setProjects((prev) => prev.filter((p) => p.projectPath !== projectPath))
-      setAllProjects((prev) => prev.filter((p) => p.projectPath !== projectPath))
-      const favorites = getFavoritePaths()
-      if (favorites.includes(projectPath)) {
-        saveFavoritePaths(favorites.filter((path) => path !== projectPath))
-      }
-      if (window.electronAPI) {
-        await window.electronAPI.deleteProject(projectPath)
-      }
-      if (currentTab === 'favorites') {
-        await loadProjectsForTab('favorites')
+      try {
+        // First try to delete from backend
+        if (window.electronAPI) {
+          const success = await window.electronAPI.deleteProject(projectPath)
+          if (!success) {
+            addToast('Failed to remove project from storage', 'error')
+            return
+          }
+        }
+
+        // Update local state only after successful backend deletion
+        setProjects((prev) => prev.filter((p) => p.projectPath !== projectPath))
+        const favorites = getFavoritePaths()
+        if (favorites.includes(projectPath)) {
+          saveFavoritePaths(favorites.filter((path) => path !== projectPath))
+          if (currentTab === 'favorites') {
+            await loadProjectsForTab('favorites')
+          }
+        }
+
+        addToast('Project removed from list', 'success')
+      } catch (error) {
+        console.error('Error deleting project:', error)
+        addToast('Failed to remove project', 'error')
       }
     }
   }
 
   const handleAddProject = async (): Promise<void> => {
-    if (!window.electronAPI) return
-    const project = await window.electronAPI.selectProjectFolder()
-    if (!project) {
-      alert('Project already exists or no valid Unreal project folder found.')
-      return
-    }
-    // Check if already in UI state
-    if (allProjects.find((p) => p.projectPath === project.projectPath)) {
-      alert('This project is already added.')
-      return
-    }
-    setProjects((prev) => [project, ...prev])
-    setAllProjects((prev) => [project, ...prev])
+    if (!window.electronAPI || addingProject) return
 
-    // Calculate size for the new project if it has an estimate
-    if (project.projectPath && project.size.startsWith('~')) {
-      window.electronAPI.calculateProjectSize(project.projectPath).then((result) => {
-        if (result.success && result.size) {
-          setProjects((prev) =>
-            prev.map((p) =>
-              p.projectPath === project.projectPath ? { ...p, size: result.size! } : p
-            )
-          )
-        }
+    setAddingProject(true)
+
+    try {
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Folder selection timeout')), 30000) // 30 second timeout
       })
+
+      const selectPromise = window.electronAPI.selectProjectFolder()
+      const result = await Promise.race([selectPromise, timeoutPromise])
+
+      if (!result) {
+        addToast('No folder was selected', 'info')
+        setAddingProject(false)
+        return
+      }
+
+      const added = result.addedProjects.length
+      const duplicates = result.duplicateProjects.length
+      const invalid = result.invalidProjects.length
+
+      if (added > 0) {
+        addToast(`Added ${added} new project${added === 1 ? '' : 's'}`, 'success')
+      }
+      if (duplicates > 0) {
+        addToast(`${duplicates} project${duplicates === 1 ? '' : 's'} already exist${duplicates === 1 ? 's' : ''}`, 'warning')
+      }
+      if (invalid > 0) {
+        addToast(`${invalid} invalid project${invalid === 1 ? '' : 's'} found`, 'error')
+      }
+      if (added === 0 && duplicates === 0 && invalid === 0) {
+        addToast('No new projects were added', 'info')
+      }
+
+      await loadProjectsForTab(currentTab)
+    } catch (error) {
+      console.error('Error adding projects:', error)
+      addToast('Failed to add projects. Please try again.', 'error')
+    } finally {
+      setAddingProject(false)
     }
   }
 
@@ -210,7 +236,7 @@ const ProjectsPage = (): React.ReactElement => {
 
   const favoritePaths = getFavoritePaths()
 
-  const visibleProjects = (
+  const visibleProjects = useMemo(() => (
     searchQuery.trim()
       ? projects.filter((project) =>
           project.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
@@ -219,7 +245,7 @@ const ProjectsPage = (): React.ReactElement => {
   ).map((project) => ({
     ...project,
     isFavorite: project.projectPath ? favoritePaths.includes(project.projectPath) : false
-  }))
+  })), [projects, searchQuery, favoritePaths])
 
   return (
     <PageWrapper>
@@ -229,6 +255,7 @@ const ProjectsPage = (): React.ReactElement => {
         searchOpen={searchOpen}
         searchQuery={searchQuery}
         refreshing={refreshing}
+        addingProject={addingProject}
         onTabClick={switchTab}
         onToggleSearch={toggleSearch}
         onSearchChange={handleSearchQueryChange}
@@ -238,9 +265,9 @@ const ProjectsPage = (): React.ReactElement => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto py-px px-2 mt-2">
         {visibleProjects.length > 0 ? (
-          visibleProjects.map((data, index) => (
+          visibleProjects.map((data) => (
             <ProjectCard
-              key={`${data.projectPath}-${index}`}
+              key={data.projectPath || data.name}
               {...data}
               isFavorite={data.isFavorite}
               onToggleFavorite={toggleFavoritePath}
