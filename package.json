@@ -1,7 +1,7 @@
 {
   "name": "unreal-launcher",
   "productName": "Unreal Launcher",
-  "version": "1.5.0",
+  "version": "1.7.0",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",

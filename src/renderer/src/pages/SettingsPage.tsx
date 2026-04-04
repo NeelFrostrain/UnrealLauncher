@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import PageWrapper from '../layout/PageWrapper'
-import PageTitleBar from '../components/PageTitlebar'
 import { Settings, ToggleLeft, ToggleRight, Zap } from 'lucide-react'
 import { getSetting, setSetting } from '../utils/settings'
 

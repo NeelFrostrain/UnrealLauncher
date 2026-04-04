@@ -97,13 +97,15 @@ unreal-launcher/
 
 - **Engine Detection** — automatically scans standard Unreal Engine install paths
 - **One-click Launch** — start the editor with a single click
-- **Project Browser** — locate and open Unreal projects
+- **Project Browser** — locate and open Unreal projects with thumbnail previews
+- **Favorites System** — mark and quickly access your favorite projects
+- **Advanced Search** — powerful search functionality across engines and projects
+- **Settings Page** — customize app behavior and preferences
+- **Smooth Animations** — beautiful framer-motion animations throughout the UI
+- **Toast Notifications** — real-time feedback for user actions
+- **Single Instance Lock** — prevents multiple app instances
 - **Auto-updates** — keeps the launcher updated (GitHub Releases-based)
-- **Custom UI** — dark mode, gradients, responsive layout
-
----
-
-## 🛠️ Scripts
+- **Custom UI** — dark mode, gradients, responsive layout with hover effects
 
 |                Command | Description                            |
 | ---------------------: | :------------------------------------- |

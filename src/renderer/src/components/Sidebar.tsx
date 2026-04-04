@@ -6,6 +6,7 @@ import usePagesStore from '@renderer/store/usePagesStore'
 import Engine_BG from '@renderer/assets/Engines_BG.webp'
 import Projects_BG from '@renderer/assets/Projects_BG.jpg'
 import ProjectDefault from '@renderer/assets/ProjectDefault.avif'
+import Settings_BG from '@renderer/assets/Settings_BG.jpg'
 
 interface SidebarCardData {
   title: PageType
@@ -26,7 +27,7 @@ const SidebarCards: SidebarCardData[] = [
   },
   {
     title: 'Settings',
-    imageSrc: ProjectDefault,
+    imageSrc: Settings_BG,
     icon: <Settings size={15.5} strokeWidth={1.8} />
   },
   {
