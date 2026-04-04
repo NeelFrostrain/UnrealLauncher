@@ -685,7 +685,7 @@ const AboutPage = (): React.ReactElement => {
           <div>
             <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
               <MenuBookIcon sx={{ fontSize: 20 }} className="text-yellow-400" />
-              What&apos;s New (dev)
+              What&apos;s New 
             </h2>
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
               <div className="space-y-2">
@@ -733,7 +733,7 @@ const AboutPage = (): React.ReactElement => {
           <div>
             <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
               <MenuBookIcon sx={{ fontSize: 20 }} className="text-yellow-400" />
-              What&apos;s New (dev)
+              What&apos;s New 
             </h2>
             <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
               <div className="space-y-2">
