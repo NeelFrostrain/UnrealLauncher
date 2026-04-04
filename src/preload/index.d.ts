@@ -59,6 +59,15 @@ declare global {
       ) => Promise<{ success: boolean; size?: string; error?: string }>
       loadImage: (imagePath: string) => Promise<string | null>
       openExternal: (url: string) => Promise<{ success: boolean; error?: string }>
+      getAppVersion: () => Promise<string>
+      checkGithubVersion: () => Promise<{
+        success: boolean
+        latestVersion?: string
+        currentVersion?: string
+        updateAvailable?: boolean
+        message?: string
+        error?: string
+      }>
       checkForUpdates: () => Promise<{
         success: boolean
         updateInfo?: any

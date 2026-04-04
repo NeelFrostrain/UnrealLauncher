@@ -3,6 +3,7 @@ import pkg from 'electron-updater'
 const { autoUpdater } = pkg
 import path from 'path'
 import fs from 'fs'
+import https from 'https'
 import { spawn, exec } from 'child_process'
 import os from 'os'
 import { fileURLToPath } from 'url'
@@ -46,6 +47,58 @@ interface ProjectSelectionResult {
 // Configure auto-updater
 autoUpdater.autoDownload = false
 autoUpdater.autoInstallOnAppQuit = true
+
+function fetchGitHubLatestRelease(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.github.com',
+      path: '/repos/NeelFrostrain/UnrealLauncher/releases/latest',
+      method: 'GET',
+      headers: {
+        'User-Agent': 'UnrealLauncher',
+        Accept: 'application/vnd.github.v3+json'
+      }
+    }
+
+    const req = https.request(options, (res) => {
+      let rawData = ''
+
+      res.on('data', (chunk) => {
+        rawData += chunk
+      })
+
+      res.on('end', () => {
+        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            resolve(JSON.parse(rawData))
+          } catch (err) {
+            reject(err)
+          }
+        } else {
+          reject(new Error(`GitHub API error: ${res.statusCode}`))
+        }
+      })
+    })
+
+    req.on('error', reject)
+    req.end()
+  })
+}
+
+function compareVersions(version1: string, version2: string): boolean {
+  const v1 = version1.split('.').map(Number)
+  const v2 = version2.split('.').map(Number)
+
+  for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
+    const num1 = v1[i] || 0
+    const num2 = v2[i] || 0
+
+    if (num1 > num2) return true
+    if (num1 < num2) return false
+  }
+
+  return false
+}
 
 // Enable dev mode for testing (remove in production)
 if (process.env.NODE_ENV === 'development') {
@@ -367,6 +420,47 @@ ipcMain.handle('download-update', async (): Promise<Record<string, unknown>> => 
 ipcMain.handle('install-update', (): void => {
   autoUpdater.quitAndInstall()
 })
+
+ipcMain.handle('get-app-version', (): string => {
+  return app.getVersion()
+})
+
+ipcMain.handle(
+  'check-github-version',
+  async (): Promise<{
+    success: boolean
+    latestVersion?: string
+    currentVersion?: string
+    updateAvailable?: boolean
+    message?: string
+    error?: string
+  }> => {
+    try {
+      const release = await fetchGitHubLatestRelease()
+      const latestVersion = String(release.tag_name || release.name || '').replace(/^v/i, '')
+
+      if (!latestVersion) {
+        return { success: false, error: 'Latest GitHub release tag not found' }
+      }
+
+      const currentVersion = app.getVersion()
+      const updateAvailable = compareVersions(latestVersion, currentVersion)
+      let message = ''
+
+      if (updateAvailable) {
+        message = `New version ${latestVersion} available on GitHub!`
+      } else if (compareVersions(currentVersion, latestVersion)) {
+        message = `Installed version ${currentVersion} is newer than GitHub latest ${latestVersion}.`
+      } else {
+        message = `You have the latest version (${currentVersion}). GitHub latest is ${latestVersion}.`
+      }
+
+      return { success: true, latestVersion, currentVersion, updateAvailable, message }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+    }
+  }
+)
 
 // IPC handlers
 ipcMain.handle('scan-engines', async (): Promise<Engine[]> => {
