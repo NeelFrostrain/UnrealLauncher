@@ -301,12 +301,24 @@ app.on('activate', () => {
 // IPC handler for manual update check
 ipcMain.handle('check-for-updates', async (): Promise<Record<string, unknown>> => {
   try {
-    // In development, return mock data
+    // In development, try to check for actual updates if configured
     if (process.env.NODE_ENV === 'development') {
-      return {
-        success: true,
-        updateInfo: null,
-        message: 'Update check works! (Dev mode - build and publish a release to test updates)'
+      try {
+        const result = await autoUpdater.checkForUpdates()
+        if (result && result.updateInfo) {
+          return { success: true, updateInfo: result.updateInfo }
+        }
+        return {
+          success: true,
+          updateInfo: null,
+          message: 'No updates available (Dev mode - create a GitHub release to test updates)'
+        }
+      } catch (err) {
+        return {
+          success: true,
+          updateInfo: null,
+          message: `Dev mode: ${err instanceof Error ? err.message : 'Update check failed'}`
+        }
       }
     }
 

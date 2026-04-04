@@ -28,7 +28,9 @@ if (process.contextIsolated) {
       onSizeCalculated: (callback: (data: any) => void): (() => void) => {
         const listener = (_event: any, data: any): void => callback(data)
         ipcRenderer.on('size-calculated', listener)
-        return (): void => ipcRenderer.removeListener('size-calculated', listener)
+        return (): void => {
+          ipcRenderer.removeListener('size-calculated', listener)
+        }
       },
       calculateEngineSize: (directoryPath) =>
         ipcRenderer.invoke('calculate-engine-size', directoryPath),
@@ -42,7 +44,9 @@ if (process.contextIsolated) {
       onDownloadProgress: (callback: (progress: any) => void): (() => void) => {
         const listener = (_event: any, progress: any): void => callback(progress)
         ipcRenderer.on('download-progress', listener)
-        return (): void => ipcRenderer.removeListener('download-progress', listener)
+        return (): void => {
+          ipcRenderer.removeListener('download-progress', listener)
+        }
       }
     })
   } catch (error) {
