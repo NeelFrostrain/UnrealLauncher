@@ -171,10 +171,11 @@ const ProjectCard: FC<
 
 const ProjectsPage = (): React.ReactElement => {
   const [projects, setProjects] = useState<Project[]>([])
-  const [scanning, setScanning] = useState(false)
   const [currentTab, setCurrentTab] = useState<TabType>('all')
   const [refreshing, setRefreshing] = useState(false)
   const [allProjects, setAllProjects] = useState<Project[]>([])
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Define loadProjectsForTab first before using it in useEffect
   const loadProjectsForTab = useCallback(async (tab: TabType): Promise<Project[]> => {
@@ -264,32 +265,20 @@ const ProjectsPage = (): React.ReactElement => {
 
   const handleRefresh = async (): Promise<void> => {
     setRefreshing(true)
-    // Clear current display
     setProjects([])
-
-    // Reload fresh data
     await loadProjectsForTab(currentTab)
     setRefreshing(false)
   }
 
-  const handleScan = async (): Promise<void> => {
-    setScanning(true)
+  const toggleSearch = (): void => {
+    setSearchOpen((prev) => {
+      if (prev) setSearchQuery('')
+      return !prev
+    })
+  }
 
-    try {
-      const filteredProjects = await loadProjectsForTab(currentTab)
-      if (filteredProjects.length === 0) {
-        const message =
-          currentTab === 'favorites'
-            ? 'No favorite projects were found. Add some favorites from All Projects.'
-            : 'No Unreal projects were found in your standard scan locations. Use Add Project to add one manually.'
-        alert(message)
-      }
-    } catch (err) {
-      console.error('Scan failed:', err)
-      alert('Scan failed. Please try again.')
-    } finally {
-      setScanning(false)
-    }
+  const handleSearchQueryChange = (value: string): void => {
+    setSearchQuery(value)
   }
 
   const handleLaunch = async (projectPath: string): Promise<void> => {
@@ -352,6 +341,12 @@ const ProjectsPage = (): React.ReactElement => {
     { id: 'favorites', label: 'Favorites' }
   ]
 
+  const visibleProjects = searchQuery.trim()
+    ? projects.filter((project) =>
+        project.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+      )
+    : projects
+
   return (
     <PageWrapper>
       {/* Tabs with Action Buttons */}
@@ -369,14 +364,29 @@ const ProjectsPage = (): React.ReactElement => {
             {tab.label}
           </button>
         ))}
+
+        {searchOpen && (
+          <div className="flex min-w-0 items-center gap-2 px-3 py-2 rounded-md bg-white/5 border border-white/10 text-sm text-white/80 max-w-65 transition-all">
+            <Search size={16} className="text-white/70" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(event) => handleSearchQueryChange(event.target.value)}
+              placeholder="Search projects"
+              className="min-w-0 w-full bg-transparent text-sm outline-none text-white placeholder:text-white/40"
+            />
+          </div>
+        )}
+
         <div className="flex-1" />
         <button
-          onClick={handleScan}
-          disabled={scanning}
-          className="flex items-center gap-2 px-3 py-2 rounded-md bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-50"
-          title="Scan for Projects"
+          onClick={toggleSearch}
+          className={`flex items-center gap-2 px-3 py-2 rounded-md ${
+            searchOpen ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
+          } transition-all`}
+          title="Search projects by name"
         >
-          <Search size={16} className={scanning ? 'animate-spin' : ''} />
+          <Search size={16} />
         </button>
         <button
           onClick={handleAddProject}
@@ -396,8 +406,8 @@ const ProjectsPage = (): React.ReactElement => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto py-px px-2 mt-2">
-        {projects.length > 0 ? (
-          projects.map((data, index) => (
+        {visibleProjects.length > 0 ? (
+          visibleProjects.map((data, index) => (
             <ProjectCard
               key={`${data.projectPath}-${index}`}
               {...data}
@@ -409,12 +419,18 @@ const ProjectsPage = (): React.ReactElement => {
         ) : (
           <div className="col-span-full flex flex-col items-center justify-center h-full text-center text-white/50">
             <p className="text-lg mb-2">
-              {currentTab === 'favorites' ? 'No favorite projects' : 'No projects found'}
+              {searchQuery.trim()
+                ? 'No projects match your search'
+                : currentTab === 'favorites'
+                ? 'No favorite projects'
+                : 'No projects found'}
             </p>
             <p className="text-sm text-white/30 mb-4">
-              {currentTab === 'favorites'
+              {searchQuery.trim()
+                ? 'Try a different project name or clear the search.'
+                : currentTab === 'favorites'
                 ? 'Add projects to favorites from the All Projects tab'
-                : 'Click &quot;Scan for Projects&quot; to search or add manually'}
+                : 'Use Add Project to add one manually.'}
             </p>
           </div>
         )}
