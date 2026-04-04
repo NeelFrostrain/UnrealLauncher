@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import type { Project } from '../types'
 import { FolderOpen, Play, Trash2, Star, StarOff } from 'lucide-react'
 import ProjectCardButton from './ProjectCardButton'
@@ -56,7 +57,13 @@ const ProjectCard = ({
   }
 
   return (
-    <div className="w-full h-52 bg-[#121212] rounded-md border border-white/10 cursor-pointer overflow-hidden hover:border-blue-500/50 hover:bg-[#1a1a1a] transition-all duration-200 ease-in-out group relative">
+    <motion.div
+      className="w-full h-52 bg-[#121212] rounded-md border border-white/10 cursor-pointer overflow-hidden hover:border-blue-500/50 hover:bg-[#1a1a1a] transition-all duration-200 ease-in-out group relative"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+    >
       {launching && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/80 backdrop-blur-sm">
           <div className="text-center">
@@ -124,7 +131,7 @@ const ProjectCard = ({
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 

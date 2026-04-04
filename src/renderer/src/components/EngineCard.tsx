@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import type { FC, ReactElement } from 'react'
 import { useState } from 'react'
 import { FolderOpen, Play, SquareX } from 'lucide-react'
@@ -50,7 +51,13 @@ const EngineCard: FC<EngineCardComponentProps> = ({
   }
 
   return (
-    <div className="w-full h-30 bg-[#161616] overflow-hidden rounded-md border border-white/5 flex group hover:border-white/10 transition-all duration-150 ease-in-out select-text">
+    <motion.div
+      className="w-full h-30 bg-[#161616] overflow-hidden rounded-md border border-white/5 flex group hover:border-white/10 transition-all duration-150 ease-in-out select-text"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -1 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+    >
       <div
         className="w-48 p-5 border-r border-white/10 h-full flex flex-col justify-between relative select-none"
         style={{ background: currentGradient }}
@@ -133,7 +140,7 @@ const EngineCard: FC<EngineCardComponentProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 

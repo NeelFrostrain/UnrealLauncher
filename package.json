@@ -37,6 +37,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@tailwindcss/vite": "^4.2.1",
     "electron-updater": "^6.8.3",
+    "framer-motion": "^12.38.0",
     "lucide-react": "^0.577.0",
     "tailwindcss": "^4.2.1",
     "zustand": "^5.0.11"

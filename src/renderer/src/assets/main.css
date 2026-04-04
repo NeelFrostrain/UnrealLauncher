@@ -47,7 +47,12 @@ html {
 
 /* Animate buttons globally */
 button {
-  transition: transform 180ms ease, opacity 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 button:hover:not(:disabled) {

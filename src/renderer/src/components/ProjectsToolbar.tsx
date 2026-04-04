@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import type { FC } from 'react'
 import { Search, Plus, RefreshCw } from 'lucide-react'
 import type { TabType } from '../types'
@@ -28,10 +29,17 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
   onRefresh
 }) => {
   return (
-    <div className="flex items-center gap-2 px-2 pt-3 pb-2 border-b border-white/10">
+    <motion.div
+      className="flex items-center gap-2 px-2 pt-3 pb-2 border-b border-white/10"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
       {tabs.map((tab) => (
-        <button
+        <motion.button
           key={tab.id}
+          whileHover={{ y: -1 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => onTabClick(tab.id)}
           className={`px-4 py-2 rounded-t-md font-medium text-sm transition-all ${
             currentTab === tab.id
@@ -40,7 +48,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
           }`}
         >
           {tab.label}
-        </button>
+        </motion.button>
       ))}
 
       {searchOpen && (
@@ -83,7 +91,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       >
         <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
       </button>
-    </div>
+    </motion.div>
   )
 }
 
