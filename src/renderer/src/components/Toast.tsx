@@ -1,6 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { CheckCircle, AlertCircle, XCircle, Info } from 'lucide-react'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import WarningIcon from '@mui/icons-material/Warning'
+import CancelIcon from '@mui/icons-material/Cancel'
+import InfoIcon from '@mui/icons-material/Info'
 
 interface ToastProps {
   message: string
@@ -22,10 +25,10 @@ const Toast = ({ message, type, duration = 4000, onClose }: ToastProps): React.R
   }, [duration, onClose])
 
   const icons = {
-    success: CheckCircle,
-    error: XCircle,
-    warning: AlertCircle,
-    info: Info
+    success: CheckCircleIcon,
+    error: CancelIcon,
+    warning: WarningIcon,
+    info: InfoIcon
   }
 
   const colors = {
@@ -47,7 +50,7 @@ const Toast = ({ message, type, duration = 4000, onClose }: ToastProps): React.R
           transition={{ duration: 0.2, ease: 'easeOut' }}
           className={`fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg border backdrop-blur-md shadow-lg ${colors[type]} max-w-md`}
         >
-          <Icon size={20} />
+          <Icon sx={{ fontSize: 20 }} />
           <p className="text-sm font-medium flex-1">{message}</p>
         </motion.div>
       )}

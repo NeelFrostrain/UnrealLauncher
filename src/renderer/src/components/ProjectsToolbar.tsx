@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import type { FC } from 'react'
-import { Search, Plus, RefreshCw } from 'lucide-react'
+import AddIcon from '@mui/icons-material/Add'
+import RefreshIcon from '@mui/icons-material/Refresh'
+import SearchIcon from '@mui/icons-material/Search'
 import type { TabType } from '../types'
 
 interface ProjectsToolbarProps {
@@ -55,7 +57,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
 
       {searchOpen && (
         <div className="flex min-w-0 h-full items-center gap-2 px-3 rounded-md bg-white/5 border border-white/10 text-sm text-white/80 max-w-65 transition-all">
-          <Search size={16} className="text-white/70" />
+          <SearchIcon sx={{ fontSize: 16 }} className="text-white/70" />
           <input
             type="text"
             value={searchQuery}
@@ -76,7 +78,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         } transition-all`}
         title="Search projects by name"
       >
-        <Search size={16} />
+        <SearchIcon sx={{ fontSize: 16 }} />
       </button>
       <button
         onClick={onAddProject}
@@ -84,7 +86,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         title="Add Project"
       >
-        <Plus size={16} />
+        <AddIcon sx={{ fontSize: 16 }} />
       </button>
       <button
         onClick={onRefresh}
@@ -92,7 +94,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         className="flex items-center gap-2 px-3 py-2 rounded-md bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-50"
         title="Refresh projects for this tab"
       >
-        <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+        <RefreshIcon sx={{ fontSize: 16 }} className={refreshing ? 'animate-spin' : ''} />
       </button>
     </motion.div>
   )

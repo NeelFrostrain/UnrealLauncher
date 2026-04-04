@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import type { FC } from 'react'
-import { Plus, RefreshCw } from 'lucide-react'
+import AddIcon from '@mui/icons-material/Add'
+import RefreshIcon from '@mui/icons-material/Refresh'
 
 interface EnginesToolbarProps {
   scanning: boolean
@@ -36,7 +37,7 @@ const EnginesToolbar: FC<EnginesToolbarProps> = ({
         className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         title="Add Engine"
       >
-        <Plus size={16} />
+        <AddIcon sx={{ fontSize: 16 }} />
       </motion.button>
       <motion.button
         onClick={onScan}
@@ -46,7 +47,7 @@ const EnginesToolbar: FC<EnginesToolbarProps> = ({
         className="flex items-center gap-2 px-3 py-2 rounded-md bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-50"
         title="Scan for engines"
       >
-        <RefreshCw size={16} className={scanning ? 'animate-spin' : ''} />
+        <RefreshIcon sx={{ fontSize: 16 }} className={scanning ? 'animate-spin' : ''} />
       </motion.button>
     </motion.div>
   )

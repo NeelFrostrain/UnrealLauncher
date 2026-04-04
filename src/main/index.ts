@@ -26,6 +26,7 @@ interface Project {
   version: string
   size: string
   createdAt: string
+  lastOpenedAt?: string
   projectPath: string
   thumbnail: string | null
   projectId?: string
@@ -565,12 +566,14 @@ ipcMain.handle('scan-projects', async (): Promise<Project[]> => {
           // Always refresh screenshot on scan
           const screenshot = findProjectScreenshot(projectDir)
           const existing = savedProjects.find((p) => p.projectPath === projectDir)
+          const lastOpenedAt = findLatestProjectLogTimestamp(projectDir) || existing?.lastOpenedAt
 
           scannedProjects.push({
             name: projectName,
             version,
             size: existing?.size || '~2-5 GB',
             createdAt: stats.birthtime.toISOString().split('T')[0],
+            lastOpenedAt,
             projectPath: projectDir,
             thumbnail: screenshot // Always use fresh screenshot
           })
@@ -594,13 +597,21 @@ ipcMain.handle('scan-projects', async (): Promise<Project[]> => {
 
   for (const saved of savedProjects) {
     if (!allProjects.find((p) => p.projectPath === saved.projectPath)) {
-      allProjects.push(saved)
+      const savedLastOpenedAt = saved.projectPath
+        ? findLatestProjectLogTimestamp(saved.projectPath)
+        : null
+      const lastOpenedAt = savedLastOpenedAt || saved.lastOpenedAt
+
+      allProjects.push({
+        ...saved,
+        lastOpenedAt
+      })
     }
   }
 
   const validProjects = allProjects.filter((project) => {
-    const uprojectPath = path.join(project.projectPath, `${project.name}.uproject`)
-    return fs.existsSync(uprojectPath)
+    const uprojectPath = path.join(project.projectPath || '', `${project.name}.uproject`)
+    return project.projectPath ? fs.existsSync(uprojectPath) : false
   })
 
   saveProjects(validProjects)
@@ -986,6 +997,35 @@ function findProjectScreenshot(projectPath: string): string | null {
     return autoScreenshot
   }
   return null
+}
+
+function findLatestProjectLogTimestamp(projectPath: string): string | null {
+  const logsRoot = path.join(projectPath, 'Saved', 'Logs')
+  if (!fs.existsSync(logsRoot)) {
+    return null
+  }
+
+  let latestMtime: Date | null = null
+
+  try {
+    const items = fs.readdirSync(logsRoot)
+    for (const item of items) {
+      if (path.extname(item).toLowerCase() !== '.log') continue
+      const fullPath = path.join(logsRoot, item)
+      try {
+        const stat = fs.statSync(fullPath)
+        if (stat.isFile() && (!latestMtime || stat.mtime > latestMtime)) {
+          latestMtime = stat.mtime
+        }
+      } catch (_err) {
+        // skip unreadable file
+      }
+    }
+  } catch (_err) {
+    return null
+  }
+
+  return latestMtime ? latestMtime.toISOString() : null
 }
 
 // Load image as base64 data URL

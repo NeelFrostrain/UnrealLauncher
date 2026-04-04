@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import type { PageType } from '../types'
-import { Activity, Package, Zap, Settings } from 'lucide-react'
+import FlashOnIcon from '@mui/icons-material/FlashOn'
+import Inventory2Icon from '@mui/icons-material/Inventory2'
+import TimelineIcon from '@mui/icons-material/Timeline'
+import SettingsIcon from '@mui/icons-material/Settings'
 import usePagesStore from '@renderer/store/usePagesStore'
 import Engine_BG from '@renderer/assets/Engines_BG.webp'
 import Projects_BG from '@renderer/assets/Projects_BG.jpg'
@@ -18,22 +21,22 @@ const SidebarCards: SidebarCardData[] = [
   {
     title: 'Engines',
     imageSrc: Engine_BG,
-    icon: <Zap size={15.5} strokeWidth={1.8} />
+    icon: <FlashOnIcon sx={{ fontSize: 15.5 }} />
   },
   {
     title: 'Projects',
     imageSrc: Projects_BG,
-    icon: <Package size={15.5} strokeWidth={1.8} />
+    icon: <Inventory2Icon sx={{ fontSize: 15.5 }} />
   },
   {
     title: 'Settings',
     imageSrc: Settings_BG,
-    icon: <Settings size={15.5} strokeWidth={1.8} />
+    icon: <SettingsIcon sx={{ fontSize: 15.5 }} />
   },
   {
     title: 'About',
     imageSrc: ProjectDefault,
-    icon: <Activity size={15.5} strokeWidth={1.8} />
+    icon: <TimelineIcon sx={{ fontSize: 15.5 }} />
   }
 ]
 
