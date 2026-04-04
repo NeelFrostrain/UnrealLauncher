@@ -366,7 +366,7 @@ const ProjectsPage = (): React.ReactElement => {
         ))}
 
         {searchOpen && (
-          <div className="flex min-w-0 items-center gap-2 px-3 py-2 rounded-md bg-white/5 border border-white/10 text-sm text-white/80 max-w-65 transition-all">
+          <div className="flex min-w-0 h-full items-center gap-2 px-3 rounded-md bg-white/5 border border-white/10 text-sm text-white/80 max-w-65 transition-all">
             <Search size={16} className="text-white/70" />
             <input
               type="text"
@@ -382,7 +382,9 @@ const ProjectsPage = (): React.ReactElement => {
         <button
           onClick={toggleSearch}
           className={`flex items-center gap-2 px-3 py-2 rounded-md ${
-            searchOpen ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
+            searchOpen
+              ? 'bg-blue-600 text-white'
+              : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
           } transition-all`}
           title="Search projects by name"
         >
@@ -422,15 +424,15 @@ const ProjectsPage = (): React.ReactElement => {
               {searchQuery.trim()
                 ? 'No projects match your search'
                 : currentTab === 'favorites'
-                ? 'No favorite projects'
-                : 'No projects found'}
+                  ? 'No favorite projects'
+                  : 'No projects found'}
             </p>
             <p className="text-sm text-white/30 mb-4">
               {searchQuery.trim()
                 ? 'Try a different project name or clear the search.'
                 : currentTab === 'favorites'
-                ? 'Add projects to favorites from the All Projects tab'
-                : 'Use Add Project to add one manually.'}
+                  ? 'Add projects to favorites from the All Projects tab'
+                  : 'Use Add Project to add one manually.'}
             </p>
           </div>
         )}
