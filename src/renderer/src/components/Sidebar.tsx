@@ -1,10 +1,12 @@
+import { motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import type { PageType } from '../types'
-import { Activity, Package, Zap } from 'lucide-react'
+import { Activity, Package, Zap, Settings } from 'lucide-react'
 import usePagesStore from '@renderer/store/usePagesStore'
 import Engine_BG from '@renderer/assets/Engines_BG.webp'
 import Projects_BG from '@renderer/assets/Projects_BG.jpg'
 import ProjectDefault from '@renderer/assets/ProjectDefault.avif'
+import Settings_BG from '@renderer/assets/Settings_BG.jpg'
 
 interface SidebarCardData {
   title: PageType
@@ -24,6 +26,11 @@ const SidebarCards: SidebarCardData[] = [
     icon: <Package size={15.5} strokeWidth={1.8} />
   },
   {
+    title: 'Settings',
+    imageSrc: Settings_BG,
+    icon: <Settings size={15.5} strokeWidth={1.8} />
+  },
+  {
     title: 'About',
     imageSrc: ProjectDefault,
     icon: <Activity size={15.5} strokeWidth={1.8} />
@@ -39,10 +46,18 @@ interface SidebarCardProps {
   onClick?: () => void
 }
 
-const SidebarCard: FC<SidebarCardProps> = ({ title, icon, imageSrc, isActive, onClick }) => {
+const SidebarCard: FC<SidebarCardProps> = ({
+  title,
+  icon,
+  imageSrc,
+  isActive,
+  onClick
+}): React.ReactElement => {
   return (
-    <button
+    <motion.button
       onClick={onClick}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
       className={`w-full relative ${
         isActive
           ? 'border-blue-600 shadow-lg shadow-blue-600/20'
@@ -58,7 +73,7 @@ const SidebarCard: FC<SidebarCardProps> = ({ title, icon, imageSrc, isActive, on
       />
 
       <div
-        className={`absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-10 rounded-md transition-opacity duration-200 ${
+        className={`absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent z-10 rounded-md transition-opacity duration-200 ${
           isActive ? 'opacity-90' : 'opacity-80 hover:opacity-90'
         }`}
         aria-hidden="true"
@@ -68,21 +83,21 @@ const SidebarCard: FC<SidebarCardProps> = ({ title, icon, imageSrc, isActive, on
         {icon}
         {title}
       </div>
-    </button>
+    </motion.button>
   )
 }
 
-const Sidebar = () => {
+const Sidebar = (): React.ReactElement => {
   const { currentPage, setCurrentPage } = usePagesStore()
 
-  const handleCardClick = (page: PageType) => {
+  const handleCardClick = (page: PageType): void => {
     if (currentPage !== page) {
       setCurrentPage(page)
     }
   }
 
   return (
-    <div className="w-72 h-full border-r-2 border-black p-4">
+    <div className="w-72 h-full border-r border-white/10 p-4">
       <div className="w-full h-fit bg-[#1a1a1a] flex justify-start items-center p-2 rounded-sm flex-col gap-2">
         {SidebarCards.map((card, index) => (
           <SidebarCard

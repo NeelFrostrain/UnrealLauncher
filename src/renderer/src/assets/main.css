@@ -45,6 +45,30 @@ html {
   }
 }
 
+/* Animate buttons globally */
+button {
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97) translateY(0.5px);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* Optimize font rendering */
 body {
   -webkit-font-smoothing: antialiased;

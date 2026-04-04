@@ -1,153 +1,21 @@
-import { useEffect, useState, type FC } from 'react'
-
-import { FolderOpen, Play, SquareX } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import type { EngineCardProps } from '../types'
 import PageWrapper from '@renderer/layout/PageWrapper'
-import PageTitleBar from '@renderer/components/PageTitlebar'
-import { generateGradient } from '@renderer/utils/generateGradient'
+import EnginesToolbar from '@renderer/components/EnginesToolbar'
+import EngineCard from '@renderer/components/EngineCard'
+import { useToast } from '../components/ToastContext'
+import { getSetting } from '../utils/settings'
 
-const EngineCard: FC<
-  EngineCardProps & {
-    onLaunch: (exePath: string) => void
-    onOpenDir: (dirPath: string) => void
-    onDelete: (dirPath: string) => void
-  }
-> = ({
-  version,
-  exePath,
-  directoryPath,
-  folderSize,
-  lastLaunch,
-  gradient,
-  onLaunch,
-  onOpenDir,
-  onDelete
-}) => {
-  const [currentGradient] = useState(gradient || generateGradient())
-  const [launching, setLaunching] = useState(false)
-  const [calculating, setCalculating] = useState(false)
-  const [currentSize, setCurrentSize] = useState(folderSize)
-
-  const handleLaunch = async () => {
-    setLaunching(true)
-    await onLaunch(exePath)
-    setTimeout(() => setLaunching(false), 3000)
-  }
-
-  const handleCalculateSize = async () => {
-    if (calculating) return
-    setCalculating(true)
-    setCurrentSize('Calculating...')
-
-    if (window.electronAPI) {
-      const result = await window.electronAPI.calculateEngineSize(directoryPath)
-      if (result.success && result.size) {
-        setCurrentSize(result.size)
-      } else {
-        setCurrentSize('Error')
-      }
-    }
-    setCalculating(false)
-  }
-
-  return (
-    <div className="w-full h-30 bg-[#161616] overflow-hidden rounded-md border border-white/5 flex group hover:border-white/10 transition-all duration-150 ease-in-out select-text">
-      <div
-        className="w-48 p-5 border-r border-white/10 h-full flex flex-col justify-between relative select-none"
-        style={{ background: currentGradient }}
-      >
-        <div className="absolute z-0 inset-0 bg-black/10 backdrop-blur-[1px]" />
-
-        <div className="relative z-10">
-          <p className="opacity-80 uppercase text-[10px] font-bold tracking-[0.2em]">Version</p>
-        </div>
-        <h1 className="text-4xl z-20 font-black tracking-tight mt-1">{version}</h1>
-      </div>
-
-      <div className="flex-1 h-full bg-[#121212]/50 flex flex-col p-4 justify-between">
-        <div className="flex justify-between items-start">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-white/90">Unreal Engine {version}</h3>
-            <p className="text-[11px] text-white/40 mt-1 font-mono truncate" title={directoryPath}>
-              {directoryPath}
-            </p>
-          </div>
-          <button
-            onClick={() => onDelete(directoryPath)}
-            className="p-1 hover:bg-white/5 transition-colors cursor-pointer text-white/50 hover:text-red-500/80 rounded-md ml-2"
-            title="Remove from list"
-          >
-            <SquareX size={16} />
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex gap-4">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1 mb-0.5">
-                <span className="text-[9px] uppercase text-white/30 tracking-wide font-semibold">
-                  Size
-                </span>
-                {currentSize.startsWith('~') && (
-                  <button
-                    onClick={handleCalculateSize}
-                    disabled={calculating}
-                    className="text-[8px] px-1 py-0.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded cursor-pointer disabled:opacity-50 transition-colors"
-                    title="Calculate exact size"
-                  >
-                    calc
-                  </button>
-                )}
-              </div>
-              <span className="text-xs text-white/70">{currentSize}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[9px] uppercase text-white/30 tracking-wide font-semibold">
-                Usage
-              </span>
-              <span className="text-xs text-white/70">{lastLaunch}</span>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={() => onOpenDir(directoryPath)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded text-xs font-medium transition-all cursor-pointer"
-              title="Open in Explorer"
-            >
-              <FolderOpen size={14} />
-              Directory
-            </button>
-            <button
-              onClick={handleLaunch}
-              disabled={launching}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded text-xs font-bold transition-all shadow-lg ${
-                launching
-                  ? 'bg-green-600 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-500 cursor-pointer shadow-blue-600/20'
-              }`}
-              title="Launch Engine"
-            >
-              <Play size={14} fill="currentColor" className={launching ? 'animate-pulse' : ''} />
-              {launching ? 'Launching...' : 'Launch'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const EnginesPage = () => {
+const EnginesPage = (): React.ReactElement => {
   const [engines, setEngines] = useState<EngineCardProps[]>([])
   const [scanning, setScanning] = useState(false)
+  const [addingEngine, setAddingEngine] = useState(false)
+  const { addToast } = useToast()
 
   useEffect(() => {
-    // Don't auto-scan on mount, just load saved data
-    const loadSavedEngines = async () => {
+    const loadSavedEngines = async (): Promise<void> => {
       if (window.electronAPI) {
         try {
-          // Just load from saved data without scanning
           const scannedEngines = await window.electronAPI.scanEngines()
           setEngines(scannedEngines)
         } catch (err) {
@@ -155,21 +23,23 @@ const EnginesPage = () => {
         }
       }
     }
+
     loadSavedEngines()
 
-    // Listen for size updates
     if (window.electronAPI) {
-      window.electronAPI.onSizeCalculated((data) => {
+      const cleanup = window.electronAPI.onSizeCalculated((data) => {
         if (data.type === 'engine') {
           setEngines((prev) =>
             prev.map((e) => (e.directoryPath === data.path ? { ...e, folderSize: data.size } : e))
           )
         }
       })
+      return cleanup
     }
+    return () => {} // No-op cleanup if electronAPI is not available
   }, [])
 
-  const handleScan = async () => {
+  const handleScan = async (): Promise<void> => {
     setScanning(true)
     if (window.electronAPI) {
       try {
@@ -182,13 +52,13 @@ const EnginesPage = () => {
     setScanning(false)
   }
 
-  const handleLaunch = async (exePath: string) => {
+  const handleLaunch = async (exePath: string): Promise<void> => {
     if (window.electronAPI) {
       const result = await window.electronAPI.launchEngine(exePath)
       if (!result.success) {
         alert('Failed to launch engine: ' + result.error)
       } else {
-        // Update the last launch time in UI
+        // Update last launch time
         setEngines((prev) =>
           prev.map((e) => {
             if (e.exePath === exePath) {
@@ -205,59 +75,117 @@ const EnginesPage = () => {
             return e
           })
         )
+
+        // Check if auto-close on launch is enabled
+        if (getSetting('autoCloseOnLaunch')) {
+          // Close the app after successful launch
+          setTimeout(() => {
+            window.electronAPI?.windowClose()
+          }, 1000) // Small delay to ensure the launch process starts
+        }
       }
     }
   }
 
-  const handleOpenDir = async (dirPath: string) => {
+  const handleOpenDir = async (dirPath: string): Promise<void> => {
     if (window.electronAPI) {
       await window.electronAPI.openDirectory(dirPath)
     }
   }
 
-  const handleDelete = async (dirPath: string) => {
+  const handleDelete = async (dirPath: string): Promise<void> => {
     if (confirm('Remove this engine from the list? (Files will not be deleted)')) {
-      setEngines((prev) => prev.filter((e) => e.directoryPath !== dirPath))
-      if (window.electronAPI) {
-        await window.electronAPI.deleteEngine(dirPath)
+      try {
+        // First try to delete from backend
+        if (window.electronAPI) {
+          const success = await window.electronAPI.deleteEngine(dirPath)
+          if (!success) {
+            addToast('Failed to remove engine from storage', 'error')
+            return
+          }
+        }
+
+        // Update local state only after successful backend deletion
+        setEngines((prev) => prev.filter((e) => e.directoryPath !== dirPath))
+        addToast('Engine removed from list', 'success')
+      } catch (error) {
+        console.error('Error deleting engine:', error)
+        addToast('Failed to remove engine', 'error')
       }
     }
   }
 
-  const handleAddEngine = async () => {
-    if (!window.electronAPI) return
-    const engine = await window.electronAPI.selectEngineFolder()
-    if (!engine) {
-      alert('Engine already exists or no valid Unreal Engine folder selected.')
-      return
+  const handleAddEngine = async (): Promise<void> => {
+    if (!window.electronAPI || addingEngine) return
+
+    setAddingEngine(true)
+
+    try {
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Folder selection timeout')), 30000) // 30 second timeout
+      })
+
+      const selectPromise = window.electronAPI.selectEngineFolder()
+      const result = await Promise.race([selectPromise, timeoutPromise])
+
+      if (!result) {
+        addToast('No engine folder was selected', 'info')
+        setAddingEngine(false)
+        return
+      }
+
+      if (result.invalid) {
+        addToast(result.message || 'Invalid Unreal Engine installation', 'error')
+        setAddingEngine(false)
+        return
+      }
+
+      if (result.duplicate) {
+        addToast(result.message || 'This engine is already added', 'warning')
+        setAddingEngine(false)
+        return
+      }
+
+      if (result.added) {
+        addToast(`Added engine ${result.added.version}`, 'success')
+        // Refresh the engines list from the backend
+        if (window.electronAPI) {
+          try {
+            const scannedEngines = await window.electronAPI.scanEngines()
+            setEngines(scannedEngines)
+          } catch (err) {
+            console.error('Failed to refresh engines after add:', err)
+            // Fallback: add locally
+            setEngines((prev) => [result.added!, ...prev])
+          }
+        } else {
+          // Fallback if API not available
+          setEngines((prev) => [result.added!, ...prev])
+        }
+      }
+    } catch (error) {
+      console.error('Error adding engine:', error)
+      addToast('Failed to add engine. Please try again.', 'error')
+    } finally {
+      setAddingEngine(false)
     }
-    // Check if already in UI state
-    if (engines.find((e) => e.directoryPath === engine.directoryPath)) {
-      alert('This engine is already added.')
-      return
-    }
-    setEngines((prev) => [engine, ...prev])
   }
 
   return (
     <PageWrapper>
-      <PageTitleBar
-        title="Engines"
-        description="Installed Unreal Engine versions"
-        showScanButton
-        showAddButton
-        scanButtonText="Scan for Engines"
-        addButtonText="Add Engine"
-        onScan={handleScan}
-        onAdd={handleAddEngine}
+      <EnginesToolbar
         scanning={scanning}
+        addingEngine={addingEngine}
+        onAddEngine={handleAddEngine}
+        onScan={handleScan}
       />
 
       <div className="flex-1 space-y-2 overflow-y-auto py-3 px-1.5">
         {engines.length > 0 ? (
-          engines.map((data, index) => (
+          engines.map((data) => (
             <EngineCard
-              key={`${data.directoryPath}-${index}`}
+              key={data.directoryPath}
               {...data}
               onLaunch={handleLaunch}
               onOpenDir={handleOpenDir}
@@ -268,7 +196,7 @@ const EnginesPage = () => {
           <div className="flex flex-col items-center justify-center h-full text-center text-white/50">
             <p className="text-lg mb-2">No engines found</p>
             <p className="text-sm text-white/30 mb-4">
-              Click "Scan for Engines" to search or add manually
+              Click &quot;Scan for Engines&quot; to search or add manually
             </p>
           </div>
         )}

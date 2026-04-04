@@ -1,24 +1,24 @@
 import { useEffect, useState } from 'react'
 import { Minus, Square, X, Copy } from 'lucide-react'
 
-const Titlebar = () => {
+const Titlebar = (): React.ReactElement => {
   const [isMaximized, setIsMaximized] = useState(false)
 
-  const handleMinimize = () => {
+  const handleMinimize = (): void => {
     window.electronAPI?.windowMinimize()
   }
 
-  const handleMaximize = () => {
+  const handleMaximize = (): void => {
     window.electronAPI?.windowMaximize()
     setIsMaximized((prev) => !prev)
   }
 
-  const handleClose = () => {
+  const handleClose = (): void => {
     window.electronAPI?.windowClose()
   }
 
   useEffect(() => {
-    const updateState = async () => {
+    const updateState = async (): Promise<void> => {
       const maximized = await window.electronAPI?.windowIsMaximized()
       setIsMaximized(!!maximized)
     }

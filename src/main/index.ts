@@ -27,6 +27,20 @@ interface Project {
   createdAt: string
   projectPath: string
   thumbnail: string | null
+  projectId?: string
+}
+
+interface EngineSelectionResult {
+  added: Engine | null
+  duplicate: boolean
+  invalid: boolean
+  message?: string
+}
+
+interface ProjectSelectionResult {
+  addedProjects: Project[]
+  duplicateProjects: Array<{ projectPath: string; name: string; reason: string }>
+  invalidProjects: Array<{ projectPath: string; reason: string }>
 }
 
 // Configure auto-updater
@@ -44,8 +58,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Gradient generator function
-function generateGradient() {
-  const directions = {
+function generateGradient(): string {
+  const directions: Record<string, string> = {
     'to-t': 'to top',
     'to-tr': 'to top right',
     'to-r': 'to right',
@@ -67,14 +81,14 @@ function generateGradient() {
     '#f59e0b'
   ]
 
-  const random = (arr) => arr[Math.floor(Math.random() * arr.length)]
+  const random = (arr: unknown[]): unknown => arr[Math.floor(Math.random() * arr.length)]
 
-  const dirKey = random(Object.keys(directions))
-  const from = random(colors)
+  const dirKey = random(Object.keys(directions)) as string
+  const from = random(colors) as string
 
-  let to = random(colors)
+  let to = random(colors) as string
   while (to === from) {
-    to = random(colors)
+    to = random(colors) as string
   }
 
   return `linear-gradient(${directions[dirKey]}, ${from}, ${to})`
@@ -83,6 +97,21 @@ function generateGradient() {
 let mainWindow: BrowserWindow | null = null
 let isMaximized = false
 let previousBounds: { x: number; y: number; width: number; height: number } | null = null
+
+// Single instance lock - prevent multiple instances
+const gotTheLock = app.requestSingleInstanceLock()
+
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    // Someone tried to run a second instance, focus the existing window instead
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
+  })
+}
 
 // Data storage paths
 const userDataPath = app.getPath('userData')
@@ -102,11 +131,11 @@ function loadEngines(): Engine[] {
   return []
 }
 
-function saveEngines(engines: Engine[]) {
+function saveEngines(engines: Engine[]): void {
   try {
     fs.writeFileSync(enginesDataPath, JSON.stringify(engines, null, 2), 'utf8')
-  } catch (err) {
-    console.error('Error saving engines:', err)
+  } catch (_err) {
+    // Error handling - continue with error
   }
 }
 
@@ -122,15 +151,15 @@ function loadProjects(): Project[] {
   return []
 }
 
-function saveProjects(projects: Project[]) {
+function saveProjects(projects: Project[]): void {
   try {
     fs.writeFileSync(projectsDataPath, JSON.stringify(projects, null, 2), 'utf8')
-  } catch (err) {
-    console.error('Error saving projects:', err)
+  } catch (_err) {
+    // Error handling - continue with error
   }
 }
 
-function createWindow() {
+function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -270,14 +299,26 @@ app.on('activate', () => {
 })
 
 // IPC handler for manual update check
-ipcMain.handle('check-for-updates', async () => {
+ipcMain.handle('check-for-updates', async (): Promise<Record<string, unknown>> => {
   try {
-    // In development, return mock data
+    // In development, try to check for actual updates if configured
     if (process.env.NODE_ENV === 'development') {
-      return {
-        success: true,
-        updateInfo: null,
-        message: 'Update check works! (Dev mode - build and publish a release to test updates)'
+      try {
+        const result = await autoUpdater.checkForUpdates()
+        if (result && result.updateInfo) {
+          return { success: true, updateInfo: result.updateInfo }
+        }
+        return {
+          success: true,
+          updateInfo: null,
+          message: 'No updates available (Dev mode - create a GitHub release to test updates)'
+        }
+      } catch (err) {
+        return {
+          success: true,
+          updateInfo: null,
+          message: `Dev mode: ${err instanceof Error ? err.message : 'Update check failed'}`
+        }
       }
     }
 
@@ -314,7 +355,7 @@ ipcMain.handle('check-for-updates', async () => {
   }
 })
 
-ipcMain.handle('download-update', async () => {
+ipcMain.handle('download-update', async (): Promise<Record<string, unknown>> => {
   try {
     await autoUpdater.downloadUpdate()
     return { success: true }
@@ -323,12 +364,12 @@ ipcMain.handle('download-update', async () => {
   }
 })
 
-ipcMain.handle('install-update', () => {
+ipcMain.handle('install-update', (): void => {
   autoUpdater.quitAndInstall()
 })
 
 // IPC handlers
-ipcMain.handle('scan-engines', async () => {
+ipcMain.handle('scan-engines', async (): Promise<Engine[]> => {
   const savedEngines = loadEngines()
 
   const commonPaths = [
@@ -398,7 +439,7 @@ ipcMain.handle('scan-engines', async () => {
   return validEngines
 })
 
-ipcMain.handle('scan-projects', async () => {
+ipcMain.handle('scan-projects', async (): Promise<Project[]> => {
   const savedProjects = loadProjects()
 
   const searchPaths = [
@@ -423,7 +464,9 @@ ipcMain.handle('scan-projects', async () => {
             const uprojectContent = fs.readFileSync(uprojectPath, 'utf8')
             const match = uprojectContent.match(/"EngineAssociation":\s*"([^"]+)"/)
             if (match) version = match[1]
-          } catch (err) {}
+          } catch (_err) {
+            // Continue with default version
+          }
 
           // Always refresh screenshot on scan
           const screenshot = findProjectScreenshot(projectDir)
@@ -470,7 +513,7 @@ ipcMain.handle('scan-projects', async () => {
   return validProjects
 })
 
-ipcMain.handle('launch-engine', async (_event, exePath) => {
+ipcMain.handle('launch-engine', async (_event, exePath): Promise<Record<string, unknown>> => {
   try {
     if (process.platform === 'win32') {
       exec(`start "" "${exePath}"`)
@@ -497,49 +540,20 @@ ipcMain.handle('launch-engine', async (_event, exePath) => {
   }
 })
 
-ipcMain.handle('launch-project', async (_event, projectPath) => {
-  const uprojectPath = path.join(projectPath, `${path.basename(projectPath)}.uproject`)
+ipcMain.handle('launch-project', async (_event, projectPath): Promise<Record<string, unknown>> => {
+  const projectName = path.basename(projectPath)
+  const uprojectPath = path.join(projectPath, `${projectName}.uproject`)
+
   if (!fs.existsSync(uprojectPath)) {
     return { success: false, error: 'Project file not found' }
   }
 
   try {
-    const uprojectContent = fs.readFileSync(uprojectPath, 'utf8')
-    const match = uprojectContent.match(/"EngineAssociation":\s*"([^"]+)"/)
-    if (!match) {
-      return { success: false, error: 'Engine association not found in project file' }
-    }
-
-    const engineVersion = match[1]
-    const engines = loadEngines()
-
-    // Try exact match first
-    let engine = engines.find((e) => e.version === engineVersion)
-
-    // If not found, try partial match (e.g., "5.3" matches "5.3.0")
-    if (!engine) {
-      engine = engines.find(
-        (e) => e.version.startsWith(engineVersion) || engineVersion.startsWith(e.version)
-      )
-    }
-
-    // If still not found, try to find by major version
-    if (!engine) {
-      const majorVersion = engineVersion.split('.')[0]
-      engine = engines.find((e) => e.version.startsWith(majorVersion))
-    }
-
-    if (!engine) {
-      return {
-        success: false,
-        error: `Engine version ${engineVersion} not found. Please add it to your engines list.`
-      }
-    }
-
+    // Directly execute the .uproject file - Windows file association handles engine detection
     if (process.platform === 'win32') {
-      exec(`start "" "${engine.exePath}" "${uprojectPath}"`)
+      exec(`start "" "${uprojectPath}"`)
     } else {
-      spawn(engine.exePath, [uprojectPath], { detached: true, stdio: 'ignore' })
+      spawn('open', [uprojectPath], { detached: true, stdio: 'ignore' })
     }
     return { success: true }
   } catch (err) {
@@ -547,38 +561,112 @@ ipcMain.handle('launch-project', async (_event, projectPath) => {
   }
 })
 
-ipcMain.handle('open-directory', async (_event, dirPath) => {
+ipcMain.handle('open-directory', async (_event, dirPath): Promise<void> => {
   spawn('explorer', [dirPath], { detached: true, stdio: 'ignore' })
 })
 
-ipcMain.handle('select-engine-folder', async () => {
-  if (!mainWindow) return null
-  const result = await dialog.showOpenDialog(mainWindow, {
-    title: 'Select Unreal Engine Folder',
-    properties: ['openDirectory']
-  })
-  if (result.canceled || result.filePaths.length === 0) return null
-  const folder = result.filePaths[0]
-  const binPath = path.join(folder, 'Engine', 'Binaries', 'Win64')
+function validateEngineInstallation(folder: string): {
+  valid: boolean
+  version: string
+  exePath: string
+  reason?: string
+} {
+  const engineFolder = path.join(folder, 'Engine')
+  const sourceFolder = path.join(engineFolder, 'Source')
+  const buildVersionPath = path.join(engineFolder, 'Build', 'Build.version')
+  const versionFilePath = path.join(folder, 'Engine.version')
+  const binPath = path.join(engineFolder, 'Binaries', 'Win64')
+
+  if (!fs.existsSync(engineFolder) || !fs.existsSync(sourceFolder) || !fs.existsSync(binPath)) {
+    return {
+      valid: false,
+      version: 'Unknown',
+      exePath: '',
+      reason: 'Selected folder does not contain a valid Unreal Engine installation.'
+    }
+  }
 
   let exePath = path.join(binPath, 'UnrealEditor.exe')
   if (!fs.existsSync(exePath)) {
     exePath = path.join(binPath, 'UE4Editor.exe')
   }
 
-  if (!fs.existsSync(exePath)) return null
-
-  const engines = loadEngines()
-  const existing = engines.find((e) => e.directoryPath === folder)
-  if (existing) {
-    return null
+  if (!fs.existsSync(exePath)) {
+    return {
+      valid: false,
+      version: 'Unknown',
+      exePath: '',
+      reason: 'No UnrealEditor executable was found in the selected engine folder.'
+    }
   }
 
-  const version = path.basename(folder).replace('UE_', '')
+  let version = path.basename(folder)
+  if (fs.existsSync(buildVersionPath)) {
+    try {
+      const buildVersionContent = fs.readFileSync(buildVersionPath, 'utf8')
+      const buildVersion = JSON.parse(buildVersionContent)
+      if (buildVersion.MajorVersion != null && buildVersion.MinorVersion != null) {
+        version = `${buildVersion.MajorVersion}.${buildVersion.MinorVersion}`
+      } else if (typeof buildVersion.BranchName === 'string') {
+        version = buildVersion.BranchName
+      }
+    } catch (_err) {
+      // Keep folder name as fallback
+    }
+  } else if (fs.existsSync(versionFilePath)) {
+    try {
+      const versionData = JSON.parse(fs.readFileSync(versionFilePath, 'utf8'))
+      if (typeof versionData.EngineVersion === 'string') {
+        version = versionData.EngineVersion
+      }
+    } catch (_err) {
+      // Keep fallback version
+    }
+  }
+
+  return {
+    valid: true,
+    version,
+    exePath
+  }
+}
+
+ipcMain.handle('select-engine-folder', async (): Promise<EngineSelectionResult | null> => {
+  if (!mainWindow) return null
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Select Unreal Engine Folder',
+    properties: ['openDirectory']
+  })
+  if (result.canceled || result.filePaths.length === 0) return null
+
+  const folder = result.filePaths[0]
+  const validation = validateEngineInstallation(folder)
+  if (!validation.valid) {
+    return {
+      added: null,
+      duplicate: false,
+      invalid: true,
+      message: validation.reason
+    }
+  }
+
+  const engines = loadEngines()
+  const existingByPath = engines.find((e) => e.directoryPath === folder)
+  const existingByVersion = engines.find((e) => e.version === validation.version)
+  if (existingByPath || existingByVersion) {
+    return {
+      added: null,
+      duplicate: true,
+      invalid: false,
+      message: existingByPath
+        ? 'This engine directory has already been added.'
+        : `Engine version ${validation.version} is already added.`
+    }
+  }
 
   const newEngine: Engine = {
-    version,
-    exePath,
+    version: validation.version,
+    exePath: validation.exePath,
     directoryPath: folder,
     folderSize: '~35-45 GB',
     lastLaunch: 'Unknown',
@@ -588,60 +676,123 @@ ipcMain.handle('select-engine-folder', async () => {
   engines.push(newEngine)
   saveEngines(engines)
 
-  return newEngine
+  return {
+    added: newEngine,
+    duplicate: false,
+    invalid: false
+  }
 })
 
-ipcMain.handle('select-project-folder', async () => {
+ipcMain.handle('select-project-folder', async (): Promise<ProjectSelectionResult | null> => {
   if (!mainWindow) return null
   const result = await dialog.showOpenDialog(mainWindow, {
     title: 'Select Unreal Project Folder',
     properties: ['openDirectory']
   })
   if (result.canceled || result.filePaths.length === 0) return null
+
   const folder = result.filePaths[0]
   const uprojectFiles = findUprojectFiles(folder)
-  if (uprojectFiles.length === 0) return null
 
-  const projects = loadProjects()
-  const existing = projects.find((p) => p.projectPath === folder)
-  if (existing) {
-    return null
+  const response: ProjectSelectionResult = {
+    addedProjects: [],
+    duplicateProjects: [],
+    invalidProjects: []
   }
 
-  const uprojectPath = uprojectFiles[0]
-  const projectName = path.basename(folder)
-  const stats = fs.statSync(folder)
-  let version = 'Unknown'
-  try {
-    const uprojectContent = fs.readFileSync(uprojectPath, 'utf8')
-    const match = uprojectContent.match(/"EngineAssociation":\s*"([^\"]+)"/)
-    if (match) version = match[1]
-  } catch (err) {}
-
-  const screenshot = findProjectScreenshot(folder)
-
-  const newProject: Project = {
-    name: projectName,
-    version,
-    size: '~2-5 GB',
-    createdAt: stats.birthtime.toISOString().split('T')[0],
-    projectPath: folder,
-    thumbnail: screenshot
+  if (uprojectFiles.length === 0) {
+    response.invalidProjects.push({
+      projectPath: folder,
+      reason: 'No .uproject files were found in the selected folder.'
+    })
+    return response
   }
 
-  projects.push(newProject)
-  saveProjects(projects)
+  const savedProjects = loadProjects()
+  const knownProjects = [...savedProjects]
 
-  return newProject
+  for (const uprojectPath of uprojectFiles) {
+    const projectDir = path.dirname(uprojectPath)
+    const projectName = path.basename(projectDir)
+    let projectId: string | undefined
+    let version = 'Unknown'
+
+    try {
+      const uprojectContent = fs.readFileSync(uprojectPath, 'utf8')
+      const projectJson = JSON.parse(uprojectContent)
+      if (typeof projectJson.EngineAssociation === 'string') {
+        version = projectJson.EngineAssociation
+      }
+      if (typeof projectJson.ProjectID === 'string') {
+        projectId = projectJson.ProjectID
+      }
+      if (typeof projectJson.ProjectName === 'string') {
+        // Use declared project name if provided.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // projectName = projectJson.ProjectName
+      }
+    } catch (_err) {
+      response.invalidProjects.push({
+        projectPath: projectDir,
+        reason: 'Invalid or corrupted .uproject file.'
+      })
+      continue
+    }
+
+    const existing = knownProjects.find(
+      (p) =>
+        p.projectPath === projectDir ||
+        (projectId && p.projectId === projectId) ||
+        (!projectId && p.name === projectName)
+    )
+
+    if (existing) {
+      response.duplicateProjects.push({
+        projectPath: projectDir,
+        name: projectName,
+        reason:
+          existing.projectPath === projectDir ? 'Already added' : 'Duplicate project name or ID'
+      })
+      continue
+    }
+
+    try {
+      const stats = fs.statSync(projectDir)
+      const screenshot = findProjectScreenshot(projectDir)
+      const newProject: Project = {
+        name: projectName,
+        version,
+        size: '~2-5 GB',
+        createdAt: stats.birthtime.toISOString().split('T')[0],
+        projectPath: projectDir,
+        thumbnail: screenshot,
+        projectId
+      }
+
+      response.addedProjects.push(newProject)
+      knownProjects.push(newProject)
+    } catch (_err) {
+      response.invalidProjects.push({
+        projectPath: projectDir,
+        reason: 'Unable to read project folder metadata.'
+      })
+    }
+  }
+
+  if (response.addedProjects.length > 0) {
+    saveProjects([...savedProjects, ...response.addedProjects])
+  }
+
+  return response
 })
 
-ipcMain.on('window-minimize', () => {
+ipcMain.on('window-minimize', (): void => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.minimize()
   }
 })
 
-ipcMain.on('window-maximize', () => {
+ipcMain.on('window-maximize', (): void => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     const primaryDisplay = screen.getPrimaryDisplay()
     const { width: screenWidth, height: screenHeight } = primaryDisplay.bounds
@@ -661,60 +812,81 @@ ipcMain.on('window-maximize', () => {
   }
 })
 
-ipcMain.on('window-close', () => {
+ipcMain.on('window-close', (): void => {
   app.quit()
 })
 
-ipcMain.handle('window-is-maximized', () => {
+ipcMain.handle('window-is-maximized', (): boolean => {
   return isMaximized
 })
 
-ipcMain.handle('delete-engine', (_event, directoryPath) => {
+ipcMain.handle('delete-engine', (_event, directoryPath): boolean => {
   try {
     const engines = loadEngines()
     const filtered = engines.filter((e) => e.directoryPath !== directoryPath)
     saveEngines(filtered)
     return true
-  } catch (err) {
-    console.error('Error deleting engine:', err)
+  } catch (_err) {
     return false
   }
 })
 
-ipcMain.handle('delete-project', (_event, projectPath) => {
+ipcMain.handle('delete-project', (_event, projectPath): boolean => {
   try {
     const projects = loadProjects()
     const filtered = projects.filter((p) => p.projectPath !== projectPath)
     saveProjects(filtered)
     return true
-  } catch (err) {
-    console.error('Error deleting project:', err)
+  } catch (_err) {
     return false
   }
 })
 
 // Helper functions
-function findUprojectFiles(dir: string): string[] {
+function findUprojectFiles(dir: string, maxDepth = 5, maxFiles = 1000): string[] {
   const files: string[] = []
-  function scan(currentDir: string) {
+  let fileCount = 0
+
+  function scan(currentDir: string, depth = 0): void {
+    if (depth > maxDepth || fileCount > maxFiles) return
+
     try {
       const items = fs.readdirSync(currentDir)
       for (const item of items) {
+        if (fileCount > maxFiles) return
+
         const fullPath = path.join(currentDir, item)
         const stat = fs.statSync(fullPath)
-        if (stat.isDirectory() && !item.startsWith('.')) {
-          scan(fullPath)
+        if (stat.isDirectory() && !item.startsWith('.') && depth < maxDepth) {
+          // Skip common non-project directories to speed up scanning
+          if (
+            ![
+              'node_modules',
+              '.git',
+              'Binaries',
+              'Intermediate',
+              'DerivedDataCache',
+              'Saved',
+              'Plugins'
+            ].includes(item)
+          ) {
+            scan(fullPath, depth + 1)
+          }
         } else if (item.endsWith('.uproject')) {
           files.push(fullPath)
+          fileCount++
+          if (fileCount > maxFiles) return
         }
       }
-    } catch (err) {}
+    } catch (_err) {
+      // Continue scanning
+    }
   }
   scan(dir)
   return files
 }
 
-function findProjectScreenshot(projectPath) {
+function findProjectScreenshot(projectPath: string): string | null {
   const autoScreenshot = path.join(projectPath, 'Saved', 'AutoScreenshot.png')
   if (fs.existsSync(autoScreenshot)) {
     return autoScreenshot
@@ -723,7 +895,7 @@ function findProjectScreenshot(projectPath) {
 }
 
 // Load image as base64 data URL
-ipcMain.handle('load-image', async (_event, imagePath) => {
+ipcMain.handle('load-image', async (_event, imagePath): Promise<string | null> => {
   try {
     if (!imagePath || !fs.existsSync(imagePath)) {
       return null
@@ -737,14 +909,13 @@ ipcMain.handle('load-image', async (_event, imagePath) => {
     else if (ext === '.webp') mimeType = 'image/webp'
 
     return `data:${mimeType};base64,${base64}`
-  } catch (err) {
-    console.error('Error loading image:', err)
+  } catch (_err) {
     return null
   }
 })
 
 // Full accurate size calculation using worker thread
-function getFullFolderSize(folderPath) {
+function getFullFolderSize(folderPath: string): Promise<number> {
   return new Promise((resolve, reject) => {
     const workerCode = `
       const { parentPort, workerData } = require('worker_threads');
@@ -801,7 +972,7 @@ function getFullFolderSize(folderPath) {
   })
 }
 
-function formatBytes(bytes) {
+function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -810,44 +981,50 @@ function formatBytes(bytes) {
 }
 
 // Calculate size for a specific engine
-ipcMain.handle('calculate-engine-size', async (_event, directoryPath) => {
-  try {
-    const size = await getFullFolderSize(directoryPath)
-    const sizeStr = formatBytes(size)
+ipcMain.handle(
+  'calculate-engine-size',
+  async (_event, directoryPath): Promise<Record<string, unknown>> => {
+    try {
+      const size = await getFullFolderSize(directoryPath)
+      const sizeStr = formatBytes(size)
 
-    // Update saved data
-    const engines = loadEngines()
-    const engine = engines.find((e) => e.directoryPath === directoryPath)
-    if (engine) {
-      engine.folderSize = sizeStr
-      saveEngines(engines)
+      // Update saved data
+      const engines = loadEngines()
+      const engine = engines.find((e) => e.directoryPath === directoryPath)
+      if (engine) {
+        engine.folderSize = sizeStr
+        saveEngines(engines)
+      }
+
+      return { success: true, size: sizeStr }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
     }
-
-    return { success: true, size: sizeStr }
-  } catch (err) {
-    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
   }
-})
+)
 
 // Calculate size for a specific project
-ipcMain.handle('calculate-project-size', async (_event, projectPath) => {
-  try {
-    const size = await getFullFolderSize(projectPath)
-    const sizeStr = formatBytes(size)
+ipcMain.handle(
+  'calculate-project-size',
+  async (_event, projectPath): Promise<Record<string, unknown>> => {
+    try {
+      const size = await getFullFolderSize(projectPath)
+      const sizeStr = formatBytes(size)
 
-    // Update saved data
-    const projects = loadProjects()
-    const project = projects.find((p) => p.projectPath === projectPath)
-    if (project) {
-      project.size = sizeStr
-      saveProjects(projects)
+      // Update saved data
+      const projects = loadProjects()
+      const project = projects.find((p) => p.projectPath === projectPath)
+      if (project) {
+        project.size = sizeStr
+        saveProjects(projects)
+      }
+
+      return { success: true, size: sizeStr }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
     }
-
-    return { success: true, size: sizeStr }
-  } catch (err) {
-    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
   }
-})
+)
 
 ipcMain.handle('open-external', async (_event, url) => {
   try {

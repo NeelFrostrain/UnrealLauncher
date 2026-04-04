@@ -1,4 +1,5 @@
-export type PageType = 'Engines' | 'Projects' | 'About'
+export type PageType = 'Engines' | 'Projects' | 'About' | 'Settings'
+export type TabType = 'all' | 'recent' | 'favorites'
 
 export interface EngineCardProps {
   version: string
@@ -16,4 +17,5 @@ export interface Project {
   createdAt: string
   thumbnail?: string
   projectPath?: string
+  projectId?: string
 }
