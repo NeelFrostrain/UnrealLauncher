@@ -34,6 +34,11 @@ const SidebarCards: SidebarCardData[] = [
     icon: <SettingsIcon sx={{ fontSize: 15.5 }} />
   },
   {
+    title: 'Settings',
+    imageSrc: Settings_BG,
+    icon: <Settings size={15.5} strokeWidth={1.8} />
+  },
+  {
     title: 'About',
     imageSrc: ProjectDefault,
     icon: <TimelineIcon sx={{ fontSize: 15.5 }} />

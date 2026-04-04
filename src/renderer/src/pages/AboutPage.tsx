@@ -720,6 +720,51 @@ const AboutPage = (): React.ReactElement => {
             </div>
           </div>
 
+          {/* Changelog */}
+          <div>
+            <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
+              <BookOpen size={20} className="text-yellow-400" />
+              What&apos;s New in v1.7.0
+            </h2>
+            <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-green-400">✅ Added</h3>
+                <ul className="text-xs text-white/50 space-y-1 ml-4">
+                  <li>• Settings Page: Complete settings interface for customizing app behavior</li>
+                  <li>• Favorites System: Mark and quickly access favorite projects</li>
+                  <li>
+                    • Advanced Animations: Beautiful framer-motion animations throughout the UI
+                  </li>
+                  <li>• Enhanced Search: Improved search functionality with better UX</li>
+                  <li>• Toast Notifications: Real-time feedback for user actions</li>
+                  <li>• Single Instance Lock: Prevents multiple app instances</li>
+                  <li>• Global Button Animations: Hover and click effects across the app</li>
+                  <li>• Asset Resolver: Better handling of project thumbnails</li>
+                </ul>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-blue-400">🛠️ Fixed</h3>
+                <ul className="text-xs text-white/50 space-y-1 ml-4">
+                  <li>• Updated About page to display correct app version</li>
+                  <li>• Improved TypeScript configuration compatibility</li>
+                  <li>• Fixed HTML entity escaping in JSX components</li>
+                  <li>• Enhanced search bar styling and functionality</li>
+                </ul>
+              </div>
+              <button
+                onClick={() =>
+                  window.electronAPI.openExternal(
+                    'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CHANGELOG.md'
+                  )
+                }
+                className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-500 border border-yellow-500/50 rounded-lg text-sm transition-colors cursor-pointer"
+              >
+                <BookOpen size={16} />
+                View Full Changelog
+              </button>
+            </div>
+          </div>
+
           {/* Footer */}
           <div className="text-center space-y-4">
             <div className="flex flex-wrap items-center justify-center gap-2">
