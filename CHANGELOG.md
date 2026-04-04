@@ -2,28 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] - 2026-04-05
+
 ### ✅ Added
 
 - 🕐 **Recent Projects Tab** — Now accurately sorted by last opened time, read from `Saved/Logs` file timestamps
 - 🎨 **MUI Icons** — Migrated all icons from `lucide-react` to `@mui/icons-material` for a consistent Material Design look
 - 🔢 **App Version IPC** — New `get-app-version` IPC handler exposes the real app version to the renderer
 - 🐙 **GitHub Version Check** — New `check-github-version` IPC handler compares installed version against latest GitHub release
-
-### 🛠️ Fixed
-
-- 🐛 `lastOpenedAt` was missing from `ProjectData` type in preload — field now correctly flows to the renderer
-- 🐛 `ProjectCard` `useEffect` was missing its async wrapper, causing a parse error on `await`
-- 🐛 `findLatestProjectLogTimestamp` now only scans top-level `.log` files in `Saved/Logs` instead of recursing into subdirectories
-- 🐛 Recent tab no longer falls back to `createdAt` — only shows projects that have actually been opened
-
-### 🛠️ Changed
-
-- 📦 Replaced `lucide-react` with `@mui/icons-material` + `@mui/material` + `@emotion/react` + `@emotion/styled`
-
-## [1.7.0] - 2026-04-05
-
-### ✅ Added
-
 - 🎨 **Settings Page** — Complete settings interface for customizing app behavior
 - ⭐ **Favorites System** — Mark and quickly access favorite projects with heart toggle
 - 🎭 **Advanced Animations** — Beautiful framer-motion animations throughout the UI
@@ -35,12 +21,21 @@ All notable changes to this project will be documented in this file.
 - 🖼️ **Asset Resolver** — Better handling of project thumbnails and assets
 - 🔧 **UI Improvements** — Various enhancements to spacing, styling, and responsiveness
 
+### 🛠️ Changed
+
+- 📦 Replaced `lucide-react` with `@mui/icons-material` + `@mui/material` + `@emotion/react` + `@emotion/styled`
+
+
 ### 🛠️ Fixed
 
 - ✅ Updated About page to display correct app version and dependency versions
 - 🔧 Improved TypeScript configuration compatibility
 - 🎨 Fixed HTML entity escaping in JSX components
 - 🔍 Enhanced search bar styling and functionality
+- 🐛 `lastOpenedAt` was missing from `ProjectData` type in preload — field now correctly flows to the renderer
+- 🐛 `ProjectCard` `useEffect` was missing its async wrapper, causing a parse error on `await`
+- 🐛 `findLatestProjectLogTimestamp` now only scans top-level `.log` files in `Saved/Logs` instead of recursing into subdirectories
+- 🐛 Recent tab no longer falls back to `createdAt` — only shows projects that have actually been opened
 
 ### 🛠️ Changed
 
