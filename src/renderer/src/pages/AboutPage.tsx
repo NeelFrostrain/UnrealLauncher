@@ -69,7 +69,7 @@ const AboutPage = (): React.ReactElement => {
       <div className="flex-1 overflow-y-auto py-3 px-2">
         <div className="max-w-4xl mx-auto space-y-6 pb-8">
           {/* Header */}
-          <div className="text-center space-y-4">
+          {/* <div className="text-center space-y-4">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/50">
               <span className="text-4xl font-black text-white">UL</span>
             </div>
@@ -81,7 +81,7 @@ const AboutPage = (): React.ReactElement => {
               Engine installations and projects. Built with TypeScript, Vite, and Electron for a
               fast and responsive experience.
             </p>
-          </div>
+          </div> */}
 
           {/* Features */}
           <div>

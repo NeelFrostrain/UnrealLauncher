@@ -27,14 +27,16 @@ const EnginesPage = (): React.ReactElement => {
     loadSavedEngines()
 
     if (window.electronAPI) {
-      window.electronAPI.onSizeCalculated((data) => {
+      const cleanup = window.electronAPI.onSizeCalculated((data) => {
         if (data.type === 'engine') {
           setEngines((prev) =>
             prev.map((e) => (e.directoryPath === data.path ? { ...e, folderSize: data.size } : e))
           )
         }
       })
+      return cleanup
     }
+    return () => {} // No-op cleanup if electronAPI is not available
   }, [])
 
   const handleScan = async (): Promise<void> => {

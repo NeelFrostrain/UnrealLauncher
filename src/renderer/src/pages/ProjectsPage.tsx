@@ -98,7 +98,7 @@ const ProjectsPage = (): React.ReactElement => {
   // Listen for size updates
   useEffect(() => {
     if (window.electronAPI) {
-      window.electronAPI.onSizeCalculated((data) => {
+      const cleanup = window.electronAPI.onSizeCalculated((data) => {
         if (data.type === 'project') {
           // Update current display
           setProjects((prev) =>
@@ -106,7 +106,9 @@ const ProjectsPage = (): React.ReactElement => {
           )
         }
       })
+      return cleanup
     }
+    return () => {} // No-op cleanup if electronAPI is not available
   }, [])
 
   // Switch tab and load fresh data

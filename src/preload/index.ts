@@ -25,8 +25,10 @@ if (process.contextIsolated) {
       windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
       deleteEngine: (directoryPath) => ipcRenderer.invoke('delete-engine', directoryPath),
       deleteProject: (projectPath) => ipcRenderer.invoke('delete-project', projectPath),
-      onSizeCalculated: (callback) => {
-        ipcRenderer.on('size-calculated', (_event, data) => callback(data))
+      onSizeCalculated: (callback: (data: any) => void): (() => void) => {
+        const listener = (_event: any, data: any): void => callback(data)
+        ipcRenderer.on('size-calculated', listener)
+        return (): void => ipcRenderer.removeListener('size-calculated', listener)
       },
       calculateEngineSize: (directoryPath) =>
         ipcRenderer.invoke('calculate-engine-size', directoryPath),
@@ -37,8 +39,10 @@ if (process.contextIsolated) {
       checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
       downloadUpdate: () => ipcRenderer.invoke('download-update'),
       installUpdate: () => ipcRenderer.invoke('install-update'),
-      onDownloadProgress: (callback) => {
-        ipcRenderer.on('download-progress', (_event, progress) => callback(progress))
+      onDownloadProgress: (callback: (progress: any) => void): (() => void) => {
+        const listener = (_event: any, progress: any): void => callback(progress)
+        ipcRenderer.on('download-progress', listener)
+        return (): void => ipcRenderer.removeListener('download-progress', listener)
       }
     })
   } catch (error) {
