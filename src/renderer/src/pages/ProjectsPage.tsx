@@ -1,9 +1,8 @@
 import type { FC, ReactNode } from 'react'
 import { useEffect, useState, useCallback } from 'react'
 import PageWrapper from '../layout/PageWrapper'
-import PageTitleBar from '../components/PageTitlebar'
 import type { Project } from '../types'
-import { FolderOpen, Play, Trash2, RefreshCw } from 'lucide-react'
+import { FolderOpen, Play, Trash2, RefreshCw, Plus, Search } from 'lucide-react'
 
 const baseUrl = import.meta.env.BASE_URL || './'
 
@@ -361,19 +360,7 @@ const ProjectsPage = (): React.ReactElement => {
 
   return (
     <PageWrapper>
-      <PageTitleBar
-        title="Projects"
-        description="Your Unreal project list"
-        showScanButton
-        showAddButton
-        scanButtonText="Scan for Projects"
-        addButtonText="Add Project"
-        onScan={handleScan}
-        onAdd={handleAddProject}
-        scanning={scanning}
-      />
-
-      {/* Tabs */}
+      {/* Tabs with Action Buttons */}
       <div className="flex items-center gap-2 px-2 pt-3 pb-2 border-b border-white/10">
         {tabs.map((tab) => (
           <button
@@ -389,6 +376,21 @@ const ProjectsPage = (): React.ReactElement => {
           </button>
         ))}
         <div className="flex-1" />
+        <button
+          onClick={handleScan}
+          disabled={scanning}
+          className="flex items-center gap-2 px-3 py-2 rounded-md bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-50"
+          title="Scan for Projects"
+        >
+          <Search size={16} className={scanning ? 'animate-spin' : ''} />
+        </button>
+        <button
+          onClick={handleAddProject}
+          className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all"
+          title="Add Project"
+        >
+          <Plus size={16} />
+        </button>
         <button
           onClick={handleRefresh}
           disabled={refreshing}
