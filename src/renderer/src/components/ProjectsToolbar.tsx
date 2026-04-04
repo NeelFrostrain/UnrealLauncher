@@ -84,7 +84,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         title="Add Project"
       >
-        {addingProject ? 'Adding…' : <Plus size={16} />}
+        <Plus size={16} />
       </button>
       <button
         onClick={onRefresh}
