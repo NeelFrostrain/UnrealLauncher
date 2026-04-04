@@ -274,13 +274,22 @@ const ProjectsPage = (): React.ReactElement => {
 
   const handleScan = async (): Promise<void> => {
     setScanning(true)
-    const filteredProjects = await loadProjectsForTab(currentTab)
-    if (filteredProjects.length === 0 && currentTab === 'all') {
-      alert(
-        'No Unreal projects were found in your standard scan locations. Use Add Project to add one manually.'
-      )
+
+    try {
+      const filteredProjects = await loadProjectsForTab(currentTab)
+      if (filteredProjects.length === 0) {
+        const message =
+          currentTab === 'favorites'
+            ? 'No favorite projects were found. Add some favorites from All Projects.'
+            : 'No Unreal projects were found in your standard scan locations. Use Add Project to add one manually.'
+        alert(message)
+      }
+    } catch (err) {
+      console.error('Scan failed:', err)
+      alert('Scan failed. Please try again.')
+    } finally {
+      setScanning(false)
     }
-    setScanning(false)
   }
 
   const handleLaunch = async (projectPath: string): Promise<void> => {
