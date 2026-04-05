@@ -6,6 +6,7 @@
   "main": "./out/main/index.js",
   "author": "example.com",
   "homepage": "https://github.com/NeelFrostrain/UnrealLauncher#readme",
+  "download:win": "https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v1.8.0/unreal-launcher-1.8.0-setup.exe",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
