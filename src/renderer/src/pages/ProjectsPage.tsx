@@ -261,7 +261,7 @@ const ProjectsPage = (): React.ReactElement => {
         onRefresh={handleRefresh}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto py-px px-2 mt-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto py-2 px-2 mt-1">
         {visibleProjects.length > 0 ? (
           visibleProjects.map((data) => (
             <ProjectCard
