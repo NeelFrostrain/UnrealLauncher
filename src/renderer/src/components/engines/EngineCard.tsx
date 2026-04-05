@@ -86,7 +86,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
             </div>
             <button
               onClick={() => onDelete(directoryPath)}
-              className="p-1 hover:bg-white/5 transition-colors cursor-pointer text-white/50 hover:text-red-500/80 rounded-md ml-2"
+              className="flex p-1 hover:bg-white/5 transition-colors cursor-pointer text-white/50 hover:text-red-500/80 rounded-md ml-2"
               title="Remove from list"
             >
               <DisabledByDefaultIcon sx={{ fontSize: 16 }} />

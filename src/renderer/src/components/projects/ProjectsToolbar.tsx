@@ -3,7 +3,11 @@ import type { FC } from 'react'
 import AddIcon from '@mui/icons-material/Add'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import SearchIcon from '@mui/icons-material/Search'
+import ViewListIcon from '@mui/icons-material/ViewList'
+import GridViewIcon from '@mui/icons-material/GridView'
 import type { TabType } from '../../types'
+
+export type ViewMode = 'list' | 'grid'
 
 interface ProjectsToolbarProps {
   tabs: Array<{ id: TabType; label: string }>
@@ -12,25 +16,18 @@ interface ProjectsToolbarProps {
   searchQuery: string
   refreshing: boolean
   addingProject: boolean
+  viewMode: ViewMode
   onTabClick: (tab: TabType) => void
   onToggleSearch: () => void
   onSearchChange: (value: string) => void
   onAddProject: () => void
   onRefresh: () => void
+  onViewChange: (mode: ViewMode) => void
 }
 
 const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
-  tabs,
-  currentTab,
-  searchOpen,
-  searchQuery,
-  refreshing,
-  addingProject,
-  onTabClick,
-  onToggleSearch,
-  onSearchChange,
-  onAddProject,
-  onRefresh
+  tabs, currentTab, searchOpen, searchQuery, refreshing, addingProject, viewMode,
+  onTabClick, onToggleSearch, onSearchChange, onAddProject, onRefresh, onViewChange
 }) => {
   return (
     <motion.div
@@ -40,19 +37,17 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       transition={{ duration: 0.3, ease: 'easeOut' }}
     >
       {tabs.map((tab) => (
-        <motion.button
+        <button
           key={tab.id}
-          whileHover={{ y: -1 }}
-          whileTap={{ scale: 0.98 }}
           onClick={() => onTabClick(tab.id)}
-          className={`px-4 py-2 rounded-t-md font-medium text-sm transition-all ${
+          className={`px-4 py-2 rounded-t-md font-medium text-sm transition-colors ${
             currentTab === tab.id
-              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-              : 'bg-white/5 text-white/70 hover:bg-white/10'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white/5 text-white/50'
           }`}
         >
           {tab.label}
-        </motion.button>
+        </button>
       ))}
 
       {searchOpen && (
@@ -61,7 +56,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
           <input
             type="text"
             value={searchQuery}
-            onChange={(event) => onSearchChange(event.target.value)}
+            onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search projects"
             className="min-w-0 w-full bg-transparent text-sm outline-none text-white placeholder:text-white/40"
           />
@@ -69,17 +64,35 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       )}
 
       <div className="flex-1" />
+
+      {/* View toggle */}
+      <div className="flex items-center bg-white/5 border border-white/10 rounded-md overflow-hidden">
+        <button
+          onClick={() => onViewChange('list')}
+          className={`flex p-2 cursor-pointer transition-colors ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-white/40'}`}
+          title="List view"
+        >
+          <ViewListIcon sx={{ fontSize: 16 }} />
+        </button>
+        <button
+          onClick={() => onViewChange('grid')}
+          className={`flex p-2 cursor-pointer transition-colors ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-white/40'}`}
+          title="Grid view"
+        >
+          <GridViewIcon sx={{ fontSize: 16 }} />
+        </button>
+      </div>
+
       <button
         onClick={onToggleSearch}
         className={`flex items-center gap-2 px-3 py-2 rounded-md ${
-          searchOpen
-            ? 'bg-blue-600 text-white'
-            : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
+          searchOpen ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
         } transition-all`}
-        title="Search projects by name"
+        title="Search projects"
       >
         <SearchIcon sx={{ fontSize: 16 }} />
       </button>
+
       <button
         onClick={onAddProject}
         disabled={addingProject}
@@ -88,11 +101,12 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       >
         <AddIcon sx={{ fontSize: 16 }} />
       </button>
+
       <button
         onClick={onRefresh}
         disabled={refreshing}
         className="flex items-center gap-2 px-3 py-2 rounded-md bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-50"
-        title="Refresh projects for this tab"
+        title="Refresh"
       >
         <RefreshIcon sx={{ fontSize: 16 }} className={refreshing ? 'animate-spin' : ''} />
       </button>

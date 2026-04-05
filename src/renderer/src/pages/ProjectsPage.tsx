@@ -1,7 +1,9 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import PageWrapper from '../layout/PageWrapper'
 import ProjectCard from '../components/projects/ProjectCard'
+import ProjectCardGrid from '../components/projects/ProjectCardGrid'
 import ProjectsToolbar from '../components/projects/ProjectsToolbar'
+import type { ViewMode } from '../components/projects/ProjectsToolbar'
 import type { Project, TabType } from '../types'
 import { useToast } from '../components/ui/ToastContext'
 import { getSetting } from '../utils/settings'
@@ -12,6 +14,9 @@ const ProjectsPage = (): React.ReactElement => {
   const [currentTab, setCurrentTab] = useState<TabType>('all')
   const [refreshing, setRefreshing] = useState(false)
   const [addingProject, setAddingProject] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    return (localStorage.getItem('projectsViewMode') as ViewMode) ?? 'list'
+  })
   const [favoritePaths, setFavoritePaths] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('projectFavorites') || '[]') } catch { return [] }
   })
@@ -19,11 +24,26 @@ const ProjectsPage = (): React.ReactElement => {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
+  const allProjectsRef = useRef<Project[]>([])
+
   const getFavoritePaths = (): string[] => favoritePaths
 
   const saveFavoritePaths = (paths: string[]): void => {
     setFavoritePaths(paths)
     localStorage.setItem('projectFavorites', JSON.stringify(paths))
+  }
+
+  const filterForTab = (tab: TabType, source: Project[], favorites: string[]): Project[] => {
+    if (tab === 'recent') {
+      return source
+        .filter((p) => !!p.lastOpenedAt)
+        .sort((a, b) => new Date(b.lastOpenedAt!).getTime() - new Date(a.lastOpenedAt!).getTime())
+        .slice(0, 20)
+    }
+    if (tab === 'favorites') {
+      return source.filter((p) => p.projectPath && favorites.includes(p.projectPath))
+    }
+    return source
   }
 
   const toggleFavoritePath = (projectPath: string): void => {
@@ -34,36 +54,20 @@ const ProjectsPage = (): React.ReactElement => {
     saveFavoritePaths(updated)
 
     if (currentTab === 'favorites') {
-      void loadProjectsForTab('favorites')
-    } else {
-      setProjects((prev) =>
-        prev.map((project) => (project.projectPath === projectPath ? { ...project } : project))
-      )
+      setProjects(filterForTab('favorites', allProjectsRef.current, updated))
     }
   }
-
-  const filterForTab = useCallback((tab: TabType, source: Project[]): Project[] => {
-    if (tab === 'recent') {
-      return source
-        .filter((p) => !!p.lastOpenedAt)
-        .sort((a, b) => new Date(b.lastOpenedAt!).getTime() - new Date(a.lastOpenedAt!).getTime())
-        .slice(0, 20)
-    }
-    if (tab === 'favorites') {
-      return source.filter((p) => p.projectPath && favoritePaths.includes(p.projectPath))
-    }
-    return source
-  }, [favoritePaths])
 
   const loadProjectsForTab = useCallback(async (tab: TabType): Promise<Project[]> => {
     if (!window.electronAPI) return []
     try {
       const scannedProjects = await window.electronAPI.scanProjects()
+      allProjectsRef.current = scannedProjects
       setAllProjects(scannedProjects)
-      const filtered = filterForTab(tab, scannedProjects)
+      const favs = JSON.parse(localStorage.getItem('projectFavorites') || '[]') as string[]
+      const filtered = filterForTab(tab, scannedProjects, favs)
       setProjects(filtered)
 
-      // Background size calculation for estimates
       for (const project of filtered) {
         if (project.projectPath && project.size.startsWith('~')) {
           window.electronAPI.calculateProjectSize(project.projectPath).then((result) => {
@@ -80,7 +84,7 @@ const ProjectsPage = (): React.ReactElement => {
       console.error('Failed to load projects for tab:', tab, err)
       return []
     }
-  }, [filterForTab])
+  }, [])
 
   // Load saved projects on mount
   useEffect(() => {
@@ -104,11 +108,11 @@ const ProjectsPage = (): React.ReactElement => {
     return () => {} // No-op cleanup if electronAPI is not available
   }, [])
 
-  // Switch tab — filter client-side from cached data, only re-scan on explicit refresh
   const switchTab = (tab: TabType): void => {
     if (currentTab === tab) return
     setCurrentTab(tab)
-    setProjects(filterForTab(tab, allProjects))
+    const favs = JSON.parse(localStorage.getItem('projectFavorites') || '[]') as string[]
+    setProjects(filterForTab(tab, allProjectsRef.current, favs))
   }
 
   const handleRefresh = async (): Promise<void> => {
@@ -259,11 +263,26 @@ const ProjectsPage = (): React.ReactElement => {
         onSearchChange={handleSearchQueryChange}
         onAddProject={handleAddProject}
         onRefresh={handleRefresh}
+        viewMode={viewMode}
+        onViewChange={(mode) => { setViewMode(mode); localStorage.setItem('projectsViewMode', mode) }}
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto py-2 px-2 mt-1">
+      <div className={viewMode === 'grid'
+        ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto py-2 px-2 mt-1'
+        : 'flex flex-col gap-2 overflow-y-auto py-2 px-2 mt-1'
+      }>
         {visibleProjects.length > 0 ? (
-          visibleProjects.map((data) => (
+          visibleProjects.map((data) => viewMode === 'grid' ? (
+            <ProjectCardGrid
+              key={data.projectPath || data.name}
+              {...data}
+              isFavorite={data.isFavorite}
+              onToggleFavorite={toggleFavoritePath}
+              onLaunch={handleLaunch}
+              onOpenDir={handleOpenDir}
+              onDelete={handleDelete}
+            />
+          ) : (
             <ProjectCard
               key={data.projectPath || data.name}
               {...data}

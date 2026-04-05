@@ -55,13 +55,13 @@ button {
     box-shadow 180ms ease;
 }
 
-button:hover:not(:disabled) {
+/* button:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 
 button:active:not(:disabled) {
   transform: scale(0.97) translateY(0.5px);
-}
+} */
 
 button:disabled {
   opacity: 0.6;
