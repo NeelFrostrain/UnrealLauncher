@@ -151,12 +151,6 @@ Please follow the existing code style and run `npm run lint` before submitting.
 
 ---
 
-## 📄 License
-
-This project is licensed under the terms of the [MIT License](./LICENSE).
-
-- Smooth animations and transitions
-
 ### 🖼️ Icons & Branding
 
 - Custom application icon (`build/icon.ico`)
