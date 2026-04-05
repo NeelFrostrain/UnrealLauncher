@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import PageWrapper from '../layout/PageWrapper'
-import ProjectCard from '../components/ProjectCard'
-import ProjectsToolbar from '../components/ProjectsToolbar'
+import ProjectCard from '../components/projects/ProjectCard'
+import ProjectsToolbar from '../components/projects/ProjectsToolbar'
 import type { Project, TabType } from '../types'
-import { useToast } from '../components/ToastContext'
+import { useToast } from '../components/ui/ToastContext'
 import { getSetting } from '../utils/settings'
 
 const ProjectsPage = (): React.ReactElement => {

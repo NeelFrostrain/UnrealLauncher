@@ -3,7 +3,7 @@ import type { FC } from 'react'
 import AddIcon from '@mui/icons-material/Add'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import SearchIcon from '@mui/icons-material/Search'
-import type { TabType } from '../types'
+import type { TabType } from '../../types'
 
 interface ProjectsToolbarProps {
   tabs: Array<{ id: TabType; label: string }>

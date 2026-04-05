@@ -4,7 +4,7 @@ import { useState, memo } from 'react'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import DisabledByDefaultIcon from '@mui/icons-material/DisabledByDefault'
-import type { EngineCardProps } from '../types'
+import type { EngineCardProps } from '../../types'
 import { generateGradient } from '@renderer/utils/generateGradient'
 
 interface EngineCardComponentProps extends EngineCardProps {

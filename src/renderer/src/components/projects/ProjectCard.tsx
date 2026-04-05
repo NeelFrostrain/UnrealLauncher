@@ -1,13 +1,13 @@
 import { useEffect, useState, memo } from 'react'
 import { motion } from 'framer-motion'
-import type { Project } from '../types'
+import type { Project } from '../../types'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import DeleteIcon from '@mui/icons-material/Delete'
 import StarIcon from '@mui/icons-material/Star'
 import StarBorderIcon from '@mui/icons-material/StarBorder'
 import ProjectCardButton from './ProjectCardButton'
-import { resolveAsset } from '../utils/resolveAsset'
+import { resolveAsset } from '../../utils/resolveAsset'
 
 const ProjectCard = memo(
   ({

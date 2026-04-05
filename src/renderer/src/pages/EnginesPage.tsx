@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { EngineCardProps } from '../types'
 import PageWrapper from '@renderer/layout/PageWrapper'
-import EnginesToolbar from '@renderer/components/EnginesToolbar'
-import EngineCard from '@renderer/components/EngineCard'
-import { useToast } from '../components/ToastContext'
+import EnginesToolbar from '@renderer/components/engines/EnginesToolbar'
+import EngineCard from '@renderer/components/engines/EngineCard'
+import { useToast } from '../components/ui/ToastContext'
 import { getSetting } from '../utils/settings'
 
 const EnginesPage = (): React.ReactElement => {

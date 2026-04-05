@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
-import type { PageType } from '../types'
+import type { PageType } from '../../types'
 import FlashOnIcon from '@mui/icons-material/FlashOn'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
 import TimelineIcon from '@mui/icons-material/Timeline'

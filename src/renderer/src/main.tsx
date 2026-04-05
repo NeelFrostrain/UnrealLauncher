@@ -4,7 +4,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import LayoutWrapper from './layout'
 import App from './App'
-import { ToastProvider } from './components/ToastContext'
+import { ToastProvider } from './components/ui/ToastContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
