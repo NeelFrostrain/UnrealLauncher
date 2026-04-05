@@ -1,6 +1,7 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
 declare global {
+  // Shared data shapes — single source of truth
   interface ProjectData {
     name: string
     version: string
@@ -34,33 +35,55 @@ declare global {
     message?: string
   }
 
+  interface SizeCalculatedData {
+    type: 'engine' | 'project'
+    path: string
+    size: string
+  }
+
+  interface UpdateInfo {
+    version: string
+    [key: string]: unknown
+  }
+
+  interface UpdateCheckResult {
+    success: boolean
+    updateInfo?: UpdateInfo
+    message?: string
+    error?: string
+  }
+
   interface Window {
+    electron: ElectronAPI
     electronAPI: {
+      // Engines
       scanEngines: () => Promise<EngineData[]>
-      scanProjects: () => Promise<ProjectData[]>
       launchEngine: (exePath: string) => Promise<{ success: boolean; error?: string }>
-      launchProject: (projectPath: string) => Promise<{ success: boolean; error?: string }>
-      openDirectory: (dirPath: string) => Promise<void>
       selectEngineFolder: () => Promise<EngineSelectionResult | null>
+      deleteEngine: (directoryPath: string) => Promise<boolean>
+      calculateEngineSize: (directoryPath: string) => Promise<{ success: boolean; size?: string; error?: string }>
+      // Projects
+      scanProjects: () => Promise<ProjectData[]>
+      launchProject: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       selectProjectFolder: () => Promise<ProjectSelectionResult | null>
+      deleteProject: (projectPath: string) => Promise<boolean>
+      calculateProjectSize: (projectPath: string) => Promise<{ success: boolean; size?: string; error?: string }>
+      loadImage: (imagePath: string) => Promise<string | null>
+      // Filesystem
+      openDirectory: (dirPath: string) => Promise<void>
+      openExternal: (url: string) => Promise<{ success: boolean; error?: string }>
+      // Window
       windowMinimize: () => void
       windowMaximize: () => void
       windowClose: () => void
       windowIsMaximized: () => Promise<boolean>
-      deleteEngine: (directoryPath: string) => Promise<boolean>
-      deleteProject: (projectPath: string) => Promise<boolean>
-      onSizeCalculated: (
-        callback: (data: { type: string; path: string; size: string }) => void
-      ) => () => void
-      calculateEngineSize: (
-        directoryPath: string
-      ) => Promise<{ success: boolean; size?: string; error?: string }>
-      calculateProjectSize: (
-        projectPath: string
-      ) => Promise<{ success: boolean; size?: string; error?: string }>
-      loadImage: (imagePath: string) => Promise<string | null>
-      openExternal: (url: string) => Promise<{ success: boolean; error?: string }>
+      // Size events
+      onSizeCalculated: (callback: (data: SizeCalculatedData) => void) => () => void
+      // Updates
       getAppVersion: () => Promise<string>
+      checkForUpdates: () => Promise<UpdateCheckResult>
+      downloadUpdate: () => Promise<{ success: boolean; error?: string }>
+      installUpdate: () => void
       checkGithubVersion: () => Promise<{
         success: boolean
         latestVersion?: string
@@ -69,14 +92,7 @@ declare global {
         message?: string
         error?: string
       }>
-      checkForUpdates: () => Promise<{
-        success: boolean
-        updateInfo?: any
-        message?: string
-        error?: string
-      }>
-      downloadUpdate: () => Promise<{ success: boolean; error?: string }>
-      installUpdate: () => void
+      onDownloadProgress: (callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void) => () => void
     }
   }
 }

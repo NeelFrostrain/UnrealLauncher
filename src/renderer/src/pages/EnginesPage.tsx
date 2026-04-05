@@ -56,7 +56,7 @@ const EnginesPage = (): React.ReactElement => {
     if (window.electronAPI) {
       const result = await window.electronAPI.launchEngine(exePath)
       if (!result.success) {
-        alert('Failed to launch engine: ' + result.error)
+        addToast('Failed to launch engine: ' + result.error, 'error')
       } else {
         // Update last launch time
         setEngines((prev) =>
@@ -94,24 +94,20 @@ const EnginesPage = (): React.ReactElement => {
   }
 
   const handleDelete = async (dirPath: string): Promise<void> => {
-    if (confirm('Remove this engine from the list? (Files will not be deleted)')) {
-      try {
-        // First try to delete from backend
-        if (window.electronAPI) {
-          const success = await window.electronAPI.deleteEngine(dirPath)
-          if (!success) {
-            addToast('Failed to remove engine from storage', 'error')
-            return
-          }
+    addToast('Hold to confirm: removing engine from list (files stay on disk)', 'warning')
+    try {
+      if (window.electronAPI) {
+        const success = await window.electronAPI.deleteEngine(dirPath)
+        if (!success) {
+          addToast('Failed to remove engine from storage', 'error')
+          return
         }
-
-        // Update local state only after successful backend deletion
-        setEngines((prev) => prev.filter((e) => e.directoryPath !== dirPath))
-        addToast('Engine removed from list', 'success')
-      } catch (error) {
-        console.error('Error deleting engine:', error)
-        addToast('Failed to remove engine', 'error')
       }
+      setEngines((prev) => prev.filter((e) => e.directoryPath !== dirPath))
+      addToast('Engine removed from list', 'success')
+    } catch (error) {
+      console.error('Error deleting engine:', error)
+      addToast('Failed to remove engine', 'error')
     }
   }
 

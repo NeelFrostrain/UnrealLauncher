@@ -1,4 +1,4 @@
-import { ipcMain, app, shell } from 'electron'
+import { ipcMain, app, shell, dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { exec, spawn } from 'child_process'
@@ -15,7 +15,6 @@ import {
 import { handleCheckForUpdates, handleCheckGithubVersion, autoUpdater } from './updater'
 import { getMainWindow, getIsMaximized, handleWindowMinimize, handleWindowMaximize } from './window'
 import type { Engine, Project, EngineSelectionResult, ProjectSelectionResult } from './types'
-import { dialog } from 'electron'
 
 function validateEngineInstallation(folder: string): { valid: boolean; version: string; exePath: string; reason?: string } {
   const engineFolder = path.join(folder, 'Engine')
@@ -351,7 +350,16 @@ export function registerIpcHandlers(): void {
   })
 
   ipcMain.handle('open-external', async (_event, url) => {
-    try { await shell.openExternal(url); return { success: true } }
-    catch (err) { return { success: false, error: err instanceof Error ? err.message : 'Unknown error' } }
+    try {
+      // Only allow https URLs for security
+      const parsed = new URL(url)
+      if (parsed.protocol !== 'https:') {
+        return { success: false, error: 'Only https URLs are allowed' }
+      }
+      await shell.openExternal(url)
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+    }
   })
 }

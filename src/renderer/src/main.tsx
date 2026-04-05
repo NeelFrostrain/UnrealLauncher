@@ -5,12 +5,15 @@ import { createRoot } from 'react-dom/client'
 import LayoutWrapper from './layout'
 import App from './App'
 import { ToastProvider } from './components/ui/ToastContext'
+import ErrorBoundary from './components/ui/ErrorBoundary'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ToastProvider>
       <LayoutWrapper>
-        <App />
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
       </LayoutWrapper>
     </ToastProvider>
   </StrictMode>

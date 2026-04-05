@@ -25,8 +25,8 @@ if (process.contextIsolated) {
       windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
       deleteEngine: (directoryPath) => ipcRenderer.invoke('delete-engine', directoryPath),
       deleteProject: (projectPath) => ipcRenderer.invoke('delete-project', projectPath),
-      onSizeCalculated: (callback: (data: any) => void): (() => void) => {
-        const listener = (_event: any, data: any): void => callback(data)
+      onSizeCalculated: (callback: (data: SizeCalculatedData) => void): (() => void) => {
+        const listener = (_event: Electron.IpcRendererEvent, data: SizeCalculatedData): void => callback(data)
         ipcRenderer.on('size-calculated', listener)
         return (): void => {
           ipcRenderer.removeListener('size-calculated', listener)
@@ -43,8 +43,8 @@ if (process.contextIsolated) {
       installUpdate: () => ipcRenderer.invoke('install-update'),
       getAppVersion: () => ipcRenderer.invoke('get-app-version'),
       checkGithubVersion: () => ipcRenderer.invoke('check-github-version'),
-      onDownloadProgress: (callback: (progress: any) => void): (() => void) => {
-        const listener = (_event: any, progress: any): void => callback(progress)
+      onDownloadProgress: (callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void): (() => void) => {
+        const listener = (_event: Electron.IpcRendererEvent, progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }): void => callback(progress)
         ipcRenderer.on('download-progress', listener)
         return (): void => {
           ipcRenderer.removeListener('download-progress', listener)

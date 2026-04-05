@@ -8,22 +8,21 @@ import { getSetting } from '../utils/settings'
 
 const ProjectsPage = (): React.ReactElement => {
   const [projects, setProjects] = useState<Project[]>([])
+  const [allProjects, setAllProjects] = useState<Project[]>([])
   const [currentTab, setCurrentTab] = useState<TabType>('all')
   const [refreshing, setRefreshing] = useState(false)
   const [addingProject, setAddingProject] = useState(false)
+  const [favoritePaths, setFavoritePaths] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('projectFavorites') || '[]') } catch { return [] }
+  })
   const { addToast } = useToast()
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
-  const getFavoritePaths = (): string[] => {
-    try {
-      return JSON.parse(localStorage.getItem('projectFavorites') || '[]')
-    } catch {
-      return []
-    }
-  }
+  const getFavoritePaths = (): string[] => favoritePaths
 
   const saveFavoritePaths = (paths: string[]): void => {
+    setFavoritePaths(paths)
     localStorage.setItem('projectFavorites', JSON.stringify(paths))
   }
 
@@ -43,53 +42,45 @@ const ProjectsPage = (): React.ReactElement => {
     }
   }
 
-  // Define loadProjectsForTab first before using it in useEffect
+  const filterForTab = useCallback((tab: TabType, source: Project[]): Project[] => {
+    if (tab === 'recent') {
+      return source
+        .filter((p) => !!p.lastOpenedAt)
+        .sort((a, b) => new Date(b.lastOpenedAt!).getTime() - new Date(a.lastOpenedAt!).getTime())
+        .slice(0, 20)
+    }
+    if (tab === 'favorites') {
+      return source.filter((p) => p.projectPath && favoritePaths.includes(p.projectPath))
+    }
+    return source
+  }, [favoritePaths])
+
   const loadProjectsForTab = useCallback(async (tab: TabType): Promise<Project[]> => {
     if (!window.electronAPI) return []
-
     try {
-      // Always fetch fresh data from the file system
       const scannedProjects = await window.electronAPI.scanProjects()
-      let filtered = scannedProjects
-
-      // Filter based on tab
-      if (tab === 'recent') {
-        filtered = scannedProjects
-          .filter((p) => !!p.lastOpenedAt)
-          .sort((a, b) => {
-            return new Date(b.lastOpenedAt!).getTime() - new Date(a.lastOpenedAt!).getTime()
-          })
-          .slice(0, 20) // Limit to 20 most recent
-      } else if (tab === 'favorites') {
-        const favorites = getFavoritePaths()
-        filtered = scannedProjects.filter((p) => p.projectPath && favorites.includes(p.projectPath))
-      }
-      // 'all' tab shows all projects (no filtering)
-
-      // Set current display
+      setAllProjects(scannedProjects)
+      const filtered = filterForTab(tab, scannedProjects)
       setProjects(filtered)
 
-      // Calculate sizes for projects with estimates
+      // Background size calculation for estimates
       for (const project of filtered) {
         if (project.projectPath && project.size.startsWith('~')) {
           window.electronAPI.calculateProjectSize(project.projectPath).then((result) => {
             if (result.success && result.size) {
               setProjects((prev) =>
-                prev.map((p) =>
-                  p.projectPath === project.projectPath ? { ...p, size: result.size! } : p
-                )
+                prev.map((p) => p.projectPath === project.projectPath ? { ...p, size: result.size! } : p)
               )
             }
           })
         }
       }
-
       return filtered
     } catch (err) {
       console.error('Failed to load projects for tab:', tab, err)
       return []
     }
-  }, [])
+  }, [filterForTab])
 
   // Load saved projects on mount
   useEffect(() => {
@@ -113,15 +104,11 @@ const ProjectsPage = (): React.ReactElement => {
     return () => {} // No-op cleanup if electronAPI is not available
   }, [])
 
-  // Switch tab and load fresh data
-  const switchTab = async (tab: TabType): Promise<void> => {
-    if (currentTab === tab) return // Already on this tab
-
+  // Switch tab — filter client-side from cached data, only re-scan on explicit refresh
+  const switchTab = (tab: TabType): void => {
+    if (currentTab === tab) return
     setCurrentTab(tab)
-    setProjects([]) // Clear current display
-
-    // Load data for the new tab
-    await loadProjectsForTab(tab)
+    setProjects(filterForTab(tab, allProjects))
   }
 
   const handleRefresh = async (): Promise<void> => {
@@ -146,7 +133,7 @@ const ProjectsPage = (): React.ReactElement => {
     if (window.electronAPI) {
       const result = await window.electronAPI.launchProject(projectPath)
       if (!result.success) {
-        alert('Failed to launch project: ' + result.error)
+        addToast('Failed to launch project: ' + result.error, 'error')
       } else {
         // Check if auto-close on launch is enabled
         if (getSetting('autoCloseOnLaunch')) {
@@ -166,32 +153,26 @@ const ProjectsPage = (): React.ReactElement => {
   }
 
   const handleDelete = async (projectPath: string): Promise<void> => {
-    if (confirm('Remove this project from the list? (Files will not be deleted)')) {
-      try {
-        // First try to delete from backend
-        if (window.electronAPI) {
-          const success = await window.electronAPI.deleteProject(projectPath)
-          if (!success) {
-            addToast('Failed to remove project from storage', 'error')
-            return
-          }
+    try {
+      if (window.electronAPI) {
+        const success = await window.electronAPI.deleteProject(projectPath)
+        if (!success) {
+          addToast('Failed to remove project from storage', 'error')
+          return
         }
-
-        // Update local state only after successful backend deletion
-        setProjects((prev) => prev.filter((p) => p.projectPath !== projectPath))
-        const favorites = getFavoritePaths()
-        if (favorites.includes(projectPath)) {
-          saveFavoritePaths(favorites.filter((path) => path !== projectPath))
-          if (currentTab === 'favorites') {
-            await loadProjectsForTab('favorites')
-          }
-        }
-
-        addToast('Project removed from list', 'success')
-      } catch (error) {
-        console.error('Error deleting project:', error)
-        addToast('Failed to remove project', 'error')
       }
+      setProjects((prev) => prev.filter((p) => p.projectPath !== projectPath))
+      const favorites = getFavoritePaths()
+      if (favorites.includes(projectPath)) {
+        saveFavoritePaths(favorites.filter((path) => path !== projectPath))
+        if (currentTab === 'favorites') {
+          await loadProjectsForTab('favorites')
+        }
+      }
+      addToast('Project removed from list', 'success')
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      addToast('Failed to remove project', 'error')
     }
   }
 
@@ -249,8 +230,6 @@ const ProjectsPage = (): React.ReactElement => {
     { id: 'recent', label: 'Recent' },
     { id: 'favorites', label: 'Favorites' }
   ]
-
-  const favoritePaths = getFavoritePaths()
 
   const visibleProjects = useMemo(
     () =>
