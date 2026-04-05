@@ -102,17 +102,21 @@ unreal-launcher/
 - **Engine Detection** — automatically scans standard Unreal Engine install paths
 - **One-click Launch** — start the editor with a single click
 - **Project Browser** — locate and open Unreal projects with thumbnail previews
+- **List & Grid View** — toggle between a flat list and a thumbnail grid, preference saved across sessions
+- **Batch Project Import** — import up to 20 projects at a time from a folder, with toast feedback on skipped items
 - **Recent Projects** — accurately sorted by last opened time via `Saved/Logs` timestamps
 - **Favorites System** — mark and quickly access your favorite projects
-- **Advanced Search** — powerful search functionality across engines and projects
-- **Settings Page** — customize app behavior and preferences
-- **Smooth Animations** — beautiful framer-motion animations throughout the UI
-- **Toast Notifications** — real-time feedback for user actions
+- **3-dot Dropdown Menu** — per-card actions (favorites, open folder, remove) in a clean dropdown
+- **Advanced Search** — search across projects by name
+- **Settings Page** — customize app behavior including auto-close on launch
+- **Persist Last Page** — reopens the last visited page on next launch
+- **Smooth Animations** — framer-motion animations throughout the UI
+- **Toast Notifications** — stacking real-time feedback with auto-dismiss and close button
 - **Single Instance Lock** — prevents multiple app instances
 - **GitHub Version Check** — compare installed version against latest GitHub release
-- **Auto-updates** — keeps the launcher updated (GitHub Releases-based)
+- **Auto-updates** — GitHub Releases-based auto-update via `electron-updater`
+- **Error Boundary** — recoverable error screen instead of blank window on crash
 - **Material Icons** — consistent Material Design icons via `@mui/icons-material`
-- **Custom UI** — dark mode, gradients, responsive layout with hover effects
 
 |                Command | Description                            |
 | ---------------------: | :------------------------------------- |

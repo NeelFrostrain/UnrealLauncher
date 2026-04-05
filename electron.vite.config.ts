@@ -17,7 +17,7 @@ export default defineConfig({
         output: {
           manualChunks: {
             vendor: ['react', 'react-dom'],
-            ui: ['lucide-react', 'zustand']
+            ui: ['zustand']
           }
         }
       },
@@ -27,7 +27,7 @@ export default defineConfig({
     },
     plugins: [react(), tailwindcss()],
     optimizeDeps: {
-      include: ['react', 'react-dom', 'lucide-react', 'zustand']
+      include: ['react', 'react-dom', 'zustand']
     }
   }
 })

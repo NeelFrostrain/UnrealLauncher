@@ -247,7 +247,8 @@ export function registerIpcHandlers(): void {
     if (result.canceled || result.filePaths.length === 0) return null
 
     const folder = result.filePaths[0]
-    const uprojectFiles = findUprojectFiles(folder)
+    // Limit scan depth to 3 and cap at 50 files to avoid freezing on large directories
+    const uprojectFiles = findUprojectFiles(folder, 3, 50)
     const response: ProjectSelectionResult = { addedProjects: [], duplicateProjects: [], invalidProjects: [] }
 
     if (uprojectFiles.length === 0) {
@@ -257,8 +258,19 @@ export function registerIpcHandlers(): void {
 
     const savedProjects = loadProjects()
     const knownProjects = [...savedProjects]
+    const BATCH_LIMIT = 20 // max new projects added per call
 
     for (const uprojectPath of uprojectFiles) {
+      // Stop adding once we hit the batch limit — avoid freezing
+      if (response.addedProjects.length >= BATCH_LIMIT) {
+        const remaining = uprojectFiles.length - uprojectFiles.indexOf(uprojectPath)
+        response.invalidProjects.push({
+          projectPath: folder,
+          reason: `Batch limit reached. ${remaining} more project(s) were skipped. Add the folder again to continue importing.`
+        })
+        break
+      }
+
       const projectDir = path.dirname(uprojectPath)
       const projectName = path.basename(projectDir)
       let projectId: string | undefined

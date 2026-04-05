@@ -25,8 +25,8 @@ if (process.contextIsolated) {
       windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
       deleteEngine: (directoryPath) => ipcRenderer.invoke('delete-engine', directoryPath),
       deleteProject: (projectPath) => ipcRenderer.invoke('delete-project', projectPath),
-      onSizeCalculated: (callback: (data: SizeCalculatedData) => void): (() => void) => {
-        const listener = (_event: Electron.IpcRendererEvent, data: SizeCalculatedData): void => callback(data)
+      onSizeCalculated: (callback: (data: { type: 'engine' | 'project'; path: string; size: string }) => void): (() => void) => {
+        const listener = (_event: Electron.IpcRendererEvent, data: { type: 'engine' | 'project'; path: string; size: string }): void => callback(data)
         ipcRenderer.on('size-calculated', listener)
         return (): void => {
           ipcRenderer.removeListener('size-calculated', listener)

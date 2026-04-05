@@ -12,12 +12,12 @@ const defaultSettings: AppSettings = {
 let cache: AppSettings | null = null
 
 export const loadSettings = (): AppSettings => {
-  if (cache) return cache
+  if (cache !== null) return cache
   try {
     const stored = localStorage.getItem(SETTINGS_KEY)
     if (stored) {
       cache = { ...defaultSettings, ...JSON.parse(stored) }
-      return cache
+      return cache!
     }
   } catch (error) {
     console.error('Failed to load settings:', error)

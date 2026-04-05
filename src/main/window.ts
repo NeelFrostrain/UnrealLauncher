@@ -2,6 +2,7 @@ import { app, BrowserWindow, screen } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { optimizer } from '@electron-toolkit/utils'
+import { autoUpdater } from './updater'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -89,9 +90,7 @@ export function setupAppLifecycle(): void {
     createWindow()
 
     if (process.env.NODE_ENV === 'production') {
-      setTimeout(() => {
-        import('./updater').then(({ autoUpdater }) => autoUpdater.checkForUpdates())
-      }, 3000)
+      setTimeout(() => autoUpdater.checkForUpdates(), 3000)
     }
 
     app.on('browser-window-created', (_, window) => {

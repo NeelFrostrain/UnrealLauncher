@@ -1,37 +1,40 @@
 import MenuBookIcon from '@mui/icons-material/MenuBook'
 
-const latestAdded = [
-  'Recent Projects tab now sorted by actual last-opened time from Saved/Logs',
+const v180Added = [
+  'List & Grid View — toggle between flat list and thumbnail grid, preference saved across sessions',
+  'Batch Project Import — imports up to 20 projects at a time, toast shows how many were skipped',
+  'Redesigned Project Cards — list row with 3-dot dropdown menu, grid card with hover overlay',
+  'Neon border glow on grid card hover',
+  'Stacking toast notifications with colored accent bar, auto-dismiss, and close button',
+  'Persist last open page — app reopens the last visited page on launch',
+  'Persist view mode — list/grid preference restored on launch',
+  'Error Boundary — recoverable error screen instead of blank window on crash',
+  'openExternal now validates https-only URLs for security',
+  'Settings cache — getSetting no longer re-parses localStorage on every call',
+]
+
+const v180Fixed = [
+  'Favorites tab showing nothing — fixed stale closure in filterForTab',
+  'Dropdown menus clipped by scroll container — now rendered via React portal',
+  'Toast X button not working — fixed pointer-events blocked by select-none',
+  'ProjectsPage scanning on every tab switch — now scans once, filters client-side',
+  'favoritePaths breaking useMemo — moved to React state for stable reference',
+  'Relative import paths broken after component folder reorganization',
+]
+
+const v170Added = [
+  'Recent Projects tab sorted by last-opened time from Saved/Logs timestamps',
   'Migrated all icons from lucide-react to MUI icons-material',
   'GitHub Version Check: compare installed vs latest GitHub release',
-  'App Version IPC: renderer now reads the real app version',
+  'App Version IPC: renderer reads the real app version',
+  'Settings Page, Favorites System, Toast Notifications, Single Instance Lock',
 ]
 
-const latestFixed = [
-  'lastOpenedAt was missing from ProjectData type — now flows to renderer correctly',
-  'ProjectCard useEffect missing async wrapper caused a parse error on await',
-  'Log scanner now only reads top-level Saved/Logs files, not subdirectories',
-  'Recent tab no longer falls back to createdAt for projects never opened',
-]
-
-const previousAdded = [
-  'Settings Page: Complete settings interface for customizing app behavior',
-  'Favorites System: Mark and quickly access favorite projects',
-  'Advanced Animations: Beautiful framer-motion animations throughout the UI',
-  'Enhanced Search: Improved search functionality with better UX',
-  'Toast Notifications: Real-time feedback for user actions',
-  'Single Instance Lock: Prevents multiple app instances',
-  'Global Button Animations: Hover and click effects across the app',
-  'Asset Resolver: Better handling of project thumbnails',
-  ...latestAdded,
-]
-
-const previousFixed = [
-  ...latestFixed,
-  'Updated About page to display correct app version',
-  'Improved TypeScript configuration compatibility',
-  'Fixed HTML entity escaping in JSX components',
-  'Enhanced search bar styling and functionality',
+const v170Fixed = [
+  'lastOpenedAt missing from ProjectData type',
+  'ProjectCard useEffect missing async wrapper',
+  'Log scanner recursing into subdirectories',
+  'Recent tab falling back to createdAt',
 ]
 
 const ChangelogSection = ({ added, fixed }: { added: string[]; fixed: string[] }): React.ReactElement => (
@@ -63,16 +66,16 @@ const AboutChangelog = (): React.ReactElement => (
     <div>
       <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
         <MenuBookIcon sx={{ fontSize: 20 }} className="text-yellow-400" />
-        What&apos;s New
+        What&apos;s New in 1.8.0
       </h2>
-      <ChangelogSection added={latestAdded} fixed={latestFixed} />
+      <ChangelogSection added={v180Added} fixed={v180Fixed} />
     </div>
     <div>
       <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
         <MenuBookIcon sx={{ fontSize: 20 }} className="text-yellow-400" />
-        What&apos;s New
+        Previous — 1.7.0
       </h2>
-      <ChangelogSection added={previousAdded} fixed={previousFixed} />
+      <ChangelogSection added={v170Added} fixed={v170Fixed} />
     </div>
   </>
 )

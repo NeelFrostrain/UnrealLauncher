@@ -1,16 +1,11 @@
 {
   "name": "unreal-launcher",
   "productName": "Unreal Launcher",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
   "homepage": "https://github.com/NeelFrostrain/UnrealLauncher#readme",
-  "publish": {
-    "provider": "github",
-    "owner": "NeelFrostrain",
-    "repo": "UnrealLauncher"
-  },
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
@@ -35,20 +30,17 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.9",
-    "@mui/material": "^7.3.9",
-    "@tailwindcss/vite": "^4.2.1",
-    "electron-updater": "^6.8.3",
-    "framer-motion": "^12.38.0",
-    "tailwindcss": "^4.2.1",
-    "zustand": "^5.0.11"
+    "electron-updater": "^6.8.3"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",
     "@electron-toolkit/tsconfig": "^2.0.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.9",
+    "@mui/material": "^7.3.9",
+    "@tailwindcss/vite": "^4.2.1",
     "@types/node": "^22.19.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
@@ -60,11 +52,14 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
+    "framer-motion": "^12.38.0",
     "prettier": "^3.7.4",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "tailwindcss": "^4.2.1",
     "terser": "^5.46.0",
     "typescript": "^5.9.3",
-    "vite": "^7.2.6"
+    "vite": "^7.2.6",
+    "zustand": "^5.0.11"
   }
 }

@@ -1,6 +1,6 @@
 import pkg from 'electron-updater'
 const { autoUpdater } = pkg
-import { app, BrowserWindow, dialog } from 'electron'
+import { BrowserWindow, dialog } from 'electron'
 import https from 'https'
 import { compareVersions } from './utils'
 

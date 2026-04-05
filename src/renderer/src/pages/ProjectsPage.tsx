@@ -10,7 +10,7 @@ import { getSetting } from '../utils/settings'
 
 const ProjectsPage = (): React.ReactElement => {
   const [projects, setProjects] = useState<Project[]>([])
-  const [allProjects, setAllProjects] = useState<Project[]>([])
+  const [, setAllProjects] = useState<Project[]>([])
   const [currentTab, setCurrentTab] = useState<TabType>('all')
   const [refreshing, setRefreshing] = useState(false)
   const [addingProject, setAddingProject] = useState(false)
@@ -202,21 +202,23 @@ const ProjectsPage = (): React.ReactElement => {
 
       const added = result.addedProjects.length
       const duplicates = result.duplicateProjects.length
-      const invalid = result.invalidProjects.length
+      // Separate batch-limit messages from real invalid ones
+      const batchMsg = result.invalidProjects.find((p) => p.reason.startsWith('Batch limit'))
+      const invalid = result.invalidProjects.filter((p) => !p.reason.startsWith('Batch limit')).length
 
       if (added > 0) {
         addToast(`Added ${added} new project${added === 1 ? '' : 's'}`, 'success')
       }
       if (duplicates > 0) {
-        addToast(
-          `${duplicates} project${duplicates === 1 ? '' : 's'} already exist${duplicates === 1 ? 's' : ''}`,
-          'warning'
-        )
+        addToast(`${duplicates} already exist${duplicates === 1 ? 's' : ''}`, 'warning')
       }
       if (invalid > 0) {
-        addToast(`${invalid} invalid project${invalid === 1 ? '' : 's'} found`, 'error')
+        addToast(`${invalid} invalid project${invalid === 1 ? '' : 's'} skipped`, 'error')
       }
-      if (added === 0 && duplicates === 0 && invalid === 0) {
+      if (batchMsg) {
+        addToast(`Batch limit: ${batchMsg.reason}`, 'warning')
+      }
+      if (added === 0 && duplicates === 0 && invalid === 0 && !batchMsg) {
         addToast('No new projects were added', 'info')
       }
 
