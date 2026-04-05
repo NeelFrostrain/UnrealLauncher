@@ -31,6 +31,13 @@
       font-family: 'Space Grotesk', sans-serif;
       line-height: 1.6;
       min-height: 100vh;
+      padding-top: 50px;
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding-top: 60px;
+      }
     }
 
     /* NAV */
@@ -69,6 +76,58 @@
     .nav-links a:hover {
       color: var(--blue);
     }
+    
+    .mobile-menu-toggle {
+      display: none;
+      position: absolute;
+      right: 1.5rem;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.5rem;
+      cursor: pointer;
+      z-index: 101;
+    }
+    
+    @media (max-width: 768px) {
+      .mobile-menu-toggle {
+        display: block;
+      }
+      
+      nav {
+        height: 60px;
+      }
+      
+      .nav-links {
+        position: absolute;
+        top: 60px;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        gap: 0;
+        background: rgba(10,10,10,0.95);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+      
+      .nav-links.active {
+        max-height: 400px;
+      }
+      
+      .nav-links a {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: block;
+        width: 100%;
+      }
+      
+      .nav-logo {
+        font-size: 1rem;
+      }
+    }
 
     /* HERO */
     .hero {
@@ -76,7 +135,8 @@
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       text-align: center; padding: 5rem 2rem 4rem;
       background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(37,99,235,0.12), transparent);
-    }    .hero::before {
+    }    
+    .hero::before {
       content: '';
       position: absolute;
       top: -25%;
@@ -102,6 +162,28 @@
       pointer-events: none;
       filter: blur(80px);
       animation: float 10s ease-in-out infinite reverse;
+    }
+    
+    @media (max-width: 768px) {
+      .hero {
+        padding: 6rem 1.5rem 3rem;
+        min-height: auto;
+        margin-top: 1rem;
+      }
+      
+      .hero::before, .hero::after {
+        display: none;
+      }
+      
+      h1 {
+        font-size: clamp(1.75rem, 5vw, 2.5rem) !important;
+        margin-bottom: 1rem;
+      }
+      
+      .hero-sub {
+        font-size: clamp(0.9rem, 1.5vw, 1rem) !important;
+        margin-bottom: 1.5rem;
+      }
     }
 
     @keyframes float {
@@ -147,8 +229,31 @@
       border: 1px solid var(--border);
     }
     .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+    
+    @media (max-width: 768px) {
+      .btn-group {
+        gap: 0.75rem;
+      }
+      
+      .btn {
+        padding: 0.65rem 1.3rem;
+        font-size: 0.8rem;
+        min-height: 44px;
+      }
+      
+      .btn-group .btn {
+        flex: 1;
+        min-width: 140px;
+      }
+    }
 
     .version-note { margin-top: 1rem; font-size: 0.75rem; color: var(--muted); }
+    
+    @media (max-width: 768px) {
+      .version-note {
+        font-size: 0.65rem;
+      }
+    }
 
     /* SCREENSHOTS */
     .screenshots {
@@ -161,6 +266,17 @@
       border: 1px solid var(--border);
       box-shadow: 0 0 40px rgba(0,0,0,0.6);
     }
+    
+    @media (max-width: 768px) {
+      .screenshots {
+        padding: 2rem 1rem;
+        gap: 1rem;
+      }
+      
+      .screenshots img {
+        max-width: 100%;
+      }
+    }
 
     /* FEATURES */
     .section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
@@ -169,6 +285,22 @@
       margin-bottom: 0.75rem;
     }
     .section-sub { text-align: center; color: var(--muted); margin-bottom: 3rem; font-size: 0.95rem; }
+    
+    @media (max-width: 768px) {
+      .section {
+        padding: 3rem 1.5rem;
+      }
+      
+      .section-title {
+        font-size: clamp(1.3rem, 5vw, 1.75rem);
+        margin-bottom: 0.5rem;
+      }
+      
+      .section-sub {
+        font-size: 0.8rem;
+        margin-bottom: 2rem;
+      }
+    }
 
     .features-grid {
       display: grid;
@@ -184,6 +316,30 @@
     .feature-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
     .feature-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
     .feature-card p { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+    
+    @media (max-width: 768px) {
+      .features-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+      }
+      
+      .feature-card {
+        padding: 1rem;
+      }
+      
+      .feature-icon {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+      }
+      
+      .feature-card h3 {
+        font-size: 0.85rem;
+      }
+      
+      .feature-card p {
+        font-size: 0.7rem;
+      }
+    }
 
     /* DOWNLOAD */
     .download-section {
@@ -203,6 +359,34 @@
       background: rgba(255,255,255,0.05); border: 1px solid var(--border);
       padding: 0.4rem 1rem; border-radius: 999px;
       font-size: 0.75rem; color: var(--muted);
+    }
+    
+    @media (max-width: 768px) {
+      .download-section {
+        padding: 3rem 1.5rem;
+      }
+      
+      .download-card {
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+      }
+      
+      .download-card h3 {
+        font-size: 1rem;
+      }
+      
+      .download-card p {
+        font-size: 0.75rem;
+      }
+      
+      .download-card .btn {
+        width: 100%;
+      }
+      
+      .platform-badge {
+        font-size: 0.65rem;
+        padding: 0.35rem 0.75rem;
+      }
     }
 
     /* FAQ */
@@ -379,16 +563,26 @@
 
     @media (max-width: 768px) {
       .faq-section {
-        padding: 5rem 1.5rem;
+        padding: 3rem 1.5rem;
+      }
+
+      .faq-section::before {
+        display: none;
       }
 
       .faq-question {
-        padding: 1.4rem;
-        font-size: 1rem;
+        padding: 1.2rem;
+        font-size: 0.9rem;
       }
 
       .faq-item.active .faq-answer {
-        padding: 0 1.4rem 1.4rem 1.4rem;
+        padding: 0 1.2rem 1.2rem 1.2rem;
+      }
+      
+      .faq-toggle {
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
       }
     }
 
@@ -402,12 +596,36 @@
     footer a { color: var(--muted); text-decoration: none; }
     footer a:hover { color: var(--text); }
     .footer-links { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
+    
+    @media (max-width: 768px) {
+      footer {
+        padding: 1.5rem 1rem;
+        font-size: 0.7rem;
+      }
+      
+      .footer-links {
+        gap: 1rem;
+      }
+      
+      .footer-links a {
+        font-size: 0.7rem;
+      }
+    }
+    
+    /* Badge responsive */
+    .badge {
+      font-size: clamp(0.65rem, 1vw, 0.75rem);
+      padding: clamp(0.25rem, 1vw, 0.3rem) clamp(0.7rem, 2vw, 0.9rem);
+    }
   </style>
 </head>
 <body>
 
   <nav>
-    <div class="nav-links">
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+      <i class="bi bi-list"></i>
+    </button>
+    <div class="nav-links" id="navLinks">
       <a href="#features">Features</a>
       <a href="#faq">FAQ</a>
       <a href="#download">Download</a>
@@ -704,6 +922,28 @@
   </footer>
 
   <script>
+    // Mobile Menu Toggle
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const navLinks = document.getElementById('navLinks');
+    
+    mobileMenuToggle.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+    });
+    
+    // Close menu when a link is clicked
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('active');
+      });
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('nav')) {
+        navLinks.classList.remove('active');
+      }
+    });
+    
     // FAQ Accordion Handler
     document.querySelectorAll('.faq-question').forEach(question => {
       question.addEventListener('click', function() {
