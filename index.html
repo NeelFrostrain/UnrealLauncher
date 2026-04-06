@@ -2,1657 +2,522 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Unreal Launcher — Manage Your Unreal Engine Projects</title>
-  <meta name="description" content="A lightweight desktop app for discovering, launching, and managing Unreal Engine installations and projects." />
-  <link rel="icon" href="./favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Unreal Launcher — Premium Project Management</title>
+  <meta name="description" content="A lightweight, high-performance desktop app for Unreal Engine developers." />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0a0a0a;
-      --surface: #111111;
+      --bg: #050505;
+      --surface: #0f0f0f;
+      --surface-raised: #161616;
       --border: rgba(255,255,255,0.08);
-      --blue: #2563eb;
-      --blue-hover: #1d4ed8;
-      --blue-glow: rgba(37,99,235,0.3);
-      --text: #f1f5f9;
-      --text-secondary: #d1d5db;
-      --muted: rgba(255,255,255,0.45);
+      --border-bright: rgba(255,255,255,0.15);
+      --blue: #3b82f6;
+      --blue-glow: rgba(59,130,246,0.3);
+      --text: #ffffff;
+      --text-secondary: #a1a1aa;
+      --muted: #71717a;
       --discord: #5865F2;
-      --discord-hover: #4752c4;
+      --radius: 16px;
     }
 
-    html { scroll-behavior: smooth; }
-
+    /* Base Reset */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
     body {
       background: var(--bg);
       color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      line-height: 1.5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Premium Navigation */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 70px;
+      background: rgba(5,5,5,0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .logo {
       font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-decoration: none;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-links {
+      display: none;
+      gap: 32px;
+    }
+
+    @media (min-width: 768px) {
+      .nav-links { display: flex; }
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--blue); }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.75rem;
+      cursor: pointer;
+      display: block;
+    }
+
+    @media (min-width: 768px) { .menu-btn { display: none; } }
+
+    /* Mobile Menu Overlay */
+    .mobile-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      padding: 40px 20px;
+      transform: translateY(-100%);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .mobile-overlay.active { transform: translateY(0); }
+
+    .mobile-overlay .close-btn {
+      align-self: flex-end;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 2rem;
+      margin-bottom: 40px;
+    }
+
+    .mobile-nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .mobile-nav-links a {
+      font-size: 2rem;
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 140px 0 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 1200px;
+      height: 600px;
+      background: radial-gradient(circle at center, rgba(59,130,246,0.18) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: -1;
+      filter: blur(60px);
+    }
+
+    .badge {
+      display: inline-flex;
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-bright);
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--blue);
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.5rem, 10vw, 4.5rem);
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      margin-bottom: 24px;
+      color: #fff;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, #ffffff 30%, #3b82f6 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+
+    .hero p {
+      max-width: 600px;
+      margin: 0 auto 40px;
+      color: var(--text-secondary);
+      font-size: clamp(1rem, 4vw, 1.2rem);
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 0 20px;
+    }
+
+    @media (min-width: 640px) {
+      .btn-group { flex-direction: row; justify-content: center; }
+    }
+
+    .btn {
+      padding: 16px 32px;
+      border-radius: var(--radius);
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.3s;
+    }
+
+    .btn-primary { background: #fff; color: #000; }
+    .btn-primary:hover { background: #e2e2e2; transform: translateY(-2px); }
+
+    .btn-discord { background: var(--discord); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+    .btn-discord:hover { background: #4752c4; transform: translateY(-2px); }
+
+    .btn-secondary { background: var(--surface); color: #fff; border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--blue); transform: translateY(-2px); }
+
+    /* Preview Image */
+    .preview-box {
+      margin-top: 60px;
+      background: linear-gradient(to bottom, var(--border), transparent);
+      padding: 1px;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 30px 60px -12px rgba(0,0,0,0.5);
+    }
+
+    .preview-box img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 23px;
+    }
+
+    /* Features Section */
+    .section { padding: 100px 0; }
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 32px;
+      border-radius: 24px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card:hover {
+      border-color: var(--blue);
+      transform: translateY(-5px);
+      background: var(--surface-raised);
+    }
+
+    .feature-icon {
+      font-size: 1.75rem;
+      margin-bottom: 20px;
+      display: inline-block;
+      color: var(--blue);
+      background: rgba(59, 130, 246, 0.1);
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
       line-height: 1.6;
-      min-height: 100vh;
-      padding-top: 50px;
-    }
-    
-    @media (max-width: 768px) {
-      body {
-        padding-top: 60px;
-      }
     }
 
-    /* NAV */
-    nav {
-      position: fixed;
-      top: 0;
-      inset: 0 0 auto 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      height: 50px;
-      background: rgba(10,10,10,0.9);
-      backdrop-filter: blur(12px);
+    /* FAQ System */
+    .faq-list { max-width: 800px; margin: 0 auto; }
+    .faq-item {
       border-bottom: 1px solid var(--border);
+      overflow: hidden;
     }
-    .nav-logo {
-      position: absolute;
-      left: 1.5rem;
-      font-size: 1.3rem;
-      color: var(--blue);
-    }
-    .nav-links {
-      display: flex;
-      gap: 2.5rem;
-      align-items: center;
-    }
-    .nav-links a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 500;
-      transition: color 0.2s ease;
-    }
-    .nav-links a:hover {
-      color: var(--blue);
-    }
-    
-    .mobile-menu-toggle {
-      display: none;
-      position: absolute;
-      right: 1.5rem;
+
+    .faq-trigger {
+      width: 100%;
+      padding: 24px 0;
       background: none;
       border: none;
-      color: var(--text);
-      font-size: 1.5rem;
-      cursor: pointer;
-      z-index: 101;
-    }
-    
-    @media (max-width: 768px) {
-      .mobile-menu-toggle {
-        display: block;
-      }
-      
-      nav {
-        height: 60px;
-      }
-      
-      .nav-links {
-        position: absolute;
-        top: 60px;
-        left: 0;
-        right: 0;
-        flex-direction: column;
-        gap: 0;
-        background: rgba(10,10,10,0.95);
-        backdrop-filter: blur(12px);
-        border-bottom: 1px solid var(--border);
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-      }
-      
-      .nav-links.active {
-        max-height: 400px;
-      }
-      
-      .nav-links a {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid var(--border);
-        display: block;
-        width: 100%;
-      }
-      
-      .nav-logo {
-        font-size: 1rem;
-      }
-    }
-
-    /* HERO */
-    .hero {
-      min-height: 100vh;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; padding: 5rem 2rem 4rem;
-      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(37,99,235,0.12), transparent);
-    }    
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -25%;
-      left: -10%;
-      width: 600px;
-      height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
-      pointer-events: none;
-      filter: blur(80px);
-      animation: float 8s ease-in-out infinite;
-    }
-
-    .hero::after {
-      content: '';
-      position: absolute;
-      bottom: -20%;
-      right: -5%;
-      width: 500px;
-      height: 500px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%);
-      pointer-events: none;
-      filter: blur(80px);
-      animation: float 10s ease-in-out infinite reverse;
-    }
-    
-    @media (max-width: 768px) {
-      .hero {
-        padding: 6rem 1.5rem 3rem;
-        min-height: auto;
-        margin-top: 1rem;
-      }
-      
-      .hero::before, .hero::after {
-        display: none;
-      }
-      
-      h1 {
-        font-size: clamp(1.75rem, 5vw, 2.5rem) !important;
-        margin-bottom: 1rem;
-      }
-      
-      .hero-sub {
-        font-size: clamp(0.9rem, 1.5vw, 1rem) !important;
-        margin-bottom: 1.5rem;
-      }
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(30px); }
-    }
-
-    .hero > * {
-      position: relative;
-      z-index: 1;
-    }
-    .badge {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.3);
-      color: #93c5fd; font-size: 0.75rem; font-weight: 600;
-      padding: 0.3rem 0.9rem; border-radius: 999px; margin-bottom: 1.5rem;
-      letter-spacing: 0.05em; text-transform: uppercase;
-    }
-    h1 {
-      font-size: clamp(2.5rem, 6vw, 4.5rem);
-      font-weight: 900; line-height: 1.1; letter-spacing: -0.03em;
-      margin-bottom: 1.25rem;
-    }
-    h1 span { color: var(--blue); }
-    .hero-sub {
-      font-size: clamp(1rem, 2vw, 1.2rem);
-      color: var(--muted); max-width: 560px; margin: 0 auto 2.5rem;
-    }
-    .btn-group { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
-    .btn {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.75rem 1.75rem; border-radius: 0.5rem;
-      font-size: 0.9rem; font-weight: 700; text-decoration: none;
-      transition: all 0.2s; cursor: pointer; border: none;
-    }
-    .btn-primary {
-      background: var(--blue); color: #fff;
-      box-shadow: 0 0 24px var(--blue-glow);
-    }
-    .btn-primary:hover { background: var(--blue-hover); box-shadow: 0 0 32px var(--blue-glow); }
-    
-    .btn-discord {
-      background: var(--discord); color: #fff;
-    }
-    .btn-discord:hover { 
-      background: var(--discord-hover); 
-      box-shadow: 0 0 24px rgba(88, 101, 242, 0.4); 
-    }
-
-    .btn-secondary {
-      background: rgba(255,255,255,0.05); color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover { background: rgba(255,255,255,0.1); }
-    
-    @media (max-width: 768px) {
-      .btn-group {
-        gap: 0.75rem;
-      }
-      
-      .btn {
-        padding: 0.65rem 1.3rem;
-        font-size: 0.8rem;
-        min-height: 44px;
-      }
-      
-      .btn-group .btn {
-        flex: 1;
-        min-width: 140px;
-      }
-    }
-
-    .version-note { margin-top: 1rem; font-size: 0.75rem; color: var(--muted); }
-    
-    @media (max-width: 768px) {
-      .version-note {
-        font-size: 0.65rem;
-      }
-    }
-
-    /* SCREENSHOTS */
-    .screenshots {
-      padding: 4rem 2rem;
-      display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;
-      max-width: 1100px; margin: 0 auto;
-    }
-    .screenshots img {
-      width: 100%; max-width: 480px; border-radius: 0.75rem;
-      border: 1px solid var(--border);
-      box-shadow: 0 0 40px rgba(0,0,0,0.6);
-    }
-    
-    @media (max-width: 768px) {
-      .screenshots {
-        padding: 2rem 1rem;
-        gap: 1rem;
-      }
-      
-      .screenshots img {
-        max-width: 100%;
-      }
-    }
-
-    /* FEATURES */
-    .section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
-    .section-title {
-      font-size: 1.75rem; font-weight: 800; text-align: center;
-      margin-bottom: 0.75rem;
-    }
-    .section-sub { text-align: center; color: var(--muted); margin-bottom: 3rem; font-size: 0.95rem; }
-    
-    @media (max-width: 768px) {
-      .section {
-        padding: 3rem 1.5rem;
-      }
-      
-      .section-title {
-        font-size: clamp(1.3rem, 5vw, 1.75rem);
-        margin-bottom: 0.5rem;
-      }
-      
-      .section-sub {
-        font-size: 0.8rem;
-        margin-bottom: 2rem;
-      }
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1rem;
-    }
-    .feature-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 0.75rem; padding: 1.5rem;
-      transition: border-color 0.2s;
-    }
-    .feature-card:hover { border-color: rgba(37,99,235,0.4); }
-    .feature-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
-    .feature-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
-    .feature-card p { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
-    
-    @media (max-width: 768px) {
-      .features-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 0.75rem;
-      }
-      
-      .feature-card {
-        padding: 1rem;
-      }
-      
-      .feature-icon {
-        font-size: 1.25rem;
-        margin-bottom: 0.5rem;
-      }
-      
-      .feature-card h3 {
-        font-size: 0.85rem;
-      }
-      
-      .feature-card p {
-        font-size: 0.7rem;
-      }
-    }
-
-    /* DOWNLOAD */
-    .download-section {
-      padding: 5rem 2rem; text-align: center;
-      background: radial-gradient(ellipse 60% 40% at 50% 100%, rgba(37,99,235,0.1), transparent);
-    }
-    .download-card {
-      display: inline-flex; flex-direction: column; align-items: center;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 1rem; padding: 2.5rem 3rem; gap: 1rem;
-      max-width: 420px; width: 100%;
-    }
-    .download-card h3 { font-size: 1.25rem; font-weight: 800; }
-    .download-card p { font-size: 0.85rem; color: var(--muted); }
-    .platform-badge {
-      display: flex; align-items: center; gap: 0.5rem;
-      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-      padding: 0.4rem 1rem; border-radius: 999px;
-      font-size: 0.75rem; color: var(--muted);
-    }
-    
-    @media (max-width: 768px) {
-      .download-section {
-        padding: 3rem 1.5rem;
-      }
-      
-      .download-card {
-        padding: 1.5rem;
-        border-radius: 0.75rem;
-      }
-      
-      .download-card h3 {
-        font-size: 1rem;
-      }
-      
-      .download-card p {
-        font-size: 0.75rem;
-      }
-      
-      .download-card .btn {
-        width: 100%;
-      }
-      
-      .platform-badge {
-        font-size: 0.65rem;
-        padding: 0.35rem 0.75rem;
-      }
-    }
-
-    /* FAQ */
-    .faq-section {
-      padding: 7rem 2rem;
-      max-width: 950px;
-      margin: 0 auto;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .faq-section::before {
-      content: '';
-      position: absolute;
-      top: -40%;
-      right: -20%;
-      width: 600px;
-      height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(37,99,235,0.08) 0%, transparent 70%);
-      pointer-events: none;
-      filter: blur(60px);
-    }
-
-    .faq-content {
-      position: relative;
-      z-index: 1;
-    }
-
-    .faq-list {
       display: flex;
-      flex-direction: column;
-      gap: 1.2rem;
-    }
-
-    .faq-item {
-      background: linear-gradient(135deg, var(--surface), rgba(17,17,17,0.5));
-      border: 1px solid var(--border);
-      border-radius: 1rem;
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      backdrop-filter: blur(10px);
-    }
-
-    .faq-item::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, transparent, rgba(37,99,235,0.05));
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-    }
-
-    .faq-item:hover {
-      border-color: rgba(37,99,235,0.4);
-      box-shadow: 0 10px 35px rgba(37,99,235,0.15);
-      transform: translateY(-2px);
-      background: linear-gradient(135deg, rgba(37,99,235,0.02), rgba(37,99,235,0.01));
-    }
-
-    .faq-item:hover::before {
-      opacity: 1;
-    }
-
-    .faq-question {
-      display: flex;
-      align-items: center;
       justify-content: space-between;
-      padding: 1.8rem;
-      cursor: pointer;
-      user-select: none;
-      font-weight: 600;
-      font-size: 1.05rem;
-      color: var(--text);
-      transition: all 0.2s ease;
-      position: relative;
-      z-index: 2;
-      gap: 1rem;
-    }
-
-    .faq-question:hover {
-      color: var(--blue);
-    }
-
-    .faq-toggle {
-      display: flex;
       align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(37,99,235,0.08));
-      border: 1px solid rgba(37,99,235,0.2);
-      border-radius: 50%;
-      color: var(--blue);
-      font-size: 1rem;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      flex-shrink: 0;
-      padding: 0;
-    }
-
-    .faq-item:hover .faq-toggle {
-      background: linear-gradient(135deg, rgba(37,99,235,0.25), rgba(37,99,235,0.15));
-      border-color: rgba(37,99,235,0.4);
-      box-shadow: 0 0 20px rgba(37,99,235,0.2);
-    }
-
-    .faq-item.active .faq-toggle {
-      transform: rotate(180deg);
-      background: linear-gradient(135deg, rgba(37,99,235,0.3), rgba(37,99,235,0.2));
-      border-color: rgba(37,99,235,0.5);
-      box-shadow: 0 0 20px rgba(37,99,235,0.25);
+      color: var(--text);
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
     }
 
     .faq-answer {
       max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s ease;
-      color: var(--muted);
+      transition: all 0.4s ease;
+      color: var(--text-secondary);
       font-size: 0.95rem;
-      line-height: 1.7;
-      border-top: 1px solid var(--border);
-      position: relative;
-      z-index: 1;
     }
 
-    .faq-item.active .faq-answer {
-      max-height: 600px;
-      padding: 0 1.8rem 1.8rem 1.8rem;
-    }
+    .faq-item.active .faq-answer { max-height: 300px; padding-bottom: 24px; }
+    .faq-item.active i { transform: rotate(180deg); color: var(--blue); }
+    .faq-item i { transition: transform 0.3s; color: var(--muted); }
 
-    .faq-answer ol, .faq-answer ul {
-      margin-left: 1.8rem;
-      margin-top: 1rem;
-    }
-
-    .faq-answer li {
-      margin-bottom: 0.8rem;
-      color: var(--text-secondary);
-    }
-
-    .faq-answer p {
-      margin-bottom: 1rem;
-      color: var(--text-secondary);
-    }
-
-    .faq-answer a {
-      color: var(--blue);
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.2s ease;
-    }
-
-    .faq-answer a:hover {
-      color: #60a5fa;
-      text-decoration: underline;
-    }
-
-    .faq-answer code {
-      background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(37,99,235,0.08));
-      color: #93c5fd;
-      padding: 0.3rem 0.7rem;
-      border-radius: 0.4rem;
-      font-family: 'Courier New', monospace;
-      font-size: 0.85rem;
-      border: 1px solid rgba(37,99,235,0.2);
-    }
-
-    .faq-answer strong {
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    @media (max-width: 768px) {
-      .faq-section {
-        padding: 3rem 1.5rem;
-      }
-
-      .faq-section::before {
-        display: none;
-      }
-
-      .faq-question {
-        padding: 1.2rem;
-        font-size: 0.9rem;
-      }
-
-      .faq-item.active .faq-answer {
-        padding: 0 1.2rem 1.2rem 1.2rem;
-      }
-      
-      .faq-toggle {
-        width: 28px;
-        height: 28px;
-        font-size: 0.9rem;
-      }
-    }
-
-
-    /* FOOTER */
     footer {
+      padding: 60px 0;
       border-top: 1px solid var(--border);
-      padding: 2rem; text-align: center;
-      font-size: 0.8rem; color: var(--muted);
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
     }
-    footer a { color: var(--muted); text-decoration: none; }
-    footer a:hover { color: var(--text); }
-    .footer-links { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
-    
-    @media (max-width: 768px) {
-      footer {
-        padding: 1.5rem 1rem;
-        font-size: 0.7rem;
-      }
-      
-      .footer-links {
-        gap: 1rem;
-      }
-      
-      .footer-links a {
-        font-size: 0.7rem;
-      }
-    }
-    
-    /* Badge responsive */
-    .badge {
-      font-size: clamp(0.65rem, 1vw, 0.75rem);
-      padding: clamp(0.25rem, 1vw, 0.3rem) clamp(0.7rem, 2vw, 0.9rem);
-    }
+
+    .footer-links { margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+    .footer-links a { color: var(--text-secondary); text-decoration: none; }
   </style>
 </head>
 <body>
 
-  <nav>
-    <button class="mobile-menu-toggle" id="mobileMenuToggle">
-      <i class="bi bi-list"></i>
-    </button>
-    <div class="nav-links" id="navLinks">
+  <div class="mobile-overlay" id="mobileOverlay">
+    <button class="close-btn" id="closeBtn"><i class="bi bi-x-lg"></i></button>
+    <div class="mobile-nav-links">
       <a href="#features">Features</a>
       <a href="#faq">FAQ</a>
       <a href="#download">Download</a>
+      <a href="https://discord.gg/vq4UDfevG2" target="_blank">Discord</a>
       <a href="https://github.com/NeelFrostrain/UnrealLauncher" target="_blank">GitHub</a>
     </div>
-  </nav>
-
-  <!-- HERO -->
-  <section class="hero">
-    <div class="badge">✦ Version 1.8.0 — Now Available</div>
-    <h1>Manage Your<br /><span>Unreal Engine</span><br />Projects</h1>
-    <p class="hero-sub">
-      A lightweight desktop app for discovering, launching, and managing
-      Unreal Engine installations and projects — all in one place.
-    </p>
-    <div class="btn-group">
-      <a href="https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v1.8.0/unreal-launcher-1.8.0-setup.exe" class="btn btn-primary" target="_blank">
-        <i class="bi bi-download"></i> Download for Windows
-      </a>
-      <a href="https://discord.gg/vq4UDfevG2" target="_blank" class="btn btn-discord">
-        <i class="bi bi-discord"></i> Join Discord
-      </a>
-      <a href="https://github.com/NeelFrostrain/UnrealLauncher" target="_blank" class="btn btn-secondary">
-        <i class="bi bi-github"></i> View on GitHub
-      </a>
-    </div>
-    <p class="version-note">Free &amp; Open Source · MIT License · Windows x64</p>
-  </section>
-
-  <!-- SCREENSHOTS -->
-  <div class="screenshots">
-    <img src="./docs/S1.png" alt="Engines page screenshot" />
-    <img src="./docs/S2.png" alt="Projects page screenshot" />
   </div>
-
-  <!-- FEATURES -->
-  <section class="section" id="features">
-    <h2 class="section-title">Everything You Need</h2>
-    <p class="section-sub">Built for Unreal Engine developers who want a faster workflow.</p>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3>One-click Launch</h3>
-        <p>Launch any engine version or project instantly without navigating the Epic Games Launcher.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🗂️</div>
-        <h3>List &amp; Grid View</h3>
-        <p>Browse projects in a flat list or thumbnail grid. Your preference is saved across sessions.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📦</div>
-        <h3>Batch Import</h3>
-        <p>Select a folder with dozens of projects and import up to 20 at a time without freezing.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">⭐</div>
-        <h3>Favorites</h3>
-        <p>Star your most-used projects for quick access from the Favorites tab.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🕐</div>
-        <h3>Recent Projects</h3>
-        <p>Accurately sorted by last-opened time using Saved/Logs timestamps — not just file dates.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔍</div>
-        <h3>Search</h3>
-        <p>Instantly filter projects by name with a clean search bar in the toolbar.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔔</div>
-        <h3>Toast Notifications</h3>
-        <p>Stacking real-time feedback for every action — with auto-dismiss and close button.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔄</div>
-        <h3>Auto Updates</h3>
-        <p>Built-in update checker via GitHub Releases. Get notified and install with one click.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- DOWNLOAD -->
-  <section class="download-section" id="download">
-    <h2 class="section-title" style="margin-bottom:0.75rem">Download</h2>
-    <p class="section-sub">Windows only for now. More platforms coming soon.</p>
-    <div class="download-card">
-      <div class="feature-icon" style="font-size:2.5rem"><i class="bi bi-windows"></i></d    @media (max-width: 768px) {
-      body {
-        padding-top: 60px;
-      }
-    }
-
-    /* NAV */
-    nav {
-      position: fixed;
-      top: 0;
-      inset: 0 0 auto 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      height: 50px;
-      background: rgba(10,10,10,0.9);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-    }
-    .nav-logo {
-      position: absolute;
-      left: 1.5rem;
-      font-size: 1.3rem;
-      color: var(--blue);
-    }
-    .nav-links {
-      display: flex;
-      gap: 2.5rem;
-      align-items: center;
-    }
-    .nav-links a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 500;
-      transition: color 0.2s ease;
-    }
-    .nav-links a:hover {
-      color: var(--blue);
-    }
-    
-    .mobile-menu-toggle {
-      display: none;
-      position: absolute;
-      right: 1.5rem;
-      background: none;
-      border: none;
-      color: var(--text);
-      font-size: 1.5rem;
-      cursor: pointer;
-      z-index: 101;
-    }
-    
-    @media (max-width: 768px) {
-      .mobile-menu-toggle {
-        display: block;
-      }
-      
-      nav {
-        height: 60px;
-      }
-      
-      .nav-links {
-        position: absolute;
-        top: 60px;
-        left: 0;
-        right: 0;
-        flex-direction: column;
-        gap: 0;
-        background: rgba(10,10,10,0.95);
-        backdrop-filter: blur(12px);
-        border-bottom: 1px solid var(--border);
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-      }
-      
-      .nav-links.active {
-        max-height: 400px;
-      }
-      
-      .nav-links a {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid var(--border);
-        display: block;
-        width: 100%;
-      }
-      
-      .nav-logo {
-        font-size: 1rem;
-      }
-    }
-
-    /* HERO */
-    .hero {
-      min-height: 100vh;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; padding: 5rem 2rem 4rem;
-      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(37,99,235,0.12), transparent);
-    }    
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -25%;
-      left: -10%;
-      width: 600px;
-      height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
-      pointer-events: none;
-      filter: blur(80px);
-      animation: float 8s ease-in-out infinite;
-    }
-
-    .hero::after {
-      content: '';
-      position: absolute;
-      bottom: -20%;
-      right: -5%;
-      width: 500px;
-      height: 500px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%);
-      pointer-events: none;
-      filter: blur(80px);
-      animation: float 10s ease-in-out infinite reverse;
-    }
-    
-    @media (max-width: 768px) {
-      .hero {
-        padding: 6rem 1.5rem 3rem;
-        min-height: auto;
-        margin-top: 1rem;
-      }
-      
-      .hero::before, .hero::after {
-        display: none;
-      }
-      
-      h1 {
-        font-size: clamp(1.75rem, 5vw, 2.5rem) !important;
-        margin-bottom: 1rem;
-      }
-      
-      .hero-sub {
-        font-size: clamp(0.9rem, 1.5vw, 1rem) !important;
-        margin-bottom: 1.5rem;
-      }
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(30px); }
-    }
-
-    .hero > * {
-      position: relative;
-      z-index: 1;
-    }
-    .badge {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.3);
-      color: #93c5fd; font-size: 0.75rem; font-weight: 600;
-      padding: 0.3rem 0.9rem; border-radius: 999px; margin-bottom: 1.5rem;
-      letter-spacing: 0.05em; text-transform: uppercase;
-    }
-    h1 {
-      font-size: clamp(2.5rem, 6vw, 4.5rem);
-      font-weight: 900; line-height: 1.1; letter-spacing: -0.03em;
-      margin-bottom: 1.25rem;
-    }
-    h1 span { color: var(--blue); }
-    .hero-sub {
-      font-size: clamp(1rem, 2vw, 1.2rem);
-      color: var(--muted); max-width: 560px; margin: 0 auto 2.5rem;
-    }
-    .btn-group { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
-    .btn {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.75rem 1.75rem; border-radius: 0.5rem;
-      font-size: 0.9rem; font-weight: 700; text-decoration: none;
-      transition: all 0.2s; cursor: pointer; border: none;
-    }
-    .btn-primary {
-      background: var(--blue); color: #fff;
-      box-shadow: 0 0 24px var(--blue-glow);
-    }
-    .btn-primary:hover { background: var(--blue-hover); box-shadow: 0 0 32px var(--blue-glow); }
-    .btn-secondary {
-      background: rgba(255,255,255,0.05); color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover { background: rgba(255,255,255,0.1); }
-    
-    @media (max-width: 768px) {
-      .btn-group {
-        gap: 0.75rem;
-      }
-      
-      .btn {
-        padding: 0.65rem 1.3rem;
-        font-size: 0.8rem;
-        min-height: 44px;
-      }
-      
-      .btn-group .btn {
-        flex: 1;
-        min-width: 140px;
-      }
-    }
-
-    .version-note { margin-top: 1rem; font-size: 0.75rem; color: var(--muted); }
-    
-    @media (max-width: 768px) {
-      .version-note {
-        font-size: 0.65rem;
-      }
-    }
-
-    /* SCREENSHOTS */
-    .screenshots {
-      padding: 4rem 2rem;
-      display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;
-      max-width: 1100px; margin: 0 auto;
-    }
-    .screenshots img {
-      width: 100%; max-width: 480px; border-radius: 0.75rem;
-      border: 1px solid var(--border);
-      box-shadow: 0 0 40px rgba(0,0,0,0.6);
-    }
-    
-    @media (max-width: 768px) {
-      .screenshots {
-        padding: 2rem 1rem;
-        gap: 1rem;
-      }
-      
-      .screenshots img {
-        max-width: 100%;
-      }
-    }
-
-    /* FEATURES */
-    .section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
-    .section-title {
-      font-size: 1.75rem; font-weight: 800; text-align: center;
-      margin-bottom: 0.75rem;
-    }
-    .section-sub { text-align: center; color: var(--muted); margin-bottom: 3rem; font-size: 0.95rem; }
-    
-    @media (max-width: 768px) {
-      .section {
-        padding: 3rem 1.5rem;
-      }
-      
-      .section-title {
-        font-size: clamp(1.3rem, 5vw, 1.75rem);
-        margin-bottom: 0.5rem;
-      }
-      
-      .section-sub {
-        font-size: 0.8rem;
-        margin-bottom: 2rem;
-      }
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1rem;
-    }
-    .feature-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 0.75rem; padding: 1.5rem;
-      transition: border-color 0.2s;
-    }
-    .feature-card:hover { border-color: rgba(37,99,235,0.4); }
-    .feature-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
-    .feature-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
-    .feature-card p { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
-    
-    @media (max-width: 768px) {
-      .features-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 0.75rem;
-      }
-      
-      .feature-card {
-        padding: 1rem;
-      }
-      
-      .feature-icon {
-        font-size: 1.25rem;
-        margin-bottom: 0.5rem;
-      }
-      
-      .feature-card h3 {
-        font-size: 0.85rem;
-      }
-      
-      .feature-card p {
-        font-size: 0.7rem;
-      }
-    }
-
-    /* DOWNLOAD */
-    .download-section {
-      padding: 5rem 2rem; text-align: center;
-      background: radial-gradient(ellipse 60% 40% at 50% 100%, rgba(37,99,235,0.1), transparent);
-    }
-    .download-card {
-      display: inline-flex; flex-direction: column; align-items: center;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 1rem; padding: 2.5rem 3rem; gap: 1rem;
-      max-width: 420px; width: 100%;
-    }
-    .download-card h3 { font-size: 1.25rem; font-weight: 800; }
-    .download-card p { font-size: 0.85rem; color: var(--muted); }
-    .platform-badge {
-      display: flex; align-items: center; gap: 0.5rem;
-      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-      padding: 0.4rem 1rem; border-radius: 999px;
-      font-size: 0.75rem; color: var(--muted);
-    }
-    
-    @media (max-width: 768px) {
-      .download-section {
-        padding: 3rem 1.5rem;
-      }
-      
-      .download-card {
-        padding: 1.5rem;
-        border-radius: 0.75rem;
-      }
-      
-      .download-card h3 {
-        font-size: 1rem;
-      }
-      
-      .download-card p {
-        font-size: 0.75rem;
-      }
-      
-      .download-card .btn {
-        width: 100%;
-      }
-      
-      .platform-badge {
-        font-size: 0.65rem;
-        padding: 0.35rem 0.75rem;
-      }
-    }
-
-    /* FAQ */
-    .faq-section {
-      padding: 7rem 2rem;
-      max-width: 950px;
-      margin: 0 auto;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .faq-section::before {
-      content: '';
-      position: absolute;
-      top: -40%;
-      right: -20%;
-      width: 600px;
-      height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(37,99,235,0.08) 0%, transparent 70%);
-      pointer-events: none;
-      filter: blur(60px);
-    }
-
-    .faq-content {
-      position: relative;
-      z-index: 1;
-    }
-
-    .faq-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1.2rem;
-    }
-
-    .faq-item {
-      background: linear-gradient(135deg, var(--surface), rgba(17,17,17,0.5));
-      border: 1px solid var(--border);
-      border-radius: 1rem;
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      backdrop-filter: blur(10px);
-    }
-
-    .faq-item::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, transparent, rgba(37,99,235,0.05));
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-    }
-
-    .faq-item:hover {
-      border-color: rgba(37,99,235,0.4);
-      box-shadow: 0 10px 35px rgba(37,99,235,0.15);
-      transform: translateY(-2px);
-      background: linear-gradient(135deg, rgba(37,99,235,0.02), rgba(37,99,235,0.01));
-    }
-
-    .faq-item:hover::before {
-      opacity: 1;
-    }
-
-    .faq-question {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1.8rem;
-      cursor: pointer;
-      user-select: none;
-      font-weight: 600;
-      font-size: 1.05rem;
-      color: var(--text);
-      transition: all 0.2s ease;
-      position: relative;
-      z-index: 2;
-      gap: 1rem;
-    }
-
-    .faq-question:hover {
-      color: var(--blue);
-    }
-
-    .faq-toggle {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(37,99,235,0.08));
-      border: 1px solid rgba(37,99,235,0.2);
-      border-radius: 50%;
-      color: var(--blue);
-      font-size: 1rem;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      flex-shrink: 0;
-      padding: 0;
-    }
-
-    .faq-item:hover .faq-toggle {
-      background: linear-gradient(135deg, rgba(37,99,235,0.25), rgba(37,99,235,0.15));
-      border-color: rgba(37,99,235,0.4);
-      box-shadow: 0 0 20px rgba(37,99,235,0.2);
-    }
-
-    .faq-item.active .faq-toggle {
-      transform: rotate(180deg);
-      background: linear-gradient(135deg, rgba(37,99,235,0.3), rgba(37,99,235,0.2));
-      border-color: rgba(37,99,235,0.5);
-      box-shadow: 0 0 20px rgba(37,99,235,0.25);
-    }
-
-    .faq-answer {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s ease;
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.7;
-      border-top: 1px solid var(--border);
-      position: relative;
-      z-index: 1;
-    }
-
-    .faq-item.active .faq-answer {
-      max-height: 600px;
-      padding: 0 1.8rem 1.8rem 1.8rem;
-    }
-
-    .faq-answer ol, .faq-answer ul {
-      margin-left: 1.8rem;
-      margin-top: 1rem;
-    }
-
-    .faq-answer li {
-      margin-bottom: 0.8rem;
-      color: var(--text-secondary);
-    }
-
-    .faq-answer p {
-      margin-bottom: 1rem;
-      color: var(--text-secondary);
-    }
-
-    .faq-answer a {
-      color: var(--blue);
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.2s ease;
-    }
-
-    .faq-answer a:hover {
-      color: #60a5fa;
-      text-decoration: underline;
-    }
-
-    .faq-answer code {
-      background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(37,99,235,0.08));
-      color: #93c5fd;
-      padding: 0.3rem 0.7rem;
-      border-radius: 0.4rem;
-      font-family: 'Courier New', monospace;
-      font-size: 0.85rem;
-      border: 1px solid rgba(37,99,235,0.2);
-    }
-
-    .faq-answer strong {
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    @media (max-width: 768px) {
-      .faq-section {
-        padding: 3rem 1.5rem;
-      }
-
-      .faq-section::before {
-        display: none;
-      }
-
-      .faq-question {
-        padding: 1.2rem;
-        font-size: 0.9rem;
-      }
-
-      .faq-item.active .faq-answer {
-        padding: 0 1.2rem 1.2rem 1.2rem;
-      }
-      
-      .faq-toggle {
-        width: 28px;
-        height: 28px;
-        font-size: 0.9rem;
-      }
-    }
-
-
-    /* FOOTER */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 2rem; text-align: center;
-      font-size: 0.8rem; color: var(--muted);
-    }
-    footer a { color: var(--muted); text-decoration: none; }
-    footer a:hover { color: var(--text); }
-    .footer-links { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
-    
-    @media (max-width: 768px) {
-      footer {
-        padding: 1.5rem 1rem;
-        font-size: 0.7rem;
-      }
-      
-      .footer-links {
-        gap: 1rem;
-      }
-      
-      .footer-links a {
-        font-size: 0.7rem;
-      }
-    }
-    
-    /* Badge responsive */
-    .badge {
-      font-size: clamp(0.65rem, 1vw, 0.75rem);
-      padding: clamp(0.25rem, 1vw, 0.3rem) clamp(0.7rem, 2vw, 0.9rem);
-    }
-  </style>
-</head>
-<body>
 
   <nav>
-    <button class="mobile-menu-toggle" id="mobileMenuToggle">
-      <i class="bi bi-list"></i>
-    </button>
-    <div class="nav-links" id="navLinks">
-      <a href="#features">Features</a>
-      <a href="#faq">FAQ</a>
-      <a href="#download">Download</a>
-      <a href="https://github.com/NeelFrostrain/UnrealLauncher" target="_blank">GitHub</a>
+    <div class="container nav-content">
+      <a href="#" class="logo">Unreal Launcher</a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#faq">FAQ</a>
+        <a href="#download">Download</a>
+        <a href="https://discord.gg/vq4UDfevG2" target="_blank">Discord</a>
+        <a href="https://github.com/NeelFrostrain/UnrealLauncher" target="_blank">GitHub</a>
+      </div>
+      <button class="menu-btn" id="menuBtn"><i class="bi bi-list"></i></button>
     </div>
   </nav>
 
-  <!-- HERO -->
   <section class="hero">
-    <div class="badge">✦ Version 1.8.0 — Now Available</div>
-    <h1>Manage Your<br /><span>Unreal Engine</span><br />Projects</h1>
-    <p class="hero-sub">
-      A lightweight desktop app for discovering, launching, and managing
-      Unreal Engine installations and projects — all in one place.
-    </p>
-    <div class="btn-group">
-      <a href="https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v1.8.0/unreal-launcher-1.8.0-setup.exe" class="btn btn-primary" target="_blank">
-        <i class="bi bi-download"></i> Download for Windows
-      </a>
-      <a href="https://github.com/NeelFrostrain/UnrealLauncher" target="_blank" class="btn btn-secondary">
-        <i class="bi bi-github"></i> View on GitHub
-      </a>
-    </div>
-    <p class="version-note">Free &amp; Open Source · MIT License · Windows x64</p>
-  </section>
-
-  <!-- SCREENSHOTS -->
-  <div class="screenshots">
-    <img src="./docs/S1.png" alt="Engines page screenshot" />
-    <img src="./docs/S2.png" alt="Projects page screenshot" />
-  </div>
-
-  <!-- FEATURES -->
-  <section class="section" id="features">
-    <h2 class="section-title">Everything You Need</h2>
-    <p class="section-sub">Built for Unreal Engine developers who want a faster workflow.</p>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3>One-click Launch</h3>
-        <p>Launch any engine version or project instantly without navigating the Epic Games Launcher.</p>
+    <div class="hero-glow"></div>
+    <div class="container">
+      <div class="badge">Version 1.8.0 Available Now</div>
+      <h1>Better <span>Unreal</span> Management.</h1>
+      <p>A native, ultra-fast alternative to the Epic Games Launcher. Optimized for developers who value their time and system resources.</p>
+      <div class="btn-group">
+        <a href="https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v1.8.0/unreal-launcher-1.8.0-setup.exe" class="btn btn-primary"><i class="bi bi-download"></i> Download v1.8.0</a>
+        <a href="https://discord.gg/vq4UDfevG2" target="_blank" class="btn btn-discord"><i class="bi bi-discord"></i> Join Discord</a>
+        <a href="https://github.com/NeelFrostrain/UnrealLauncher" target="_blank" class="btn btn-secondary"><i class="bi bi-github"></i> Source Code</a>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">🗂️</div>
-        <h3>List &amp; Grid View</h3>
-        <p>Browse projects in a flat list or thumbnail grid. Your preference is saved across sessions.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📦</div>
-        <h3>Batch Import</h3>
-        <p>Select a folder with dozens of projects and import up to 20 at a time without freezing.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">⭐</div>
-        <h3>Favorites</h3>
-        <p>Star your most-used projects for quick access from the Favorites tab.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🕐</div>
-        <h3>Recent Projects</h3>
-        <p>Accurately sorted by last-opened time using Saved/Logs timestamps — not just file dates.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔍</div>
-        <h3>Search</h3>
-        <p>Instantly filter projects by name with a clean search bar in the toolbar.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔔</div>
-        <h3>Toast Notifications</h3>
-        <p>Stacking real-time feedback for every action — with auto-dismiss and close button.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔄</div>
-        <h3>Auto Updates</h3>
-        <p>Built-in update checker via GitHub Releases. Get notified and install with one click.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- DOWNLOAD -->
-  <section class="download-section" id="download">
-    <h2 class="section-title" style="margin-bottom:0.75rem">Download</h2>
-    <p class="section-sub">Windows only for now. More platforms coming soon.</p>
-    <div class="download-card">
-      <div class="feature-icon" style="font-size:2.5rem"><i class="bi bi-windows"></i></div>
-      <h3>Unreal Launcher 1.8.0</h3>
-      <p>Windows installer — x64</p>
-      <div class="platform-badge"><i class="bi bi-windows"></i> Windows 10 / 11 · x64</div>
-      <a
-        href="https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v1.8.0/unreal-launcher-1.8.0-setup.exe"
-        target="_blank"
-        class="btn btn-primary"
-        style="width:100%;justify-content:center"
-      >
-        <i class="bi bi-download"></i> Download Installer (.exe)
-      </a>
-      <a
-        href="https://github.com/NeelFrostrain/UnrealLauncher/releases"
-        target="_blank"
-        class="btn btn-secondary"
-        style="width:100%;justify-content:center;font-size:0.8rem"
-      >
-        <i class="bi bi-box-arrow-up-right"></i> View all releases
-      </a>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section class="faq-section" id="faq">
-    <div class="faq-content">
-      <h2 class="section-title">Frequently Asked Questions</h2>
-      <p class="section-sub">Find answers to common questions about Unreal Launcher.</p>
       
+      <div class="preview-box">
+        <img src="./docs/S1.png" alt="Launcher Interface Preview">
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES SECTION WITH ICONS -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Everything You Need</h2>
+        <p class="section-sub">Built for Unreal Engine developers who want a faster workflow.</p>
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-lightning-charge"></i></div>
+          <h3>One-click Launch</h3>
+          <p>Launch any engine version or project instantly without navigating the Epic Games Launcher.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-grid-3x3-gap"></i></div>
+          <h3>List &amp; Grid View</h3>
+          <p>Browse projects in a flat list or thumbnail grid. Your preference is saved across sessions.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-box-seam"></i></div>
+          <h3>Batch Import</h3>
+          <p>Select a folder with dozens of projects and import up to 20 at a time without freezing.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-star"></i></div>
+          <h3>Favorites</h3>
+          <p>Star your most-used projects for quick access from the Favorites tab.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-clock-history"></i></div>
+          <h3>Recent Projects</h3>
+          <p>Accurately sorted by last-opened time using Saved/Logs timestamps — not just file dates.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-search"></i></div>
+          <h3>Search</h3>
+          <p>Instantly filter projects by name with a clean search bar in the toolbar.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-chat-dots"></i></div>
+          <h3>Toast Notifications</h3>
+          <p>Stacking real-time feedback for every action — with auto-dismiss and close button.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-arrow-repeat"></i></div>
+          <h3>Auto Updates</h3>
+          <p>Built-in update checker via GitHub Releases. Get notified and install with one click.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="container">
+      <h2 class="section-title" style="text-align: center;">Frequently Asked Questions</h2>
       <div class="faq-list">
-      <!-- How to Add Engine -->
-      <div class="faq-item">
-        <div class="faq-question">
-          <span>How do I add an Unreal Engine installation?</span>
-          <div class="faq-toggle"><i class="bi bi-chevron-down"></i></div>
+        <div class="faq-item">
+          <button class="faq-trigger">What is Unreal Launcher? <i class="bi bi-chevron-down"></i></button>
+          <div class="faq-answer">
+            <p>It is a lightweight, open-source desktop application designed to help Unreal Engine developers manage their projects and engine installations more efficiently than the standard Epic Games Launcher.</p>
+          </div>
         </div>
-        <div class="faq-answer">
-          <ol>
-            <li>Open <strong>Unreal Launcher</strong> and navigate to the <strong>Engines</strong> tab</li>
-            <li>Click the <strong>"Add Engine"</strong> button (usually a + icon)</li>
-            <li>Browse to your Unreal Engine installation folder (e.g., <code>C:\Program Files\Epic Games\UE_5.3</code>)</li>
-            <li>Select the folder and click <strong>Confirm</strong></li>
-            <li>The engine will be indexed and appear in your engines list</li>
-            <li>You can now launch projects with this engine version</li>
-          </ol>
+        <div class="faq-item">
+          <button class="faq-trigger">Is this app safe to use? <i class="bi bi-chevron-down"></i></button>
+          <div class="faq-answer">
+            <p>Absolutely. The app is open-source, meaning the code is public for anyone to audit. It does not collect personal data or modify your project files in destructive ways.</p>
+          </div>
         </div>
       </div>
+    </div>
+  </section>
 
-      <!-- How to Add Project -->
-      <div class="faq-item">
-        <div class="faq-question">
-          <span>How do I add my Unreal Engine projects?</span>
-          <div class="faq-toggle"><i class="bi bi-chevron-down"></i></div>
-        </div>
-        <div class="faq-answer">
-          <ol>
-            <li>Go to the <strong>Projects</strong> tab in Unreal Launcher</li>
-            <li>Click the <strong>"Add Project"</strong> or <strong>"Import Projects"</strong> button</li>
-            <li><strong>Single project:</strong> Select a <code>.uproject</code> file directly</li>
-            <li><strong>Batch import:</strong> Select a folder containing multiple projects (up to 20 at a time)</li>
-            <li>Wait for the projects to be indexed</li>
-            <li>Your projects will now appear in your projects list, sortable by favorites or recent</li>
-          </ol>
-        </div>
-      </div>
-
-      <!-- Launch Project -->
-      <div class="faq-item">
-        <div class="faq-question">
-          <span>How do I launch a project?</span>
-          <div class="faq-toggle"><i class="bi bi-chevron-down"></i></div>
-        </div>
-        <div class="faq-answer">
-          <ol>
-            <li>Find your project in the <strong>Projects</strong> tab</li>
-            <li>Click the <strong>Launch</strong> button on the project card</li>
-            <li>Unreal Launcher will automatically open the project with the correct engine version</li>
-            <li>The project will appear in your <strong>Recent Projects</strong> list</li>
-            <li>Tip: Star your favorite projects for quick access from the Favorites tab</li>
-          </ol>
-        </div>
-      </div>
-
-      <!-- Mac/Linux Build from Source -->
-      <div class="faq-item">
-        <div class="faq-question">
-          <span>How do I use Unreal Launcher on Mac or Linux?</span>
-          <div class="faq-toggle"><i class="bi bi-chevron-down"></i></div>
-        </div>
-        <div class="faq-answer">
-          <p><strong>Mac and Linux are not officially supported yet</strong>, but you can build from source:</p>
-          <ol>
-            <li>Clone the repository: <code>git clone https://github.com/NeelFrostrain/UnrealLauncher.git</code></li>
-            <li>Install dependencies: <code>npm install</code></li>
-            <li>Start development: <code>npm run dev</code></li>
-            <li>Build for your OS: <code>npm run build:mac</code> or <code>npm run build:linux</code></li>
-            <li>The built application will be in the <code>dist/</code> folder</li>
-            <li>See the <a href="https://github.com/NeelFrostrain/UnrealLauncher" target="_blank" style="color: var(--blue);">GitHub repository</a> for detailed build instructions</li>
-          </ol>
-        </div>
-      </div>
-
-      <!-- System Requirements -->
-      <div class="faq-item">
-        <div class="faq-question">
-          <span>What are the system requirements?</span>
-          <div class="faq-toggle"><i class="bi bi-chevron-down"></i></div>
-        </div>
-        <div class="faq-answer">
-          <strong>Minimum Requirements:</strong>
-          <ul>
-            <li>Windows 10 or Windows 11 (x64)</li>
-            <li>At least 2GB of RAM</li>
-            <li>An installed Unreal Engine version (5.0 or later recommended)</li>
-          </ul>
-          <p style="margin-top: 1rem;"><strong>Recommended:</strong></p>
-          <ul>
-            <li>Windows 11</li>
-            <li>8GB+ of RAM</li>
-            <li>SSD for faster project loading</li>
-            <li>Multiple Unreal Engine versions for flexibility</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Performance -->
-      <div class="faq-item">
-        <div class="faq-question">
-          <span>Why is Unreal Launcher so fast?</span>
-          <div class="faq-toggle"><i class="bi bi-chevron-down"></i></div>
-        </div>
-        <div class="faq-answer">
-          <p>Unreal Launcher is built with <strong>Electron.js</strong> and <strong>React</strong>, which provide:</p>
-          <ul>
-            <li><strong>Lightweight codebase:</strong> Minimal dependencies keep the app fast</li>
-            <li><strong>Efficient indexing:</strong> Projects are cached for instant access</li>
-            <li><strong>Optimized rendering:</strong> Only visible content is rendered</li>
-            <li><strong>Fast project discovery:</strong> Batch import with non-blocking operations</li>
-            <li><strong>One-click launching:</strong> Direct engine-to-project connection</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Multiple Engines -->
-      <div class="faq-item">
-        <div class="faq-question">
-          <span>Can I use multiple Unreal Engine versions?</span>
-          <div class="faq-toggle"><i class="bi bi-chevron-down"></i></div>
-        </div>
-        <div class="faq-answer">
-          <p><strong>Yes!</strong> Unreal Launcher is designed to handle multiple engine versions:</p>
-          <ul>
-            <li>Add as many engine installations as you like</li>
-            <li>Each project automatically uses its compatible engine version</li>
-            <li>Switch engine versions for a project anytime</li>
-            <li>Perfect for developers working on legacy and modern projects</li>
-            <li>Organize your workflow across UE 4.x, 5.x, and beyond</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Updates -->
-      <div class="faq-item">
-        <div class="faq-question">
-          <span>How do I update Unreal Launcher?</span>
-          <div class="faq-toggle"><i class="bi bi-chevron-down"></i></div>
-        </div>
-        <div class="faq-answer">
-          <ol>
-            <li>Unreal Launcher has <strong>built-in auto-update</strong> via GitHub</li>
-            <li>When an update is available, you'll see a notification</li>
-            <li>Click <strong>Update</strong> to download and install the latest version</li>
-            <li>The app will restart automatically</li>
-            <li>Alternatively, download the latest from <a href="https://github.com/NeelFrostrain/UnrealLauncher/releases" target="_blank" style="color: var(--blue);">GitHub Releases</a></li>
-          </ol>
-        </div>
-      </div>
-
-      <!-- Open Source -->
-      <div class="faq-item">
-        <div class="faq-question">
-          <span>Is Unreal Launcher open source? Can I contribute?</span>
-          <div class="faq-toggle"><i class="bi bi-chevron-down"></i></div>
-        </div>
-        <div class="faq-answer">
-          <p><strong>Yes! Unreal Launcher is completely open source under the MIT License.</strong></p>
-          <ul>
-            <li>Fork the <a href="https://github.com/NeelFrostrain/UnrealLauncher" target="_blank" style="color: var(--blue);">GitHub repository</a></li>
-            <li>Check the <a href="https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CONTRIBUTING.md" target="_blank" style="color: var(--blue);">Contributing Guide</a> for guidelines</li>
-            <li>Submit pull requests with your improvements</li>
-            <li>Report bugs and suggest features on GitHub Issues</li>
-            <li>All contributions are welcome!</li>
-          </ul>
-        </div>
-      </div>
-      </div>
+  <section class="section" id="download" style="text-align: center;">
+    <div class="container">
+      <h2 class="section-title">Ready to build?</h2>
+      <a href="https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v1.8.0/unreal-launcher-1.8.0-setup.exe" class="btn btn-primary" style="padding: 20px 60px; font-size: 1.2rem;">Download for Windows</a>
+      <p style="margin-top: 20px; color: var(--muted);">v1.8.0 · MIT Licensed · Open Source</p>
     </div>
   </section>
 
   <footer>
-    <div class="footer-links">
-      <a href="https://github.com/NeelFrostrain/UnrealLauncher" target="_blank">GitHub</a>
-      <a href="https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
-      <a href="https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CONTRIBUTING.md" target="_blank">Contributing</a>
-      <a href="https://github.com/NeelFrostrain/UnrealLauncher/blob/main/LICENSE" target="_blank">MIT License</a>
-      <a href="https://ko-fi.com/neelfrostrain" target="_blank">Donate ☕</a>
+    <div class="container">
+      <div class="footer-links">
+        <a href="https://github.com/NeelFrostrain/UnrealLauncher">GitHub</a>
+        <a href="https://ko-fi.com/neelfrostrain">Donate</a>
+        <a href="https://discord.gg/vq4UDfevG2">Discord</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <p>Made by Neel Frostrain · Not affiliated with Epic Games, Inc.</p>
     </div>
-    <p>Made by <a href="https://github.com/NeelFrostrain" target="_blank">Neel Frostrain</a> · MIT License</p>
   </footer>
 
   <script>
-    // Mobile Menu Toggle
-    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-    const navLinks = document.getElementById('navLinks');
+    const menuBtn = document.getElementById('menuBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const overlay = document.getElementById('mobileOverlay');
+
+    menuBtn.onclick = () => overlay.classList.add('active');
+    closeBtn.onclick = () => overlay.classList.remove('active');
     
-    mobileMenuToggle.addEventListener('click', () => {
-      navLinks.classList.toggle('active');
+    document.querySelectorAll('.mobile-nav-links a').forEach(link => {
+      link.onclick = () => overlay.classList.remove('active');
     });
-    
-    // Close menu when a link is clicked
-    navLinks.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        navLinks.classList.remove('active');
-      });
-    });
-    
-    // Close menu when clicking outside
-    document.addEventListener('click', (event) => {
-      if (!event.target.closest('nav')) {
-        navLinks.classList.remove('active');
-      }
-    });
-    
-    // FAQ Accordion Handler
-    document.querySelectorAll('.faq-question').forEach(question => {
-      question.addEventListener('click', function() {
-        const faqItem = this.closest('.faq-item');
-        const isActive = faqItem.classList.contains('active');
-        
-        // Close all open items
-        document.querySelectorAll('.faq-item').forEach(item => {
-          item.classList.remove('active');
-        });
-        
-        // Open clicked item if it wasn't already open
+
+    document.querySelectorAll('.faq-trigger').forEach(trigger => {
+      trigger.addEventListener('click', () => {
+        const item = trigger.parentElement;
+        const isActive = item.classList.contains('active');
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
         if (!isActive) {
-          faqItem.classList.add('active');
+          item.classList.add('active');
         }
       });
     });
   </script>
-
 </body>
 </html>
