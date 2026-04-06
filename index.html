@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Unreal Launcher — Premium Project Management</title>
+  <title>Unreal Launcher — Manage Your Unreal Engine Projects</title>
   <meta name="description" content="A lightweight, high-performance desktop app for Unreal Engine developers." />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet" />
@@ -340,9 +340,31 @@
       transition: all 0.4s ease;
       color: var(--text-secondary);
       font-size: 0.95rem;
+      overflow: hidden;
     }
 
-    .faq-item.active .faq-answer { max-height: 300px; padding-bottom: 24px; }
+    .faq-answer-inner {
+      padding-bottom: 24px;
+    }
+
+    .faq-answer ol, .faq-answer ul {
+      padding-left: 20px;
+      margin-top: 10px;
+    }
+
+    .faq-answer li {
+      margin-bottom: 8px;
+    }
+
+    .faq-answer code {
+      background: rgba(255,255,255,0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85em;
+    }
+
+    .faq-item.active .faq-answer { max-height: 800px; }
     .faq-item.active i { transform: rotate(180deg); color: var(--blue); }
     .faq-item i { transition: transform 0.3s; color: var(--muted); }
 
@@ -390,7 +412,7 @@
     <div class="container">
       <div class="badge">Version 1.8.0 Available Now</div>
       <h1>Better <span>Unreal</span> Management.</h1>
-      <p>A native, ultra-fast alternative to the Epic Games Launcher. Optimized for developers who value their time and system resources.</p>
+      <p> A lightweight desktop app for discovering, launching, and managing Unreal Engine installations and projects — all in one place.</p>
       <div class="btn-group">
         <a href="https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v1.8.0/unreal-launcher-1.8.0-setup.exe" class="btn btn-primary"><i class="bi bi-download"></i> Download v1.8.0</a>
         <a href="https://discord.gg/vq4UDfevG2" target="_blank" class="btn btn-discord"><i class="bi bi-discord"></i> Join Discord</a>
@@ -403,7 +425,7 @@
     </div>
   </section>
 
-  <!-- FEATURES SECTION WITH ICONS -->
+  <!-- FEATURES SECTION -->
   <section class="section" id="features">
     <div class="container">
       <div class="section-header">
@@ -456,20 +478,142 @@
     </div>
   </section>
 
+  <!-- FAQ SECTION -->
   <section class="section" id="faq">
     <div class="container">
-      <h2 class="section-title" style="text-align: center;">Frequently Asked Questions</h2>
+      <div class="section-header">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-sub">Find answers to common questions about Unreal Launcher.</p>
+      </div>
+      
       <div class="faq-list">
+        <!-- How to Add Engine -->
         <div class="faq-item">
-          <button class="faq-trigger">What is Unreal Launcher? <i class="bi bi-chevron-down"></i></button>
+          <button class="faq-trigger">How do I add an Unreal Engine installation? <i class="bi bi-chevron-down"></i></button>
           <div class="faq-answer">
-            <p>It is a lightweight, open-source desktop application designed to help Unreal Engine developers manage their projects and engine installations more efficiently than the standard Epic Games Launcher.</p>
+            <div class="faq-answer-inner">
+              <ol>
+                <li>Open <strong>Unreal Launcher</strong> and navigate to the <strong>Engines</strong> tab</li>
+                <li>Click the <strong>"Add Engine"</strong> button (usually a + icon)</li>
+                <li>Browse to your Unreal Engine installation folder (e.g., <code>C:\Program Files\Epic Games\UE_5.3</code>)</li>
+                <li>Select the folder and click <strong>Confirm</strong></li>
+                <li>The engine will be indexed and appear in your engines list</li>
+              </ol>
+            </div>
           </div>
         </div>
+
+        <!-- How to Add Project -->
         <div class="faq-item">
-          <button class="faq-trigger">Is this app safe to use? <i class="bi bi-chevron-down"></i></button>
+          <button class="faq-trigger">How do I add my Unreal Engine projects? <i class="bi bi-chevron-down"></i></button>
           <div class="faq-answer">
-            <p>Absolutely. The app is open-source, meaning the code is public for anyone to audit. It does not collect personal data or modify your project files in destructive ways.</p>
+            <div class="faq-answer-inner">
+              <ol>
+                <li>Go to the <strong>Projects</strong> tab in Unreal Launcher</li>
+                <li>Click the <strong>"Add Project"</strong> or <strong>"Import Projects"</strong> button</li>
+                <li><strong>Single project:</strong> Select a <code>.uproject</code> file directly</li>
+                <li><strong>Batch import:</strong> Select a folder containing multiple projects (up to 20 at a time)</li>
+                <li>Wait for the projects to be indexed and sorted</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- Launch Project -->
+        <div class="faq-item">
+          <button class="faq-trigger">How do I launch a project? <i class="bi bi-chevron-down"></i></button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <ol>
+                <li>Find your project in the <strong>Projects</strong> tab</li>
+                <li>Click the <strong>Launch</strong> button on the project card</li>
+                <li>Unreal Launcher will automatically open the project with the correct engine version</li>
+                <li>Tip: Star your favorite projects for quick access from the Favorites tab</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mac/Linux -->
+        <div class="faq-item">
+          <button class="faq-trigger">How do I use Unreal Launcher on Mac or Linux? <i class="bi bi-chevron-down"></i></button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p><strong>Mac and Linux are not officially supported yet</strong>, but you can build from source:</p>
+              <ol>
+                <li>Clone the repository: <code>git clone https://github.com/NeelFrostrain/UnrealLauncher.git</code></li>
+                <li>Install dependencies: <code>npm install</code></li>
+                <li>Build for your OS: <code>npm run build:mac</code> or <code>npm run build:linux</code></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- Requirements -->
+        <div class="faq-item">
+          <button class="faq-trigger">What are the system requirements? <i class="bi bi-chevron-down"></i></button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p><strong>Minimum Requirements:</strong></p>
+              <ul>
+                <li>Windows 10 or Windows 11 (x64)</li>
+                <li>At least 2GB of RAM</li>
+                <li>An installed Unreal Engine version (5.0 or later recommended)</li>
+              </ul>
+              <p style="margin-top: 1rem;"><strong>Recommended:</strong></p>
+              <ul>
+                <li>Windows 11, 8GB+ of RAM, and SSD for faster loading.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance -->
+        <div class="faq-item">
+          <button class="faq-trigger">Why is Unreal Launcher so fast? <i class="bi bi-chevron-down"></i></button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Unreal Launcher is built with <strong>Electron.js</strong> and <strong>React</strong>, featuring:</p>
+              <ul>
+                <li><strong>Lightweight codebase:</strong> Minimal overhead compared to standard launchers.</li>
+                <li><strong>Efficient indexing:</strong> Local caching for instant project discovery.</li>
+                <li><strong>Optimized rendering:</strong> High-performance UI that stays responsive during batch tasks.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Multiple Engines -->
+        <div class="faq-item">
+          <button class="faq-trigger">Can I use multiple Unreal Engine versions? <i class="bi bi-chevron-down"></i></button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p><strong>Yes!</strong> Add as many engine installations as you like. Each project automatically detects and uses its compatible engine version, making it perfect for managing legacy and modern projects simultaneously.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Updates -->
+        <div class="faq-item">
+          <button class="faq-trigger">How do I update Unreal Launcher? <i class="bi bi-chevron-down"></i></button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <ol>
+                <li>The launcher has <strong>built-in auto-update</strong> via GitHub.</li>
+                <li>When an update is available, you'll see a notification within the app.</li>
+                <li>Click <strong>Update</strong> to install and restart automatically.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- Open Source -->
+        <div class="faq-item">
+          <button class="faq-trigger">Is Unreal Launcher open source? <i class="bi bi-chevron-down"></i></button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p><strong>Yes!</strong> Unreal Launcher is licensed under the MIT License. You can fork the repository, report bugs, or submit pull requests with improvements on GitHub.</p>
+            </div>
           </div>
         </div>
       </div>
