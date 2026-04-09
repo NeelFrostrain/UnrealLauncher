@@ -95,6 +95,14 @@ const AboutChangelog = (): React.ReactElement => (
     <div>
       <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
         <BookOpen size={20} className="text-yellow-400" />
+        Version 1.9.0
+      </h2>
+      <ChangelogSection added={[]} fixed={v190Fixed} />
+    </div>
+
+    <div>
+      <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
+        <BookOpen size={20} className="text-yellow-400" />
         Version 1.8.0
       </h2>
       <ChangelogSection added={v180Added} fixed={v180Fixed} />

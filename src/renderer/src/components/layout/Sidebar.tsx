@@ -37,7 +37,7 @@ const ExpandedCard: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item, 
     <motion.div
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
-      className={`w-full relative h-24 rounded-md border-2 overflow-hidden transition-all duration-200 cursor-pointer`}
+      className={`w-full relative h-28 rounded-md border-2 overflow-hidden transition-all duration-200 cursor-pointer`}
       style={{
         borderColor: isActive ? 'var(--color-accent)' : 'transparent',
         boxShadow: isActive
