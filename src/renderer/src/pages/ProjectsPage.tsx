@@ -38,7 +38,24 @@ const ProjectsPage = (): React.ReactElement => {
   const [searchQuery, setSearchQuery] = useState('')
   const [displayStart, setDisplayStart] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
-  const ITEMS_PER_BATCH = 50 // Number of items to render at once
+  const gridRef = useRef<HTMLDivElement>(null)
+  const [gridCols, setGridCols] = useState(4)
+  const ITEMS_PER_BATCH = 50
+
+  // Compute grid columns based on actual container width, not viewport
+  useEffect(() => {
+    const el = gridRef.current
+    if (!el) return
+    const CARD_MIN = 200 // minimum card width in px
+    const GAP = 12
+    const obs = new ResizeObserver(([entry]) => {
+      const w = entry.contentRect.width
+      const cols = Math.max(1, Math.floor((w + GAP) / (CARD_MIN + GAP)))
+      setGridCols(cols)
+    })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [viewMode]) // Number of items to render at once
 
   const allProjectsRef = useRef<Project[]>([])
 
@@ -313,8 +330,11 @@ const ProjectsPage = (): React.ReactElement => {
       <div className="flex-1 overflow-hidden mt-1">
         {visibleProjects.length > 0 ? (
           viewMode === 'grid' ? (
-            // Grid view - render all items (grids are typically smaller datasets)
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto py-2 px-2 h-full">
+            <div
+              ref={gridRef}
+              className="grid gap-3 overflow-y-auto py-2 px-2 h-full content-start"
+              style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
+            >
               {visibleProjects.map((data) => (
                 <ProjectCardGrid
                   key={data.projectPath || data.name}

@@ -1,12 +1,22 @@
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { PageType } from '../../types'
-import { Zap, Package, Activity, Settings } from 'lucide-react'
+import { Zap, Package, Activity, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
 import Engine_BG from '@renderer/assets/Engines_BG.webp'
 import Projects_BG from '@renderer/assets/Projects_BG.jpg'
 import ProjectDefault from '@renderer/assets/ProjectDefault.avif'
 import Settings_BG from '@renderer/assets/Settings_BG.jpg'
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const MIN_WIDTH = 180
+const MAX_WIDTH = 400
+const DEFAULT_WIDTH = 288
+const COLLAPSED_WIDTH = 52
+
+// ── Data ──────────────────────────────────────────────────────────────────────
 
 interface SidebarCardData {
   title: PageType
@@ -15,100 +25,177 @@ interface SidebarCardData {
   icon: ReactNode
 }
 
-const SidebarCards: SidebarCardData[] = [
-  {
-    title: 'Engines',
-    path: '/engines',
-    imageSrc: Engine_BG,
-    icon: <Zap size={15.5} />
-  },
-  {
-    title: 'Projects',
-    path: '/projects',
-    imageSrc: Projects_BG,
-    icon: <Package size={15.5} />
-  },
-  {
-    title: 'Settings',
-    path: '/settings',
-    imageSrc: Settings_BG,
-    icon: <Settings size={15.5} />
-  },
-  {
-    title: 'About',
-    path: '/about',
-    imageSrc: ProjectDefault,
-    icon: <Activity size={15.5} />
-  }
+const NAV_ITEMS: SidebarCardData[] = [
+  { title: 'Engines',  path: '/engines',  imageSrc: Engine_BG,    icon: <Zap     size={16} /> },
+  { title: 'Projects', path: '/projects', imageSrc: Projects_BG,  icon: <Package size={16} /> },
+  { title: 'Settings', path: '/settings', imageSrc: Settings_BG,  icon: <Settings size={16} /> },
+  { title: 'About',    path: '/about',    imageSrc: ProjectDefault, icon: <Activity size={16} /> },
 ]
 
-interface SidebarCardProps {
-  title: PageType
-  path: string
-  icon: ReactNode
-  imageSrc: string
-  isActive?: boolean
-}
+// ── Expanded card ─────────────────────────────────────────────────────────────
 
-const SidebarCard: FC<SidebarCardProps> = ({
-  title,
-  path,
-  icon,
-  imageSrc,
-  isActive
-}): React.ReactElement => {
-  return (
-    <Link to={path}>
-      <motion.div
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.98 }}
-        className={`w-full relative ${
-          isActive
-            ? 'border-blue-600 shadow-lg shadow-blue-600/20'
-            : 'border-[#171717] hover:border-white/10'
-        } cursor-pointer h-24 rounded-md border-2 overflow-hidden transition-all duration-200`}
-      >
-        <img
-          src={imageSrc}
-          alt={title}
-          className={`w-full h-full object-cover rounded-md transition-all duration-200 ${
-            isActive ? 'scale-105' : 'group-hover:scale-105'
-          }`}
-        />
+const ExpandedCard: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item, isActive }) => (
+  <Link to={item.path}>
+    <motion.div
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
+      className={`w-full relative h-24 rounded-md border-2 overflow-hidden transition-all duration-200 cursor-pointer ${
+        isActive ? 'border-blue-600 shadow-lg shadow-blue-600/20' : 'border-[#171717] hover:border-white/10'
+      }`}
+    >
+      <img src={item.imageSrc} alt={item.title} className={`w-full h-full object-cover transition-all duration-200 ${isActive ? 'scale-105' : ''}`} />
+      <div className={`absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent z-10 transition-opacity duration-200 ${isActive ? 'opacity-90' : 'opacity-80 hover:opacity-90'}`} />
+      <div className="absolute bottom-1 left-2 text-white text-sm font-semibold p-1 flex items-center gap-1.5 uppercase z-20">
+        {item.icon}
+        {item.title}
+      </div>
+    </motion.div>
+  </Link>
+)
 
-        <div
-          className={`absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent z-10 rounded-md transition-opacity duration-200 ${
-            isActive ? 'opacity-90' : 'opacity-80 hover:opacity-90'
-          }`}
-          aria-hidden="true"
-        />
+// ── Collapsed icon button ─────────────────────────────────────────────────────
 
-        <div className="absolute bottom-1 left-2 text-white text-base font-semibold p-1 flex justify-center items-center gap-1.5 uppercase z-20">
-          {icon}
-          {title}
-        </div>
-      </motion.div>
-    </Link>
-  )
-}
+const CollapsedItem: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item, isActive }) => (
+  <Link to={item.path} title={item.title}>
+    <motion.div
+      whileHover={{ scale: 1.08 }}
+      whileTap={{ scale: 0.92 }}
+      className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer ${
+        isActive
+          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+          : 'text-white/40 hover:text-white/80 hover:bg-white/8'
+      }`}
+    >
+      {item.icon}
+    </motion.div>
+  </Link>
+)
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
 
 const Sidebar = (): React.ReactElement => {
   const location = useLocation()
 
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem('sidebarCollapsed') === 'true'
+  })
+  const [width, setWidth] = useState<number>(() => {
+    const saved = parseInt(localStorage.getItem('sidebarWidth') || '', 10)
+    return isNaN(saved) ? DEFAULT_WIDTH : Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, saved))
+  })
+
+  const dragging = useRef(false)
+  const startX = useRef(0)
+  const startWidth = useRef(0)
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    if (collapsed) return
+    dragging.current = true
+    startX.current = e.clientX
+    startWidth.current = width
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }, [collapsed, width])
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent): void => {
+      if (!dragging.current) return
+      const delta = e.clientX - startX.current
+      const next = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth.current + delta))
+      setWidth(next)
+    }
+    const onUp = (): void => {
+      if (!dragging.current) return
+      dragging.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      setWidth((w) => {
+        localStorage.setItem('sidebarWidth', String(w))
+        return w
+      })
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+  }, [])
+
+  const toggleCollapse = (): void => {
+    setCollapsed((prev) => {
+      localStorage.setItem('sidebarCollapsed', String(!prev))
+      return !prev
+    })
+  }
+
+  const currentWidth = collapsed ? COLLAPSED_WIDTH : width
+
   return (
-    <div className="w-72 h-full border-r border-white/10 p-4">
-      <div className="w-full h-fit bg-[#1a1a1a] p-2 rounded-sm flex flex-col gap-2">
-        {SidebarCards.map((card, index) => (
-          <SidebarCard
-            key={index}
-            icon={card.icon}
-            title={card.title}
-            path={card.path}
-            imageSrc={card.imageSrc}
-            isActive={location.pathname === card.path}
-          />
-        ))}
+    <div
+      className="relative h-full border-r border-white/10 flex-shrink-0 flex flex-col transition-[width] duration-200 ease-in-out"
+      style={{ width: currentWidth }}
+    >
+      {/* Nav items */}
+      <div className={`flex-1 overflow-hidden ${collapsed ? 'flex flex-col items-center gap-1.5 pt-3 px-1.5' : 'p-3'}`}>
+        <AnimatePresence mode="wait" initial={false}>
+          {collapsed ? (
+            <motion.div
+              key="collapsed"
+              className="flex flex-col items-center gap-1.5 w-full"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              {NAV_ITEMS.map((item) => (
+                <CollapsedItem
+                  key={item.path}
+                  item={item}
+                  isActive={location.pathname.startsWith(item.path)}
+                />
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="expanded"
+              className="w-full h-fit bg-[#1a1a1a] p-2 rounded-sm flex flex-col gap-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              {NAV_ITEMS.map((item) => (
+                <ExpandedCard
+                  key={item.path}
+                  item={item}
+                  isActive={location.pathname.startsWith(item.path)}
+                />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* Collapse toggle button */}
+      <div className={`pb-3 flex ${collapsed ? 'justify-center' : 'justify-end pr-3'}`}>
+        <button
+          onClick={toggleCollapse}
+          className="w-7 h-7 rounded-md flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/8 transition-colors cursor-pointer"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        </button>
+      </div>
+
+      {/* Drag handle — only when expanded */}
+      {!collapsed && (
+        <div
+          onMouseDown={onMouseDown}
+          className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-blue-500/40 transition-colors z-10"
+          title="Drag to resize"
+        />
+      )}
     </div>
   )
 }
