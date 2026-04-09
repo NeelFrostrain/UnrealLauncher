@@ -1,4 +1,4 @@
-import MenuBookIcon from '@mui/icons-material/MenuBook'
+import { BookOpen } from 'lucide-react'
 
 const v180Added = [
   'List & Grid View — toggle between flat list and thumbnail grid, preference saved across sessions',
@@ -55,7 +55,7 @@ const ChangelogSection = ({ added, fixed }: { added: string[]; fixed: string[] }
       onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CHANGELOG.md')}
       className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-500 border border-yellow-500/50 rounded-lg text-sm transition-colors cursor-pointer"
     >
-      <MenuBookIcon sx={{ fontSize: 16 }} />
+      <BookOpen size={16} />
       View Full Changelog
     </button>
   </div>
@@ -65,14 +65,14 @@ const AboutChangelog = (): React.ReactElement => (
   <>
     <div>
       <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-        <MenuBookIcon sx={{ fontSize: 20 }} className="text-yellow-400" />
+        <BookOpen size={20} className="text-yellow-400" />
         What&apos;s New in 1.8.0
       </h2>
       <ChangelogSection added={v180Added} fixed={v180Fixed} />
     </div>
     <div>
       <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-        <MenuBookIcon sx={{ fontSize: 20 }} className="text-yellow-400" />
+        <BookOpen size={20} className="text-yellow-400" />
         Previous — 1.7.0
       </h2>
       <ChangelogSection added={v170Added} fixed={v170Fixed} />

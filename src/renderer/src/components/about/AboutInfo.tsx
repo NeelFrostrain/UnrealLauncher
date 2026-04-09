@@ -1,8 +1,4 @@
-import WarningIcon from '@mui/icons-material/Warning'
-import MenuBookIcon from '@mui/icons-material/MenuBook'
-import GitHubIcon from '@mui/icons-material/GitHub'
-import CodeIcon from '@mui/icons-material/Code'
-import FlashOnIcon from '@mui/icons-material/FlashOn'
+import { AlertTriangle, BookOpen, Code, Zap, GitBranch } from 'lucide-react'
 
 const knownIssues = [
   'Size calculation may take time for large folders (30+ GB). The app remains responsive during calculation.',
@@ -23,7 +19,7 @@ const techDetails = [
 export const AboutKnownIssues = (): React.ReactElement => (
   <div>
     <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-      <WarningIcon sx={{ fontSize: 20 }} className="text-yellow-400" />
+      <AlertTriangle size={20} className="text-yellow-400" />
       Known Issues &amp; Notes
     </h2>
     <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-3">
@@ -54,7 +50,7 @@ export const AboutTechnical = (): React.ReactElement => (
 export const AboutContributing = (): React.ReactElement => (
   <div>
     <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-      <GitHubIcon sx={{ fontSize: 20 }} className="text-green-400" />
+      <GitBranch size={20} className="text-green-400" />
       Contributing
     </h2>
     <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
@@ -81,7 +77,7 @@ export const AboutContributing = (): React.ReactElement => (
         onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CONTRIBUTING.md')}
         className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 border border-green-500/50 rounded-lg text-sm transition-colors cursor-pointer"
       >
-        <MenuBookIcon sx={{ fontSize: 16 }} />
+        <BookOpen size={16} />
         Read Contributing Guide
       </button>
     </div>
@@ -91,7 +87,7 @@ export const AboutContributing = (): React.ReactElement => (
 export const AboutCodeOfConduct = (): React.ReactElement => (
   <div>
     <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-      <WarningIcon sx={{ fontSize: 20 }} className="text-blue-400" />
+      <AlertTriangle size={20} className="text-blue-400" />
       Code of Conduct
     </h2>
     <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
@@ -109,7 +105,7 @@ export const AboutCodeOfConduct = (): React.ReactElement => (
         onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CODE_OF_CONDUCT.md')}
         className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 border border-blue-500/50 rounded-lg text-sm transition-colors cursor-pointer"
       >
-        <MenuBookIcon sx={{ fontSize: 16 }} />
+        <BookOpen size={16} />
         Read Code of Conduct
       </button>
     </div>
@@ -119,7 +115,7 @@ export const AboutCodeOfConduct = (): React.ReactElement => (
 export const AboutSecurity = (): React.ReactElement => (
   <div>
     <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-      <WarningIcon sx={{ fontSize: 20 }} className="text-red-400" />
+      <AlertTriangle size={20} className="text-red-400" />
       Security
     </h2>
     <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
@@ -136,7 +132,7 @@ export const AboutSecurity = (): React.ReactElement => (
         onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain/UnrealLauncher/blob/main/SECURITY.md')}
         className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 border border-red-500/50 rounded-lg text-sm transition-colors cursor-pointer"
       >
-        <MenuBookIcon sx={{ fontSize: 16 }} />
+        <BookOpen size={16} />
         Read Security Policy
       </button>
     </div>
@@ -146,7 +142,7 @@ export const AboutSecurity = (): React.ReactElement => (
 export const AboutSupport = (): React.ReactElement => (
   <div>
     <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-      <FlashOnIcon sx={{ fontSize: 20 }} className="text-purple-400" />
+      <Zap size={20} className="text-purple-400" />
       Support the Project
     </h2>
     <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
@@ -170,7 +166,7 @@ export const AboutSupport = (): React.ReactElement => (
         onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain/UnrealLauncher/blob/main/DONATE.md')}
         className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 border border-purple-500/50 rounded-lg text-sm transition-colors cursor-pointer"
       >
-        <MenuBookIcon sx={{ fontSize: 16 }} />
+        <BookOpen size={16} />
         More Ways to Support
       </button>
     </div>
@@ -181,10 +177,10 @@ export const AboutFooter = (): React.ReactElement => (
   <div className="text-center space-y-4">
     <div className="flex flex-wrap items-center justify-center gap-2">
       {[
-        { label: 'GitHub', icon: <GitHubIcon sx={{ fontSize: 16 }} />, url: 'https://github.com/NeelFrostrain/UnrealLauncher', cls: 'bg-white/5 hover:bg-white/10 border-white/10' },
-        { label: 'Changelog', icon: <MenuBookIcon sx={{ fontSize: 16 }} />, url: 'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CHANGELOG.md', cls: 'bg-white/5 hover:bg-white/10 border-white/10' },
-        { label: 'Contribute', icon: <CodeIcon sx={{ fontSize: 16 }} />, url: 'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CONTRIBUTING.md', cls: 'bg-white/5 hover:bg-white/10 border-white/10' },
-        { label: 'Issues', icon: <WarningIcon sx={{ fontSize: 16 }} />, url: 'https://github.com/NeelFrostrain/UnrealLauncher/issues', cls: 'bg-white/5 hover:bg-white/10 border-white/10' },
+        { label: 'GitHub', icon: <GitBranch size={16} />, url: 'https://github.com/NeelFrostrain/UnrealLauncher', cls: 'bg-white/5 hover:bg-white/10 border-white/10' },
+        { label: 'Changelog', icon: <BookOpen size={16} />, url: 'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CHANGELOG.md', cls: 'bg-white/5 hover:bg-white/10 border-white/10' },
+        { label: 'Contribute', icon: <Code size={16} />, url: 'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CONTRIBUTING.md', cls: 'bg-white/5 hover:bg-white/10 border-white/10' },
+        { label: 'Issues', icon: <AlertTriangle size={16} />, url: 'https://github.com/NeelFrostrain/UnrealLauncher/issues', cls: 'bg-white/5 hover:bg-white/10 border-white/10' },
         { label: 'Donate', icon: <span>☕</span>, url: 'https://ko-fi.com/neelfrostrain', cls: 'bg-orange-600/20 hover:bg-orange-600/30 border-orange-500/30' },
       ].map(({ label, icon, url, cls }) => (
         <button key={label} onClick={() => window.electronAPI.openExternal(url)}

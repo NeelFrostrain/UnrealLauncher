@@ -2,6 +2,7 @@ import './assets/main.css'
 
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter as Router } from 'react-router-dom'
 import LayoutWrapper from './layout'
 import App from './App'
 import { ToastProvider } from './components/ui/ToastContext'
@@ -9,12 +10,14 @@ import ErrorBoundary from './components/ui/ErrorBoundary'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ToastProvider>
-      <LayoutWrapper>
-        <ErrorBoundary>
-          <App />
-        </ErrorBoundary>
-      </LayoutWrapper>
-    </ToastProvider>
+    <Router>
+      <ToastProvider>
+        <LayoutWrapper>
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
+        </LayoutWrapper>
+      </ToastProvider>
+    </Router>
   </StrictMode>
 )

@@ -1,10 +1,6 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import ErrorIcon from '@mui/icons-material/Error'
-import WarningAmberIcon from '@mui/icons-material/WarningAmber'
-import InfoIcon from '@mui/icons-material/Info'
-import CloseIcon from '@mui/icons-material/Close'
+import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
 
 type ToastType = 'success' | 'error' | 'warning' | 'info'
 
@@ -26,11 +22,11 @@ export const useToast = (): ToastContextType => {
   return ctx
 }
 
-const config: Record<ToastType, { icon: React.ElementType; bar: string; iconCls: string }> = {
-  success: { icon: CheckCircleIcon,  bar: 'bg-green-500',  iconCls: 'text-green-400' },
-  error:   { icon: ErrorIcon,        bar: 'bg-red-500',    iconCls: 'text-red-400'   },
-  warning: { icon: WarningAmberIcon, bar: 'bg-yellow-500', iconCls: 'text-yellow-400'},
-  info:    { icon: InfoIcon,         bar: 'bg-blue-500',   iconCls: 'text-blue-400'  },
+const config: Record<ToastType, { icon: React.ComponentType<{size?: number; className?: string}>; bar: string; iconCls: string }> = {
+  success: { icon: CheckCircle,  bar: 'bg-green-500',  iconCls: 'text-green-400' },
+  error:   { icon: XCircle,        bar: 'bg-red-500',    iconCls: 'text-red-400'   },
+  warning: { icon: AlertTriangle, bar: 'bg-yellow-500', iconCls: 'text-yellow-400'},
+  info:    { icon: Info,         bar: 'bg-blue-500',   iconCls: 'text-blue-400'  },
 }
 
 const ToastItem = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }): React.ReactElement => {
@@ -48,7 +44,7 @@ const ToastItem = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
       {/* Left accent bar */}
       <div className={`w-1 self-stretch shrink-0 ${bar}`} />
 
-      <Icon sx={{ fontSize: 18 }} className={`shrink-0 ${iconCls}`} />
+      <Icon size={18} className={`shrink-0 ${iconCls}`} />
 
       <p className="flex-1 text-xs text-white/85 py-3 leading-relaxed">{toast.message}</p>
 
@@ -56,7 +52,7 @@ const ToastItem = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
         onClick={() => onRemove(toast.id)}
         className="shrink-0 p-1 rounded text-white/30 hover:text-white/70 transition-colors cursor-pointer"
       >
-        <CloseIcon sx={{ fontSize: 14 }} />
+        <X size={14} />
       </button>
     </motion.div>
   )

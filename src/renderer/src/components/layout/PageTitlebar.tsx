@@ -1,5 +1,4 @@
-import AddIcon from '@mui/icons-material/Add'
-import RefreshIcon from '@mui/icons-material/Refresh'
+import { Plus, RefreshCw } from 'lucide-react'
 import type { FC } from 'react'
 
 interface PageTitleBarProps {
@@ -42,7 +41,7 @@ const PageTitleBar: FC<PageTitleBarProps> = ({
                 : 'bg-white/10 border-white/20 hover:bg-white/20 hover:border-white/30'
             }`}
           >
-            <RefreshIcon className={`w-4 h-4 mr-2 ${scanning ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 mr-2 ${scanning ? 'animate-spin' : ''}`} />
             {scanning ? 'Scanning...' : scanButtonText}
           </button>
         )}
@@ -51,7 +50,7 @@ const PageTitleBar: FC<PageTitleBarProps> = ({
             onClick={onAdd}
             className="cursor-pointer flex justify-center items-center bg-blue-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 border border-transparent transition-all duration-200"
           >
-            <AddIcon className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4 mr-2" />
             {addButtonText}
           </button>
         )}

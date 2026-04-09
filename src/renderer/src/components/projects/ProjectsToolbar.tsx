@@ -1,10 +1,6 @@
 import { motion } from 'framer-motion'
 import type { FC } from 'react'
-import AddIcon from '@mui/icons-material/Add'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import SearchIcon from '@mui/icons-material/Search'
-import ViewListIcon from '@mui/icons-material/ViewList'
-import GridViewIcon from '@mui/icons-material/GridView'
+import { Plus, RefreshCw, Search, List, Grid3X3 } from 'lucide-react'
 import type { TabType } from '../../types'
 
 export type ViewMode = 'list' | 'grid'
@@ -52,7 +48,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
 
       {searchOpen && (
         <div className="flex min-w-0 h-full items-center gap-2 px-3 rounded-md bg-white/5 border border-white/10 text-sm text-white/80 max-w-65 transition-all">
-          <SearchIcon sx={{ fontSize: 16 }} className="text-white/70" />
+          <Search size={16} className="text-white/70" />
           <input
             type="text"
             value={searchQuery}
@@ -72,14 +68,14 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
           className={`flex p-2 cursor-pointer transition-colors ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-white/40'}`}
           title="List view"
         >
-          <ViewListIcon sx={{ fontSize: 16 }} />
+          <List size={16} />
         </button>
         <button
           onClick={() => onViewChange('grid')}
           className={`flex p-2 cursor-pointer transition-colors ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-white/40'}`}
           title="Grid view"
         >
-          <GridViewIcon sx={{ fontSize: 16 }} />
+          <Grid3X3 size={16} />
         </button>
       </div>
 
@@ -90,7 +86,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         } transition-all`}
         title="Search projects"
       >
-        <SearchIcon sx={{ fontSize: 16 }} />
+        <Search size={16} />
       </button>
 
       <button
@@ -99,7 +95,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         title="Add Project"
       >
-        <AddIcon sx={{ fontSize: 16 }} />
+        <Plus size={16} />
       </button>
 
       <button
@@ -108,7 +104,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         className="flex items-center gap-2 px-3 py-2 rounded-md bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-50"
         title="Refresh"
       >
-        <RefreshIcon sx={{ fontSize: 16 }} className={refreshing ? 'animate-spin' : ''} />
+        <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
       </button>
     </motion.div>
   )

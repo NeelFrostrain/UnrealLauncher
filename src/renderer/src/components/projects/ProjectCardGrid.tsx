@@ -1,13 +1,7 @@
 import { useEffect, useState, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Project } from '../../types'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import FolderOpenIcon from '@mui/icons-material/FolderOpen'
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
-import StarIcon from '@mui/icons-material/Star'
-import StarBorderIcon from '@mui/icons-material/StarBorder'
-import AccessTimeIcon from '@mui/icons-material/AccessTime'
-import StorageIcon from '@mui/icons-material/Storage'
+import { Play, FolderOpen, Trash2, Star, Clock, Database } from 'lucide-react'
 import { resolveAsset } from '../../utils/resolveAsset'
 
 const formatVersion = (v: string): string => {
@@ -93,8 +87,8 @@ const ProjectCardGrid = memo(
             title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
             {isFavorite
-              ? <StarIcon sx={{ fontSize: 14 }} className="text-yellow-400" />
-              : <StarBorderIcon sx={{ fontSize: 14 }} className="text-white/40" />
+              ? <Star size={14} fill="currentColor" className="text-yellow-400" />
+              : <Star size={14} className="text-white/40" />
             }
           </motion.button>
         </div>
@@ -127,7 +121,7 @@ const ProjectCardGrid = memo(
                 onClick={handleLaunch}
                 className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md text-xs font-bold shadow-lg shadow-blue-600/40 transition-colors cursor-pointer"
               >
-                <PlayArrowIcon sx={{ fontSize: 14 }} />
+                <Play size={14} />
                 Launch
               </motion.button>
               <motion.button
@@ -136,7 +130,7 @@ const ProjectCardGrid = memo(
                 className="flex p-2 rounded-md bg-white/10 hover:bg-white/20 border border-white/20 transition-colors cursor-pointer"
                 title="Open Folder"
               >
-                <FolderOpenIcon sx={{ fontSize: 14 }} />
+                <FolderOpen size={14} />
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
@@ -144,7 +138,7 @@ const ProjectCardGrid = memo(
                 className="flex p-2 rounded-md bg-white/10 hover:bg-red-500/30 border border-white/20 hover:border-red-500/40 transition-colors cursor-pointer text-white/60 hover:text-red-400"
                 title="Remove from list"
               >
-                <DeleteOutlineIcon sx={{ fontSize: 14 }} />
+                <Trash2 size={14} />
               </motion.button>
             </motion.div>
           )}
@@ -155,11 +149,11 @@ const ProjectCardGrid = memo(
           <p className="text-sm font-semibold text-white truncate mb-1.5" title={name}>{name}</p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1 text-white/45">
-              <AccessTimeIcon sx={{ fontSize: 10 }} />
+              <Clock size={10} />
               <span className="text-[10px]">{dateType} {dateLabel}</span>
             </div>
             <div className="flex items-center gap-1 text-white/45">
-              <StorageIcon sx={{ fontSize: 10 }} />
+              <Database size={10} />
               <span className="text-[10px] font-mono">{currentSize}</span>
             </div>
           </div>

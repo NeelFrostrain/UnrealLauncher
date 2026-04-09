@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react'
-import RemoveIcon from '@mui/icons-material/Remove'
-import CropSquareIcon from '@mui/icons-material/CropSquare'
-import FilterNoneIcon from '@mui/icons-material/FilterNone'
-import CloseIcon from '@mui/icons-material/Close'
+import { Minus, Square, Minimize2, X } from 'lucide-react'
 
 const Titlebar = (): React.ReactElement => {
   const [isMaximized, setIsMaximized] = useState(false)
@@ -46,7 +43,7 @@ const Titlebar = (): React.ReactElement => {
           aria-label="Minimize"
           title="Minimize"
         >
-          <RemoveIcon sx={{ fontSize: 16 }} />
+          <Minus size={16} />
         </button>
         <button
           onClick={handleMaximize}
@@ -54,7 +51,7 @@ const Titlebar = (): React.ReactElement => {
           aria-label={isMaximized ? 'Restore' : 'Maximize'}
           title={isMaximized ? 'Restore' : 'Maximize'}
         >
-          {isMaximized ? <FilterNoneIcon sx={{ fontSize: 13 }} /> : <CropSquareIcon sx={{ fontSize: 13 }} />}
+          {isMaximized ? <Minimize2 size={13} /> : <Square size={13} />}
         </button>
         <button
           onClick={handleClose}
@@ -62,7 +59,7 @@ const Titlebar = (): React.ReactElement => {
           aria-label="Close"
           title="Close"
         >
-          <CloseIcon sx={{ fontSize: 16 }} />
+          <X size={16} />
         </button>
       </div>
     </div>

@@ -1,14 +1,7 @@
 import { useEffect, useState, useRef, memo } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../../types'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import FolderOpenIcon from '@mui/icons-material/FolderOpen'
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
-import StarIcon from '@mui/icons-material/Star'
-import StarBorderIcon from '@mui/icons-material/StarBorder'
-import AccessTimeIcon from '@mui/icons-material/AccessTime'
-import StorageIcon from '@mui/icons-material/Storage'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
+import { Play, FolderOpen, Trash2, Star, Clock, Database, MoreVertical } from 'lucide-react'
 import DropdownPortal from '../ui/DropdownPortal'
 
 const formatVersion = (v: string): string => {
@@ -85,11 +78,11 @@ const ProjectCard = memo(
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1 text-white/40">
-                <AccessTimeIcon sx={{ fontSize: 11 }} />
+                <Clock size={11} />
                 <span className="text-[10px]">{dateType} {dateLabel}</span>
               </div>
               <div className="flex items-center gap-1 text-white/40">
-                <StorageIcon sx={{ fontSize: 11 }} />
+                <Database size={11} />
                 <span className="text-[10px] font-mono">{currentSize}</span>
               </div>
             </div>
@@ -106,7 +99,7 @@ const ProjectCard = memo(
                 launching ? 'bg-green-600/70 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500'
               }`}
             >
-              <PlayArrowIcon sx={{ fontSize: 13 }} className={launching ? 'animate-pulse' : ''} />
+              <Play size={13} className={launching ? 'animate-pulse' : ''} />
               {launching ? 'Launching…' : 'Launch'}
             </motion.button>
 
@@ -119,7 +112,7 @@ const ProjectCard = memo(
                 className="flex p-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-white/50 hover:text-white/80 transition-colors cursor-pointer"
                 title="More options"
               >
-                <MoreVertIcon sx={{ fontSize: 16 }} />
+                <MoreVertical size={16} />
               </motion.button>
 
               <DropdownPortal open={menuOpen} anchorRef={menuBtnRef} onClose={() => setMenuOpen(false)}>
@@ -128,8 +121,8 @@ const ProjectCard = memo(
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs text-white/70 hover:bg-white/8 hover:text-white transition-colors cursor-pointer"
                 >
                   {isFavorite
-                    ? <StarIcon sx={{ fontSize: 15 }} className="text-yellow-400" />
-                    : <StarBorderIcon sx={{ fontSize: 15 }} className="text-white/40" />
+                    ? <Star size={15} fill="currentColor" className="text-yellow-400" />
+                    : <Star size={15} className="text-white/40" />
                   }
                   {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
                 </button>
@@ -137,7 +130,7 @@ const ProjectCard = memo(
                   onClick={() => { projectPath && onOpenDir(projectPath); setMenuOpen(false) }}
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs text-white/70 hover:bg-white/8 hover:text-white transition-colors cursor-pointer"
                 >
-                  <FolderOpenIcon sx={{ fontSize: 15 }} className="text-white/40" />
+                  <FolderOpen size={15} className="text-white/40" />
                   Open Folder
                 </button>
                 <div className="h-px bg-white/8 mx-2" />
@@ -145,7 +138,7 @@ const ProjectCard = memo(
                   onClick={() => { projectPath && onDelete(projectPath); setMenuOpen(false) }}
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-colors cursor-pointer"
                 >
-                  <DeleteOutlineIcon sx={{ fontSize: 15 }} />
+                  <Trash2 size={15} />
                   Remove from List
                 </button>
               </DropdownPortal>

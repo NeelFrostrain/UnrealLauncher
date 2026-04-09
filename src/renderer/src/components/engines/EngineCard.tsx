@@ -1,9 +1,7 @@
 import { motion } from 'framer-motion'
 import type { FC, ReactElement } from 'react'
 import { useState, memo } from 'react'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import FolderOpenIcon from '@mui/icons-material/FolderOpen'
-import DisabledByDefaultIcon from '@mui/icons-material/DisabledByDefault'
+import { Play, FolderOpen, XCircle } from 'lucide-react'
 import type { EngineCardProps } from '../../types'
 import { generateGradient } from '@renderer/utils/generateGradient'
 
@@ -89,7 +87,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
               className="flex p-1 hover:bg-white/5 transition-colors cursor-pointer text-white/50 hover:text-red-500/80 rounded-md ml-2"
               title="Remove from list"
             >
-              <DisabledByDefaultIcon sx={{ fontSize: 16 }} />
+              <XCircle size={16} />
             </button>
           </div>
 
@@ -127,7 +125,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                 className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded text-xs font-medium transition-all cursor-pointer"
                 title="Open in Explorer"
               >
-                <FolderOpenIcon sx={{ fontSize: 14 }} />
+                <FolderOpen size={14} />
                 Directory
               </button>
               <button
@@ -140,7 +138,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                 }`}
                 title="Launch Engine"
               >
-                <PlayArrowIcon sx={{ fontSize: 14 }} className={launching ? 'animate-pulse' : ''} />
+                <Play size={14} className={launching ? 'animate-pulse' : ''} />
                 {launching ? 'Launching...' : 'Launch'}
               </button>
             </div>

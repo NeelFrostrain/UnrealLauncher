@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import PageWrapper from '../layout/PageWrapper'
 import ProjectCard from '../components/projects/ProjectCard'
 import ProjectCardGrid from '../components/projects/ProjectCardGrid'
@@ -9,22 +10,46 @@ import { useToast } from '../components/ui/ToastContext'
 import { getSetting } from '../utils/settings'
 
 const ProjectsPage = (): React.ReactElement => {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [projects, setProjects] = useState<Project[]>([])
   const [, setAllProjects] = useState<Project[]>([])
-  const [currentTab, setCurrentTab] = useState<TabType>('all')
+  const [currentTab, setCurrentTab] = useState<TabType>(() => {
+    const path = location.pathname
+    if (path === '/projects/favorites') return 'favorites'
+    if (path === '/projects/recent') return 'recent'
+    return 'all'
+  })
   const [refreshing, setRefreshing] = useState(false)
   const [addingProject, setAddingProject] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     return (localStorage.getItem('projectsViewMode') as ViewMode) ?? 'list'
   })
   const [favoritePaths, setFavoritePaths] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem('projectFavorites') || '[]') } catch { return [] }
+    try {
+      return JSON.parse(localStorage.getItem('projectFavorites') || '[]')
+    } catch {
+      return []
+    }
   })
   const { addToast } = useToast()
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   const allProjectsRef = useRef<Project[]>([])
+
+  useEffect(() => {
+    const path = location.pathname
+    let tab: TabType = 'all'
+    if (path === '/projects/favorites') tab = 'favorites'
+    else if (path === '/projects/recent') tab = 'recent'
+    setCurrentTab(tab)
+    // Load projects for the tab if needed
+    if (allProjectsRef.current.length > 0) {
+      const favs = getFavoritePaths()
+      setProjects(filterForTab(tab, allProjectsRef.current, favs))
+    }
+  }, [location.pathname])
 
   const getFavoritePaths = (): string[] => favoritePaths
 
@@ -73,7 +98,9 @@ const ProjectsPage = (): React.ReactElement => {
           window.electronAPI.calculateProjectSize(project.projectPath).then((result) => {
             if (result.success && result.size) {
               setProjects((prev) =>
-                prev.map((p) => p.projectPath === project.projectPath ? { ...p, size: result.size! } : p)
+                prev.map((p) =>
+                  p.projectPath === project.projectPath ? { ...p, size: result.size! } : p
+                )
               )
             }
           })
@@ -113,6 +140,11 @@ const ProjectsPage = (): React.ReactElement => {
     setCurrentTab(tab)
     const favs = JSON.parse(localStorage.getItem('projectFavorites') || '[]') as string[]
     setProjects(filterForTab(tab, allProjectsRef.current, favs))
+
+    // Navigate to the corresponding route
+    if (tab === 'favorites') navigate('/projects/favorites')
+    else if (tab === 'recent') navigate('/projects/recent')
+    else navigate('/projects/all')
   }
 
   const handleRefresh = async (): Promise<void> => {
@@ -204,7 +236,9 @@ const ProjectsPage = (): React.ReactElement => {
       const duplicates = result.duplicateProjects.length
       // Separate batch-limit messages from real invalid ones
       const batchMsg = result.invalidProjects.find((p) => p.reason.startsWith('Batch limit'))
-      const invalid = result.invalidProjects.filter((p) => !p.reason.startsWith('Batch limit')).length
+      const invalid = result.invalidProjects.filter(
+        (p) => !p.reason.startsWith('Batch limit')
+      ).length
 
       if (added > 0) {
         addToast(`Added ${added} new project${added === 1 ? '' : 's'}`, 'success')
@@ -266,35 +300,43 @@ const ProjectsPage = (): React.ReactElement => {
         onAddProject={handleAddProject}
         onRefresh={handleRefresh}
         viewMode={viewMode}
-        onViewChange={(mode) => { setViewMode(mode); localStorage.setItem('projectsViewMode', mode) }}
+        onViewChange={(mode) => {
+          setViewMode(mode)
+          localStorage.setItem('projectsViewMode', mode)
+        }}
       />
 
-      <div className={viewMode === 'grid'
-        ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto py-2 px-2 mt-1'
-        : 'flex flex-col gap-2 overflow-y-auto py-2 px-2 mt-1'
-      }>
+      <div
+        className={
+          viewMode === 'grid'
+            ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto py-2 px-2 mt-1'
+            : 'flex flex-col gap-2 overflow-y-auto py-2 px-2 mt-1'
+        }
+      >
         {visibleProjects.length > 0 ? (
-          visibleProjects.map((data) => viewMode === 'grid' ? (
-            <ProjectCardGrid
-              key={data.projectPath || data.name}
-              {...data}
-              isFavorite={data.isFavorite}
-              onToggleFavorite={toggleFavoritePath}
-              onLaunch={handleLaunch}
-              onOpenDir={handleOpenDir}
-              onDelete={handleDelete}
-            />
-          ) : (
-            <ProjectCard
-              key={data.projectPath || data.name}
-              {...data}
-              isFavorite={data.isFavorite}
-              onToggleFavorite={toggleFavoritePath}
-              onLaunch={handleLaunch}
-              onOpenDir={handleOpenDir}
-              onDelete={handleDelete}
-            />
-          ))
+          visibleProjects.map((data) =>
+            viewMode === 'grid' ? (
+              <ProjectCardGrid
+                key={data.projectPath || data.name}
+                {...data}
+                isFavorite={data.isFavorite}
+                onToggleFavorite={toggleFavoritePath}
+                onLaunch={handleLaunch}
+                onOpenDir={handleOpenDir}
+                onDelete={handleDelete}
+              />
+            ) : (
+              <ProjectCard
+                key={data.projectPath || data.name}
+                {...data}
+                isFavorite={data.isFavorite}
+                onToggleFavorite={toggleFavoritePath}
+                onLaunch={handleLaunch}
+                onOpenDir={handleOpenDir}
+                onDelete={handleDelete}
+              />
+            )
+          )
         ) : (
           <div className="col-span-full flex flex-col items-center justify-center h-full text-center text-white/50">
             <p className="text-lg mb-2">

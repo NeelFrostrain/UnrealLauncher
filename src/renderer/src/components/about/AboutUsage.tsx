@@ -1,4 +1,4 @@
-import MenuBookIcon from '@mui/icons-material/MenuBook'
+import { BookOpen } from 'lucide-react'
 
 const steps = [
   { title: '1. Scan for Engines & Projects', desc: 'Click "Scan for Engines" or "Scan for Projects" to automatically detect installations. The app searches common locations and calculates sizes in the background.' },
@@ -12,7 +12,7 @@ const steps = [
 const AboutUsage = (): React.ReactElement => (
   <div>
     <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-      <MenuBookIcon sx={{ fontSize: 20 }} className="text-green-400" />
+      <BookOpen size={20} className="text-green-400" />
       How to Use
     </h2>
     <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
