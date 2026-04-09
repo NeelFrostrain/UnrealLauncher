@@ -39,23 +39,7 @@ const ProjectsPage = (): React.ReactElement => {
   const [displayStart, setDisplayStart] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
   const gridRef = useRef<HTMLDivElement>(null)
-  const [gridCols, setGridCols] = useState(4)
   const ITEMS_PER_BATCH = 50
-
-  // Compute grid columns based on actual container width, not viewport
-  useEffect(() => {
-    const el = gridRef.current
-    if (!el) return
-    const CARD_MIN = 200 // minimum card width in px
-    const GAP = 12
-    const obs = new ResizeObserver(([entry]) => {
-      const w = entry.contentRect.width
-      const cols = Math.max(1, Math.floor((w + GAP) / (CARD_MIN + GAP)))
-      setGridCols(cols)
-    })
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [viewMode]) // Number of items to render at once
 
   const allProjectsRef = useRef<Project[]>([])
 

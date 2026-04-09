@@ -89,22 +89,36 @@ const Sidebar = (): React.ReactElement => {
   const dragging = useRef(false)
   const startX = useRef(0)
   const startWidth = useRef(0)
+  const collapsedRef = useRef(collapsed)
+
+  // Keep ref in sync with state
+  useEffect(() => { collapsedRef.current = collapsed }, [collapsed])
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
-    if (collapsed) return
+    if (collapsedRef.current) return
     dragging.current = true
     startX.current = e.clientX
     startWidth.current = width
     document.body.style.cursor = 'col-resize'
     document.body.style.userSelect = 'none'
-  }, [collapsed, width])
+  }, [width])
 
   useEffect(() => {
     const onMove = (e: MouseEvent): void => {
       if (!dragging.current) return
       const delta = e.clientX - startX.current
-      const next = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth.current + delta))
-      setWidth(next)
+      const next = startWidth.current + delta
+      // Snap to collapsed when dragged far enough left
+      if (next < MIN_WIDTH - 40) {
+        dragging.current = false
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+        collapsedRef.current = true
+        setCollapsed(true)
+        localStorage.setItem('sidebarCollapsed', 'true')
+        return
+      }
+      setWidth(Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, next)))
     }
     const onUp = (): void => {
       if (!dragging.current) return
@@ -122,7 +136,7 @@ const Sidebar = (): React.ReactElement => {
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
-  }, [])
+  }, []) // intentionally empty — uses refs only
 
   const toggleCollapse = (): void => {
     setCollapsed((prev) => {
@@ -135,7 +149,7 @@ const Sidebar = (): React.ReactElement => {
 
   return (
     <div
-      className="relative h-full flex-shrink-0 flex flex-col transition-[width] duration-200 ease-in-out"
+      className="relative h-full shrink-0 flex flex-col transition-[width] duration-200 ease-in-out"
       style={{ width: currentWidth, borderRight: '1px solid var(--color-border)' }}
     >
       {/* Nav items */}
