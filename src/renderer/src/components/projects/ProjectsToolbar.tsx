@@ -28,7 +28,8 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
 }) => {
   return (
     <motion.div
-      className="flex items-center gap-2 px-2 pt-3 pb-2 border-b border-white/10"
+      className="flex items-center gap-2 px-2 pt-3 pb-2"
+      style={{ borderBottom: '1px solid var(--color-border)' }}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -37,25 +38,29 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         <button
           key={tab.id}
           onClick={() => onTabClick(tab.id)}
-          className={`px-4 py-2 rounded-t-md font-medium text-sm transition-colors ${
-            currentTab === tab.id
-              ? 'bg-blue-600 text-white'
-              : 'bg-white/5 text-white/50'
-          }`}
+          className="px-4 py-2 rounded-t-md font-medium text-sm transition-colors cursor-pointer"
+          style={{
+            backgroundColor: currentTab === tab.id ? 'var(--color-accent)' : 'var(--color-surface-card)',
+            color: currentTab === tab.id ? 'white' : 'var(--color-text-muted)',
+          }}
         >
           {tab.label}
         </button>
       ))}
 
       {searchOpen && (
-        <div className="flex min-w-0 h-full items-center gap-2 px-3 rounded-md bg-white/5 border border-white/10 text-sm text-white/80 max-w-65 transition-all">
-          <Search size={16} className="text-white/70" />
+        <div
+          className="flex min-w-0 h-full items-center gap-2 px-3 rounded-md text-sm max-w-65 transition-all"
+          style={{ backgroundColor: 'var(--color-surface-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
+        >
+          <Search size={16} style={{ color: 'var(--color-text-muted)' }} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search projects"
-            className="min-w-0 w-full bg-transparent text-sm outline-none text-white placeholder:text-white/40"
+            className="min-w-0 w-full bg-transparent text-sm outline-none placeholder:text-white/30"
+            style={{ color: 'var(--color-text-primary)' }}
           />
         </div>
       )}
@@ -63,17 +68,28 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       <div className="flex-1" />
 
       {/* View toggle */}
-      <div className="flex items-center bg-white/5 border border-white/10 rounded-md overflow-hidden">
+      <div
+        className="flex items-center rounded-md overflow-hidden"
+        style={{ border: '1px solid var(--color-border)' }}
+      >
         <button
           onClick={() => onViewChange('list')}
-          className={`flex p-2 cursor-pointer transition-colors ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-white/40'}`}
+          className="flex p-2 cursor-pointer transition-colors"
+          style={{
+            backgroundColor: viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+            color: viewMode === 'list' ? 'white' : 'var(--color-text-muted)',
+          }}
           title="List view"
         >
           <List size={16} />
         </button>
         <button
           onClick={() => onViewChange('grid')}
-          className={`flex p-2 cursor-pointer transition-colors ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-white/40'}`}
+          className="flex p-2 cursor-pointer transition-colors"
+          style={{
+            backgroundColor: viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+            color: viewMode === 'grid' ? 'white' : 'var(--color-text-muted)',
+          }}
           title="Grid view"
         >
           <Grid3X3 size={16} />
@@ -82,9 +98,12 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
 
       <button
         onClick={onToggleSearch}
-        className={`flex items-center gap-2 px-3 py-2 rounded-md ${
-          searchOpen ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
-        } transition-all`}
+        className="flex items-center gap-2 px-3 py-2 rounded-md transition-all cursor-pointer"
+        style={{
+          backgroundColor: searchOpen ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)' : 'var(--color-surface-card)',
+          color: searchOpen ? 'var(--color-accent)' : 'var(--color-text-muted)',
+          border: '1px solid var(--color-border)',
+        }}
         title="Search projects"
       >
         <Search size={16} />
@@ -93,7 +112,8 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       <button
         onClick={onAddProject}
         disabled={addingProject}
-        className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-2 px-3 py-2 rounded-md text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        style={{ backgroundColor: 'var(--color-accent)' }}
         title="Add Project"
       >
         <Plus size={16} />
@@ -102,15 +122,20 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       <button
         onClick={onRefresh}
         disabled={refreshing}
-        className="flex items-center gap-2 px-3 py-2 rounded-md bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-50"
+        className="flex items-center gap-2 px-3 py-2 rounded-md transition-all disabled:opacity-50 cursor-pointer"
+        style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}
         title="Refresh"
       >
         <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
       </button>
 
       {calculatingSizes && (
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/5 text-white/40" title="Calculating project sizes…">
-          <HardDrive size={13} className="animate-pulse text-blue-400" />
+        <div
+          className="flex items-center gap-1.5 px-2 py-1 rounded-md"
+          style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}
+          title="Calculating project sizes…"
+        >
+          <HardDrive size={13} className="animate-pulse" style={{ color: 'var(--color-accent)' }} />
           <span className="text-[10px]">Sizing…</span>
         </div>
       )}

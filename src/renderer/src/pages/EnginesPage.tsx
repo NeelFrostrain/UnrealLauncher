@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import type { EngineCardProps } from '../types'
 import PageWrapper from '@renderer/layout/PageWrapper'
-import EnginesToolbar from '@renderer/components/engines/EnginesToolbar'
 import EngineCard from '@renderer/components/engines/EngineCard'
 import { useToast } from '../components/ui/ToastContext'
 import { getSetting } from '../utils/settings'
+import { Plus, RefreshCw } from 'lucide-react'
 
 const EnginesPage = (): React.ReactElement => {
   const [engines, setEngines] = useState<EngineCardProps[]>([])
@@ -182,19 +182,42 @@ const EnginesPage = (): React.ReactElement => {
 
   return (
     <PageWrapper>
-      <EnginesToolbar
-        scanning={scanning}
-        addingEngine={addingEngine}
-        onAddEngine={handleAddEngine}
-        onScan={handleScan}
-      />
+      {/* Page header — inline, part of the content flow */}
+      <div className="flex items-center justify-between px-4 py-4 shrink-0">
+        <div>
+          <h1 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>Engines</h1>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+            {engines.length > 0 ? `${engines.length} engine${engines.length === 1 ? '' : 's'} installed` : 'No engines found'}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleScan}
+            disabled={scanning}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' }}
+          >
+            <RefreshCw size={12} className={scanning ? 'animate-spin' : ''} />
+            {scanning ? 'Scanning…' : 'Scan'}
+          </button>
+          <button
+            onClick={handleAddEngine}
+            disabled={addingEngine}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            style={{ backgroundColor: 'var(--color-accent)' }}
+          >
+            <Plus size={12} />
+            Add Engine
+          </button>
+        </div>
+      </div>
 
       <div className="flex-1 overflow-hidden">
         {engines.length > 0 ? (
           <div
             ref={containerRef}
             onScroll={handleScroll}
-            className="space-y-2 overflow-y-auto py-3 px-1.5 h-full"
+            className="space-y-2 overflow-y-auto py-2 px-4 h-full"
           >
             {engines.slice(displayStart, displayStart + ITEMS_PER_BATCH).map((data) => (
               <EngineCard
@@ -207,11 +230,20 @@ const EnginesPage = (): React.ReactElement => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center text-white/50">
-            <p className="text-lg mb-2">No engines found</p>
-            <p className="text-sm text-white/30 mb-4">
-              Click &quot;Scan for Engines&quot; to search or add manually
+          <div className="flex flex-col items-center justify-center h-full text-center" style={{ color: 'var(--color-text-muted)' }}>
+            <p className="text-sm mb-1">No engines found</p>
+            <p className="text-xs mb-4" style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}>
+              Click Scan to search common paths, or Add Engine to browse manually
             </p>
+            <button
+              onClick={handleScan}
+              disabled={scanning}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer"
+              style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' }}
+            >
+              <RefreshCw size={13} className={scanning ? 'animate-spin' : ''} />
+              {scanning ? 'Scanning…' : 'Scan for Engines'}
+            </button>
           </div>
         )}
       </div>

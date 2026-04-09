@@ -114,7 +114,7 @@ const ProjectCardGrid = memo(
               <motion.button
                 whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
                 onClick={handleLaunch}
-                className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md text-xs font-bold shadow-lg shadow-blue-600/40 transition-colors cursor-pointer"
+                className="flex w-full justify-center items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md text-xs font-bold shadow-lg shadow-blue-600/40 transition-colors cursor-pointer"
               >
                 <Play size={14} />
                 Launch

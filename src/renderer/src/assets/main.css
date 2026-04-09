@@ -11,6 +11,8 @@
   --color-text-primary:     rgba(255,255,255,0.90);
   --color-text-secondary:   rgba(255,255,255,0.60);
   --color-text-muted:       rgba(255,255,255,0.40);
+  /* Border radius token — controlled by the slider in Settings */
+  --radius: 8px;
 }
 
 /* ── Override Tailwind's hardcoded blue-600/500 to follow the accent token ── */
@@ -65,6 +67,42 @@
 .bg-\[\#161616\] { background-color: var(--color-surface-card) !important; }
 .bg-\[\#121212\] { background-color: var(--color-surface-card) !important; }
 .bg-\[\#111\]    { background-color: var(--color-surface-card) !important; }
+
+/* ── Border radius — all rounded-* classes follow --radius ───────────────── */
+.rounded-sm  { border-radius: calc(var(--radius) * 0.5)  !important; }
+.rounded     { border-radius: var(--radius)               !important; }
+.rounded-md  { border-radius: var(--radius)               !important; }
+.rounded-lg  { border-radius: calc(var(--radius) * 1.25)  !important; }
+.rounded-xl  { border-radius: calc(var(--radius) * 1.5)   !important; }
+.rounded-2xl { border-radius: calc(var(--radius) * 2)     !important; }
+.rounded-full{ border-radius: 9999px                      !important; }
+
+/* ── Range slider track ──────────────────────────────────────────────────── */
+input[type='range'] {
+  appearance: none;
+  background: transparent;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--color-accent) 0%,
+    var(--color-accent) var(--range-pct, 33%),
+    rgba(255,255,255,0.12) var(--range-pct, 33%),
+    rgba(255,255,255,0.12) 100%
+  );
+}
+input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  margin-top: -5px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  cursor: pointer;
+}
 
 /* Performance optimizations */
 * {

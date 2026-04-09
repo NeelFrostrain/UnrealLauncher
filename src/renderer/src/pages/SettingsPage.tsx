@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { getSetting, setSetting } from '../utils/settings'
 import { useTheme } from '../utils/ThemeContext'
-import { BUILT_IN_THEMES, type ThemeToken } from '../utils/theme'
+import { BUILT_IN_THEMES, type ThemeToken, loadPersistedRadius, persistRadius, applyRadius } from '../utils/theme'
 
 // ── Reusable row ──────────────────────────────────────────────────────────────
 
@@ -84,6 +84,8 @@ const SettingsPage = (): React.ReactElement => {
   const [editingProfileId, setEditingProfileId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
   const nameInputRef = useRef<HTMLInputElement>(null)
+  // Radius
+  const [radius, setRadius] = useState(() => loadPersistedRadius())
 
   useEffect(() => {
     setAutoCloseOnLaunch(getSetting('autoCloseOnLaunch'))
@@ -137,9 +139,11 @@ const SettingsPage = (): React.ReactElement => {
     <PageWrapper>
       <div className="flex-1 overflow-y-auto">
         {/* Page title */}
-        <div className="px-6 pt-5 pb-4 border-b border-white/5">
-          <h1 className="text-lg font-semibold text-white/90">Settings</h1>
-          <p className="text-xs text-white/40 mt-0.5">Customize your Unreal Launcher experience</p>
+        <div className="flex items-center justify-between px-4 py-4 shrink-0">
+          <div>
+            <h1 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>Settings</h1>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>Customize your Unreal Launcher experience</p>
+          </div>
         </div>
 
         <div className="px-6 py-5 space-y-7">
@@ -188,6 +192,52 @@ const SettingsPage = (): React.ReactElement => {
                       </button>
                     )
                   })}
+                </div>
+              </div>
+
+              {/* Border radius */}
+              <div className="p-5 border-t border-white/5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-medium text-white/85">Border radius</p>
+                  <span className="text-xs font-mono" style={{ color: 'var(--color-text-muted)' }}>{radius}px</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Sharp</span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={24}
+                    step={1}
+                    value={radius}
+                    onChange={(e) => {
+                      const v = Number(e.target.value)
+                      setRadius(v)
+                      applyRadius(v)
+                      persistRadius(v)
+                      e.currentTarget.style.setProperty('--range-pct', `${(v / 24) * 100}%`)
+                    }}
+                    className="flex-1 cursor-pointer"
+                    style={{ '--range-pct': `${(radius / 24) * 100}%` } as React.CSSProperties}
+                  />
+                  <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Round</span>
+                </div>
+                {/* Preview row */}
+                <div className="flex items-center gap-2 mt-3">
+                  {[0, 4, 8, 12, 16, 24].map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => { setRadius(v); applyRadius(v); persistRadius(v) }}
+                      className="w-8 h-8 border transition-all cursor-pointer text-[10px] font-mono"
+                      style={{
+                        borderRadius: `${v}px`,
+                        borderColor: radius === v ? 'var(--color-accent)' : 'var(--color-border)',
+                        backgroundColor: radius === v ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)' : 'var(--color-surface-card)',
+                        color: 'var(--color-text-muted)',
+                      }}
+                    >
+                      {v}
+                    </button>
+                  ))}
                 </div>
               </div>
 

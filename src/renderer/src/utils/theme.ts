@@ -175,3 +175,23 @@ export function resolveTokens(
   if (profile) return profile.tokens
   return BUILT_IN_THEMES[0].tokens
 }
+
+// ── Border radius ─────────────────────────────────────────────────────────────
+
+const RADIUS_KEY = 'unrealLauncherRadius'
+
+export function loadPersistedRadius(): number {
+  try {
+    const v = localStorage.getItem(RADIUS_KEY)
+    if (v !== null) return Math.min(24, Math.max(0, Number(v)))
+  } catch { /* ignore */ }
+  return 8 // default
+}
+
+export function persistRadius(px: number): void {
+  try { localStorage.setItem(RADIUS_KEY, String(px)) } catch { /* ignore */ }
+}
+
+export function applyRadius(px: number): void {
+  document.documentElement.style.setProperty('--radius', `${px}px`)
+}
