@@ -4,62 +4,53 @@ import { Minus, Square, Minimize2, X } from 'lucide-react'
 const Titlebar = (): React.ReactElement => {
   const [isMaximized, setIsMaximized] = useState(false)
 
-  const handleMinimize = (): void => {
-    window.electronAPI?.windowMinimize()
-  }
-
+  const handleMinimize = (): void => window.electronAPI?.windowMinimize()
   const handleMaximize = (): void => {
     window.electronAPI?.windowMaximize()
     setIsMaximized((prev) => !prev)
   }
-
-  const handleClose = (): void => {
-    window.electronAPI?.windowClose()
-  }
+  const handleClose = (): void => window.electronAPI?.windowClose()
 
   useEffect(() => {
-    const updateState = async (): Promise<void> => {
+    const update = async (): Promise<void> => {
       const maximized = await window.electronAPI?.windowIsMaximized()
       setIsMaximized(!!maximized)
     }
-
-    updateState()
-
-    const interval = setInterval(updateState, 500)
+    update()
+    const interval = setInterval(update, 500)
     return () => clearInterval(interval)
   }, [])
 
-  const dragStyle = { WebkitAppRegion: 'drag' } as React.CSSProperties
-  const noDragStyle = { WebkitAppRegion: 'no-drag' } as React.CSSProperties
+  const drag = { WebkitAppRegion: 'drag' } as React.CSSProperties
+  const noDrag = { WebkitAppRegion: 'no-drag' } as React.CSSProperties
 
   return (
-    <div className="w-full h-10 bg-[#1a1a1a] border-b border-white/10 flex items-center px-1 select-none">
-      <div className="flex-1 h-full flex items-center gap-2" style={dragStyle}></div>
+    <div className="w-full h-10 bg-[#1f1f1f] border-b border-white/10 flex items-center select-none shrink-0">
+      {/* Draggable empty region */}
+      <div className="flex-1 h-full" style={drag} />
 
-      <div className="flex items-center gap-0.5" style={noDragStyle}>
+      {/* Window controls */}
+      <div className="flex items-center h-full" style={noDrag}>
         <button
           onClick={handleMinimize}
-          className="w-11 h-9 flex items-center justify-center hover:bg-white/10 transition-colors"
-          aria-label="Minimize"
+          className="w-11 h-full flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/5 transition-colors"
           title="Minimize"
         >
-          <Minus size={16} />
+          <Minus size={14} />
         </button>
         <button
           onClick={handleMaximize}
-          className="w-11 h-9 flex items-center justify-center hover:bg-white/10 transition-colors"
-          aria-label={isMaximized ? 'Restore' : 'Maximize'}
+          className="w-11 h-full flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/5 transition-colors"
           title={isMaximized ? 'Restore' : 'Maximize'}
         >
-          {isMaximized ? <Minimize2 size={13} /> : <Square size={13} />}
+          {isMaximized ? <Minimize2 size={12} /> : <Square size={12} />}
         </button>
         <button
           onClick={handleClose}
-          className="w-11 h-9 flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors"
-          aria-label="Close"
+          className="w-11 h-full flex items-center justify-center text-white/40 hover:text-white hover:bg-red-600/80 transition-colors"
           title="Close"
         >
-          <X size={16} />
+          <X size={14} />
         </button>
       </div>
     </div>

@@ -13,10 +13,12 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
       <div className="w-full h-full bg-white/10 p-0.5">
         <div className="w-full h-full bg-black/50 p-0.5">
           <div className="w-full h-full bg-[#242424] flex flex-col">
-            <Titlebar />
             <div className="flex-1 flex min-h-0">
               <Sidebar />
-              <div className="flex-1 min-h-0 p-3.5">{children}</div>
+              <div className="flex-1 min-h-0 flex flex-col">
+                <Titlebar />
+                <div className="flex-1 min-h-0 p-3.5 pt-1">{children}</div>
+              </div>
             </div>
           </div>
         </div>
