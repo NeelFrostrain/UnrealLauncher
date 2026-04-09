@@ -38,7 +38,6 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('calculate-engine-size', directoryPath),
       calculateProjectSize: (projectPath) =>
         ipcRenderer.invoke('calculate-project-size', projectPath),
-      loadImage: (imagePath) => ipcRenderer.invoke('load-image', imagePath),
       openExternal: (url) => ipcRenderer.invoke('open-external', url),
       checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
       downloadUpdate: () => ipcRenderer.invoke('download-update'),

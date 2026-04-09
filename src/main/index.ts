@@ -1,10 +1,27 @@
-import { app } from 'electron'
+import { app, protocol, net } from 'electron'
 import { spawn } from 'child_process'
 import path from 'path'
 import fs from 'fs'
 import { setupAppLifecycle, getMainWindow } from './window'
 import { setupAutoUpdaterEvents } from './updater'
 import { registerIpcHandlers } from './ipcHandlers'
+
+// ── Custom protocol: local-asset:// ──────────────────────────────────────────
+// Allows the renderer to load arbitrary local files via
+//   <img src="local-asset:///C:/path/to/file.png" />
+// without exposing Node APIs or doing base64 round-trips.
+// Must be registered before app is ready.
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'local-asset',
+    privileges: {
+      secure: true,
+      supportFetchAPI: true,
+      bypassCSP: true,
+      stream: true,
+    },
+  },
+])
 
 // Single instance lock
 const gotTheLock = app.requestSingleInstanceLock()
@@ -23,6 +40,15 @@ if (!gotTheLock) {
   // stays correct after updates or if the user moved the install directory.
   // Also auto-start the tracer if it's registered but not currently running.
   app.whenReady().then(() => {
+    // ── Handle local-asset:// requests ──────────────────────────────────────
+    // local-asset:///C:/path/to/file.png  →  serve the file from disk
+    protocol.handle('local-asset', (request) => {
+      let filePath = decodeURIComponent(new URL(request.url).pathname)
+      if (process.platform === 'win32' && filePath.startsWith('/')) {
+        filePath = filePath.slice(1)
+      }
+      return net.fetch(`file:///${filePath.replace(/\\/g, '/')}`)
+    })
     if (process.platform !== 'win32') return
     const { execSync } = require('child_process')
     const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'

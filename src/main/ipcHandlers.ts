@@ -288,16 +288,6 @@ export function registerIpcHandlers(): void {
 
   // ── Misc ───────────────────────────────────────────────────────────────────
 
-  ipcMain.handle('load-image', async (_event, imagePath): Promise<string | null> => {
-    try {
-      if (!imagePath || !fs.existsSync(imagePath)) return null
-      const base64 = fs.readFileSync(imagePath).toString('base64')
-      const ext = path.extname(imagePath).toLowerCase()
-      const mimeMap: Record<string, string> = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp' }
-      return `data:${mimeMap[ext] ?? 'image/png'};base64,${base64}`
-    } catch { return null }
-  })
-
   ipcMain.handle('open-external', async (_event, url) => {
     try {
       const parsed = new URL(url)

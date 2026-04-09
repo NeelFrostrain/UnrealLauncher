@@ -45,15 +45,14 @@ const ProjectCard = memo(
   }) => {
     const [launching, setLaunching] = useState(false)
     const [currentSize, setCurrentSize] = useState(size)
-    const [imageSrc, setImageSrc] = useState<string | null>(null)
     const [menuOpen, setMenuOpen] = useState(false)
     const menuBtnRef = useRef<HTMLButtonElement>(null)
 
-    useEffect(() => {
-      if (thumbnail && window.electronAPI) {
-        window.electronAPI.loadImage(thumbnail).then((url) => setImageSrc(url))
-      }
-    }, [thumbnail])
+    // Convert absolute disk path → local-asset:// URL directly in the renderer.
+    // No IPC round-trip, no base64 — the protocol handler serves the file.
+    const imageSrc = thumbnail
+      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}`
+      : null
 
     useEffect(() => {
       setCurrentSize(size)

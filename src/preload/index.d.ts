@@ -68,7 +68,6 @@ declare global {
       selectProjectFolder: () => Promise<ProjectSelectionResult | null>
       deleteProject: (projectPath: string) => Promise<boolean>
       calculateProjectSize: (projectPath: string) => Promise<{ success: boolean; size?: string; error?: string }>
-      loadImage: (imagePath: string) => Promise<string | null>
       // Filesystem
       openDirectory: (dirPath: string) => Promise<void>
       openExternal: (url: string) => Promise<{ success: boolean; error?: string }>

@@ -29,16 +29,11 @@ const ProjectCardGrid = memo(
   }) => {
     const [launching, setLaunching] = useState(false)
     const [currentSize, setCurrentSize] = useState(size)
-    const [imageSrc, setImageSrc] = useState<string>(resolveAsset(undefined))
     const [hovered, setHovered] = useState(false)
 
-    useEffect(() => {
-      if (thumbnail && window.electronAPI) {
-        window.electronAPI.loadImage(thumbnail).then((url) => {
-          setImageSrc(url ?? resolveAsset(undefined))
-        })
-      }
-    }, [thumbnail])
+    const imageSrc = thumbnail
+      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}`
+      : resolveAsset(undefined)
 
     useEffect(() => { setCurrentSize(size) }, [size])
 
