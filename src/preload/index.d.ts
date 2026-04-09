@@ -93,6 +93,15 @@ declare global {
         error?: string
       }>
       onDownloadProgress: (callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void) => () => void
+      // Tracer / startup
+      getTracerStartup: () => Promise<boolean>
+      setTracerStartup: (enabled: boolean) => Promise<void>
+      isTracerRunning: () => Promise<boolean>
+      getTracerDataDir: () => Promise<string>
+      getTracerMerge: () => Promise<boolean>
+      setTracerMerge: (enabled: boolean) => Promise<void>
+      clearAppData: () => Promise<void>
+      clearTracerData: () => Promise<void>
     }
   }
 }

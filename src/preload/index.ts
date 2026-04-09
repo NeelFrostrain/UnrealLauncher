@@ -1,33 +1,16 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { decodeEngines, decodeProjects } from '../shared/binarySerialize'
 
 // Custom APIs for renderer
 const api = {}
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
     contextBridge.exposeInMainWorld('electronAPI', {
-      // Binary-optimized IPC calls - decode buffers transparently
-      scanEngines: async () => {
-        const buffer = await ipcRenderer.invoke('scan-engines')
-        console.log('[IPC] scan-engines received buffer:', buffer)
-        const decoded = decodeEngines(buffer)
-        console.log('[IPC] scan-engines decoded:', decoded)
-        return decoded
-      },
-      scanProjects: async () => {
-        const buffer = await ipcRenderer.invoke('scan-projects')
-        console.log('[IPC] scan-projects received buffer:', buffer)
-        const decoded = decodeProjects(buffer)
-        console.log('[IPC] scan-projects decoded:', decoded)
-        return decoded
-      },
+      scanEngines: () => ipcRenderer.invoke('scan-engines'),
+      scanProjects: () => ipcRenderer.invoke('scan-projects'),
       launchEngine: (exePath) => ipcRenderer.invoke('launch-engine', exePath),
       launchProject: (projectPath) => ipcRenderer.invoke('launch-project', projectPath),
       openDirectory: (dirPath) => ipcRenderer.invoke('open-directory', dirPath),
@@ -78,7 +61,15 @@ if (process.contextIsolated) {
         return (): void => {
           ipcRenderer.removeListener('download-progress', listener)
         }
-      }
+      },
+      getTracerStartup: () => ipcRenderer.invoke('tracer-get-startup'),
+      setTracerStartup: (enabled: boolean) => ipcRenderer.invoke('tracer-set-startup', enabled),
+      isTracerRunning: () => ipcRenderer.invoke('tracer-is-running'),
+      getTracerDataDir: () => ipcRenderer.invoke('tracer-get-data-dir'),
+      getTracerMerge: () => ipcRenderer.invoke('tracer-get-merge'),
+      setTracerMerge: (enabled: boolean) => ipcRenderer.invoke('tracer-set-merge', enabled),
+      clearAppData: () => ipcRenderer.invoke('clear-app-data'),
+      clearTracerData: () => ipcRenderer.invoke('clear-tracer-data')
     })
   } catch (error) {
     console.error(error)
