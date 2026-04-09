@@ -21,6 +21,7 @@ const ProjectsPage = (): React.ReactElement => {
     return 'all'
   })
   const [refreshing, setRefreshing] = useState(false)
+  const [calculatingSizes, setCalculatingSizes] = useState(false)
   const [addingProject, setAddingProject] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     return (localStorage.getItem('projectsViewMode') as ViewMode) ?? 'list'
@@ -104,20 +105,6 @@ const ProjectsPage = (): React.ReactElement => {
       const favs = JSON.parse(localStorage.getItem('projectFavorites') || '[]') as string[]
       const filtered = filterForTab(tab, scannedProjects, favs)
       setProjects(filtered)
-
-      for (const project of filtered) {
-        if (project.projectPath && project.size.startsWith('~')) {
-          window.electronAPI.calculateProjectSize(project.projectPath).then((result) => {
-            if (result.success && result.size) {
-              setProjects((prev) =>
-                prev.map((p) =>
-                  p.projectPath === project.projectPath ? { ...p, size: result.size! } : p
-                )
-              )
-            }
-          })
-        }
-      }
       return filtered
     } catch (err) {
       console.error('Failed to load projects for tab:', tab, err)
@@ -161,9 +148,13 @@ const ProjectsPage = (): React.ReactElement => {
 
   const handleRefresh = async (): Promise<void> => {
     setRefreshing(true)
+    setCalculatingSizes(true)
     setProjects([])
     await loadProjectsForTab(currentTab)
     setRefreshing(false)
+    // Calculate sizes for all projects after scan
+    await window.electronAPI.calculateAllProjectSizes()
+    setCalculatingSizes(false)
   }
 
   const toggleSearch = (): void => {
@@ -305,6 +296,7 @@ const ProjectsPage = (): React.ReactElement => {
         searchOpen={searchOpen}
         searchQuery={searchQuery}
         refreshing={refreshing}
+        calculatingSizes={calculatingSizes}
         addingProject={addingProject}
         onTabClick={switchTab}
         onToggleSearch={toggleSearch}

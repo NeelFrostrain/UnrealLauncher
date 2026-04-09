@@ -1,7 +1,6 @@
 import { ipcMain, app, shell, dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import { Worker } from 'worker_threads'
 import { exec, spawn } from 'child_process'
 import { loadEngines, saveEngines, loadProjects, saveProjects, mergeTracerEngines, mergeTracerProjects, loadMainSettings, saveMainSettings, clearAppData, clearTracerData } from './store'
 import {
@@ -15,21 +14,6 @@ import {
 import { handleCheckForUpdates, handleCheckGithubVersion, autoUpdater } from './updater'
 import { getMainWindow, getIsMaximized, handleWindowMinimize, handleWindowMaximize } from './window'
 import type { Engine, Project, EngineSelectionResult, ProjectSelectionResult } from './types'
-
-// Resolve the compiled worker path — electron-vite outputs main files to out/main/
-const WORKER_PATH = path.join(__dirname, 'scanWorker.js')
-
-function runInWorker<T>(type: string, data: Record<string, unknown>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const w = new Worker(WORKER_PATH, { workerData: { type, ...data } })
-    w.once('message', (msg: { ok: boolean; data?: T; error?: string }) => {
-      if (msg.ok) resolve(msg.data as T)
-      else reject(new Error(msg.error ?? 'Worker error'))
-    })
-    w.once('error', reject)
-    w.once('exit', (code) => { if (code !== 0) reject(new Error(`Worker exited ${code}`)) })
-  })
-}
 
 export function registerIpcHandlers(): void {
   // ── Updates ────────────────────────────────────────────────────────────────
@@ -52,9 +36,78 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('scan-engines', async (): Promise<Engine[]> => {
     const saved = mergeTracerEngines(loadEngines(), generateGradient)
-    const valid = await runInWorker<Engine[]>('scan-engines', { saved })
-    saveEngines(valid)
-    return valid
+    // Run all FS work in a Worker thread — keeps main process event loop free
+    return new Promise((resolve, reject) => {
+      const { Worker } = require('worker_threads')
+      const w = new Worker(
+        `
+        const { parentPort, workerData } = require('worker_threads');
+        const fs = require('fs'), path = require('path');
+        let native = null;
+        try { native = require(workerData.nativePath); } catch {}
+
+        function scanEnginePaths() {
+          if (native) { try { return native.scanEngines([]); } catch {} }
+          const bases = ['D:\\\\Engine\\\\UnrealEditors','C:\\\\Program Files\\\\Epic Games','C:\\\\Program Files (x86)\\\\Epic Games','D:\\\\Unreal'];
+          const results = [];
+          for (const base of bases) {
+            if (!fs.existsSync(base)) continue;
+            try {
+              for (const item of fs.readdirSync(base)) {
+                if (!item.startsWith('UE_')) continue;
+                const ep = path.join(base, item);
+                const bin = path.join(ep, 'Engine', 'Binaries', 'Win64');
+                let exe = path.join(bin, 'UnrealEditor.exe');
+                if (!fs.existsSync(exe)) exe = path.join(bin, 'UE4Editor.exe');
+                if (!fs.existsSync(exe)) continue;
+                results.push({ version: item.replace('UE_', ''), exePath: exe, directoryPath: ep });
+              }
+            } catch {}
+          }
+          return results;
+        }
+
+        function generateGradient() {
+          const dirs = ['to top','to top right','to right','to bottom right','to bottom','to bottom left','to left','to top left'];
+          const colors = ['#2563eb','#4f46e5','#06b6d4','#10b981','#7c3aed','#c026d3','#f43f5e','#f59e0b'];
+          const pick = a => a[Math.floor(Math.random() * a.length)];
+          const from = pick(colors); let to = pick(colors);
+          while (to === from) to = pick(colors);
+          return 'linear-gradient(' + pick(dirs) + ', ' + from + ', ' + to + ')';
+        }
+
+        const saved = workerData.saved;
+        const scanned = scanEnginePaths().map(e => {
+          const ex = saved.find(s => s.directoryPath === e.directoryPath);
+          return { version: e.version, exePath: e.exePath, directoryPath: e.directoryPath,
+            folderSize: ex?.folderSize || '~35-45 GB',
+            lastLaunch: ex?.lastLaunch || 'Unknown',
+            gradient: ex?.gradient || generateGradient() };
+        });
+        const merged = [];
+        for (const s of scanned) {
+          const ex = saved.find(e => e.directoryPath === s.directoryPath);
+          if (ex) {
+            if (ex.gradient) s.gradient = ex.gradient;
+            if (ex.folderSize && !ex.folderSize.startsWith('~')) s.folderSize = ex.folderSize;
+            if (ex.lastLaunch) s.lastLaunch = ex.lastLaunch;
+          }
+          merged.push(s);
+        }
+        for (const e of saved) {
+          if (!merged.find(m => m.directoryPath === e.directoryPath)) merged.push(e);
+        }
+        parentPort.postMessage(merged.filter(e => fs.existsSync(e.exePath)));
+        `,
+        { eval: true, workerData: { saved, nativePath: require.resolve('../../native/dist/index.js') } }
+      )
+      w.once('message', resolve)
+      w.once('error', reject)
+      w.once('exit', (c: number) => { if (c !== 0) reject(new Error(`Worker exited ${c}`)) })
+    }).then((valid: unknown) => {
+      saveEngines(valid as Engine[])
+      return valid as Engine[]
+    })
   })
 
   ipcMain.handle('select-engine-folder', async (): Promise<EngineSelectionResult | null> => {
@@ -123,9 +176,97 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('scan-projects', async (): Promise<Project[]> => {
     const saved = mergeTracerProjects(loadProjects())
-    const valid = await runInWorker<Project[]>('scan-projects', { saved })
-    saveProjects(valid)
-    return valid
+    return new Promise((resolve, reject) => {
+      const { Worker } = require('worker_threads')
+      const w = new Worker(
+        `
+        const { parentPort, workerData } = require('worker_threads');
+        const fs = require('fs'), path = require('path'), os = require('os');
+        let native = null;
+        try { native = require(workerData.nativePath); } catch {}
+
+        function findUprojectFiles(dir, maxDepth, maxFiles) {
+          if (native) { try { return native.findUprojectFiles(dir, maxDepth, maxFiles); } catch {} }
+          const files = []; let count = 0;
+          const SKIP = new Set(['node_modules','.git','Binaries','Intermediate','DerivedDataCache','Saved','Plugins']);
+          function scan(cur, depth) {
+            if (depth > maxDepth || count >= maxFiles) return;
+            try {
+              for (const item of fs.readdirSync(cur)) {
+                if (count >= maxFiles) return;
+                const full = path.join(cur, item);
+                if (fs.statSync(full).isDirectory() && !item.startsWith('.') && !SKIP.has(item)) scan(full, depth+1);
+                else if (item.endsWith('.uproject')) { files.push(full); count++; }
+              }
+            } catch {}
+          }
+          scan(dir, 0); return files;
+        }
+
+        function findScreenshot(p) {
+          if (native) { try { return native.findProjectScreenshot(p) ?? null; } catch {} }
+          const s = path.join(p, 'Saved', 'AutoScreenshot.png');
+          return fs.existsSync(s) ? s : null;
+        }
+
+        function findLogTimestamp(p) {
+          if (native) { try { return native.findLatestLogTimestamp(p) ?? null; } catch {} }
+          const logsRoot = path.join(p, 'Saved', 'Logs');
+          if (!fs.existsSync(logsRoot)) return null;
+          let latest = null;
+          try {
+            for (const item of fs.readdirSync(logsRoot)) {
+              if (path.extname(item).toLowerCase() !== '.log') continue;
+              try { const s = fs.statSync(path.join(logsRoot, item)); if (s.isFile() && (!latest || s.mtime > latest)) latest = s.mtime; } catch {}
+            }
+          } catch { return null; }
+          return latest ? latest.toISOString() : null;
+        }
+
+        const saved = workerData.saved;
+        const searchPaths = [
+          path.join(os.homedir(), 'Documents', 'Unreal Projects'),
+          'C:\\\\Users\\\\Public\\\\Documents\\\\Unreal Projects',
+          'D:\\\\Unreal\\\\Projects'
+        ];
+        const scanned = [];
+        for (const sp of searchPaths) {
+          if (!fs.existsSync(sp)) continue;
+          for (const up of findUprojectFiles(sp, 5, 1000)) {
+            try {
+              const dir = path.dirname(up), name = path.basename(dir);
+              const stats = fs.statSync(dir);
+              let version = 'Unknown';
+              try { const m = fs.readFileSync(up,'utf8').match(/"EngineAssociation":\\s*"([^"]+)"/); if (m) version = m[1]; } catch {}
+              const ex = saved.find(p => p.projectPath === dir);
+              scanned.push({ name, version, size: ex?.size || '~2-5 GB',
+                createdAt: stats.birthtime.toISOString().split('T')[0],
+                lastOpenedAt: findLogTimestamp(dir) || ex?.lastOpenedAt,
+                projectPath: dir, thumbnail: findScreenshot(dir) });
+            } catch {}
+          }
+        }
+        const merged = [];
+        for (const s of scanned) {
+          const ex = saved.find(p => p.projectPath === s.projectPath);
+          if (ex?.size && !ex.size.startsWith('~')) s.size = ex.size;
+          merged.push(s);
+        }
+        for (const p of saved) {
+          if (!merged.find(m => m.projectPath === p.projectPath))
+            merged.push({ ...p, lastOpenedAt: findLogTimestamp(p.projectPath) || p.lastOpenedAt });
+        }
+        parentPort.postMessage(merged.filter(p => p.projectPath && fs.existsSync(path.join(p.projectPath, p.name + '.uproject'))));
+        `,
+        { eval: true, workerData: { saved, nativePath: require.resolve('../../native/dist/index.js') } }
+      )
+      w.once('message', resolve)
+      w.once('error', reject)
+      w.once('exit', (c: number) => { if (c !== 0) reject(new Error(`Worker exited ${c}`)) })
+    }).then((valid: unknown) => {
+      saveProjects(valid as Project[])
+      return valid as Project[]
+    })
   })
 
   ipcMain.handle('select-project-folder', async (): Promise<ProjectSelectionResult | null> => {
@@ -226,6 +367,41 @@ export function registerIpcHandlers(): void {
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
     }
+  })
+
+  // Calculate sizes for all projects that still have approximate sizes.
+  // Runs with concurrency=2 so the system stays responsive.
+  // Streams results back via 'size-calculated' push events as each finishes.
+  ipcMain.handle('calculate-all-project-sizes', async (): Promise<void> => {
+    const win = getMainWindow()
+    if (!win) return
+
+    // Recalculate ALL projects regardless of current size value
+    const projects = loadProjects()
+    if (projects.length === 0) return
+
+    const CONCURRENCY = 2
+    let index = 0
+
+    async function next(): Promise<void> {
+      if (index >= projects.length) return
+      const project = projects[index++]
+      try {
+        const sizeStr = formatBytes(await getFullFolderSize(project.projectPath))
+        // Persist
+        const all = loadProjects()
+        const entry = all.find((p) => p.projectPath === project.projectPath)
+        if (entry) { entry.size = sizeStr; saveProjects(all) }
+        // Push to renderer
+        if (win && !win.isDestroyed()) {
+          win.webContents.send('size-calculated', { type: 'project', path: project.projectPath, size: sizeStr })
+        }
+      } catch { /* skip failed entries */ }
+      await next()
+    }
+
+    // Start CONCURRENCY parallel chains
+    await Promise.all(Array.from({ length: CONCURRENCY }, next))
   })
 
   // ── Misc ───────────────────────────────────────────────────────────────────

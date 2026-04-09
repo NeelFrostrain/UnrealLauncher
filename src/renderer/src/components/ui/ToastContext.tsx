@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
 
@@ -60,15 +60,11 @@ const ToastItem = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
 
 export const ToastProvider = ({ children }: { children: ReactNode }): ReactNode => {
   const [toasts, setToasts] = useState<Toast[]>([])
+  const counter = useRef(0)
 
   const addToast = useCallback((message: string, type: ToastType): void => {
-    const id = Date.now().toString()
-    setToasts((prev) => {
-      // Cap at 5 visible toasts
-      const next = [...prev, { id, message, type }]
-      return next.slice(-5)
-    })
-    // Auto-remove after 4s
+    const id = String(++counter.current)
+    setToasts((prev) => [...prev, { id, message, type }].slice(-5))
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
     }, 4000)

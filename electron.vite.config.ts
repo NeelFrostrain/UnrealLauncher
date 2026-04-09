@@ -4,16 +4,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  main: {
-    build: {
-      rollupOptions: {
-        input: {
-          index: resolve('src/main/index.ts'),
-          scanWorker: resolve('src/main/scanWorker.ts'),
-        },
-      },
-    },
-  },
+  main: {},
   preload: {},
   renderer: {
     resolve: {

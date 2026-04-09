@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import type { FC } from 'react'
-import { Plus, RefreshCw, Search, List, Grid3X3 } from 'lucide-react'
+import { Plus, RefreshCw, Search, List, Grid3X3, HardDrive } from 'lucide-react'
 import type { TabType } from '../../types'
 
 export type ViewMode = 'list' | 'grid'
@@ -11,6 +11,7 @@ interface ProjectsToolbarProps {
   searchOpen: boolean
   searchQuery: string
   refreshing: boolean
+  calculatingSizes: boolean
   addingProject: boolean
   viewMode: ViewMode
   onTabClick: (tab: TabType) => void
@@ -22,7 +23,7 @@ interface ProjectsToolbarProps {
 }
 
 const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
-  tabs, currentTab, searchOpen, searchQuery, refreshing, addingProject, viewMode,
+  tabs, currentTab, searchOpen, searchQuery, refreshing, calculatingSizes, addingProject, viewMode,
   onTabClick, onToggleSearch, onSearchChange, onAddProject, onRefresh, onViewChange
 }) => {
   return (
@@ -106,6 +107,13 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       >
         <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
       </button>
+
+      {calculatingSizes && (
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/5 text-white/40" title="Calculating project sizes…">
+          <HardDrive size={13} className="animate-pulse text-blue-400" />
+          <span className="text-[10px]">Sizing…</span>
+        </div>
+      )}
     </motion.div>
   )
 }
