@@ -55,3 +55,7 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+/native/target
+/native/dist/*.node
+/tracer/target
+/resources/unreal_launcher_tracer.exe

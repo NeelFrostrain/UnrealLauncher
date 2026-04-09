@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { decodeEngines, decodeProjects } from '../shared/binarySerialize'
 
 // Custom APIs for renderer
 const api = {}
@@ -12,8 +13,21 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
     contextBridge.exposeInMainWorld('electronAPI', {
-      scanEngines: () => ipcRenderer.invoke('scan-engines'),
-      scanProjects: () => ipcRenderer.invoke('scan-projects'),
+      // Binary-optimized IPC calls - decode buffers transparently
+      scanEngines: async () => {
+        const buffer = await ipcRenderer.invoke('scan-engines')
+        console.log('[IPC] scan-engines received buffer:', buffer)
+        const decoded = decodeEngines(buffer)
+        console.log('[IPC] scan-engines decoded:', decoded)
+        return decoded
+      },
+      scanProjects: async () => {
+        const buffer = await ipcRenderer.invoke('scan-projects')
+        console.log('[IPC] scan-projects received buffer:', buffer)
+        const decoded = decodeProjects(buffer)
+        console.log('[IPC] scan-projects decoded:', decoded)
+        return decoded
+      },
       launchEngine: (exePath) => ipcRenderer.invoke('launch-engine', exePath),
       launchProject: (projectPath) => ipcRenderer.invoke('launch-project', projectPath),
       openDirectory: (dirPath) => ipcRenderer.invoke('open-directory', dirPath),
@@ -25,8 +39,13 @@ if (process.contextIsolated) {
       windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
       deleteEngine: (directoryPath) => ipcRenderer.invoke('delete-engine', directoryPath),
       deleteProject: (projectPath) => ipcRenderer.invoke('delete-project', projectPath),
-      onSizeCalculated: (callback: (data: { type: 'engine' | 'project'; path: string; size: string }) => void): (() => void) => {
-        const listener = (_event: Electron.IpcRendererEvent, data: { type: 'engine' | 'project'; path: string; size: string }): void => callback(data)
+      onSizeCalculated: (
+        callback: (data: { type: 'engine' | 'project'; path: string; size: string }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          data: { type: 'engine' | 'project'; path: string; size: string }
+        ): void => callback(data)
         ipcRenderer.on('size-calculated', listener)
         return (): void => {
           ipcRenderer.removeListener('size-calculated', listener)
@@ -43,8 +62,18 @@ if (process.contextIsolated) {
       installUpdate: () => ipcRenderer.invoke('install-update'),
       getAppVersion: () => ipcRenderer.invoke('get-app-version'),
       checkGithubVersion: () => ipcRenderer.invoke('check-github-version'),
-      onDownloadProgress: (callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void): (() => void) => {
-        const listener = (_event: Electron.IpcRendererEvent, progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }): void => callback(progress)
+      onDownloadProgress: (
+        callback: (progress: {
+          percent: number
+          bytesPerSecond: number
+          transferred: number
+          total: number
+        }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }
+        ): void => callback(progress)
         ipcRenderer.on('download-progress', listener)
         return (): void => {
           ipcRenderer.removeListener('download-progress', listener)
