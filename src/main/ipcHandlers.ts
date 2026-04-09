@@ -1,8 +1,20 @@
 import { ipcMain, app, shell, dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import { exec, spawn } from 'child_process'
-import { loadEngines, saveEngines, loadProjects, saveProjects, mergeTracerEngines, mergeTracerProjects, loadMainSettings, saveMainSettings, clearAppData, clearTracerData } from './store'
+import { Worker } from 'worker_threads'
+import { exec, execSync, spawn } from 'child_process'
+import {
+  loadEngines,
+  saveEngines,
+  loadProjects,
+  saveProjects,
+  mergeTracerEngines,
+  mergeTracerProjects,
+  loadMainSettings,
+  saveMainSettings,
+  clearAppData,
+  clearTracerData
+} from './store'
 import {
   generateGradient,
   formatBytes,
@@ -19,8 +31,12 @@ export function registerIpcHandlers(): void {
   // ── Updates ────────────────────────────────────────────────────────────────
   ipcMain.handle('check-for-updates', handleCheckForUpdates)
   ipcMain.handle('download-update', async () => {
-    try { await autoUpdater.downloadUpdate(); return { success: true } }
-    catch (err) { return { success: false, error: err instanceof Error ? err.message : 'Unknown error' } }
+    try {
+      await autoUpdater.downloadUpdate()
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+    }
   })
   ipcMain.handle('install-update', () => autoUpdater.quitAndInstall())
   ipcMain.handle('get-app-version', () => app.getVersion())
@@ -38,7 +54,6 @@ export function registerIpcHandlers(): void {
     const saved = mergeTracerEngines(loadEngines(), generateGradient)
     // Run all FS work in a Worker thread — keeps main process event loop free
     return new Promise((resolve, reject) => {
-      const { Worker } = require('worker_threads')
       const w = new Worker(
         `
         const { parentPort, workerData } = require('worker_threads');
@@ -99,11 +114,16 @@ export function registerIpcHandlers(): void {
         }
         parentPort.postMessage(merged.filter(e => fs.existsSync(e.exePath)));
         `,
-        { eval: true, workerData: { saved, nativePath: require.resolve('../../native/dist/index.js') } }
+        {
+          eval: true,
+          workerData: { saved, nativePath: require.resolve('../../native/dist/index') }
+        }
       )
       w.once('message', resolve)
       w.once('error', reject)
-      w.once('exit', (c: number) => { if (c !== 0) reject(new Error(`Worker exited ${c}`)) })
+      w.once('exit', (c: number) => {
+        if (c !== 0) reject(new Error(`Worker exited ${c}`))
+      })
     }).then((valid: unknown) => {
       saveEngines(valid as Engine[])
       return valid as Engine[]
@@ -113,26 +133,38 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('select-engine-folder', async (): Promise<EngineSelectionResult | null> => {
     const win = getMainWindow()
     if (!win) return null
-    const result = await dialog.showOpenDialog(win, { title: 'Select Unreal Engine Folder', properties: ['openDirectory'] })
+    const result = await dialog.showOpenDialog(win, {
+      title: 'Select Unreal Engine Folder',
+      properties: ['openDirectory']
+    })
     if (result.canceled || result.filePaths.length === 0) return null
 
     const folder = result.filePaths[0]
     const validation = validateEngineInstallation(folder)
-    if (!validation.valid) return { added: null, duplicate: false, invalid: true, message: validation.reason }
+    if (!validation.valid)
+      return { added: null, duplicate: false, invalid: true, message: validation.reason }
 
     const engines = loadEngines()
     const byPath = engines.find((e) => e.directoryPath === folder)
     const byVersion = engines.find((e) => e.version === validation.version)
     if (byPath || byVersion) {
       return {
-        added: null, duplicate: true, invalid: false,
-        message: byPath ? 'This engine directory has already been added.' : `Engine version ${validation.version} is already added.`
+        added: null,
+        duplicate: true,
+        invalid: false,
+        message: byPath
+          ? 'This engine directory has already been added.'
+          : `Engine version ${validation.version} is already added.`
       }
     }
 
     const newEngine: Engine = {
-      version: validation.version, exePath: validation.exePath, directoryPath: folder,
-      folderSize: '~35-45 GB', lastLaunch: 'Unknown', gradient: generateGradient()
+      version: validation.version,
+      exePath: validation.exePath,
+      directoryPath: folder,
+      folderSize: '~35-45 GB',
+      lastLaunch: 'Unknown',
+      gradient: generateGradient()
     }
     engines.push(newEngine)
     saveEngines(engines)
@@ -146,7 +178,11 @@ export function registerIpcHandlers(): void {
       const engines = loadEngines()
       const engine = engines.find((e) => e.exePath === exePath)
       if (engine) {
-        engine.lastLaunch = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        engine.lastLaunch = new Date().toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        })
         saveEngines(engines)
       }
       return { success: true }
@@ -156,28 +192,37 @@ export function registerIpcHandlers(): void {
   })
 
   ipcMain.handle('delete-engine', (_event, directoryPath): boolean => {
-    try { saveEngines(loadEngines().filter((e) => e.directoryPath !== directoryPath)); return true }
-    catch { return false }
-  })
-
-  ipcMain.handle('calculate-engine-size', async (_event, directoryPath): Promise<Record<string, unknown>> => {
     try {
-      const sizeStr = formatBytes(await getFullFolderSize(directoryPath))
-      const engines = loadEngines()
-      const engine = engines.find((e) => e.directoryPath === directoryPath)
-      if (engine) { engine.folderSize = sizeStr; saveEngines(engines) }
-      return { success: true, size: sizeStr }
-    } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+      saveEngines(loadEngines().filter((e) => e.directoryPath !== directoryPath))
+      return true
+    } catch {
+      return false
     }
   })
+
+  ipcMain.handle(
+    'calculate-engine-size',
+    async (_event, directoryPath): Promise<Record<string, unknown>> => {
+      try {
+        const sizeStr = formatBytes(await getFullFolderSize(directoryPath))
+        const engines = loadEngines()
+        const engine = engines.find((e) => e.directoryPath === directoryPath)
+        if (engine) {
+          engine.folderSize = sizeStr
+          saveEngines(engines)
+        }
+        return { success: true, size: sizeStr }
+      } catch (err) {
+        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+      }
+    }
+  )
 
   // ── Projects ───────────────────────────────────────────────────────────────
 
   ipcMain.handle('scan-projects', async (): Promise<Project[]> => {
     const saved = mergeTracerProjects(loadProjects())
     return new Promise((resolve, reject) => {
-      const { Worker } = require('worker_threads')
       const w = new Worker(
         `
         const { parentPort, workerData } = require('worker_threads');
@@ -258,11 +303,16 @@ export function registerIpcHandlers(): void {
         }
         parentPort.postMessage(merged.filter(p => p.projectPath && fs.existsSync(path.join(p.projectPath, p.name + '.uproject'))));
         `,
-        { eval: true, workerData: { saved, nativePath: require.resolve('../../native/dist/index.js') } }
+        {
+          eval: true,
+          workerData: { saved, nativePath: require.resolve('../../native/dist/index') }
+        }
       )
       w.once('message', resolve)
       w.once('error', reject)
-      w.once('exit', (c: number) => { if (c !== 0) reject(new Error(`Worker exited ${c}`)) })
+      w.once('exit', (c: number) => {
+        if (c !== 0) reject(new Error(`Worker exited ${c}`))
+      })
     }).then((valid: unknown) => {
       saveProjects(valid as Project[])
       return valid as Project[]
@@ -272,15 +322,25 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('select-project-folder', async (): Promise<ProjectSelectionResult | null> => {
     const win = getMainWindow()
     if (!win) return null
-    const result = await dialog.showOpenDialog(win, { title: 'Select Unreal Project Folder', properties: ['openDirectory'] })
+    const result = await dialog.showOpenDialog(win, {
+      title: 'Select Unreal Project Folder',
+      properties: ['openDirectory']
+    })
     if (result.canceled || result.filePaths.length === 0) return null
 
     const folder = result.filePaths[0]
     const uprojectFiles = findUprojectFiles(folder, 3, 50)
-    const response: ProjectSelectionResult = { addedProjects: [], duplicateProjects: [], invalidProjects: [] }
+    const response: ProjectSelectionResult = {
+      addedProjects: [],
+      duplicateProjects: [],
+      invalidProjects: []
+    }
 
     if (uprojectFiles.length === 0) {
-      response.invalidProjects.push({ projectPath: folder, reason: 'No .uproject files were found in the selected folder.' })
+      response.invalidProjects.push({
+        projectPath: folder,
+        reason: 'No .uproject files were found in the selected folder.'
+      })
       return response
     }
 
@@ -291,7 +351,10 @@ export function registerIpcHandlers(): void {
     for (const uprojectPath of uprojectFiles) {
       if (response.addedProjects.length >= BATCH_LIMIT) {
         const remaining = uprojectFiles.length - uprojectFiles.indexOf(uprojectPath)
-        response.invalidProjects.push({ projectPath: folder, reason: `Batch limit reached. ${remaining} more project(s) were skipped. Add the folder again to continue importing.` })
+        response.invalidProjects.push({
+          projectPath: folder,
+          reason: `Batch limit reached. ${remaining} more project(s) were skipped. Add the folder again to continue importing.`
+        })
         break
       }
 
@@ -305,69 +368,101 @@ export function registerIpcHandlers(): void {
         if (typeof json.EngineAssociation === 'string') version = json.EngineAssociation
         if (typeof json.ProjectID === 'string') projectId = json.ProjectID
       } catch {
-        response.invalidProjects.push({ projectPath: projectDir, reason: 'Invalid or corrupted .uproject file.' })
+        response.invalidProjects.push({
+          projectPath: projectDir,
+          reason: 'Invalid or corrupted .uproject file.'
+        })
         continue
       }
 
-      const existing = known.find((p) =>
-        p.projectPath === projectDir || (projectId && p.projectId === projectId) || (!projectId && p.name === projectName)
+      const existing = known.find(
+        (p) =>
+          p.projectPath === projectDir ||
+          (projectId && p.projectId === projectId) ||
+          (!projectId && p.name === projectName)
       )
       if (existing) {
-        response.duplicateProjects.push({ projectPath: projectDir, name: projectName, reason: existing.projectPath === projectDir ? 'Already added' : 'Duplicate project name or ID' })
+        response.duplicateProjects.push({
+          projectPath: projectDir,
+          name: projectName,
+          reason:
+            existing.projectPath === projectDir ? 'Already added' : 'Duplicate project name or ID'
+        })
         continue
       }
 
       try {
         const stats = fs.statSync(projectDir)
         const newProject: Project = {
-          name: projectName, version, size: '~2-5 GB',
+          name: projectName,
+          version,
+          size: '~2-5 GB',
           createdAt: stats.birthtime.toISOString().split('T')[0],
-          projectPath: projectDir, thumbnail: findProjectScreenshot(projectDir), projectId
+          projectPath: projectDir,
+          thumbnail: findProjectScreenshot(projectDir),
+          projectId
         }
         response.addedProjects.push(newProject)
         known.push(newProject)
       } catch {
-        response.invalidProjects.push({ projectPath: projectDir, reason: 'Unable to read project folder metadata.' })
+        response.invalidProjects.push({
+          projectPath: projectDir,
+          reason: 'Unable to read project folder metadata.'
+        })
       }
     }
 
-    if (response.addedProjects.length > 0) saveProjects([...savedProjects, ...response.addedProjects])
+    if (response.addedProjects.length > 0)
+      saveProjects([...savedProjects, ...response.addedProjects])
     return response
   })
 
-  ipcMain.handle('launch-project', async (_event, projectPath): Promise<Record<string, unknown>> => {
-    const projectName = path.basename(projectPath)
-    const uprojectPath = path.join(projectPath, `${projectName}.uproject`)
-    if (!fs.existsSync(uprojectPath)) return { success: false, error: 'Project file not found' }
-    try {
-      if (process.platform === 'win32') exec(`start "" "${uprojectPath}"`)
-      else spawn('open', [uprojectPath], { detached: true, stdio: 'ignore' })
-      return { success: true }
-    } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  ipcMain.handle(
+    'launch-project',
+    async (_event, projectPath): Promise<Record<string, unknown>> => {
+      const projectName = path.basename(projectPath)
+      const uprojectPath = path.join(projectPath, `${projectName}.uproject`)
+      if (!fs.existsSync(uprojectPath)) return { success: false, error: 'Project file not found' }
+      try {
+        if (process.platform === 'win32') exec(`start "" "${uprojectPath}"`)
+        else spawn('open', [uprojectPath], { detached: true, stdio: 'ignore' })
+        return { success: true }
+      } catch (err) {
+        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+      }
     }
-  })
+  )
 
   ipcMain.handle('open-directory', (_event, dirPath): void => {
     spawn('explorer', [dirPath], { detached: true, stdio: 'ignore' })
   })
 
   ipcMain.handle('delete-project', (_event, projectPath): boolean => {
-    try { saveProjects(loadProjects().filter((p) => p.projectPath !== projectPath)); return true }
-    catch { return false }
-  })
-
-  ipcMain.handle('calculate-project-size', async (_event, projectPath): Promise<Record<string, unknown>> => {
     try {
-      const sizeStr = formatBytes(await getFullFolderSize(projectPath))
-      const projects = loadProjects()
-      const project = projects.find((p) => p.projectPath === projectPath)
-      if (project) { project.size = sizeStr; saveProjects(projects) }
-      return { success: true, size: sizeStr }
-    } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+      saveProjects(loadProjects().filter((p) => p.projectPath !== projectPath))
+      return true
+    } catch {
+      return false
     }
   })
+
+  ipcMain.handle(
+    'calculate-project-size',
+    async (_event, projectPath): Promise<Record<string, unknown>> => {
+      try {
+        const sizeStr = formatBytes(await getFullFolderSize(projectPath))
+        const projects = loadProjects()
+        const project = projects.find((p) => p.projectPath === projectPath)
+        if (project) {
+          project.size = sizeStr
+          saveProjects(projects)
+        }
+        return { success: true, size: sizeStr }
+      } catch (err) {
+        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+      }
+    }
+  )
 
   // Calculate sizes for all projects that still have approximate sizes.
   // Runs with concurrency=2 so the system stays responsive.
@@ -391,12 +486,21 @@ export function registerIpcHandlers(): void {
         // Persist
         const all = loadProjects()
         const entry = all.find((p) => p.projectPath === project.projectPath)
-        if (entry) { entry.size = sizeStr; saveProjects(all) }
+        if (entry) {
+          entry.size = sizeStr
+          saveProjects(all)
+        }
         // Push to renderer
         if (win && !win.isDestroyed()) {
-          win.webContents.send('size-calculated', { type: 'project', path: project.projectPath, size: sizeStr })
+          win.webContents.send('size-calculated', {
+            type: 'project',
+            path: project.projectPath,
+            size: sizeStr
+          })
         }
-      } catch { /* skip failed entries */ }
+      } catch {
+        /* skip failed entries */
+      }
       await next()
     }
 
@@ -409,7 +513,8 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('open-external', async (_event, url) => {
     try {
       const parsed = new URL(url)
-      if (parsed.protocol !== 'https:') return { success: false, error: 'Only https URLs are allowed' }
+      if (parsed.protocol !== 'https:')
+        return { success: false, error: 'Only https URLs are allowed' }
       await shell.openExternal(url)
       return { success: true }
     } catch (err) {
@@ -424,11 +529,8 @@ export function registerIpcHandlers(): void {
   // Writing the registry key ourselves makes Windows read the metadata directly
   // from the tracer exe (icon, ProductName, CompanyName from its version info).
 
-  // In production: resources/ sits next to the asar.
-  // In dev (electron-vite): app.getAppPath() returns the project root directly.
-  const tracerExe = app.isPackaged
-    ? path.join(process.resourcesPath, 'unreal_launcher_tracer.exe')
-    : path.resolve(app.getAppPath(), 'resources', 'unreal_launcher_tracer.exe')
+  // In production: resources/ sits inside app and dev uses the project root.
+  const tracerExe = path.join(app.getAppPath(), 'resources', 'unreal_launcher_tracer.exe')
 
   const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
   const TRACER_KEY_NAME = 'Unreal Launcher Tracer'
@@ -436,11 +538,10 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('tracer-get-startup', (): boolean => {
     if (process.platform !== 'win32') return false
     try {
-      const { execSync } = require('child_process')
-      const out = execSync(
-        `reg query "${RUN_KEY}" /v "${TRACER_KEY_NAME}" 2>nul`,
-        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-      )
+      const out = execSync(`reg query "${RUN_KEY}" /v "${TRACER_KEY_NAME}" 2>nul`, {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe']
+      })
       return out.includes(TRACER_KEY_NAME)
     } catch {
       return false
@@ -449,7 +550,6 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('tracer-set-startup', async (_event, enabled: boolean): Promise<void> => {
     if (process.platform !== 'win32') return
-    const { execSync } = require('child_process')
     console.log('[tracer-startup] exe path:', tracerExe, '| exists:', fs.existsSync(tracerExe))
     try {
       if (enabled) {
@@ -466,31 +566,33 @@ export function registerIpcHandlers(): void {
         const running = execSync(
           'tasklist /FI "IMAGENAME eq unreal_launcher_tracer.exe" /NH /FO CSV',
           { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-        ).toLowerCase().includes('unreal_launcher_tracer.exe')
+        )
+          .toLowerCase()
+          .includes('unreal_launcher_tracer.exe')
         if (!running) {
           spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
         }
       } else {
         // Unregister from startup
-        execSync(
-          `reg delete "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /f`,
-          { stdio: 'pipe' }
-        )
+        execSync(`reg delete "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /f`, { stdio: 'pipe' })
         // Force kill — use execSync only for taskkill which returns fast
         try {
           execSync('taskkill /F /IM unreal_launcher_tracer.exe', { stdio: 'pipe' })
-        } catch { /* not running — fine */ }
+        } catch {
+          /* not running — fine */
+        }
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   })
 
   ipcMain.handle('tracer-is-running', (): boolean => {
     try {
-      const { execSync } = require('child_process')
-      const out = execSync(
-        'tasklist /FI "IMAGENAME eq unreal_launcher_tracer.exe" /NH /FO CSV',
-        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-      )
+      const out = execSync('tasklist /FI "IMAGENAME eq unreal_launcher_tracer.exe" /NH /FO CSV', {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe']
+      })
       return out.toLowerCase().includes('unreal_launcher_tracer.exe')
     } catch {
       return false
@@ -513,6 +615,10 @@ export function registerIpcHandlers(): void {
   })
 
   // ── Data clearing ──────────────────────────────────────────────────────────
-  ipcMain.handle('clear-app-data', (): void => { clearAppData() })
-  ipcMain.handle('clear-tracer-data', (): void => { clearTracerData() })
+  ipcMain.handle('clear-app-data', (): void => {
+    clearAppData()
+  })
+  ipcMain.handle('clear-tracer-data', (): void => {
+    clearTracerData()
+  })
 }

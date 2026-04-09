@@ -10,7 +10,10 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
-      <div className="w-full h-full flex flex-col" style={{ backgroundColor: 'var(--color-surface)' }}>
+      <div
+        className="w-full h-full flex flex-col"
+        style={{ backgroundColor: 'var(--color-surface)' }}
+      >
         <div className="flex-1 flex min-h-0">
           <Sidebar />
           <div className="flex-1 min-h-0 flex flex-col">
@@ -19,7 +22,6 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
           </div>
         </div>
       </div>
-
     </motion.div>
   )
 }

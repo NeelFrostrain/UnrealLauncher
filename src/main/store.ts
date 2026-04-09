@@ -27,7 +27,11 @@ function migrateIfNeeded(): void {
     const oldPath = path.join(userDataPath, file)
     const newPath = path.join(saveDir, file)
     if (fs.existsSync(oldPath) && !fs.existsSync(newPath)) {
-      try { fs.renameSync(oldPath, newPath) } catch { /* ignore */ }
+      try {
+        fs.renameSync(oldPath, newPath)
+      } catch {
+        /* ignore */
+      }
     }
   }
 }
@@ -47,7 +51,9 @@ export function loadMainSettings(): MainSettings {
     if (fs.existsSync(settingsPath)) {
       return { ...defaultMainSettings, ...JSON.parse(fs.readFileSync(settingsPath, 'utf8')) }
     }
-  } catch { /* use defaults */ }
+  } catch {
+    /* use defaults */
+  }
   return { ...defaultMainSettings }
 }
 
@@ -56,21 +62,39 @@ export function saveMainSettings(settings: Partial<MainSettings>): void {
     ensureSaveDir()
     const current = loadMainSettings()
     fs.writeFileSync(settingsPath, JSON.stringify({ ...current, ...settings }, null, 2), 'utf8')
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 // ── Clear helpers ─────────────────────────────────────────────────────────────
 
 /** Wipe save/engines.json and save/projects.json — resets the app's data. */
 export function clearAppData(): void {
-  try { fs.writeFileSync(enginesDataPath, '[]', 'utf8') } catch { /* ignore */ }
-  try { fs.writeFileSync(projectsDataPath, '[]', 'utf8') } catch { /* ignore */ }
+  try {
+    fs.writeFileSync(enginesDataPath, '[]', 'utf8')
+  } catch {
+    /* ignore */
+  }
+  try {
+    fs.writeFileSync(projectsDataPath, '[]', 'utf8')
+  } catch {
+    /* ignore */
+  }
 }
 
 /** Wipe Tracer/engines.json and Tracer/projects.json — resets tracer history. */
 export function clearTracerData(): void {
-  try { fs.writeFileSync(tracerEnginesPath, '[]', 'utf8') } catch { /* ignore */ }
-  try { fs.writeFileSync(tracerProjectsPath, '[]', 'utf8') } catch { /* ignore */ }
+  try {
+    fs.writeFileSync(tracerEnginesPath, '[]', 'utf8')
+  } catch {
+    /* ignore */
+  }
+  try {
+    fs.writeFileSync(tracerProjectsPath, '[]', 'utf8')
+  } catch {
+    /* ignore */
+  }
 }
 
 // ── Engines ───────────────────────────────────────────────────────────────────
@@ -90,7 +114,9 @@ export function saveEngines(engines: Engine[]): void {
   try {
     ensureSaveDir()
     fs.writeFileSync(enginesDataPath, JSON.stringify(engines, null, 2), 'utf8')
-  } catch { /* continue */ }
+  } catch {
+    /* continue */
+  }
 }
 
 // ── Projects ──────────────────────────────────────────────────────────────────
@@ -110,7 +136,9 @@ export function saveProjects(projects: Project[]): void {
   try {
     ensureSaveDir()
     fs.writeFileSync(projectsDataPath, JSON.stringify(projects, null, 2), 'utf8')
-  } catch { /* continue */ }
+  } catch {
+    /* continue */
+  }
 }
 
 // ── Tracer merge ──────────────────────────────────────────────────────────────
@@ -147,17 +175,16 @@ function formatDateDisplay(raw: string): string {
   }
 }
 
-export function mergeTracerEngines(
-  saved: Engine[],
-  generateGradient: () => string
-): Engine[] {
+export function mergeTracerEngines(saved: Engine[], generateGradient: () => string): Engine[] {
   if (!loadMainSettings().tracerMergeEnabled) return saved
   if (!fs.existsSync(tracerEnginesPath)) return saved
 
   let tracerEngines: TracerEngine[] = []
   try {
     tracerEngines = JSON.parse(fs.readFileSync(tracerEnginesPath, 'utf8'))
-  } catch { return saved }
+  } catch {
+    return saved
+  }
 
   let changed = false
   const result = [...saved]
@@ -190,16 +217,16 @@ export function mergeTracerEngines(
   return result
 }
 
-export function mergeTracerProjects(
-  saved: Project[],
-): Project[] {
+export function mergeTracerProjects(saved: Project[]): Project[] {
   if (!loadMainSettings().tracerMergeEnabled) return saved
   if (!fs.existsSync(tracerProjectsPath)) return saved
 
   let tracerProjects: TracerProject[] = []
   try {
     tracerProjects = JSON.parse(fs.readFileSync(tracerProjectsPath, 'utf8'))
-  } catch { return saved }
+  } catch {
+    return saved
+  }
 
   let changed = false
   const result = [...saved]
@@ -223,7 +250,9 @@ export function mergeTracerProjects(
       let createdAt = ''
       try {
         createdAt = fs.statSync(tp.projectPath).birthtime.toISOString().split('T')[0]
-      } catch { createdAt = new Date().toISOString().split('T')[0] }
+      } catch {
+        createdAt = new Date().toISOString().split('T')[0]
+      }
 
       const screenshot = path.join(tp.projectPath, 'Saved', 'AutoScreenshot.png')
 

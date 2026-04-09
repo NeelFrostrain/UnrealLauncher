@@ -27,7 +27,10 @@ const Titlebar = (): React.ReactElement => {
   return (
     <div
       className="w-full h-10 flex items-center select-none shrink-0"
-      style={{ backgroundColor: 'var(--color-surface-elevated)', borderBottom: '1px solid var(--color-border)' }}
+      style={{
+        backgroundColor: 'var(--color-surface-elevated)',
+        borderBottom: '1px solid var(--color-border)'
+      }}
     >
       {/* Draggable empty region */}
       <div className="flex-1 h-full" style={drag} />

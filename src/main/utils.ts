@@ -3,10 +3,24 @@ import path from 'path'
 
 // ── Native module (napi-rs) ───────────────────────────────────────────────────
 // Single load point for the whole app. Everything below tries native first.
-let native: typeof import('../../native/dist/index') | null = null
+interface NativeModule {
+  validateEngineFolder: (folder: string) => {
+    valid: boolean
+    version: string
+    exePath: string
+    reason?: string
+  }
+  scanEngines: (extraPaths: string[]) => ScannedEngine[]
+  findUprojectFiles: (dir: string, maxDepth: number, maxFiles: number) => string[]
+  findProjectScreenshot: (projectPath: string) => string | null
+  findLatestLogTimestamp: (projectPath: string) => string | null
+  getFolderSize: (folderPath: string) => number
+}
+
+let native: NativeModule | null = null
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  native = require('../../native/dist/index.js')
+  native = require('../../native/dist/index')
   if (!native) throw new Error('module resolved to null')
   console.log('[native] Rust module loaded.')
 } catch (e) {
@@ -20,11 +34,25 @@ export { native }
 
 export function generateGradient(): string {
   const directions: Record<string, string> = {
-    'to-t': 'to top', 'to-tr': 'to top right', 'to-r': 'to right',
-    'to-br': 'to bottom right', 'to-b': 'to bottom', 'to-bl': 'to bottom left',
-    'to-l': 'to left', 'to-tl': 'to top left'
+    'to-t': 'to top',
+    'to-tr': 'to top right',
+    'to-r': 'to right',
+    'to-br': 'to bottom right',
+    'to-b': 'to bottom',
+    'to-bl': 'to bottom left',
+    'to-l': 'to left',
+    'to-tl': 'to top left'
   }
-  const colors = ['#2563eb', '#4f46e5', '#06b6d4', '#10b981', '#7c3aed', '#c026d3', '#f43f5e', '#f59e0b']
+  const colors = [
+    '#2563eb',
+    '#4f46e5',
+    '#06b6d4',
+    '#10b981',
+    '#7c3aed',
+    '#c026d3',
+    '#f43f5e',
+    '#f59e0b'
+  ]
   const pick = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)]
   const dirKey = pick(Object.keys(directions))
   const from = pick(colors)
@@ -56,8 +84,15 @@ export function validateEngineInstallation(folder: string): EngineValidationResu
   if (native) {
     try {
       const r = native.validateEngineFolder(folder)
-      return { valid: r.valid, version: r.version, exePath: r.exePath, reason: r.reason ?? undefined }
-    } catch { /* fall through */ }
+      return {
+        valid: r.valid,
+        version: r.version,
+        exePath: r.exePath,
+        reason: r.reason ?? undefined
+      }
+    } catch {
+      /* fall through */
+    }
   }
   return _validateEngineJS(folder)
 }
@@ -66,14 +101,28 @@ function _validateEngineJS(folder: string): EngineValidationResult {
   const engineDir = path.join(folder, 'Engine')
   const binPath = path.join(engineDir, 'Binaries', 'Win64')
 
-  if (!fs.existsSync(engineDir) || !fs.existsSync(path.join(engineDir, 'Source')) || !fs.existsSync(binPath)) {
-    return { valid: false, version: 'Unknown', exePath: '', reason: 'Selected folder does not contain a valid Unreal Engine installation.' }
+  if (
+    !fs.existsSync(engineDir) ||
+    !fs.existsSync(path.join(engineDir, 'Source')) ||
+    !fs.existsSync(binPath)
+  ) {
+    return {
+      valid: false,
+      version: 'Unknown',
+      exePath: '',
+      reason: 'Selected folder does not contain a valid Unreal Engine installation.'
+    }
   }
 
   let exePath = path.join(binPath, 'UnrealEditor.exe')
   if (!fs.existsSync(exePath)) exePath = path.join(binPath, 'UE4Editor.exe')
   if (!fs.existsSync(exePath)) {
-    return { valid: false, version: 'Unknown', exePath: '', reason: 'No UnrealEditor executable was found in the selected engine folder.' }
+    return {
+      valid: false,
+      version: 'Unknown',
+      exePath: '',
+      reason: 'No UnrealEditor executable was found in the selected engine folder.'
+    }
   }
 
   let version = path.basename(folder)
@@ -82,14 +131,19 @@ function _validateEngineJS(folder: string): EngineValidationResult {
   if (fs.existsSync(buildVersionPath)) {
     try {
       const bv = JSON.parse(fs.readFileSync(buildVersionPath, 'utf8'))
-      if (bv.MajorVersion != null && bv.MinorVersion != null) version = `${bv.MajorVersion}.${bv.MinorVersion}`
+      if (bv.MajorVersion != null && bv.MinorVersion != null)
+        version = `${bv.MajorVersion}.${bv.MinorVersion}`
       else if (typeof bv.BranchName === 'string') version = bv.BranchName
-    } catch { /* keep fallback */ }
+    } catch {
+      /* keep fallback */
+    }
   } else if (fs.existsSync(versionFilePath)) {
     try {
       const vd = JSON.parse(fs.readFileSync(versionFilePath, 'utf8'))
       if (typeof vd.EngineVersion === 'string') version = vd.EngineVersion
-    } catch { /* keep fallback */ }
+    } catch {
+      /* keep fallback */
+    }
   }
 
   return { valid: true, version, exePath }
@@ -114,7 +168,9 @@ export function scanEnginePaths(extraPaths: string[] = []): ScannedEngine[] {
   if (native) {
     try {
       return native.scanEngines(extraPaths)
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
   return _scanEnginesJS([...ENGINE_SCAN_PATHS, ...extraPaths])
 }
@@ -133,7 +189,9 @@ function _scanEnginesJS(basePaths: string[]): ScannedEngine[] {
         if (!fs.existsSync(exePath)) continue
         results.push({ version: item.replace('UE_', ''), exePath, directoryPath: enginePath })
       }
-    } catch (err) { console.error('[scan] Error scanning engine path:', basePath, err) }
+    } catch (err) {
+      console.error('[scan] Error scanning engine path:', basePath, err)
+    }
   }
   return results
 }
@@ -144,7 +202,9 @@ export function findUprojectFiles(dir: string, maxDepth = 5, maxFiles = 1000): s
   if (native) {
     try {
       return native.findUprojectFiles(dir, maxDepth, maxFiles)
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
   return _findUprojectFilesJS(dir, maxDepth, maxFiles)
 }
@@ -152,7 +212,15 @@ export function findUprojectFiles(dir: string, maxDepth = 5, maxFiles = 1000): s
 function _findUprojectFilesJS(dir: string, maxDepth: number, maxFiles: number): string[] {
   const files: string[] = []
   let count = 0
-  const SKIP = new Set(['node_modules', '.git', 'Binaries', 'Intermediate', 'DerivedDataCache', 'Saved', 'Plugins'])
+  const SKIP = new Set([
+    'node_modules',
+    '.git',
+    'Binaries',
+    'Intermediate',
+    'DerivedDataCache',
+    'Saved',
+    'Plugins'
+  ])
 
   function scan(cur: string, depth: number): void {
     if (depth > maxDepth || count >= maxFiles) return
@@ -168,7 +236,9 @@ function _findUprojectFilesJS(dir: string, maxDepth: number, maxFiles: number): 
           count++
         }
       }
-    } catch { /* skip unreadable dirs */ }
+    } catch {
+      /* skip unreadable dirs */
+    }
   }
 
   scan(dir, 0)
@@ -179,7 +249,11 @@ function _findUprojectFilesJS(dir: string, maxDepth: number, maxFiles: number): 
 
 export function findProjectScreenshot(projectPath: string): string | null {
   if (native) {
-    try { return native.findProjectScreenshot(projectPath) ?? null } catch { /* fall through */ }
+    try {
+      return native.findProjectScreenshot(projectPath) ?? null
+    } catch {
+      /* fall through */
+    }
   }
   const p = path.join(projectPath, 'Saved', 'AutoScreenshot.png')
   return fs.existsSync(p) ? p : null
@@ -187,7 +261,11 @@ export function findProjectScreenshot(projectPath: string): string | null {
 
 export function findLatestProjectLogTimestamp(projectPath: string): string | null {
   if (native) {
-    try { return native.findLatestLogTimestamp(projectPath) ?? null } catch { /* fall through */ }
+    try {
+      return native.findLatestLogTimestamp(projectPath) ?? null
+    } catch {
+      /* fall through */
+    }
   }
   const logsRoot = path.join(projectPath, 'Saved', 'Logs')
   if (!fs.existsSync(logsRoot)) return null
@@ -198,9 +276,13 @@ export function findLatestProjectLogTimestamp(projectPath: string): string | nul
       try {
         const stat = fs.statSync(path.join(logsRoot, item))
         if (stat.isFile() && (!latest || stat.mtime > latest)) latest = stat.mtime
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
     }
-  } catch { return null }
+  } catch {
+    return null
+  }
   return latest ? latest.toISOString() : null
 }
 
@@ -226,7 +308,7 @@ function _folderSizeWorker(folderPath: string): Promise<number> {
 
   // Inline worker: tries to load the native module first, falls back to JS walk.
   // We pass the native module path so the worker can require() it directly.
-  const nativeModulePath = require.resolve('../../native/dist/index.js')
+  const nativeModulePath = require.resolve('../../native/dist/index')
 
   const code = `
     const { parentPort, workerData } = require('worker_threads');
@@ -271,6 +353,8 @@ function _folderSizeWorker(folderPath: string): Promise<number> {
     })
     w.on('message', resolve)
     w.on('error', reject)
-    w.on('exit', (c: number) => { if (c !== 0) reject(new Error(`Worker exited ${c}`)) })
+    w.on('exit', (c: number) => {
+      if (c !== 0) reject(new Error(`Worker exited ${c}`))
+    })
   })
 }

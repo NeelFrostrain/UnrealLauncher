@@ -185,9 +185,13 @@ const EnginesPage = (): React.ReactElement => {
       {/* Page header — inline, part of the content flow */}
       <div className="flex items-center justify-between px-4 py-4 shrink-0">
         <div>
-          <h1 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>Engines</h1>
+          <h1 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+            Engines
+          </h1>
           <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
-            {engines.length > 0 ? `${engines.length} engine${engines.length === 1 ? '' : 's'} installed` : 'No engines found'}
+            {engines.length > 0
+              ? `${engines.length} engine${engines.length === 1 ? '' : 's'} installed`
+              : 'No engines found'}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -195,7 +199,11 @@ const EnginesPage = (): React.ReactElement => {
             onClick={handleScan}
             disabled={scanning}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-            style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' }}
+            style={{
+              backgroundColor: 'var(--color-surface-card)',
+              color: 'var(--color-text-secondary)',
+              border: '1px solid var(--color-border)'
+            }}
           >
             <RefreshCw size={12} className={scanning ? 'animate-spin' : ''} />
             {scanning ? 'Scanning…' : 'Scan'}
@@ -230,7 +238,10 @@ const EnginesPage = (): React.ReactElement => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center" style={{ color: 'var(--color-text-muted)' }}>
+          <div
+            className="flex flex-col items-center justify-center h-full text-center"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
             <p className="text-sm mb-1">No engines found</p>
             <p className="text-xs mb-4" style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}>
               Click Scan to search common paths, or Add Engine to browse manually
@@ -239,7 +250,11 @@ const EnginesPage = (): React.ReactElement => {
               onClick={handleScan}
               disabled={scanning}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer"
-              style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' }}
+              style={{
+                backgroundColor: 'var(--color-surface-card)',
+                color: 'var(--color-text-secondary)',
+                border: '1px solid var(--color-border)'
+              }}
             >
               <RefreshCw size={13} className={scanning ? 'animate-spin' : ''} />
               {scanning ? 'Scanning…' : 'Scan for Engines'}

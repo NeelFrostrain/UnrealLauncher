@@ -12,7 +12,10 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - 'out/**'
   - 'native/dist/**'
+  - 'resources/**'
+asar: false
 asarUnpack:
   - resources/**
   - native/dist/*.node
@@ -25,6 +28,8 @@ win:
   target:
     - target: nsis
       arch: [x64]
+    - target: dir
+      arch: [x64]
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -32,7 +37,6 @@ nsis:
   createDesktopShortcut: always
   oneClick: false
   allowToChangeInstallationDirectory: true
-  include: build/installer.nsh
   warningsAsErrors: false
 
 mac:

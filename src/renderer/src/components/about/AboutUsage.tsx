@@ -1,12 +1,30 @@
 import { BookOpen } from 'lucide-react'
 
 const steps = [
-  { title: '1. Scan for Engines & Projects', desc: 'Click "Scan for Engines" or "Scan for Projects" to automatically detect installations. The app searches common locations and calculates sizes in the background.' },
-  { title: '2. Add Manually', desc: 'Use "Add Engine" or "Add Project" buttons to manually select folders if they\'re in custom locations.' },
-  { title: '3. Launch & Manage', desc: 'Click the Launch button to start engines or projects. Hover over cards to access additional options like opening directories or removing from the list.' },
-  { title: '4. Track Usage', desc: 'The app automatically tracks when you last launched each engine, helping you manage your installations.' },
-  { title: '5. Use Favorites', desc: 'Click the heart icon on project cards to add them to your favorites. Access your favorite projects quickly from the Favorites tab.' },
-  { title: '6. Customize Settings', desc: 'Visit the Settings page to customize app behavior, including auto-close on launch and other preferences.' },
+  {
+    title: '1. Scan for Engines & Projects',
+    desc: 'Click "Scan for Engines" or "Scan for Projects" to automatically detect installations. The app searches common locations and calculates sizes in the background.'
+  },
+  {
+    title: '2. Add Manually',
+    desc: 'Use "Add Engine" or "Add Project" buttons to manually select folders if they\'re in custom locations.'
+  },
+  {
+    title: '3. Launch & Manage',
+    desc: 'Click the Launch button to start engines or projects. Hover over cards to access additional options like opening directories or removing from the list.'
+  },
+  {
+    title: '4. Track Usage',
+    desc: 'The app automatically tracks when you last launched each engine, helping you manage your installations.'
+  },
+  {
+    title: '5. Use Favorites',
+    desc: 'Click the heart icon on project cards to add them to your favorites. Access your favorite projects quickly from the Favorites tab.'
+  },
+  {
+    title: '6. Customize Settings',
+    desc: 'Visit the Settings page to customize app behavior, including auto-close on launch and other preferences.'
+  }
 ]
 
 const AboutUsage = (): React.ReactElement => (

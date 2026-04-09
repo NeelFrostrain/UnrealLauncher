@@ -22,22 +22,31 @@ export const useToast = (): ToastContextType => {
   return ctx
 }
 
-const config: Record<ToastType, { icon: React.ComponentType<{size?: number; className?: string}>; bar: string; iconCls: string }> = {
-  success: { icon: CheckCircle,  bar: 'bg-green-500',  iconCls: 'text-green-400' },
-  error:   { icon: XCircle,        bar: 'bg-red-500',    iconCls: 'text-red-400'   },
-  warning: { icon: AlertTriangle, bar: 'bg-yellow-500', iconCls: 'text-yellow-400'},
-  info:    { icon: Info,         bar: 'bg-blue-500',   iconCls: 'text-blue-400'  },
+const config: Record<
+  ToastType,
+  { icon: React.ComponentType<{ size?: number; className?: string }>; bar: string; iconCls: string }
+> = {
+  success: { icon: CheckCircle, bar: 'bg-green-500', iconCls: 'text-green-400' },
+  error: { icon: XCircle, bar: 'bg-red-500', iconCls: 'text-red-400' },
+  warning: { icon: AlertTriangle, bar: 'bg-yellow-500', iconCls: 'text-yellow-400' },
+  info: { icon: Info, bar: 'bg-blue-500', iconCls: 'text-blue-400' }
 }
 
-const ToastItem = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }): React.ReactElement => {
+const ToastItem = ({
+  toast,
+  onRemove
+}: {
+  toast: Toast
+  onRemove: (id: string) => void
+}): React.ReactElement => {
   const { icon: Icon, bar, iconCls } = config[toast.type]
 
   return (
     <motion.div
       layout
       initial={{ opacity: 0, x: 60, scale: 0.95 }}
-      animate={{ opacity: 1, x: 0,  scale: 1    }}
-      exit={{    opacity: 0, x: 60, scale: 0.95 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 60, scale: 0.95 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       className="flex items-center gap-3 w-80 bg-[#1c1c1c] border border-white/10 rounded-lg shadow-2xl overflow-hidden pr-3"
     >

@@ -54,7 +54,10 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     return (
       <motion.div
         className="w-full h-30 overflow-hidden rounded-md flex group transition-all duration-150 ease-in-out select-text"
-        style={{ backgroundColor: 'var(--color-surface-card)', border: '1px solid var(--color-border)' }}
+        style={{
+          backgroundColor: 'var(--color-surface-card)',
+          border: '1px solid var(--color-border)'
+        }}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -1 }}
@@ -74,7 +77,9 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
 
         <div
           className="flex-1 h-full flex flex-col p-4 justify-between"
-          style={{ backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 50%, transparent)' }}
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 50%, transparent)'
+          }}
         >
           <div className="flex justify-between items-start">
             <div className="flex-1 min-w-0">

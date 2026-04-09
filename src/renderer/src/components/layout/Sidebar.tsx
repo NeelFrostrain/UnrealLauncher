@@ -26,10 +26,10 @@ interface SidebarCardData {
 }
 
 const NAV_ITEMS: SidebarCardData[] = [
-  { title: 'Engines',  path: '/engines',  imageSrc: Engine_BG,    icon: <Zap     size={16} /> },
-  { title: 'Projects', path: '/projects', imageSrc: Projects_BG,  icon: <Package size={16} /> },
-  { title: 'Settings', path: '/settings', imageSrc: Settings_BG,  icon: <Settings size={16} /> },
-  { title: 'About',    path: '/about',    imageSrc: ProjectDefault, icon: <Activity size={16} /> },
+  { title: 'Engines', path: '/engines', imageSrc: Engine_BG, icon: <Zap size={16} /> },
+  { title: 'Projects', path: '/projects', imageSrc: Projects_BG, icon: <Package size={16} /> },
+  { title: 'Settings', path: '/settings', imageSrc: Settings_BG, icon: <Settings size={16} /> },
+  { title: 'About', path: '/about', imageSrc: ProjectDefault, icon: <Activity size={16} /> }
 ]
 
 // ── Expanded card ─────────────────────────────────────────────────────────────
@@ -42,11 +42,19 @@ const ExpandedCard: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item, 
       className={`w-full relative h-24 rounded-md border-2 overflow-hidden transition-all duration-200 cursor-pointer`}
       style={{
         borderColor: isActive ? 'var(--color-accent)' : 'transparent',
-        boxShadow: isActive ? '0 4px 20px color-mix(in srgb, var(--color-accent) 20%, transparent)' : undefined,
+        boxShadow: isActive
+          ? '0 4px 20px color-mix(in srgb, var(--color-accent) 20%, transparent)'
+          : undefined
       }}
     >
-      <img src={item.imageSrc} alt={item.title} className={`w-full h-full object-cover transition-all duration-200 ${isActive ? 'scale-105' : ''}`} />
-      <div className={`absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent z-10 transition-opacity duration-200 ${isActive ? 'opacity-90' : 'opacity-80 hover:opacity-90'}`} />
+      <img
+        src={item.imageSrc}
+        alt={item.title}
+        className={`w-full h-full object-cover transition-all duration-200 ${isActive ? 'scale-105' : ''}`}
+      />
+      <div
+        className={`absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent z-10 transition-opacity duration-200 ${isActive ? 'opacity-90' : 'opacity-80 hover:opacity-90'}`}
+      />
       <div className="absolute bottom-1 left-2 text-white text-sm font-semibold p-1 flex items-center gap-1.5 uppercase z-20">
         {item.icon}
         {item.title}
@@ -65,7 +73,7 @@ const CollapsedItem: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item,
       className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer"
       style={{
         backgroundColor: isActive ? 'var(--color-accent)' : undefined,
-        color: isActive ? 'white' : 'var(--color-text-muted)',
+        color: isActive ? 'white' : 'var(--color-text-muted)'
       }}
     >
       {item.icon}
@@ -92,16 +100,21 @@ const Sidebar = (): React.ReactElement => {
   const collapsedRef = useRef(collapsed)
 
   // Keep ref in sync with state
-  useEffect(() => { collapsedRef.current = collapsed }, [collapsed])
+  useEffect(() => {
+    collapsedRef.current = collapsed
+  }, [collapsed])
 
-  const onMouseDown = useCallback((e: React.MouseEvent) => {
-    if (collapsedRef.current) return
-    dragging.current = true
-    startX.current = e.clientX
-    startWidth.current = width
-    document.body.style.cursor = 'col-resize'
-    document.body.style.userSelect = 'none'
-  }, [width])
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (collapsedRef.current) return
+      dragging.current = true
+      startX.current = e.clientX
+      startWidth.current = width
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+    },
+    [width]
+  )
 
   useEffect(() => {
     const onMove = (e: MouseEvent): void => {
@@ -153,7 +166,9 @@ const Sidebar = (): React.ReactElement => {
       style={{ width: currentWidth, borderRight: '1px solid var(--color-border)' }}
     >
       {/* Nav items */}
-      <div className={`flex-1 overflow-hidden ${collapsed ? 'flex flex-col items-center gap-1.5 pt-3 px-1.5' : 'p-3'}`}>
+      <div
+        className={`flex-1 overflow-hidden ${collapsed ? 'flex flex-col items-center gap-1.5 pt-3 px-1.5' : 'p-3'}`}
+      >
         <AnimatePresence mode="wait" initial={false}>
           {collapsed ? (
             <motion.div

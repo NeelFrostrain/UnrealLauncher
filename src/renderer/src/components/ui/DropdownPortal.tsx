@@ -9,7 +9,12 @@ interface DropdownPortalProps {
   children: React.ReactNode
 }
 
-const DropdownPortal = ({ open, anchorRef, onClose, children }: DropdownPortalProps): React.ReactElement => {
+const DropdownPortal = ({
+  open,
+  anchorRef,
+  onClose,
+  children
+}: DropdownPortalProps): React.ReactElement => {
   const [pos, setPos] = useState({ top: 0, right: 0 })
   const dropRef = useRef<HTMLDivElement>(null)
 
@@ -25,8 +30,12 @@ const DropdownPortal = ({ open, anchorRef, onClose, children }: DropdownPortalPr
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent): void => {
-      if (dropRef.current && !dropRef.current.contains(e.target as Node) &&
-          anchorRef.current && !anchorRef.current.contains(e.target as Node)) {
+      if (
+        dropRef.current &&
+        !dropRef.current.contains(e.target as Node) &&
+        anchorRef.current &&
+        !anchorRef.current.contains(e.target as Node)
+      ) {
         onClose()
       }
     }

@@ -50,9 +50,7 @@ const ProjectCard = memo(
 
     // Convert absolute disk path → local-asset:// URL directly in the renderer.
     // No IPC round-trip, no base64 — the protocol handler serves the file.
-    const imageSrc = thumbnail
-      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}`
-      : null
+    const imageSrc = thumbnail ? `local-asset:///${thumbnail.replace(/\\/g, '/')}` : null
 
     useEffect(() => {
       setCurrentSize(size)

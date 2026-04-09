@@ -7,7 +7,6 @@
 ![S1](./docs/S1.png)
 ![S2](./docs/S2.png)
 
-
 ## ✅ What This Project Is
 
 **Unreal Launcher** is an Electron + React desktop application that helps you:

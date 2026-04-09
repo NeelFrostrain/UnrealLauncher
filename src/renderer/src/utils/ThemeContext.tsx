@@ -15,7 +15,7 @@ import {
   createProfile,
   resolveTokens,
   loadPersistedRadius,
-  applyRadius,
+  applyRadius
 } from './theme'
 
 interface ThemeContextType {
@@ -44,18 +44,25 @@ export const useTheme = (): ThemeContextType => {
 
 export const ThemeProvider = ({ children }: { children: ReactNode }): React.ReactElement => {
   const [activeThemeId, setActiveThemeId] = useState<string>(() => loadPersistedTheme().id)
-  const [customOverrides, setCustomOverrides] = useState<Partial<ThemeTokenMap>>(() => loadPersistedTheme().overrides)
+  const [customOverrides, setCustomOverrides] = useState<Partial<ThemeTokenMap>>(
+    () => loadPersistedTheme().overrides
+  )
   const [profiles, setProfiles] = useState<CustomProfile[]>(() => loadCustomProfiles())
   const [activeProfileId, setActiveProfileId] = useState<string | null>(() => loadActiveProfileId())
 
   // Apply radius on mount
-  useEffect(() => { applyRadius(loadPersistedRadius()) }, [])
+  useEffect(() => {
+    applyRadius(loadPersistedRadius())
+  }, [])
 
   // Apply CSS variables whenever active theme/overrides/profile changes
   useEffect(() => {
     if (activeProfileId) {
       const profile = profiles.find((p) => p.id === activeProfileId)
-      if (profile) { applyTheme(profile.tokens); return }
+      if (profile) {
+        applyTheme(profile.tokens)
+        return
+      }
     }
     const base = getTheme(activeThemeId)
     applyTheme(base.tokens, customOverrides)
@@ -72,7 +79,10 @@ export const ThemeProvider = ({ children }: { children: ReactNode }): React.Reac
       setActiveThemeId(theme.id)
       setActiveProfileId(null)
       saveActiveProfileId(null)
-      setCustomOverrides((prev) => { persistTheme(theme.id, prev); return prev })
+      setCustomOverrides((prev) => {
+        persistTheme(theme.id, prev)
+        return prev
+      })
     }
   }, [])
 
@@ -81,7 +91,10 @@ export const ThemeProvider = ({ children }: { children: ReactNode }): React.Reac
     saveActiveProfileId(null)
     setCustomOverrides((prev) => {
       const next = { ...prev, [token]: value }
-      setActiveThemeId((id) => { persistTheme(id, next); return id })
+      setActiveThemeId((id) => {
+        persistTheme(id, next)
+        return id
+      })
       return next
     })
   }, [])
@@ -90,37 +103,46 @@ export const ThemeProvider = ({ children }: { children: ReactNode }): React.Reac
     setCustomOverrides({})
     setActiveProfileId(null)
     saveActiveProfileId(null)
-    setActiveThemeId((id) => { persistTheme(id, {}); return id })
+    setActiveThemeId((id) => {
+      persistTheme(id, {})
+      return id
+    })
   }, [])
 
   // ── Profile CRUD ──────────────────────────────────────────────────────────
 
-  const saveAsProfile = useCallback((name: string): CustomProfile => {
-    const baseTokens = resolveTokens(activeThemeId, profiles)
-    const merged = { ...baseTokens, ...customOverrides } as ThemeTokenMap
-    const profile = createProfile(name, merged)
-    setProfiles((prev) => {
-      const next = [...prev, profile]
-      saveCustomProfiles(next)
-      return next
-    })
-    setActiveProfileId(profile.id)
-    saveActiveProfileId(profile.id)
-    return profile
-  }, [activeThemeId, customOverrides, profiles])
+  const saveAsProfile = useCallback(
+    (name: string): CustomProfile => {
+      const baseTokens = resolveTokens(activeThemeId, profiles)
+      const merged = { ...baseTokens, ...customOverrides } as ThemeTokenMap
+      const profile = createProfile(name, merged)
+      setProfiles((prev) => {
+        const next = [...prev, profile]
+        saveCustomProfiles(next)
+        return next
+      })
+      setActiveProfileId(profile.id)
+      saveActiveProfileId(profile.id)
+      return profile
+    },
+    [activeThemeId, customOverrides, profiles]
+  )
 
   const applyProfile = useCallback((id: string) => {
     setActiveProfileId(id)
     saveActiveProfileId(id)
   }, [])
 
-  const updateProfile = useCallback((id: string, patch: Partial<Pick<CustomProfile, 'name' | 'tokens'>>) => {
-    setProfiles((prev) => {
-      const next = prev.map((p) => p.id === id ? { ...p, ...patch } : p)
-      saveCustomProfiles(next)
-      return next
-    })
-  }, [])
+  const updateProfile = useCallback(
+    (id: string, patch: Partial<Pick<CustomProfile, 'name' | 'tokens'>>) => {
+      setProfiles((prev) => {
+        const next = prev.map((p) => (p.id === id ? { ...p, ...patch } : p))
+        saveCustomProfiles(next)
+        return next
+      })
+    },
+    []
+  )
 
   const deleteProfile = useCallback((id: string) => {
     setProfiles((prev) => {
@@ -129,16 +151,30 @@ export const ThemeProvider = ({ children }: { children: ReactNode }): React.Reac
       return next
     })
     setActiveProfileId((cur) => {
-      if (cur === id) { saveActiveProfileId(null); return null }
+      if (cur === id) {
+        saveActiveProfileId(null)
+        return null
+      }
       return cur
     })
   }, [])
 
   return (
-    <ThemeContext.Provider value={{
-      activeThemeId, customOverrides, setTheme, setOverride, resetOverrides,
-      profiles, activeProfileId, saveAsProfile, applyProfile, updateProfile, deleteProfile,
-    }}>
+    <ThemeContext.Provider
+      value={{
+        activeThemeId,
+        customOverrides,
+        setTheme,
+        setOverride,
+        resetOverrides,
+        profiles,
+        activeProfileId,
+        saveAsProfile,
+        applyProfile,
+        updateProfile,
+        deleteProfile
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   )

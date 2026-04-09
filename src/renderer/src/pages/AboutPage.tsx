@@ -2,7 +2,15 @@ import { useEffect, useState } from 'react'
 import PageWrapper from '../layout/PageWrapper'
 import AboutFeatures from '../components/about/AboutFeatures'
 import AboutUsage from '../components/about/AboutUsage'
-import { AboutKnownIssues, AboutTechnical, AboutContributing, AboutCodeOfConduct, AboutSecurity, AboutSupport, AboutFooter } from '../components/about/AboutInfo'
+import {
+  AboutKnownIssues,
+  AboutTechnical,
+  AboutContributing,
+  AboutCodeOfConduct,
+  AboutSecurity,
+  AboutSupport,
+  AboutFooter
+} from '../components/about/AboutInfo'
 import AboutUpdates from '../components/about/AboutUpdates'
 import AboutChangelog from '../components/about/AboutChangelog'
 
@@ -12,8 +20,11 @@ const AboutPage = (): React.ReactElement => {
   useEffect(() => {
     const load = async (): Promise<void> => {
       if (window.electronAPI?.getAppVersion) {
-        try { setAppVersion(await window.electronAPI.getAppVersion()) }
-        catch (err) { console.error('Failed to get app version:', err) }
+        try {
+          setAppVersion(await window.electronAPI.getAppVersion())
+        } catch (err) {
+          console.error('Failed to get app version:', err)
+        }
       }
     }
     void load()

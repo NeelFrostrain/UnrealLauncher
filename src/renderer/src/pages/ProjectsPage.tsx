@@ -60,10 +60,9 @@ const ProjectsPage = (): React.ReactElement => {
     setCurrentTab(tab)
     // Load projects for the tab if needed
     if (allProjectsRef.current.length > 0) {
-      const favs = getFavoritePaths()
-      setProjects(filterForTab(tab, allProjectsRef.current, favs))
+      setProjects(filterForTab(tab, allProjectsRef.current, favoritePaths))
     }
-  }, [location.pathname])
+  }, [location.pathname, favoritePaths])
 
   const getFavoritePaths = (): string[] => favoritePaths
 
@@ -132,7 +131,7 @@ const ProjectsPage = (): React.ReactElement => {
       })
       return cleanup
     }
-    return () => { } // No-op cleanup if electronAPI is not available
+    return () => {} // No-op cleanup if electronAPI is not available
   }, [])
 
   const switchTab = (tab: TabType): void => {
@@ -279,8 +278,8 @@ const ProjectsPage = (): React.ReactElement => {
     () =>
       (searchQuery.trim()
         ? projects.filter((project) =>
-          project.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
-        )
+            project.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+          )
         : projects
       ).map((project) => ({
         ...project,
@@ -318,7 +317,7 @@ const ProjectsPage = (): React.ReactElement => {
               ref={gridRef}
               // Replace all those grid-cols-X classes with this:
               className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto py-2 px-2 h-full content-start"
-            // style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
+              // style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
             >
               {visibleProjects.map((data) => (
                 <ProjectCardGrid

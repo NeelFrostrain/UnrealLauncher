@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.0] - 2026-04-09
+
+### ✅ Added
+
+- 🎨 **UI Theme Customization** — Complete theme system with built-in themes, custom color overrides, and profile management. Save, apply, update, and delete custom themes.
+- 📏 **Collapsible Sidebar** — Sidebar can now be resized and collapsed like Discord, with smooth animations and persistent state.
+- ⚡ **Worker Threads** — Scanning engines and projects now uses worker threads for better performance and non-blocking UI.
+- 🖼️ **Virtualization** — Engines and projects lists use virtualization for improved performance with large datasets.
+- 🔧 **Diagnostic Tool** — New Unreal Launcher Tracer for tracking Unreal Engine processes and performance.
+- 📁 **Local Asset Protocol** — Direct file access for images without IPC, improving load times.
+- 📊 **Project Size Calculation** — API to calculate sizes of all projects, integrated into the UI.
+- 🎛️ **Settings Enhancements** — Border radius customization, range sliders, and improved layout.
+
+### 🛠️ Fixed
+
+- 🎨 **Settings Page Layout** — Adjusted padding in title for better alignment.
+
+### 🏗️ Changed
+
+- 🔄 **Titlebar Refactor** — Streamlined component usage and improved layout structure.
+
 ## [1.8.0] - 2026-04-05
 
 ### ✅ Added
@@ -71,7 +92,6 @@ All notable changes to this project will be documented in this file.
 
 - Initial MVP with engine detection and launch
 
-
 ### ✅ Added
 
 - 🕐 **Recent Projects Tab** — Now accurately sorted by last opened time, read from `Saved/Logs` file timestamps
@@ -92,7 +112,6 @@ All notable changes to this project will be documented in this file.
 ### 🛠️ Changed
 
 - 📦 Replaced `lucide-react` with `@mui/icons-material` + `@mui/material` + `@emotion/react` + `@emotion/styled`
-
 
 ### 🛠️ Fixed
 

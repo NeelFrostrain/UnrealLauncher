@@ -61,13 +61,17 @@ declare global {
       launchEngine: (exePath: string) => Promise<{ success: boolean; error?: string }>
       selectEngineFolder: () => Promise<EngineSelectionResult | null>
       deleteEngine: (directoryPath: string) => Promise<boolean>
-      calculateEngineSize: (directoryPath: string) => Promise<{ success: boolean; size?: string; error?: string }>
+      calculateEngineSize: (
+        directoryPath: string
+      ) => Promise<{ success: boolean; size?: string; error?: string }>
       // Projects
       scanProjects: () => Promise<ProjectData[]>
       launchProject: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       selectProjectFolder: () => Promise<ProjectSelectionResult | null>
       deleteProject: (projectPath: string) => Promise<boolean>
-      calculateProjectSize: (projectPath: string) => Promise<{ success: boolean; size?: string; error?: string }>
+      calculateProjectSize: (
+        projectPath: string
+      ) => Promise<{ success: boolean; size?: string; error?: string }>
       calculateAllProjectSizes: () => Promise<void>
       // Filesystem
       openDirectory: (dirPath: string) => Promise<void>
@@ -92,7 +96,14 @@ declare global {
         message?: string
         error?: string
       }>
-      onDownloadProgress: (callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void) => () => void
+      onDownloadProgress: (
+        callback: (progress: {
+          percent: number
+          bytesPerSecond: number
+          transferred: number
+          total: number
+        }) => void
+      ) => () => void
       // Tracer / startup
       getTracerStartup: () => Promise<boolean>
       setTracerStartup: (enabled: boolean) => Promise<void>
