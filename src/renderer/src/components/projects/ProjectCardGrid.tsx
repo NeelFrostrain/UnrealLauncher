@@ -88,7 +88,7 @@ const ProjectCardGrid = memo(
         />
 
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
         {/* Top badges */}
         <div className="absolute top-2.5 inset-x-2.5 z-10 flex items-center justify-between">
@@ -128,7 +128,7 @@ const ProjectCardGrid = memo(
         <AnimatePresence>
           {hovered && !launching && (
             <motion.div
-              className="absolute bottom-0 inset-x-0 z-20 flex items-center justify-between px-4 gap-2 bg-linear-to-t from-black/80 to-transparent py-4"
+              className="absolute bottom-0 inset-x-0 z-20 flex items-center justify-between px-4 gap-2 bg-gradient-to-t from-black/80 to-transparent py-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}

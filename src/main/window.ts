@@ -63,7 +63,7 @@ function createSplashWindow(): void {
             margin: 0;
             padding: 0;
             height: 100vh;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
             background-color: var(--color-surface);
             color: var(--color-text-primary);
             display: flex;

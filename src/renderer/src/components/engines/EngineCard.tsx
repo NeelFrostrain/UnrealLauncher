@@ -53,7 +53,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
 
     return (
       <motion.div
-        className="w-full h-30 overflow-hidden flex group transition-all duration-150 ease-in-out select-text"
+        className="w-full h-36 overflow-hidden flex group transition-all duration-150 ease-in-out select-text"
         style={{
           backgroundColor: 'var(--color-surface-card)',
           border: '1px solid var(--color-border)',

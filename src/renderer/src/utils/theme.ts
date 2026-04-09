@@ -10,6 +10,8 @@ export type ThemeToken =
   | 'text-primary'
   | 'text-secondary'
   | 'text-muted'
+  | 'font-family'
+  | 'font-size'
 
 export type ThemeTokenMap = Record<ThemeToken, string>
 
@@ -34,7 +36,10 @@ export const BUILT_IN_THEMES: BuiltInTheme[] = [
       'accent-hover': '#1d4ed8',
       'text-primary': 'rgba(255,255,255,0.90)',
       'text-secondary': 'rgba(255,255,255,0.60)',
-      'text-muted': 'rgba(255,255,255,0.40)'
+      'text-muted': 'rgba(255,255,255,0.40)',
+      'font-family':
+        "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      'font-size': '15px'
     }
   },
   {
@@ -49,7 +54,10 @@ export const BUILT_IN_THEMES: BuiltInTheme[] = [
       'accent-hover': '#1d4ed8',
       'text-primary': 'rgba(255,255,255,0.90)',
       'text-secondary': 'rgba(255,255,255,0.55)',
-      'text-muted': 'rgba(255,255,255,0.35)'
+      'text-muted': 'rgba(255,255,255,0.35)',
+      'font-family':
+        "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      'font-size': '15px'
     }
   },
   {
@@ -64,7 +72,10 @@ export const BUILT_IN_THEMES: BuiltInTheme[] = [
       'accent-hover': '#2563eb',
       'text-primary': 'rgba(226,232,240,0.92)',
       'text-secondary': 'rgba(148,163,184,0.80)',
-      'text-muted': 'rgba(100,116,139,0.70)'
+      'text-muted': 'rgba(100,116,139,0.70)',
+      'font-family':
+        "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      'font-size': '15px'
     }
   },
   {
@@ -79,7 +90,10 @@ export const BUILT_IN_THEMES: BuiltInTheme[] = [
       'accent-hover': '#b45309',
       'text-primary': 'rgba(255,248,235,0.90)',
       'text-secondary': 'rgba(214,188,150,0.70)',
-      'text-muted': 'rgba(180,155,110,0.50)'
+      'text-muted': 'rgba(180,155,110,0.50)',
+      'font-family':
+        "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      'font-size': '15px'
     }
   }
 ]
@@ -96,7 +110,13 @@ export function applyTheme(tokens: ThemeTokenMap, overrides: Partial<ThemeTokenM
   const merged = { ...tokens, ...overrides }
   const root = document.documentElement
   for (const [key, value] of Object.entries(merged)) {
-    root.style.setProperty(`--color-${key}`, value)
+    if (key === 'font-family') {
+      root.style.setProperty('--font-family', value)
+    } else if (key === 'font-size') {
+      root.style.setProperty('--font-size', value)
+    } else {
+      root.style.setProperty(`--color-${key}`, value)
+    }
   }
 }
 

@@ -29,6 +29,39 @@ import {
   applyRadius
 } from '../utils/theme'
 
+const FONT_OPTIONS = [
+  {
+    id: 'inter',
+    label: 'Inter',
+    value: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+  },
+  {
+    id: 'open-sans',
+    label: 'Open Sans',
+    value: "'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+  },
+  {
+    id: 'outfit',
+    label: 'Outfit',
+    value: "'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+  },
+  {
+    id: 'roboto',
+    label: 'Roboto',
+    value: "'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+  },
+  {
+    id: 'rubik',
+    label: 'Rubik',
+    value: "'Rubik', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+  },
+  {
+    id: 'ubuntu',
+    label: 'Ubuntu',
+    value: "'Ubuntu', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+  }
+]
+
 // ── Reusable row ──────────────────────────────────────────────────────────────
 
 const SettingRow = ({
@@ -279,6 +312,11 @@ const SettingsPage = (): React.ReactElement => {
   }
 
   const hasOverrides = Object.keys(customOverrides).length > 0
+  const currentFontSize =
+    customOverrides['font-size'] ??
+    BUILT_IN_THEMES.find((t) => t.id === activeThemeId)?.tokens['font-size'] ??
+    '15px'
+  const fontSizeValue = Number(currentFontSize.replace('px', '')) || 15
 
   return (
     <PageWrapper>
@@ -307,7 +345,7 @@ const SettingsPage = (): React.ReactElement => {
               {/* Theme picker */}
               <div className="p-5 border-b border-white/5">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-medium text-white/85">Theme</p>
+                  <p className="text-sm font-medium text-white/85">Theme Presets</p>
                   {hasOverrides && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/25">
                       Custom active
@@ -359,6 +397,91 @@ const SettingsPage = (): React.ReactElement => {
                       </button>
                     )
                   })}
+                </div>
+              </div>
+
+              {/* Font family */}
+              <div className="p-5 border-t border-white/5">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-sm font-medium text-white/85">Font family</p>
+                    <p className="text-xs text-white/50 mt-0.5">
+                      Choose a font for sidebar, settings, and UI text.
+                    </p>
+                  </div>
+                  <p className="text-xs text-white/30">
+                    {FONT_OPTIONS.find(
+                      (option) =>
+                        option.value ===
+                        (customOverrides['font-family'] ??
+                          BUILT_IN_THEMES.find((t) => t.id === activeThemeId)?.tokens[
+                            'font-family'
+                          ])
+                    )?.label || 'Custom'}
+                  </p>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                  {FONT_OPTIONS.map((option) => {
+                    const active =
+                      customOverrides['font-family'] === option.value ||
+                      (customOverrides['font-family'] === undefined &&
+                        BUILT_IN_THEMES.find((t) => t.id === activeThemeId)?.tokens[
+                          'font-family'
+                        ] === option.value)
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setOverride('font-family', option.value)}
+                        className={`rounded-lg px-3 py-2 text-xs text-left transition-all border ${
+                          active ? 'border-blue-500 bg-blue-500/10' : 'border-white/10 bg-white/5'
+                        } hover:border-blue-400/70`}
+                        style={{ fontFamily: option.value }}
+                      >
+                        {option.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Font size */}
+              <div className="p-5 border-t border-white/5">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-sm font-medium text-white/85">Font size</p>
+                    <p className="text-xs text-white/50 mt-0.5">
+                      Adjust base UI text size for readability.
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono" style={{ color: 'var(--color-text-muted)' }}>
+                    {fontSizeValue}px
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+                    Smaller
+                  </span>
+                  <input
+                    type="range"
+                    min={12}
+                    max={20}
+                    step={1}
+                    value={fontSizeValue}
+                    onInput={(e) =>
+                      setOverride('font-size', `${(e.target as HTMLInputElement).value}px`)
+                    }
+                    onChange={(e) => setOverride('font-size', `${e.target.value}px`)}
+                    className="flex-1 cursor-pointer"
+                    style={
+                      {
+                        '--range-pct': `${((fontSizeValue - 12) / 8) * 100}%`
+                      } as React.CSSProperties
+                    }
+                  />
+                  <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+                    Bigger
+                  </span>
                 </div>
               </div>
 
@@ -441,6 +564,7 @@ const SettingsPage = (): React.ReactElement => {
                 >
                   {[
                     { token: 'accent' as ThemeToken, label: 'Accent' },
+                    { token: 'border' as ThemeToken, label: 'Border' },
                     { token: 'surface' as ThemeToken, label: 'Background' },
                     { token: 'surface-card' as ThemeToken, label: 'Card' },
                     { token: 'surface-elevated' as ThemeToken, label: 'Elevated' }
@@ -450,6 +574,7 @@ const SettingsPage = (): React.ReactElement => {
                       '#000000'
                     const current = customOverrides[token] ?? base
                     const isHex = current.startsWith('#')
+                    const pickerValue = isHex ? current : '#ffffff'
                     const isOverridden = !!customOverrides[token]
                     return (
                       <label
@@ -458,14 +583,12 @@ const SettingsPage = (): React.ReactElement => {
                         style={{ backgroundColor: 'var(--color-surface-card)' }}
                       >
                         <div className="relative">
-                          {isHex ? (
-                            <input
-                              type="color"
-                              value={current}
-                              onChange={(e) => setOverride(token, e.target.value)}
-                              className="w-8 h-8 rounded-md cursor-pointer opacity-0 absolute inset-0"
-                            />
-                          ) : null}
+                          <input
+                            type="color"
+                            value={pickerValue}
+                            onChange={(e) => setOverride(token, e.target.value)}
+                            className="w-8 h-8 rounded-md cursor-pointer opacity-0 absolute inset-0"
+                          />
                           <div
                             className="w-8 h-8 rounded-md border border-white/15 pointer-events-none"
                             style={{ background: current }}
@@ -585,12 +708,24 @@ const SettingsPage = (): React.ReactElement => {
                             className="w-full text-[11px] bg-transparent border-b border-white/30 text-white/80 outline-none"
                           />
                         ) : (
-                          <p
-                            className="text-[11px] font-medium leading-snug wrap-break-word"
-                            style={{ color: profile.tokens['text-secondary'] }}
-                          >
-                            {profile.name}
-                          </p>
+                          <>
+                            <p
+                              className="text-[11px] font-medium leading-snug wrap-break-word"
+                              style={{ color: profile.tokens['text-secondary'] }}
+                            >
+                              {profile.name}
+                            </p>
+                            <p
+                              className="text-[10px] mt-1"
+                              style={{
+                                color: profile.tokens['text-secondary'],
+                                fontFamily: profile.tokens['font-family'],
+                                fontSize: profile.tokens['font-size']
+                              }}
+                            >
+                              Aa · {profile.tokens['font-size']}
+                            </p>
+                          </>
                         )}
 
                         {/* Active checkmark */}
