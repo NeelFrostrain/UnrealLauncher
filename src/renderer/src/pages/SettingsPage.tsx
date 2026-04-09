@@ -1,9 +1,74 @@
 import { useState, useEffect } from 'react'
 import PageWrapper from '../layout/PageWrapper'
-import { Activity, Database, FolderOpen, Settings, ToggleLeft, ToggleRight, Trash2, Zap } from 'lucide-react'
+import {
+  Activity, Database, FolderOpen, Palette, RotateCcw,
+  Trash2, Zap, Check
+} from 'lucide-react'
 import { getSetting, setSetting } from '../utils/settings'
+import { useTheme } from '../utils/ThemeContext'
+import { BUILT_IN_THEMES, type ThemeToken } from '../utils/theme'
+
+// ── Reusable row ──────────────────────────────────────────────────────────────
+
+const SettingRow = ({
+  label, description, children, last = false
+}: {
+  label: string
+  description?: string
+  children: React.ReactNode
+  last?: boolean
+}): React.ReactElement => (
+  <div className={`flex items-center justify-between gap-6 px-5 py-4 ${!last ? 'border-b border-white/5' : ''}`}>
+    <div className="min-w-0">
+      <p className="text-sm font-medium text-white/85">{label}</p>
+      {description && <p className="text-xs text-white/40 mt-0.5 leading-relaxed">{description}</p>}
+    </div>
+    <div className="shrink-0">{children}</div>
+  </div>
+)
+
+// ── Toggle ────────────────────────────────────────────────────────────────────
+
+const Toggle = ({ on, onChange, color = 'blue' }: { on: boolean; onChange: () => void; color?: 'blue' | 'green' }): React.ReactElement => (
+  <button
+    onClick={onChange}
+    className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none ${
+      on
+        ? color === 'green' ? 'bg-green-500' : 'bg-blue-600'
+        : 'bg-white/15'
+    }`}
+    role="switch"
+    aria-checked={on}
+  >
+    <span
+      className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${on ? 'translate-x-5' : 'translate-x-0'}`}
+    />
+  </button>
+)
+
+// ── Section header ────────────────────────────────────────────────────────────
+
+const SectionHeader = ({ icon, label, accent }: { icon: React.ReactNode; label: string; accent: string }): React.ReactElement => (
+  <div className="flex items-center gap-2.5 mb-2 px-1">
+    <div className={`w-6 h-6 rounded-md flex items-center justify-center ${accent}`}>
+      {icon}
+    </div>
+    <span className="text-xs font-semibold text-white/50 uppercase tracking-widest">{label}</span>
+  </div>
+)
+
+// ── Card wrapper ──────────────────────────────────────────────────────────────
+
+const Card = ({ children }: { children: React.ReactNode }): React.ReactElement => (
+  <div className="rounded-xl border border-white/8 overflow-hidden" style={{ backgroundColor: 'var(--color-surface-elevated)' }}>
+    {children}
+  </div>
+)
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 const SettingsPage = (): React.ReactElement => {
+  const { activeThemeId, customOverrides, setTheme, setOverride, resetOverrides } = useTheme()
   const [autoCloseOnLaunch, setAutoCloseOnLaunch] = useState(false)
   const [tracerAutoStart, setTracerAutoStart] = useState(false)
   const [tracerRunning, setTracerRunning] = useState(false)
@@ -17,35 +82,11 @@ const SettingsPage = (): React.ReactElement => {
     window.electronAPI.isTracerRunning().then(setTracerRunning)
     window.electronAPI.getTracerDataDir().then(setTracerDataDir)
     window.electronAPI.getTracerMerge().then(setTracerMerge)
-
     const interval = setInterval(() => {
       window.electronAPI.isTracerRunning().then(setTracerRunning)
     }, 5000)
     return () => clearInterval(interval)
   }, [])
-
-  const handleToggleAutoClose = (): void => {
-    const next = !autoCloseOnLaunch
-    setAutoCloseOnLaunch(next)
-    setSetting('autoCloseOnLaunch', next)
-  }
-
-  const handleToggleTracer = async (): Promise<void> => {
-    const next = !tracerAutoStart
-    setTracerAutoStart(next)
-    setSetting('tracerAutoStart', next)
-    await window.electronAPI.setTracerStartup(next)
-    setTimeout(async () => {
-      const running = await window.electronAPI.isTracerRunning()
-      setTracerRunning(running)
-    }, 1500)
-  }
-
-  const handleToggleMerge = async (): Promise<void> => {
-    const next = !tracerMerge
-    setTracerMerge(next)
-    await window.electronAPI.setTracerMerge(next)
-  }
 
   const handleClearAppData = async (): Promise<void> => {
     if (!confirm('Clear all saved engines and projects? This cannot be undone.')) return
@@ -55,171 +96,226 @@ const SettingsPage = (): React.ReactElement => {
   }
 
   const handleClearTracerData = async (): Promise<void> => {
-    if (!confirm('Clear all tracer history (engines and projects)? This cannot be undone.')) return
+    if (!confirm('Clear all tracer history? This cannot be undone.')) return
     setClearing('tracer')
     await window.electronAPI.clearTracerData()
     setClearing(null)
   }
 
+  const hasOverrides = Object.keys(customOverrides).length > 0
+
   return (
     <PageWrapper>
-      <div className="flex-1 overflow-y-auto py-3 px-2">
-        <div className="max-w-4xl mx-auto space-y-6 pb-8">
+      <div className="flex-1 overflow-y-auto">
+        {/* Page title */}
+        <div className="px-6 pt-5 pb-4 border-b border-white/5">
+          <h1 className="text-lg font-semibold text-white/90">Settings</h1>
+          <p className="text-xs text-white/40 mt-0.5">Customize your Unreal Launcher experience</p>
+        </div>
 
-          {/* Launch Behavior */}
-          <div>
-            <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-              <Zap size={20} className="text-blue-400" />
-              Launch Behavior
-            </h2>
-            <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-white/90 mb-2">Auto-close on Launch</h3>
-                  <p className="text-xs text-white/50">
-                    Automatically close the launcher when launching projects or engines
-                  </p>
+        <div className="px-6 py-5 space-y-7">
+
+          {/* ── Appearance ── */}
+          <section>
+            <SectionHeader icon={<Palette size={13} className="text-purple-300" />} label="Appearance" accent="bg-purple-500/20" />
+            <Card>
+              {/* Theme picker */}
+              <div className="p-5 border-b border-white/5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-medium text-white/85">Theme</p>
+                  {hasOverrides && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/25">
+                      Custom active
+                    </span>
+                  )}
                 </div>
-                <button
-                  onClick={handleToggleAutoClose}
-                  className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors ml-4"
-                >
-                  {autoCloseOnLaunch
-                    ? <ToggleRight size={25} className="text-blue-500" />
-                    : <ToggleLeft size={25} className="text-gray-500" />}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Tracer */}
-          <div>
-            <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-              <Activity size={20} className="text-green-400" />
-              Session Tracer
-            </h2>
-            <div className="bg-white/5 border border-white/10 rounded-lg divide-y divide-white/10">
-
-              {/* Auto-start toggle */}
-              <div className="flex items-center justify-between p-6">
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-white/90 mb-2">Run tracer on startup</h3>
-                  <p className="text-xs text-white/50">
-                    Automatically start the background tracer when Windows starts.
-                    Tracks which engines and projects you open and updates their last-opened time.
-                  </p>
+                <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' }}>
+                  {BUILT_IN_THEMES.map((theme) => {
+                    const active = activeThemeId === theme.id
+                    return (
+                      <button
+                        key={theme.id}
+                        onClick={() => setTheme(theme.id)}
+                        className="relative rounded-lg p-2.5 border-2 transition-all cursor-pointer text-left group"
+                        style={{
+                          background: theme.tokens['surface'],
+                          borderColor: active ? theme.tokens['accent'] : 'rgba(255,255,255,0.08)',
+                        }}
+                      >
+                        {/* Color dots */}
+                        <div className="flex gap-1 mb-2">
+                          {(['accent', 'surface-elevated', 'surface-card'] as ThemeToken[]).map((t) => (
+                            <div key={t} className="w-3 h-3 rounded-full" style={{ background: theme.tokens[t] }} />
+                          ))}
+                        </div>
+                        <p className="text-[11px] font-medium leading-none" style={{ color: theme.tokens['text-secondary'] }}>
+                          {theme.name}
+                        </p>
+                        {active && (
+                          <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: theme.tokens['accent'] }}>
+                            <Check size={9} className="text-white" />
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
-                <button
-                  onClick={handleToggleTracer}
-                  className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors ml-4"
-                >
-                  {tracerAutoStart
-                    ? <ToggleRight size={25} className="text-green-500" />
-                    : <ToggleLeft size={25} className="text-gray-500" />}
-                </button>
-              </div>
-
-              {/* Merge toggle */}
-              <div className="flex items-center justify-between p-6">
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-white/90 mb-2">Sync tracer data on scan</h3>
-                  <p className="text-xs text-white/50">
-                    When scanning engines or projects, pull in new entries detected by the tracer
-                    and update last-opened times automatically.
-                  </p>
-                </div>
-                <button
-                  onClick={handleToggleMerge}
-                  className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors ml-4"
-                >
-                  {tracerMerge
-                    ? <ToggleRight size={25} className="text-green-500" />
-                    : <ToggleLeft size={25} className="text-gray-500" />}
-                </button>
               </div>
 
-              {/* Status row */}
-              <div className="flex items-center justify-between px-6 py-4">
+              {/* Custom colors */}
+              <div className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-medium text-white/85">Custom colors</p>
+                  {hasOverrides && (
+                    <button
+                      onClick={resetOverrides}
+                      className="flex items-center gap-1 text-[11px] text-white/35 hover:text-white/65 transition-colors cursor-pointer"
+                    >
+                      <RotateCcw size={11} />
+                      Reset
+                    </button>
+                  )}
+                </div>
+                <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
+                  {([
+                    { token: 'accent' as ThemeToken, label: 'Accent' },
+                    { token: 'surface' as ThemeToken, label: 'Background' },
+                    { token: 'surface-card' as ThemeToken, label: 'Card' },
+                    { token: 'surface-elevated' as ThemeToken, label: 'Elevated' },
+                  ]).map(({ token, label }) => {
+                    const base = BUILT_IN_THEMES.find((t) => t.id === activeThemeId)?.tokens[token] ?? '#000000'
+                    const current = customOverrides[token] ?? base
+                    const isHex = current.startsWith('#')
+                    const isOverridden = !!customOverrides[token]
+                    return (
+                      <label key={token} className="flex items-center gap-2.5 p-2.5 rounded-lg border border-white/6 cursor-pointer hover:border-white/12 transition-colors" style={{ backgroundColor: 'var(--color-surface-card)' }}>
+                        <div className="relative">
+                          {isHex ? (
+                            <input
+                              type="color"
+                              value={current}
+                              onChange={(e) => setOverride(token, e.target.value)}
+                              className="w-8 h-8 rounded-md cursor-pointer opacity-0 absolute inset-0"
+                            />
+                          ) : null}
+                          <div
+                            className="w-8 h-8 rounded-md border border-white/15 pointer-events-none"
+                            style={{ background: current }}
+                          />
+                          {isOverridden && (
+                            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-purple-400 border border-black" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-white/75">{label}</p>
+                          <p className="text-[10px] text-white/30 font-mono">{current.slice(0, 9)}</p>
+                        </div>
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+            </Card>
+          </section>
+
+          {/* ── Launch Behavior ── */}
+          <section>
+            <SectionHeader icon={<Zap size={13} className="text-yellow-300" />} label="Launch" accent="bg-yellow-500/20" />
+            <Card>
+              <SettingRow
+                label="Auto-close on launch"
+                description="Close the launcher automatically when opening a project or engine."
+                last
+              >
+                <Toggle on={autoCloseOnLaunch} onChange={() => {
+                  const next = !autoCloseOnLaunch
+                  setAutoCloseOnLaunch(next)
+                  setSetting('autoCloseOnLaunch', next)
+                }} />
+              </SettingRow>
+            </Card>
+          </section>
+
+          {/* ── Session Tracer ── */}
+          <section>
+            <SectionHeader icon={<Activity size={13} className="text-green-300" />} label="Session Tracer" accent="bg-green-500/20" />
+            <Card>
+              <SettingRow
+                label="Run tracer on startup"
+                description="Start the background tracer with Windows. Tracks engine and project usage."
+              >
+                <Toggle on={tracerAutoStart} onChange={async () => {
+                  const next = !tracerAutoStart
+                  setTracerAutoStart(next)
+                  setSetting('tracerAutoStart', next)
+                  await window.electronAPI.setTracerStartup(next)
+                  setTimeout(async () => setTracerRunning(await window.electronAPI.isTracerRunning()), 1500)
+                }} color="green" />
+              </SettingRow>
+
+              <SettingRow
+                label="Sync tracer data on scan"
+                description="Pull new entries from the tracer into the launcher on each scan."
+              >
+                <Toggle on={tracerMerge} onChange={async () => {
+                  const next = !tracerMerge
+                  setTracerMerge(next)
+                  await window.electronAPI.setTracerMerge(next)
+                }} color="green" />
+              </SettingRow>
+
+              {/* Status footer */}
+              <div className="flex items-center justify-between px-5 py-3 border-t border-white/5">
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`w-2 h-2 rounded-full ${tracerRunning ? 'bg-green-400 shadow-[0_0_6px_#4ade80]' : 'bg-white/20'}`}
-                  />
-                  <span className="text-xs text-white/60">
-                    {tracerRunning ? 'Running' : 'Not running'}
-                  </span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${tracerRunning ? 'bg-green-400' : 'bg-white/20'}`} />
+                  <span className="text-[11px] text-white/40">{tracerRunning ? 'Running' : 'Not running'}</span>
                 </div>
                 {tracerDataDir && (
                   <button
                     onClick={() => window.electronAPI.openDirectory(tracerDataDir)}
-                    className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/80 transition-colors"
-                    title={tracerDataDir}
+                    className="flex items-center gap-1 text-[11px] text-white/30 hover:text-white/60 transition-colors cursor-pointer"
                   >
-                    <FolderOpen size={13} />
+                    <FolderOpen size={12} />
                     Open data folder
                   </button>
                 )}
               </div>
+            </Card>
+          </section>
 
-            </div>
-          </div>
-
-          {/* Data */}
-          <div>
-            <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-              <Database size={20} className="text-red-400" />
-              Data
-            </h2>
-            <div className="bg-white/5 border border-white/10 rounded-lg divide-y divide-white/10">
-
-              <div className="flex items-center justify-between p-6">
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-white/90 mb-1">Clear app data</h3>
-                  <p className="text-xs text-white/50">
-                    Removes all saved engines and projects from the launcher. Does not delete files from disk.
-                  </p>
-                </div>
+          {/* ── Data ── */}
+          <section>
+            <SectionHeader icon={<Database size={13} className="text-red-300" />} label="Data" accent="bg-red-500/20" />
+            <Card>
+              <SettingRow
+                label="Clear app data"
+                description="Remove all saved engines and projects. Files on disk are not affected."
+              >
                 <button
                   onClick={handleClearAppData}
                   disabled={clearing === 'app'}
-                  className="flex items-center gap-2 ml-6 px-4 py-2 rounded text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 hover:bg-red-500/18 text-red-400 border border-red-500/20 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 >
-                  <Trash2 size={13} />
+                  <Trash2 size={12} />
                   {clearing === 'app' ? 'Clearing…' : 'Clear'}
                 </button>
-              </div>
-
-              <div className="flex items-center justify-between p-6">
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-white/90 mb-1">Clear tracer data</h3>
-                  <p className="text-xs text-white/50">
-                    Removes all engine and project history recorded by the background tracer.
-                  </p>
-                </div>
+              </SettingRow>
+              <SettingRow
+                label="Clear tracer data"
+                description="Remove all engine and project history recorded by the tracer."
+                last
+              >
                 <button
                   onClick={handleClearTracerData}
                   disabled={clearing === 'tracer'}
-                  className="flex items-center gap-2 ml-6 px-4 py-2 rounded text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 hover:bg-red-500/18 text-red-400 border border-red-500/20 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 >
-                  <Trash2 size={13} />
+                  <Trash2 size={12} />
                   {clearing === 'tracer' ? 'Clearing…' : 'Clear'}
                 </button>
-              </div>
-
-            </div>
-          </div>
-
-          {/* General */}
-          <div>
-            <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-              <Settings size={20} className="text-purple-400" />
-              General
-            </h2>
-            <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-              <p className="text-xs text-white/50">
-                More settings will be available in future updates.
-              </p>
-            </div>
-          </div>
+              </SettingRow>
+            </Card>
+          </section>
 
         </div>
       </div>

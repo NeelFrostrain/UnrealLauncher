@@ -51,7 +51,7 @@ const ProjectCardGrid = memo(
     return (
       <motion.div
         className="relative w-full h-48 rounded-sm overflow-hidden cursor-pointer select-none bg-[#111] border-2 border-transparent hover:border-none transition-all duration-300"
-        style={{ boxShadow: hovered ? '0 0 0 2px rgba(59,130,246,0.5), 0 0 20px rgba(59,130,246,0.25)' : undefined }}
+        style={{ boxShadow: hovered ? '0 0 0 2px var(--color-accent), 0 0 20px color-mix(in srgb, var(--color-accent) 25%, transparent)' : undefined }}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -2 }}
@@ -105,7 +105,7 @@ const ProjectCardGrid = memo(
         <AnimatePresence>
           {hovered && !launching && (
             <motion.div
-              className="absolute bottom-0 inset-x-0 z-20 flex items-center justify-center gap-2 bg-linear-to-t from-black/80 to-transparent py-4"
+              className="absolute bottom-0 inset-x-0 z-20 flex items-center justify-between px-4 gap-2 bg-linear-to-t from-black/80 to-transparent py-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
@@ -119,22 +119,25 @@ const ProjectCardGrid = memo(
                 <Play size={14} />
                 Launch
               </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
-                onClick={() => projectPath && onOpenDir(projectPath)}
-                className="flex p-2 rounded-md bg-white/10 hover:bg-white/20 border border-white/20 transition-colors cursor-pointer"
-                title="Open Folder"
-              >
-                <FolderOpen size={14} />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
-                onClick={() => projectPath && onDelete(projectPath)}
-                className="flex p-2 rounded-md bg-white/10 hover:bg-red-500/30 border border-white/20 hover:border-red-500/40 transition-colors cursor-pointer text-white/60 hover:text-red-400"
-                title="Remove from list"
-              >
-                <Trash2 size={14} />
-              </motion.button>
+
+              <div className='flex gap-1.5'>
+                <motion.button
+                  whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
+                  onClick={() => projectPath && onOpenDir(projectPath)}
+                  className="flex p-2 rounded-md bg-white/10 hover:bg-white/20 border border-white/20 transition-colors cursor-pointer"
+                  title="Open Folder"
+                >
+                  <FolderOpen size={14} />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
+                  onClick={() => projectPath && onDelete(projectPath)}
+                  className="flex p-2 rounded-md bg-white/10 hover:bg-red-500/30 border border-white/20 hover:border-red-500/40 transition-colors cursor-pointer text-white/60 hover:text-red-400"
+                  title="Remove from list"
+                >
+                  <Trash2 size={14} />
+                </motion.button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

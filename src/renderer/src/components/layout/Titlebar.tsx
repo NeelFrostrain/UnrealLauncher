@@ -25,7 +25,10 @@ const Titlebar = (): React.ReactElement => {
   const noDrag = { WebkitAppRegion: 'no-drag' } as React.CSSProperties
 
   return (
-    <div className="w-full h-10 bg-[#1f1f1f] border-b border-white/10 flex items-center select-none shrink-0">
+    <div
+      className="w-full h-10 flex items-center select-none shrink-0"
+      style={{ backgroundColor: 'var(--color-surface-elevated)', borderBottom: '1px solid var(--color-border)' }}
+    >
       {/* Draggable empty region */}
       <div className="flex-1 h-full" style={drag} />
 

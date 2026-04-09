@@ -1,5 +1,71 @@
 @import 'tailwindcss';
 
+/* ── Theme CSS variables (injected by ThemeProvider) ─────────────────────── */
+:root {
+  --color-surface:          #242424;
+  --color-surface-elevated: #1f1f1f;
+  --color-surface-card:     #1a1a1a;
+  --color-border:           rgba(255,255,255,0.10);
+  --color-accent:           #2563eb;
+  --color-accent-hover:     #1d4ed8;
+  --color-text-primary:     rgba(255,255,255,0.90);
+  --color-text-secondary:   rgba(255,255,255,0.60);
+  --color-text-muted:       rgba(255,255,255,0.40);
+}
+
+/* ── Override Tailwind's hardcoded blue-600/500 to follow the accent token ── */
+/* Outside @layer so specificity always wins over Tailwind generated classes.  */
+
+/* Accent backgrounds */
+.bg-blue-600,
+.bg-blue-700  { background-color: var(--color-accent) !important; }
+.bg-blue-500  { background-color: var(--color-accent-hover) !important; }
+.bg-blue-600\/50 { background-color: color-mix(in srgb, var(--color-accent) 50%, transparent) !important; }
+
+/* Accent hover */
+.hover\:bg-blue-500:hover,
+.hover\:bg-blue-600:hover { background-color: var(--color-accent-hover) !important; }
+.hover\:bg-blue-700:hover { background-color: var(--color-accent) !important; }
+
+/* Accent text */
+.text-blue-400 { color: color-mix(in srgb, var(--color-accent) 80%, white) !important; }
+.text-blue-500,
+.text-blue-600 { color: var(--color-accent) !important; }
+
+/* Accent borders */
+.border-blue-600,
+.border-blue-500\/50 { border-color: var(--color-accent) !important; }
+.border-blue-600\/40 { border-color: color-mix(in srgb, var(--color-accent) 40%, transparent) !important; }
+.hover\:border-blue-600\/40:hover { border-color: color-mix(in srgb, var(--color-accent) 40%, transparent) !important; }
+
+/* Accent backgrounds with opacity */
+.bg-blue-500\/10 { background-color: color-mix(in srgb, var(--color-accent) 10%, transparent) !important; }
+.bg-blue-600\/20 { background-color: color-mix(in srgb, var(--color-accent) 20%, transparent) !important; }
+.bg-blue-500\/40 { background-color: color-mix(in srgb, var(--color-accent) 40%, transparent) !important; }
+.hover\:bg-blue-500\/40:hover { background-color: color-mix(in srgb, var(--color-accent) 40%, transparent) !important; }
+
+/* Accent hover text */
+.hover\:text-blue-600\/70:hover { color: color-mix(in srgb, var(--color-accent) 70%, transparent) !important; }
+
+/* Accent shadows */
+.shadow-blue-600\/20 { --tw-shadow-color: color-mix(in srgb, var(--color-accent) 20%, transparent) !important; }
+.shadow-blue-600\/40 { --tw-shadow-color: color-mix(in srgb, var(--color-accent) 40%, transparent) !important; }
+.shadow-blue-900\/20 { --tw-shadow-color: color-mix(in srgb, var(--color-accent) 20%, transparent) !important; }
+
+/* Spinner border accent */
+.border-blue-500\/30 { border-color: color-mix(in srgb, var(--color-accent) 30%, transparent) !important; }
+.border-t-blue-500   { border-top-color: var(--color-accent) !important; }
+
+/* Surface backgrounds — map hardcoded hex classes to variables */
+.bg-\[\#242424\] { background-color: var(--color-surface) !important; }
+.bg-\[\#1f1f1f\] { background-color: var(--color-surface-elevated) !important; }
+.bg-\[\#1e1e1e\] { background-color: var(--color-surface-elevated) !important; }
+.bg-\[\#1c1c1c\] { background-color: var(--color-surface-elevated) !important; }
+.bg-\[\#1a1a1a\] { background-color: var(--color-surface-card) !important; }
+.bg-\[\#161616\] { background-color: var(--color-surface-card) !important; }
+.bg-\[\#121212\] { background-color: var(--color-surface-card) !important; }
+.bg-\[\#111\]    { background-color: var(--color-surface-card) !important; }
+
 /* Performance optimizations */
 * {
   box-sizing: border-box;

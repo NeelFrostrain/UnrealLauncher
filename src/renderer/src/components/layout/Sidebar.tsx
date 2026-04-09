@@ -39,9 +39,11 @@ const ExpandedCard: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item, 
     <motion.div
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
-      className={`w-full relative h-24 rounded-md border-2 overflow-hidden transition-all duration-200 cursor-pointer ${
-        isActive ? 'border-blue-600 shadow-lg shadow-blue-600/20' : 'border-[#171717] hover:border-white/10'
-      }`}
+      className={`w-full relative h-24 rounded-md border-2 overflow-hidden transition-all duration-200 cursor-pointer`}
+      style={{
+        borderColor: isActive ? 'var(--color-accent)' : 'transparent',
+        boxShadow: isActive ? '0 4px 20px color-mix(in srgb, var(--color-accent) 20%, transparent)' : undefined,
+      }}
     >
       <img src={item.imageSrc} alt={item.title} className={`w-full h-full object-cover transition-all duration-200 ${isActive ? 'scale-105' : ''}`} />
       <div className={`absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent z-10 transition-opacity duration-200 ${isActive ? 'opacity-90' : 'opacity-80 hover:opacity-90'}`} />
@@ -60,11 +62,11 @@ const CollapsedItem: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item,
     <motion.div
       whileHover={{ scale: 1.08 }}
       whileTap={{ scale: 0.92 }}
-      className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer ${
-        isActive
-          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-          : 'text-white/40 hover:text-white/80 hover:bg-white/8'
-      }`}
+      className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer"
+      style={{
+        backgroundColor: isActive ? 'var(--color-accent)' : undefined,
+        color: isActive ? 'white' : 'var(--color-text-muted)',
+      }}
     >
       {item.icon}
     </motion.div>
@@ -133,8 +135,8 @@ const Sidebar = (): React.ReactElement => {
 
   return (
     <div
-      className="relative h-full border-r border-white/10 flex-shrink-0 flex flex-col transition-[width] duration-200 ease-in-out"
-      style={{ width: currentWidth }}
+      className="relative h-full flex-shrink-0 flex flex-col transition-[width] duration-200 ease-in-out"
+      style={{ width: currentWidth, borderRight: '1px solid var(--color-border)' }}
     >
       {/* Nav items */}
       <div className={`flex-1 overflow-hidden ${collapsed ? 'flex flex-col items-center gap-1.5 pt-3 px-1.5' : 'p-3'}`}>
@@ -159,7 +161,8 @@ const Sidebar = (): React.ReactElement => {
           ) : (
             <motion.div
               key="expanded"
-              className="w-full h-fit bg-[#1a1a1a] p-2 rounded-sm flex flex-col gap-2"
+              className="w-full h-fit p-2 rounded-sm flex flex-col gap-2"
+              style={{ backgroundColor: 'var(--color-surface-card)' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}

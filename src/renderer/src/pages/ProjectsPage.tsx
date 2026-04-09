@@ -148,7 +148,7 @@ const ProjectsPage = (): React.ReactElement => {
       })
       return cleanup
     }
-    return () => {} // No-op cleanup if electronAPI is not available
+    return () => { } // No-op cleanup if electronAPI is not available
   }, [])
 
   const switchTab = (tab: TabType): void => {
@@ -295,8 +295,8 @@ const ProjectsPage = (): React.ReactElement => {
     () =>
       (searchQuery.trim()
         ? projects.filter((project) =>
-            project.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
-          )
+          project.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+        )
         : projects
       ).map((project) => ({
         ...project,
@@ -332,8 +332,9 @@ const ProjectsPage = (): React.ReactElement => {
           viewMode === 'grid' ? (
             <div
               ref={gridRef}
-              className="grid gap-3 overflow-y-auto py-2 px-2 h-full content-start"
-              style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
+              // Replace all those grid-cols-X classes with this:
+              className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto py-2 px-2 h-full content-start"
+            // style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
             >
               {visibleProjects.map((data) => (
                 <ProjectCardGrid

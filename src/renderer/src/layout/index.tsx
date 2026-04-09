@@ -12,7 +12,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
     >
       <div className="w-full h-full bg-white/10 p-0.5">
         <div className="w-full h-full bg-black/50 p-0.5">
-          <div className="w-full h-full bg-[#242424] flex flex-col">
+          <div className="w-full h-full flex flex-col" style={{ backgroundColor: 'var(--color-surface)' }}>
             <div className="flex-1 flex min-h-0">
               <Sidebar />
               <div className="flex-1 min-h-0 flex flex-col">
