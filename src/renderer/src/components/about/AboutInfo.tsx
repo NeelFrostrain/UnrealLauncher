@@ -4,7 +4,7 @@ const knownIssues = [
   'Size calculation may take time for large folders (30+ GB). The app remains responsive during calculation.',
   'Removing engines or projects from the list does NOT delete files from disk - only removes them from the launcher.',
   'Project thumbnails are loaded from Saved/AutoScreenshot.png if available.',
-  'The app scans these default paths: D:\\Engine\\UnrealEditors, C:\\Program Files\\Epic Games, Documents\\Unreal Projects',
+  'The app scans these default paths: D:\\Engine\\UnrealEditors, C:\\Program Files\\Epic Games, Documents\\Unreal Projects'
 ]
 
 const techDetails = [
@@ -13,7 +13,7 @@ const techDetails = [
   { label: 'UI Library', value: 'React 19.2.1' },
   { label: 'Language', value: 'TypeScript 5.9.3' },
   { label: 'Build Tool', value: 'Vite 7.2.6' },
-  { label: 'License', value: 'MIT' },
+  { label: 'License', value: 'MIT' }
 ]
 
 export const AboutKnownIssues = (): React.ReactElement => (
@@ -54,7 +54,9 @@ export const AboutContributing = (): React.ReactElement => (
       Contributing
     </h2>
     <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
-      <p className="text-xs text-white/50">We welcome contributions! Help make Unreal Launcher better for everyone.</p>
+      <p className="text-xs text-white/50">
+        We welcome contributions! Help make Unreal Launcher better for everyone.
+      </p>
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-white/90">How to Contribute</h3>
         <ul className="text-xs text-white/50 space-y-1 ml-4">
@@ -67,14 +69,20 @@ export const AboutContributing = (): React.ReactElement => (
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-white/90">Development Guidelines</h3>
         <ul className="text-xs text-white/50 space-y-1 ml-4">
-          <li>• Run <code className="bg-white/10 px-1 rounded">npm run lint</code> before committing</li>
+          <li>
+            • Run <code className="bg-white/10 px-1 rounded">npm run lint</code> before committing
+          </li>
           <li>• Ensure TypeScript types are correct</li>
           <li>• Update documentation for new features</li>
           <li>• Test on multiple platforms when possible</li>
         </ul>
       </div>
       <button
-        onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CONTRIBUTING.md')}
+        onClick={() =>
+          window.electronAPI.openExternal(
+            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CONTRIBUTING.md'
+          )
+        }
         className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 border border-green-500/50 rounded-lg text-sm transition-colors cursor-pointer"
       >
         <BookOpen size={16} />
@@ -91,7 +99,10 @@ export const AboutCodeOfConduct = (): React.ReactElement => (
       Code of Conduct
     </h2>
     <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
-      <p className="text-xs text-white/50">This project is governed by a Code of Conduct to ensure a welcoming environment for everyone.</p>
+      <p className="text-xs text-white/50">
+        This project is governed by a Code of Conduct to ensure a welcoming environment for
+        everyone.
+      </p>
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-white/90">Our Standards</h3>
         <ul className="text-xs text-white/50 space-y-1 ml-4">
@@ -102,7 +113,11 @@ export const AboutCodeOfConduct = (): React.ReactElement => (
         </ul>
       </div>
       <button
-        onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CODE_OF_CONDUCT.md')}
+        onClick={() =>
+          window.electronAPI.openExternal(
+            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CODE_OF_CONDUCT.md'
+          )
+        }
         className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 border border-blue-500/50 rounded-lg text-sm transition-colors cursor-pointer"
       >
         <BookOpen size={16} />
@@ -119,17 +134,28 @@ export const AboutSecurity = (): React.ReactElement => (
       Security
     </h2>
     <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
-      <p className="text-xs text-white/50">If you discover a security vulnerability, please report it privately.</p>
+      <p className="text-xs text-white/50">
+        If you discover a security vulnerability, please report it privately.
+      </p>
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-white/90">Reporting</h3>
-        <p className="text-xs text-white/50">Send security reports to: <code className="bg-white/10 px-1 rounded">nfrostrain@gmail.com</code></p>
+        <p className="text-xs text-white/50">
+          Send security reports to:{' '}
+          <code className="bg-white/10 px-1 rounded">nfrostrain@gmail.com</code>
+        </p>
       </div>
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-white/90">Supported Versions</h3>
-        <p className="text-xs text-white/50">Security fixes are only applied to the current stable release.</p>
+        <p className="text-xs text-white/50">
+          Security fixes are only applied to the current stable release.
+        </p>
       </div>
       <button
-        onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain/UnrealLauncher/blob/main/SECURITY.md')}
+        onClick={() =>
+          window.electronAPI.openExternal(
+            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/SECURITY.md'
+          )
+        }
         className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 border border-red-500/50 rounded-lg text-sm transition-colors cursor-pointer"
       >
         <BookOpen size={16} />
@@ -146,7 +172,9 @@ export const AboutSupport = (): React.ReactElement => (
       Support the Project
     </h2>
     <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
-      <p className="text-xs text-white/50">Your support helps keep Unreal Launcher growing and allows more time to build features.</p>
+      <p className="text-xs text-white/50">
+        Your support helps keep Unreal Launcher growing and allows more time to build features.
+      </p>
       <div className="flex gap-4">
         <button
           onClick={() => window.electronAPI.openExternal('https://ko-fi.com/neelfrostrain')}
@@ -155,15 +183,23 @@ export const AboutSupport = (): React.ReactElement => (
           <span>☕</span> Ko-fi
         </button>
         <button
-          onClick={() => window.electronAPI.openExternal('https://github.com/sponsors/NeelFrostrain')}
+          onClick={() =>
+            window.electronAPI.openExternal('https://github.com/sponsors/NeelFrostrain')
+          }
           className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-500 border border-pink-500/50 rounded-lg text-sm transition-colors cursor-pointer"
         >
           <span>💖</span> GitHub Sponsors
         </button>
       </div>
-      <p className="text-xs text-white/40">Also consider starring ⭐ the repo and sharing it with your friends!</p>
+      <p className="text-xs text-white/40">
+        Also consider starring ⭐ the repo and sharing it with your friends!
+      </p>
       <button
-        onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain/UnrealLauncher/blob/main/DONATE.md')}
+        onClick={() =>
+          window.electronAPI.openExternal(
+            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/DONATE.md'
+          )
+        }
         className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 border border-purple-500/50 rounded-lg text-sm transition-colors cursor-pointer"
       >
         <BookOpen size={16} />
@@ -177,13 +213,40 @@ export const AboutFooter = (): React.ReactElement => (
   <div className="text-center space-y-4">
     <div className="flex flex-wrap items-center justify-center gap-2">
       {[
-        { label: 'GitHub', icon: <GitBranch size={16} />, url: 'https://github.com/NeelFrostrain/UnrealLauncher', cls: 'bg-white/5 hover:bg-white/10 border-white/10' },
-        { label: 'Changelog', icon: <BookOpen size={16} />, url: 'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CHANGELOG.md', cls: 'bg-white/5 hover:bg-white/10 border-white/10' },
-        { label: 'Contribute', icon: <Code size={16} />, url: 'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CONTRIBUTING.md', cls: 'bg-white/5 hover:bg-white/10 border-white/10' },
-        { label: 'Issues', icon: <AlertTriangle size={16} />, url: 'https://github.com/NeelFrostrain/UnrealLauncher/issues', cls: 'bg-white/5 hover:bg-white/10 border-white/10' },
-        { label: 'Donate', icon: <span>☕</span>, url: 'https://ko-fi.com/neelfrostrain', cls: 'bg-orange-600/20 hover:bg-orange-600/30 border-orange-500/30' },
+        {
+          label: 'GitHub',
+          icon: <GitBranch size={16} />,
+          url: 'https://github.com/NeelFrostrain/UnrealLauncher',
+          cls: 'bg-white/5 hover:bg-white/10 border-white/10'
+        },
+        {
+          label: 'Changelog',
+          icon: <BookOpen size={16} />,
+          url: 'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CHANGELOG.md',
+          cls: 'bg-white/5 hover:bg-white/10 border-white/10'
+        },
+        {
+          label: 'Contribute',
+          icon: <Code size={16} />,
+          url: 'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CONTRIBUTING.md',
+          cls: 'bg-white/5 hover:bg-white/10 border-white/10'
+        },
+        {
+          label: 'Issues',
+          icon: <AlertTriangle size={16} />,
+          url: 'https://github.com/NeelFrostrain/UnrealLauncher/issues',
+          cls: 'bg-white/5 hover:bg-white/10 border-white/10'
+        },
+        {
+          label: 'Donate',
+          icon: <span>☕</span>,
+          url: 'https://ko-fi.com/neelfrostrain',
+          cls: 'bg-orange-600/20 hover:bg-orange-600/30 border-orange-500/30'
+        }
       ].map(({ label, icon, url, cls }) => (
-        <button key={label} onClick={() => window.electronAPI.openExternal(url)}
+        <button
+          key={label}
+          onClick={() => window.electronAPI.openExternal(url)}
           className={`flex items-center gap-2 px-3 py-2 ${cls} border rounded-lg text-sm transition-colors cursor-pointer`}
         >
           {icon} {label}
@@ -192,7 +255,8 @@ export const AboutFooter = (): React.ReactElement => (
     </div>
     <p className="text-xs text-white/40 flex items-center justify-center gap-1.5 tracking-wide uppercase font-medium">
       <span>Made By</span>
-      <button onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain')}
+      <button
+        onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain')}
         className="text-white/80 hover:text-white transition-colors cursor-default"
       >
         Neel Frostrain

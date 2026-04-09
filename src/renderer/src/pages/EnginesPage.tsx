@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import type { EngineCardProps } from '../types'
 import PageWrapper from '@renderer/layout/PageWrapper'
 import EnginesToolbar from '@renderer/components/engines/EnginesToolbar'
@@ -10,7 +10,19 @@ const EnginesPage = (): React.ReactElement => {
   const [engines, setEngines] = useState<EngineCardProps[]>([])
   const [scanning, setScanning] = useState(false)
   const [addingEngine, setAddingEngine] = useState(false)
+  const [displayStart, setDisplayStart] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
   const { addToast } = useToast()
+  const ITEMS_PER_BATCH = 30 // Number of items to render at once
+
+  // Handle scroll virtualization
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget
+    const scrollTop = container.scrollTop
+    const itemHeight = 120 + 8 // Item height + gap (mb-2)
+    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - 5) // 5 items buffer
+    setDisplayStart(startIndex)
+  }, [])
 
   useEffect(() => {
     const loadSavedEngines = async (): Promise<void> => {
@@ -177,17 +189,23 @@ const EnginesPage = (): React.ReactElement => {
         onScan={handleScan}
       />
 
-      <div className="flex-1 space-y-2 overflow-y-auto py-3 px-1.5">
+      <div className="flex-1 overflow-hidden">
         {engines.length > 0 ? (
-          engines.map((data) => (
-            <EngineCard
-              key={data.directoryPath}
-              {...data}
-              onLaunch={handleLaunch}
-              onOpenDir={handleOpenDir}
-              onDelete={handleDelete}
-            />
-          ))
+          <div
+            ref={containerRef}
+            onScroll={handleScroll}
+            className="space-y-2 overflow-y-auto py-3 px-1.5 h-full"
+          >
+            {engines.slice(displayStart, displayStart + ITEMS_PER_BATCH).map((data) => (
+              <EngineCard
+                key={data.directoryPath}
+                {...data}
+                onLaunch={handleLaunch}
+                onOpenDir={handleOpenDir}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center text-white/50">
             <p className="text-lg mb-2">No engines found</p>

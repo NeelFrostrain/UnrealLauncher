@@ -35,8 +35,20 @@ const ProjectsPage = (): React.ReactElement => {
   const { addToast } = useToast()
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [displayStart, setDisplayStart] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const ITEMS_PER_BATCH = 50 // Number of items to render at once
 
   const allProjectsRef = useRef<Project[]>([])
+
+  // Handle scroll virtualization for list view
+  const handleListScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget
+    const scrollTop = container.scrollTop
+    const itemHeight = 90 + 8 // Item height + gap (mb-2)
+    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - 5) // 5 items buffer
+    setDisplayStart(startIndex)
+  }, [])
 
   useEffect(() => {
     const path = location.pathname
@@ -306,39 +318,45 @@ const ProjectsPage = (): React.ReactElement => {
         }}
       />
 
-      <div
-        className={
-          viewMode === 'grid'
-            ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto py-2 px-2 mt-1'
-            : 'flex flex-col gap-2 overflow-y-auto py-2 px-2 mt-1'
-        }
-      >
+      <div className="flex-1 overflow-hidden mt-1">
         {visibleProjects.length > 0 ? (
-          visibleProjects.map((data) =>
-            viewMode === 'grid' ? (
-              <ProjectCardGrid
-                key={data.projectPath || data.name}
-                {...data}
-                isFavorite={data.isFavorite}
-                onToggleFavorite={toggleFavoritePath}
-                onLaunch={handleLaunch}
-                onOpenDir={handleOpenDir}
-                onDelete={handleDelete}
-              />
-            ) : (
-              <ProjectCard
-                key={data.projectPath || data.name}
-                {...data}
-                isFavorite={data.isFavorite}
-                onToggleFavorite={toggleFavoritePath}
-                onLaunch={handleLaunch}
-                onOpenDir={handleOpenDir}
-                onDelete={handleDelete}
-              />
-            )
+          viewMode === 'grid' ? (
+            // Grid view - render all items (grids are typically smaller datasets)
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto py-2 px-2 h-full">
+              {visibleProjects.map((data) => (
+                <ProjectCardGrid
+                  key={data.projectPath || data.name}
+                  {...data}
+                  isFavorite={data.isFavorite}
+                  onToggleFavorite={toggleFavoritePath}
+                  onLaunch={handleLaunch}
+                  onOpenDir={handleOpenDir}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          ) : (
+            // List view - with virtualization-like rendering for performance
+            <div
+              ref={containerRef}
+              onScroll={handleListScroll}
+              className="flex flex-col gap-2 overflow-y-auto py-2 px-2 h-full"
+            >
+              {visibleProjects.slice(displayStart, displayStart + ITEMS_PER_BATCH).map((data) => (
+                <ProjectCard
+                  key={data.projectPath || data.name}
+                  {...data}
+                  isFavorite={data.isFavorite}
+                  onToggleFavorite={toggleFavoritePath}
+                  onLaunch={handleLaunch}
+                  onOpenDir={handleOpenDir}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
           )
         ) : (
-          <div className="col-span-full flex flex-col items-center justify-center h-full text-center text-white/50">
+          <div className="flex flex-col items-center justify-center h-full text-center text-white/50">
             <p className="text-lg mb-2">
               {searchQuery.trim()
                 ? 'No projects match your search'
