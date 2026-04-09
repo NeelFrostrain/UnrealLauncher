@@ -6,22 +6,22 @@ All notable changes to this project will be documented in this file.
 
 ### ✅ Added
 
-- 🎨 **UI Theme Customization** — Complete theme system with built-in themes, custom color overrides, and profile management. Save, apply, update, and delete custom themes.
-- 📏 **Collapsible Sidebar** — Sidebar can now be resized and collapsed like Discord, with smooth animations and persistent state.
-- ⚡ **Worker Threads** — Scanning engines and projects now uses worker threads for better performance and non-blocking UI.
-- 🖼️ **Virtualization** — Engines and projects lists use virtualization for improved performance with large datasets.
-- 🔧 **Diagnostic Tool** — New Unreal Launcher Tracer for tracking Unreal Engine processes and performance.
-- 📁 **Local Asset Protocol** — Direct file access for images without IPC, improving load times.
-- 📊 **Project Size Calculation** — API to calculate sizes of all projects, integrated into the UI.
-- 🎛️ **Settings Enhancements** — Border radius customization, range sliders, and improved layout.
+- 🔧 **Enhanced Settings Page** — Comprehensive customization with theme system, border radius control, and profile management
+- 🎨 **Advanced Theme Customization** — Built-in themes, custom color overrides, and saveable theme profiles- � **Unreal Engine Tracer** — Background process for tracking engine and project usage with performance optimizations
+- �🔄 **Updates Section in Settings** — Moved auto-update and GitHub version checking functionality from About page to Settings page for better organization
+- 🎨 **Theme Border Radius Sync** — Project cards, engine cards, and settings cards now respect the theme's configurable border radius setting
+- 📦 **Windows Installer Generation** — Automated NSIS installer build process with native modules and tracer executable properly included
+- 🔧 **TypeScript Type Safety** — Added NativeModule interfaces and converted all require() imports to proper ES6 imports
+- 🧹 **Code Quality Improvements** — Fixed all ESLint warnings and TypeScript diagnostics for clean builds
+- 📚 **Build Process Documentation** — Comprehensive BUILD.md guide for developers with step-by-step instructions
 
 ### 🛠️ Fixed
 
-- 🎨 **Settings Page Layout** — Adjusted padding in title for better alignment.
-
-### 🏗️ Changed
-
-- 🔄 **Titlebar Refactor** — Streamlined component usage and improved layout structure.
+- 🎨 **Border Radius Not Syncing** — Card components were using hardcoded Tailwind classes instead of theme border radius
+- 🔧 **Missing Native Module Compilation** — Build process now properly compiles and includes native Rust modules
+- 🐛 **Path Resolution Issues** — Fixed tracer executable and native module paths for packaged applications
+- ⚠️ **TypeScript/ESLint Warnings** — Eliminated all require() imports and unused variable warnings
+- 📦 **Installer Missing Components** — Windows installer now includes all necessary files and executables
 
 ## [1.8.0] - 2026-04-05
 

@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
 // Lazy load pages for better performance
-const AboutPage = lazy(() => import('./pages/AboutPage'))
 const EnginesPage = lazy(() => import('./pages/EnginesPage'))
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
@@ -24,7 +23,6 @@ const App = (): React.ReactNode => {
         <Route path="/engines" element={<EnginesPage />} />
         <Route path="/projects/*" element={<ProjectsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/about" element={<AboutPage />} />
         <Route path="/" element={<Navigate to="/engines" replace />} />
       </Routes>
     </Suspense>

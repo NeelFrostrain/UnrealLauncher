@@ -1,10 +1,15 @@
-import { Zap, Package, Activity, Code, RefreshCw, AlertTriangle, BookOpen } from 'lucide-react'
+import { Zap, Package, Activity, Code, RefreshCw, AlertTriangle, BookOpen, Cpu } from 'lucide-react'
 
 const features = [
   {
     icon: <Package className="text-blue-400" size={20} />,
     title: 'Engine Management',
     desc: 'Scan and manage multiple Unreal Engine versions (UE4 & UE5)'
+  },
+  {
+    icon: <Cpu className="text-cyan-400" size={20} />,
+    title: 'Unreal Engine Tracer',
+    desc: 'Monitor engine and project performance with background tracing'
   },
   {
     icon: <Activity className="text-purple-400" size={20} />,
@@ -53,7 +58,12 @@ const AboutFeatures = (): React.ReactElement => (
       {features.map(({ icon, title, desc }) => (
         <div
           key={title}
-          className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-2 hover:bg-white/10 transition-colors"
+          className="border hover:bg-white/10 transition-colors p-4 space-y-2"
+          style={{
+            backgroundColor: 'var(--color-surface-elevated)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius)'
+          }}
         >
           <div className="flex items-center gap-2">
             {icon}

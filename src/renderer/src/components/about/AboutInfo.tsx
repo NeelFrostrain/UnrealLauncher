@@ -22,7 +22,14 @@ export const AboutKnownIssues = (): React.ReactElement => (
       <AlertTriangle size={20} className="text-yellow-400" />
       Known Issues &amp; Notes
     </h2>
-    <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-3">
+    <div
+      className="p-6 space-y-3"
+      style={{
+        backgroundColor: 'var(--color-surface-elevated)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius)'
+      }}
+    >
       {knownIssues.map((issue) => (
         <div key={issue} className="flex gap-3">
           <span className="text-yellow-400 mt-0.5">•</span>
@@ -36,7 +43,14 @@ export const AboutKnownIssues = (): React.ReactElement => (
 export const AboutTechnical = (): React.ReactElement => (
   <div>
     <h2 className="text-xl font-bold text-white/90 mb-4">Technical Details</h2>
-    <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-3">
+    <div
+      className="p-6 space-y-3"
+      style={{
+        backgroundColor: 'var(--color-surface-elevated)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius)'
+      }}
+    >
       {techDetails.map(({ label, value, mono }) => (
         <div key={label} className="flex items-center justify-between">
           <span className="text-sm text-white/50">{label}</span>
@@ -53,7 +67,14 @@ export const AboutContributing = (): React.ReactElement => (
       <GitBranch size={20} className="text-green-400" />
       Contributing
     </h2>
-    <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+    <div
+      className="p-6 space-y-4"
+      style={{
+        backgroundColor: 'var(--color-surface-elevated)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius)'
+      }}
+    >
       <p className="text-xs text-white/50">
         We welcome contributions! Help make Unreal Launcher better for everyone.
       </p>
@@ -98,7 +119,14 @@ export const AboutCodeOfConduct = (): React.ReactElement => (
       <AlertTriangle size={20} className="text-blue-400" />
       Code of Conduct
     </h2>
-    <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+    <div
+      className="p-6 space-y-4"
+      style={{
+        backgroundColor: 'var(--color-surface-elevated)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius)'
+      }}
+    >
       <p className="text-xs text-white/50">
         This project is governed by a Code of Conduct to ensure a welcoming environment for
         everyone.
@@ -133,7 +161,14 @@ export const AboutSecurity = (): React.ReactElement => (
       <AlertTriangle size={20} className="text-red-400" />
       Security
     </h2>
-    <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+    <div
+      className="p-6 space-y-4"
+      style={{
+        backgroundColor: 'var(--color-surface-elevated)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius)'
+      }}
+    >
       <p className="text-xs text-white/50">
         If you discover a security vulnerability, please report it privately.
       </p>
@@ -171,7 +206,14 @@ export const AboutSupport = (): React.ReactElement => (
       <Zap size={20} className="text-purple-400" />
       Support the Project
     </h2>
-    <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+    <div
+      className="p-6 space-y-4"
+      style={{
+        backgroundColor: 'var(--color-surface-elevated)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius)'
+      }}
+    >
       <p className="text-xs text-white/50">
         Your support helps keep Unreal Launcher growing and allows more time to build features.
       </p>

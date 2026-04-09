@@ -1,5 +1,13 @@
 import { BookOpen } from 'lucide-react'
 
+const v190Fixed = [
+  'Border radius not syncing with theme settings for card components',
+  'Missing native module compilation and path resolution issues',
+  'TypeScript require() imports causing build warnings',
+  'ESLint warnings for unused variables and prop types',
+  'Tracer executable not included in Windows installer'
+]
+
 const v180Added = [
   'List & Grid View — toggle between flat list and thumbnail grid, preference saved across sessions',
   'Batch Project Import — imports up to 20 projects at a time, toast shows how many were skipped',
@@ -44,7 +52,14 @@ const ChangelogSection = ({
   added: string[]
   fixed: string[]
 }): React.ReactElement => (
-  <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+  <div
+    className="p-6 space-y-4"
+    style={{
+      backgroundColor: 'var(--color-surface-elevated)',
+      border: '1px solid var(--color-border)',
+      borderRadius: 'var(--radius)'
+    }}
+  >
     <div className="space-y-2">
       <h3 className="text-sm font-semibold text-green-400">✅ Added</h3>
       <ul className="text-xs text-white/50 space-y-1 ml-4">
@@ -80,14 +95,15 @@ const AboutChangelog = (): React.ReactElement => (
     <div>
       <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
         <BookOpen size={20} className="text-yellow-400" />
-        What&apos;s New in 1.8.0
+        Version 1.8.0
       </h2>
       <ChangelogSection added={v180Added} fixed={v180Fixed} />
     </div>
+
     <div>
       <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
         <BookOpen size={20} className="text-yellow-400" />
-        Previous — 1.7.0
+        Version 1.7.0
       </h2>
       <ChangelogSection added={v170Added} fixed={v170Fixed} />
     </div>

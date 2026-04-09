@@ -33,7 +33,14 @@ const AboutUsage = (): React.ReactElement => (
       <BookOpen size={20} className="text-green-400" />
       How to Use
     </h2>
-    <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+    <div
+      className="p-6 space-y-4"
+      style={{
+        backgroundColor: 'var(--color-surface-elevated)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius)'
+      }}
+    >
       {steps.map(({ title, desc }) => (
         <div key={title} className="space-y-2">
           <h3 className="text-sm font-semibold text-white/90">{title}</h3>

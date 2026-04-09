@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import PageWrapper from '../layout/PageWrapper'
+import AboutPage from './AboutPage'
 import {
   Activity,
   Database,
@@ -11,7 +12,12 @@ import {
   Check,
   Plus,
   Pencil,
-  X
+  X,
+  RefreshCw,
+  Download,
+  CheckCircle,
+  GitBranch,
+  Info
 } from 'lucide-react'
 import { getSetting, setSetting } from '../utils/settings'
 import { useTheme } from '../utils/ThemeContext'
@@ -93,12 +99,34 @@ const SectionHeader = ({
 
 const Card = ({ children }: { children: React.ReactNode }): React.ReactElement => (
   <div
-    className="rounded-xl border border-white/8 overflow-hidden"
-    style={{ backgroundColor: 'var(--color-surface-elevated)' }}
+    className="border border-white/8 overflow-hidden"
+    style={{ backgroundColor: 'var(--color-surface-elevated)', borderRadius: 'var(--radius)' }}
   >
     {children}
   </div>
 )
+
+// ── Helper types and functions ────────────────────────────────────────────────
+
+type UpdateStatus =
+  | 'idle'
+  | 'checking'
+  | 'available'
+  | 'downloading'
+  | 'ready'
+  | 'no-update'
+  | 'error'
+type GithubStatus = 'idle' | 'checking' | 'success' | 'error'
+
+function compareVersions(v1: string, v2: string): boolean {
+  const a = v1.split('.').map(Number)
+  const b = v2.split('.').map(Number)
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    if ((a[i] || 0) > (b[i] || 0)) return true
+    if ((a[i] || 0) < (b[i] || 0)) return false
+  }
+  return false
+}
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -130,12 +158,25 @@ const SettingsPage = (): React.ReactElement => {
   const nameInputRef = useRef<HTMLInputElement>(null)
   // Radius
   const [radius, setRadius] = useState(() => loadPersistedRadius())
+  // Updates
+  const [appVersion, setAppVersion] = useState('')
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle')
+  const [updateMessage, setUpdateMessage] = useState('')
+  const [updateVersion, setUpdateVersion] = useState('')
+  const [githubVersion, setGithubVersion] = useState('')
+  const [githubStatus, setGithubStatus] = useState<GithubStatus>('idle')
+  const [githubMessage, setGithubMessage] = useState('')
+  // About modal
+  const [showAbout, setShowAbout] = useState(false)
 
   useEffect(() => {
     window.electronAPI.getTracerStartup().then(setTracerAutoStart)
     window.electronAPI.isTracerRunning().then(setTracerRunning)
     window.electronAPI.getTracerDataDir().then(setTracerDataDir)
     window.electronAPI.getTracerMerge().then(setTracerMerge)
+    if (window.electronAPI?.getAppVersion) {
+      window.electronAPI.getAppVersion().then(setAppVersion)
+    }
     const interval = setInterval(() => {
       window.electronAPI.isTracerRunning().then(setTracerRunning)
     }, 5000)
@@ -174,6 +215,67 @@ const SettingsPage = (): React.ReactElement => {
     setClearing('tracer')
     await window.electronAPI.clearTracerData()
     setClearing(null)
+  }
+
+  const handleCheckForUpdates = async (): Promise<void> => {
+    if (!window.electronAPI?.checkForUpdates) return
+    setUpdateStatus('checking')
+    setUpdateMessage('Checking for updates...')
+
+    const result = await window.electronAPI.checkForUpdates()
+    const currentVersion = appVersion || '1.7.0'
+
+    if (result.success && result.updateInfo) {
+      const latestVersion = String(result.updateInfo.version || '').replace(/^v/i, '')
+      if (compareVersions(latestVersion, currentVersion)) {
+        setUpdateStatus('available')
+        setUpdateVersion(latestVersion)
+        setUpdateMessage(`Version ${latestVersion} is available!`)
+      } else {
+        setUpdateStatus('no-update')
+        setUpdateMessage(
+          `No update available. Installed version ${currentVersion} is newer or equal to ${latestVersion}.`
+        )
+      }
+    } else if (result.success) {
+      setUpdateStatus('no-update')
+      setUpdateMessage(result.message || 'You are using the latest version')
+    } else {
+      setUpdateStatus('error')
+      setUpdateMessage(result.error || 'Failed to check for updates')
+    }
+  }
+
+  const handleDownloadUpdate = async (): Promise<void> => {
+    if (!window.electronAPI?.downloadUpdate) return
+    setUpdateStatus('downloading')
+    setUpdateMessage('Downloading update...')
+    const result = await window.electronAPI.downloadUpdate()
+    if (result.success) {
+      setUpdateStatus('ready')
+      setUpdateMessage('Update downloaded and ready to install')
+    } else {
+      setUpdateStatus('error')
+      setUpdateMessage(result.error || 'Failed to download update')
+    }
+  }
+
+  const checkGitHubVersion = async (): Promise<void> => {
+    setGithubStatus('checking')
+    try {
+      if (!window.electronAPI?.checkGithubVersion)
+        throw new Error('GitHub version check is not available')
+      const result = await window.electronAPI.checkGithubVersion()
+      if (!result.success) throw new Error(result.error || 'GitHub version check failed')
+      setGithubVersion(result.latestVersion || '')
+      setGithubStatus('success')
+      setGithubMessage(result.message || '')
+    } catch (error) {
+      setGithubStatus('error')
+      setGithubMessage(
+        `Failed to check GitHub: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    }
   }
 
   const hasOverrides = Object.keys(customOverrides).length > 0
@@ -663,8 +765,202 @@ const SettingsPage = (): React.ReactElement => {
               </SettingRow>
             </Card>
           </section>
+
+          {/* ── Updates ── */}
+          <section>
+            <SectionHeader
+              icon={<RefreshCw size={13} className="text-blue-300" />}
+              label="Updates"
+              accent="bg-blue-500/20"
+            />
+            <Card>
+              {/* Check for updates */}
+              <div className="px-5 py-4 border-b border-white/5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white/85">Check for updates</p>
+                    <p className="text-xs text-white/40 mt-0.5 leading-relaxed">
+                      Check for and download new versions of Unreal Launcher
+                    </p>
+                    {updateMessage && (
+                      <p
+                        className={`text-xs mt-2 ${
+                          updateStatus === 'error'
+                            ? 'text-red-400'
+                            : updateStatus === 'available'
+                              ? 'text-yellow-400'
+                              : updateStatus === 'ready'
+                                ? 'text-green-400'
+                                : 'text-white/50'
+                        }`}
+                      >
+                        {updateMessage}
+                      </p>
+                    )}
+                  </div>
+                  <div className="shrink-0 flex gap-2">
+                    {(updateStatus === 'idle' ||
+                      updateStatus === 'no-update' ||
+                      updateStatus === 'error') && (
+                      <button
+                        onClick={handleCheckForUpdates}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/10 hover:bg-blue-500/18 text-blue-400 border border-blue-500/20 transition-all cursor-pointer"
+                      >
+                        <RefreshCw size={12} />
+                        Check
+                      </button>
+                    )}
+                    {updateStatus === 'checking' && (
+                      <button
+                        disabled
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/5 text-blue-400/50 border border-blue-500/15 cursor-not-allowed"
+                      >
+                        <RefreshCw size={12} className="animate-spin" />
+                        Checking…
+                      </button>
+                    )}
+                    {updateStatus === 'available' && (
+                      <button
+                        onClick={handleDownloadUpdate}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/10 hover:bg-green-500/18 text-green-400 border border-green-500/20 transition-all cursor-pointer"
+                      >
+                        <Download size={12} />v{updateVersion}
+                      </button>
+                    )}
+                    {updateStatus === 'downloading' && (
+                      <button
+                        disabled
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/5 text-green-400/50 border border-green-500/15 cursor-not-allowed"
+                      >
+                        <Download size={12} className="animate-pulse" />
+                        Downloading…
+                      </button>
+                    )}
+                    {updateStatus === 'ready' && (
+                      <button
+                        onClick={() => window.electronAPI?.installUpdate?.()}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/10 hover:bg-purple-500/18 text-purple-400 border border-purple-500/20 transition-all cursor-pointer"
+                      >
+                        <CheckCircle size={12} />
+                        Install
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Check GitHub version */}
+              <div className="px-5 py-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white/85">GitHub version check</p>
+                    <p className="text-xs text-white/40 mt-0.5 leading-relaxed">
+                      Check the latest release version on GitHub
+                    </p>
+                    {githubVersion && (
+                      <p className="text-xs text-white/50 mt-2">
+                        Latest on GitHub: v{githubVersion}
+                      </p>
+                    )}
+                    {githubMessage && (
+                      <p
+                        className={`text-xs mt-2 ${githubStatus === 'error' ? 'text-red-400' : 'text-white/50'}`}
+                      >
+                        {githubMessage}
+                      </p>
+                    )}
+                  </div>
+                  <div className="shrink-0 flex gap-2">
+                    {(githubStatus === 'idle' ||
+                      githubStatus === 'success' ||
+                      githubStatus === 'error') && (
+                      <button
+                        onClick={checkGitHubVersion}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                          githubStatus === 'error'
+                            ? 'bg-red-500/10 hover:bg-red-500/18 text-red-400 border border-red-500/20'
+                            : 'bg-purple-500/10 hover:bg-purple-500/18 text-purple-400 border border-purple-500/20'
+                        }`}
+                      >
+                        {githubStatus === 'error' ? (
+                          <RefreshCw size={12} />
+                        ) : (
+                          <GitBranch size={12} />
+                        )}
+                        {githubStatus === 'success'
+                          ? 'Recheck'
+                          : githubStatus === 'error'
+                            ? 'Retry'
+                            : 'Check'}
+                      </button>
+                    )}
+                    {githubStatus === 'checking' && (
+                      <button
+                        disabled
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/5 text-purple-400/50 border border-purple-500/15 cursor-not-allowed"
+                      >
+                        <RefreshCw size={12} className="animate-spin" />
+                        Checking…
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </section>
+
+          {/* ── About ── */}
+          <section>
+            <SectionHeader
+              icon={<Info size={13} className="text-cyan-300" />}
+              label="About"
+              accent="bg-cyan-500/20"
+            />
+            <Card>
+              <SettingRow
+                label="About Unreal Launcher"
+                description="View information about the application, features, and changelog"
+                last
+              >
+                <button
+                  onClick={() => setShowAbout(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/10 hover:bg-cyan-500/18 text-cyan-400 border border-cyan-500/20 transition-all cursor-pointer"
+                >
+                  <Info size={12} />
+                  View About
+                </button>
+              </SettingRow>
+            </Card>
+          </section>
         </div>
       </div>
+
+      {/* About Modal */}
+      {showAbout && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div
+            className="relative max-w-4xl max-h-[90vh] overflow-hidden rounded-xl border shadow-2xl"
+            style={{
+              backgroundColor: 'var(--color-surface-elevated)',
+              borderColor: 'var(--color-border)',
+              borderRadius: 'var(--radius)'
+            }}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <h2 className="text-lg font-semibold text-white/90">About Unreal Launcher</h2>
+              <button
+                onClick={() => setShowAbout(false)}
+                className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer"
+              >
+                <X size={16} className="text-white/60" />
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+              <AboutPage modal />
+            </div>
+          </div>
+        </div>
+      )}
     </PageWrapper>
   )
 }

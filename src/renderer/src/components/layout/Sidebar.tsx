@@ -3,10 +3,9 @@ import type { FC, ReactNode } from 'react'
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { PageType } from '../../types'
-import { Zap, Package, Activity, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Zap, Package, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
 import Engine_BG from '@renderer/assets/Engines_BG.webp'
 import Projects_BG from '@renderer/assets/Projects_BG.jpg'
-import ProjectDefault from '@renderer/assets/ProjectDefault.avif'
 import Settings_BG from '@renderer/assets/Settings_BG.jpg'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -28,8 +27,7 @@ interface SidebarCardData {
 const NAV_ITEMS: SidebarCardData[] = [
   { title: 'Engines', path: '/engines', imageSrc: Engine_BG, icon: <Zap size={16} /> },
   { title: 'Projects', path: '/projects', imageSrc: Projects_BG, icon: <Package size={16} /> },
-  { title: 'Settings', path: '/settings', imageSrc: Settings_BG, icon: <Settings size={16} /> },
-  { title: 'About', path: '/about', imageSrc: ProjectDefault, icon: <Activity size={16} /> }
+  { title: 'Settings', path: '/settings', imageSrc: Settings_BG, icon: <Settings size={16} /> }
 ]
 
 // ── Expanded card ─────────────────────────────────────────────────────────────
