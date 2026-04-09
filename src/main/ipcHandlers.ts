@@ -1,22 +1,35 @@
 import { ipcMain, app, shell, dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
+import { Worker } from 'worker_threads'
 import { exec, spawn } from 'child_process'
-import os from 'os'
 import { loadEngines, saveEngines, loadProjects, saveProjects, mergeTracerEngines, mergeTracerProjects, loadMainSettings, saveMainSettings, clearAppData, clearTracerData } from './store'
 import {
   generateGradient,
-  scanEnginePaths,
-  findUprojectFiles,
-  findProjectScreenshot,
-  findLatestProjectLogTimestamp,
   formatBytes,
   getFullFolderSize,
-  validateEngineInstallation
+  validateEngineInstallation,
+  findUprojectFiles,
+  findProjectScreenshot
 } from './utils'
 import { handleCheckForUpdates, handleCheckGithubVersion, autoUpdater } from './updater'
 import { getMainWindow, getIsMaximized, handleWindowMinimize, handleWindowMaximize } from './window'
 import type { Engine, Project, EngineSelectionResult, ProjectSelectionResult } from './types'
+
+// Resolve the compiled worker path — electron-vite outputs main files to out/main/
+const WORKER_PATH = path.join(__dirname, 'scanWorker.js')
+
+function runInWorker<T>(type: string, data: Record<string, unknown>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const w = new Worker(WORKER_PATH, { workerData: { type, ...data } })
+    w.once('message', (msg: { ok: boolean; data?: T; error?: string }) => {
+      if (msg.ok) resolve(msg.data as T)
+      else reject(new Error(msg.error ?? 'Worker error'))
+    })
+    w.once('error', reject)
+    w.once('exit', (code) => { if (code !== 0) reject(new Error(`Worker exited ${code}`)) })
+  })
+}
 
 export function registerIpcHandlers(): void {
   // ── Updates ────────────────────────────────────────────────────────────────
@@ -37,35 +50,9 @@ export function registerIpcHandlers(): void {
 
   // ── Engines ────────────────────────────────────────────────────────────────
 
-  ipcMain.handle('scan-engines', (): Engine[] => {
+  ipcMain.handle('scan-engines', async (): Promise<Engine[]> => {
     const saved = mergeTracerEngines(loadEngines(), generateGradient)
-    const scanned: Engine[] = scanEnginePaths().map((e) => {
-      const existing = saved.find((s) => s.directoryPath === e.directoryPath)
-      return {
-        version: e.version,
-        exePath: e.exePath,
-        directoryPath: e.directoryPath,
-        folderSize: existing?.folderSize || '~35-45 GB',
-        lastLaunch: existing?.lastLaunch || 'Unknown',
-        gradient: existing?.gradient || generateGradient()
-      }
-    })
-
-    const merged: Engine[] = []
-    for (const s of scanned) {
-      const existing = saved.find((e) => e.directoryPath === s.directoryPath)
-      if (existing) {
-        if (existing.gradient) s.gradient = existing.gradient
-        if (existing.folderSize && !existing.folderSize.startsWith('~')) s.folderSize = existing.folderSize
-        if (existing.lastLaunch) s.lastLaunch = existing.lastLaunch
-      }
-      merged.push(s)
-    }
-    for (const e of saved) {
-      if (!merged.find((m) => m.directoryPath === e.directoryPath)) merged.push(e)
-    }
-
-    const valid = merged.filter((e) => fs.existsSync(e.exePath))
+    const valid = await runInWorker<Engine[]>('scan-engines', { saved })
     saveEngines(valid)
     return valid
   })
@@ -134,54 +121,9 @@ export function registerIpcHandlers(): void {
 
   // ── Projects ───────────────────────────────────────────────────────────────
 
-  ipcMain.handle('scan-projects', (): Project[] => {
+  ipcMain.handle('scan-projects', async (): Promise<Project[]> => {
     const saved = mergeTracerProjects(loadProjects())
-    const searchPaths = [
-      path.join(os.homedir(), 'Documents', 'Unreal Projects'),
-      'C:\\Users\\Public\\Documents\\Unreal Projects',
-      'D:\\Unreal\\Projects'
-    ]
-
-    const scanned: Project[] = []
-    for (const searchPath of searchPaths) {
-      if (!fs.existsSync(searchPath)) continue
-      for (const uprojectPath of findUprojectFiles(searchPath)) {
-        try {
-          const projectDir = path.dirname(uprojectPath)
-          const projectName = path.basename(projectDir)
-          const stats = fs.statSync(projectDir)
-          let version = 'Unknown'
-          try {
-            const match = fs.readFileSync(uprojectPath, 'utf8').match(/"EngineAssociation":\s*"([^"]+)"/)
-            if (match) version = match[1]
-          } catch { /* keep Unknown */ }
-
-          const existing = saved.find((p) => p.projectPath === projectDir)
-          scanned.push({
-            name: projectName, version,
-            size: existing?.size || '~2-5 GB',
-            createdAt: stats.birthtime.toISOString().split('T')[0],
-            lastOpenedAt: findLatestProjectLogTimestamp(projectDir) || existing?.lastOpenedAt,
-            projectPath: projectDir,
-            thumbnail: findProjectScreenshot(projectDir)
-          })
-        } catch (err) { console.error('Error processing project:', uprojectPath, err) }
-      }
-    }
-
-    const merged: Project[] = []
-    for (const s of scanned) {
-      const existing = saved.find((p) => p.projectPath === s.projectPath)
-      if (existing?.size && !existing.size.startsWith('~')) s.size = existing.size
-      merged.push(s)
-    }
-    for (const p of saved) {
-      if (!merged.find((m) => m.projectPath === p.projectPath)) {
-        merged.push({ ...p, lastOpenedAt: findLatestProjectLogTimestamp(p.projectPath) || p.lastOpenedAt })
-      }
-    }
-
-    const valid = merged.filter((p) => p.projectPath && fs.existsSync(path.join(p.projectPath, `${p.name}.uproject`)))
+    const valid = await runInWorker<Project[]>('scan-projects', { saved })
     saveProjects(valid)
     return valid
   })
