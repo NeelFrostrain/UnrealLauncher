@@ -225,7 +225,6 @@ const SettingsPage = (): React.ReactElement => {
             newProfileName={newProfileName}
             setNewProfileName={setNewProfileName}
             editingProfileId={editingProfileId}
-            setEditingProfileId={setEditingProfileId}
             editingName={editingName}
             setEditingName={setEditingName}
             nameInputRef={nameInputRef}

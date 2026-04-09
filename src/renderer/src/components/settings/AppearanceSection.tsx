@@ -54,7 +54,6 @@ export interface AppearanceSectionProps {
   newProfileName: string
   setNewProfileName: (value: string) => void
   editingProfileId: string | null
-  setEditingProfileId: (value: string | null) => void
   editingName: string
   setEditingName: (value: string) => void
   nameInputRef: RefObject<HTMLInputElement | null>
@@ -80,7 +79,6 @@ const AppearanceSection = ({
   newProfileName,
   setNewProfileName,
   editingProfileId,
-  setEditingProfileId,
   editingName,
   setEditingName,
   nameInputRef,

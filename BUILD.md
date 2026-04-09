@@ -1,135 +1,141 @@
-# Build Guide for Unreal Launcher
+# Build Guide
 
-This document describes the full build process for Unreal Launcher, including the native Rust tracer, Electron packaging, and the Windows NSIS installer.
+This guide covers the full build process for Unreal Launcher — including the Rust native module, the UE Tracer, and the Electron app/installer.
+
+---
 
 ## Prerequisites
 
-- Node.js 18+ installed
-- npm installed
-- Rust toolchain installed
-- `electron-builder` dependencies installed via `npm install`
-- Windows: `signtool.exe` available if code signing is enabled
+- **Node.js 18+** and **npm**
+- **Rust toolchain** — install from [rustup.rs](https://rustup.rs)
+- **`@napi-rs/cli`** — installed automatically via `npm install`
+- Windows: Visual Studio Build Tools (for native module compilation)
 
-## Clone and install
+---
+
+## 1. Install dependencies
 
 ```powershell
-cd e:\Projects\UnrealLauncher
 npm install
 ```
 
-## Build the native modules
+---
 
-### 1. Build the Rust tracer
+## 2. Build native modules
 
-```powershell
-npm run build:tracer
-```
-
-This compiles `tracer/target/release/unreal_launcher_tracer.exe`.
-
-### 2. Build the JS native addon (if used)
+### Rust N-API module (filesystem ops)
 
 ```powershell
 npm run build:native
 ```
 
-This builds the N-API native module and places the output into `native/dist/`.
+Output: `native/dist/*.node`
 
-## Copy native resources for packaging
+### UE Tracer (background process)
 
-The repo is configured to copy the tracer executable into the app `resources/` folder during the build.
+```powershell
+npm run build:tracer
+```
 
-- `package.json` includes a `copy:tracer` script that copies:
-  - `tracer/target/release/unreal_launcher_tracer.exe`
-  - to `resources/unreal_launcher_tracer.exe`
+Output: `tracer/target/release/unreal_launcher_tracer.exe`
 
-- `electron-builder.yml` includes:
-  - `resources/**`
-  - `native/dist/**`
+---
 
-## Build the app
+## 3. Build the app
 
-### Production app build
+### Development
+
+```powershell
+npm run dev
+```
+
+### Production (all platforms)
 
 ```powershell
 npm run build
 ```
 
-This runs:
+This runs in order:
+1. `build:tracer` — compiles the Rust tracer
+2. `electron-vite build` — bundles main + renderer
+3. `copy:tracer` — copies `unreal_launcher_tracer.exe` → `resources/`
 
-1. `npm run build:tracer`
-2. `electron-vite build`
-3. `npm run copy:tracer`
-
-### Windows installer build
+### Platform packages
 
 ```powershell
-npm run build:win
+npm run build:win    # Windows NSIS installer + unpacked dir
+npm run build:mac    # macOS DMG
+npm run build:linux  # AppImage / DEB / RPM
 ```
 
-This runs the production build and then packages the app with Electron Builder.
+---
 
-## Build output
+## 4. Build output
 
-After a successful Windows build, you should see:
+After `npm run build:win`:
 
-- `dist\unreal-launcher-1.9.0-setup.exe`
-- `dist\win-unpacked\`
+```
+dist/
+├── unreal-launcher-1.9.0-setup.exe   # NSIS installer
+└── win-unpacked/                      # Unpacked app
+    └── resources/
+        ├── app/
+        └── unreal_launcher_tracer.exe
+```
 
-The running app should load the tracer from:
+---
 
-- `dist\win-unpacked\resources\app\resources\unreal_launcher_tracer.exe`
+## Key configuration
 
-## Important configuration notes
+### Tracer path at runtime
 
-### Tracer runtime path
-
-The app is configured to load the tracer from the packaged `resources` folder:
-
-- `src/main/index.ts`
-- `src/main/ipcHandlers.ts`
-
-Both files now use:
+Both `src/main/index.ts` and `src/main/ipcHandlers.ts` resolve the tracer using:
 
 ```ts
 path.join(app.getAppPath(), 'resources', 'unreal_launcher_tracer.exe')
 ```
 
-### Electron Builder configuration
+### electron-builder.yml
 
-`electron-builder.yml` includes:
+- `asar` disabled, `asarUnpack` includes `resources/**` and `native/dist/*.node`
+- `extraResources` copies `resources/**` and `native/dist/**` into the packaged app
+- Windows target: `nsis` + `dir`
 
-- `appId`, `productName`, and output directory `dist`
-- packaging for `out/**`, `native/dist/**`, and `resources/**`
-- `win.target` includes both `nsis` and `dir`
-- `asar` is disabled and `asarUnpack` includes `resources/**` and `native/dist/*.node`
+---
 
-### Windows installer troubleshooting
+## Troubleshooting
 
-If installer build fails due to a missing NSIS include file, remove the `include: build/installer.nsh` line from `electron-builder.yml`.
+**NSIS build fails with missing include file**
+Remove the `include: build/installer.nsh` line from `electron-builder.yml`.
 
-If a stale file is locked during packaging:
+**Stale file locked during packaging**
+Close any running `unreallauncher.exe` or `unreal_launcher_tracer.exe`, delete `dist/`, then re-run.
 
-1. Close any running `unreallauncher.exe` or `unreal_launcher_tracer.exe` processes.
-2. Delete the `dist/` folder.
-3. Re-run `npm run build:win`.
+**Native module not found at runtime**
+Ensure `npm run build:native` completed successfully and `native/dist/*.node` exists.
 
-## Quick full build command sequence
+---
+
+## Full clean build sequence
 
 ```powershell
-cd e:\Projects\UnrealLauncher
 npm install
 npm run build:native
 npm run build:tracer
 npm run build:win
 ```
 
-## Notes
-
-- The commands above assume you are on Windows and using PowerShell.
-- The repo uses `electron-vite` for development and production builds.
-- The Windows installer output is generated in `dist/`.
-
 ---
 
-This guide is written for the current state of the repository and the package configuration in place at the time of writing.
+## Useful scripts
+
+| Script | Description |
+|---|---|
+| `npm run build:native` | Build Rust N-API module |
+| `npm run build:tracer` | Build Rust tracer binary |
+| `npm run build` | Full production build |
+| `npm run build:win` | Windows installer |
+| `npm run build:unpack` | Unpacked build (no installer) |
+| `npm run clean` | Remove `out/`, `dist/`, caches |
+| `npm run typecheck` | TypeScript type check |
+| `npm run lint` | ESLint |

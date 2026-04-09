@@ -1,69 +1,90 @@
 # Contributing to Unreal Launcher
 
-First off, thank you for considering contributing! 🎉 Your help makes this project better for everyone.
+Thanks for taking the time to contribute! Here's everything you need to get started.
 
-## ✅ Getting Started
+---
 
-1. **Fork** the repository.
+## Getting Started
+
+1. **Fork** the repository on GitHub
 2. **Clone** your fork:
 
 ```bash
 git clone https://github.com/<your-username>/UnrealLauncher.git
-cd unreal-launcher
-```
-
-3. **Install dependencies**:
-
-```bash
+cd UnrealLauncher
 npm install
 ```
 
-4. **Run the app**:
+3. **Run** the app in dev mode:
 
 ```bash
 npm run dev
 ```
 
-## 🧠 Branching & Workflow
+---
 
-- Create a descriptive branch for each change:
-  - `feature/<something>`
-  - `fix/<issue>`
-  - `docs/<update>`
-- Keep changes focused and small.
-- Rebase or merge the main branch before creating a pull request.
+## Branching
 
-## 🧪 Testing
+Use descriptive branch names:
 
-- Run type checking:
+- `feature/<name>` — new features
+- `fix/<name>` — bug fixes
+- `docs/<name>` — documentation only
+- `refactor/<name>` — code cleanup
 
-```bash
-npm run typecheck
-```
+Keep branches focused. One concern per PR.
 
-- Run lint:
+---
 
-```bash
-npm run lint
-```
+## Before You Commit
 
-- Format code:
+Run these and make sure they pass:
 
 ```bash
-npm run format
+npm run typecheck   # TypeScript
+npm run lint        # ESLint
+npm run format      # Prettier
 ```
 
-## ✅ Pull Request Checklist
+---
 
-- [ ] Code compiles and passes typecheck
-- [ ] Linting issues are resolved
-- [ ] Documentation updated (if applicable)
-- [ ] New feature has at least one test (if applicable)
-- [ ] Changes are described clearly in the PR
+## Pull Request Checklist
 
-## 🙋‍♀️ Want to contribute but don’t know how?
+- [ ] `npm run typecheck` passes with no errors
+- [ ] `npm run lint` passes with no warnings
+- [ ] Changes are described clearly in the PR description
+- [ ] Documentation updated if applicable (README, BUILD.md, CHANGELOG.md)
 
-- Look at the open issues and pick one labeled `good first issue` or `help wanted`.
-- Ask questions in the GitHub Discussions or open an issue.
+---
 
-Thanks again for contributing! 💜
+## Project Structure
+
+```
+src/
+├── main/          # Electron main process (IPC, store, updater, window)
+├── preload/       # contextBridge IPC bridge
+└── renderer/      # React UI
+    └── src/
+        ├── components/   # Reusable UI (engines, projects, settings, about, layout, ui)
+        ├── pages/        # Page components (Engines, Projects, Settings, About)
+        ├── store/        # Zustand stores
+        └── utils/        # Theme, settings, helpers
+```
+
+---
+
+## Code Style
+
+- TypeScript strict mode — no `any`, no `require()`
+- Functional React components with hooks only
+- CSS via Tailwind + CSS variables (`var(--color-*)`) — no hardcoded colors
+- Lucide React for icons
+- Framer Motion for animations
+
+---
+
+## Need Help?
+
+- Check [open issues](https://github.com/NeelFrostrain/UnrealLauncher/issues) for `good first issue` or `help wanted` labels
+- Open a [Discussion](https://github.com/NeelFrostrain/UnrealLauncher/discussions) for questions
+- Email: nfrostrain@gmail.com

@@ -1,50 +1,55 @@
-import { Zap, Package, Activity, Code, RefreshCw, AlertTriangle, BookOpen, Cpu } from 'lucide-react'
+import { Zap, FolderOpen, Activity, Star, HardDrive, RefreshCw, Palette, Shield, LayoutGrid, Cpu } from 'lucide-react'
 
 const features = [
   {
-    icon: <Package className="text-blue-400" size={20} />,
-    title: 'Engine Management',
-    desc: 'Scan and manage multiple Unreal Engine versions (UE4 & UE5)'
+    icon: <FolderOpen className="text-blue-400" size={20} />,
+    title: 'Auto-Scan',
+    desc: 'Automatically discovers UE4 & UE5 installs and .uproject files across your drives.'
   },
   {
-    icon: <Cpu className="text-cyan-400" size={20} />,
-    title: 'Unreal Engine Tracer',
-    desc: 'Monitor engine and project performance with background tracing'
+    icon: <Zap className="text-yellow-400" size={20} />,
+    title: 'One-Click Launch',
+    desc: 'Launch any Unreal Engine version or project instantly. No Epic Games Launcher required.'
   },
   {
-    icon: <Activity className="text-purple-400" size={20} />,
-    title: 'Project Tracking',
-    desc: 'Automatically find and organize your Unreal projects with thumbnails'
+    icon: <LayoutGrid className="text-purple-400" size={20} />,
+    title: 'List & Grid View',
+    desc: 'Switch between list and grid layouts for projects. Preference saved across sessions.'
   },
   {
-    icon: <Zap className="text-green-400" size={20} />,
-    title: 'Quick Launch',
-    desc: 'Launch engines and projects with a single click'
+    icon: <Star className="text-orange-400" size={20} />,
+    title: 'Favorites & Recent',
+    desc: 'Pin favorite projects and track recently opened ones sorted by actual last-opened time.'
   },
   {
-    icon: <Code className="text-yellow-400" size={20} />,
+    icon: <HardDrive className="text-cyan-400" size={20} />,
     title: 'Size Calculation',
-    desc: 'Calculate exact folder sizes with background processing'
+    desc: 'Background folder size calculation for engines and projects using worker threads.'
   },
   {
-    icon: <RefreshCw className="text-orange-400" size={20} />,
-    title: 'Recent Projects',
-    desc: 'Sorted by actual last-opened time using Saved/Logs timestamps'
+    icon: <Cpu className="text-green-400" size={20} />,
+    title: 'UE Tracer',
+    desc: 'Background Rust process that tracks engine and project usage, merges data on scan.'
   },
   {
-    icon: <AlertTriangle className="text-cyan-400" size={20} />,
-    title: 'Toast Notifications',
-    desc: 'Real-time feedback for all user actions and operations'
+    icon: <Palette className="text-pink-400" size={20} />,
+    title: 'Full Theme System',
+    desc: 'Built-in themes, per-token color overrides, border radius control, and saveable profiles.'
   },
   {
-    icon: <BookOpen className="text-pink-400" size={20} />,
-    title: 'Settings Page',
-    desc: 'Customize app behavior and user preferences'
+    icon: <RefreshCw className="text-indigo-400" size={20} />,
+    title: 'Auto Updates',
+    desc: 'Built-in updater checks GitHub releases and installs updates in the background.'
   },
   {
-    icon: <Activity className="text-indigo-400" size={20} />,
-    title: 'Smooth Animations',
-    desc: 'Beautiful framer-motion animations throughout the interface'
+    icon: <Activity className="text-red-400" size={20} />,
+    title: 'Performance First',
+    desc: 'Scroll virtualization, worker threads, and lazy-loaded pages keep the UI fast.'
+  },
+  {
+    icon: <Shield className="text-teal-400" size={20} />,
+    title: 'Single Instance',
+    desc: 'Only one instance runs at a time. Second launch focuses the existing window.'
   }
 ]
 

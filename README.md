@@ -1,47 +1,64 @@
 # 🚀 Unreal Launcher
 
-> A lightweight Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects.
+> A lightweight Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
 
 ---
 
 ![S1](./docs/S1.png)
 ![S2](./docs/S2.png)
 
-## ✅ What This Project Is
+## What it does
 
-**Unreal Launcher** is an Electron + React desktop application that helps you:
+**Unreal Launcher** replaces the Epic Games Launcher for day-to-day UE development. It auto-scans your drives for installed engines and `.uproject` files, lets you launch them with one click, and stays out of your way.
 
-- Detect installed Unreal Engine versions on your machine
-- Browse and open Unreal Engine projects easily
-- Launch the editor with a single click
-- Keep the launcher up-to-date via built-in auto-updates
-
-It is built with TypeScript, Vite, and Electron and includes a custom UI layer for a polished cross-platform experience.
+**Stack:** TypeScript · React 19 · Electron 39 · Vite 7 · Tailwind CSS 4 · Zustand · Framer Motion · Rust (napi-rs)
 
 ---
 
-## 🚀 Quick Start (Development)
+## Features
+
+| | Feature | Description |
+|---|---|---|
+| ⚡ | One-Click Launch | Start any engine or project instantly |
+| 🔍 | Auto-Scan | Discovers UE4 & UE5 installs and `.uproject` files automatically |
+| 🗂️ | List & Grid View | Toggle between layouts for projects, preference persisted |
+| ⭐ | Favorites & Recent | Pin projects and track recently opened ones by actual timestamp |
+| 🔎 | Search | Filter projects by name |
+| 💾 | Size Calculation | Background folder size calculation via worker threads |
+| 🦀 | UE Tracer | Rust background process tracking engine/project usage |
+| 🎨 | Theme System | Built-in themes, per-token overrides, border radius, saveable profiles |
+| 🔤 | Font Customization | Choose font family and size for the entire UI |
+| 📐 | Resizable Sidebar | Drag to resize or collapse |
+| 🔔 | Toast Notifications | Stacking real-time feedback with auto-dismiss |
+| 🔄 | Auto Updates | GitHub Releases-based updates via `electron-updater` |
+| 🔒 | Single Instance | Second launch focuses the existing window |
+| 🛡️ | Error Boundary | Recoverable crash screen instead of blank window |
+
+---
+
+## Quick Start
 
 ### Prerequisites
 
-- **Node.js 18+** (recommended)
-- **npm** (or **yarn**) installed
+- Node.js 18+
+- Rust toolchain (for native modules & tracer)
+- npm
 
 ### Setup
 
 ```bash
 git clone https://github.com/NeelFrostrain/UnrealLauncher.git
-cd unreal-launcher
+cd UnrealLauncher
 npm install
 ```
 
-### Run in Development Mode
+### Development
 
 ```bash
 npm run dev
 ```
 
-### Preview Production Build
+### Preview production build
 
 ```bash
 npm run start
@@ -49,167 +66,120 @@ npm run start
 
 ---
 
-## 🏗️ Build (Production)
-
-### Build for the current platform
+## Building
 
 ```bash
+# Full production build (tracer + app)
 npm run build
-```
 
-### Build platform-specific packages
+# Platform packages
+npm run build:win    # Windows installer (.exe)
+npm run build:mac    # macOS (.dmg)
+npm run build:linux  # Linux (AppImage/DEB/RPM)
 
-```bash
-npm run build:win    # Windows installer (EXE)
-npm run build:mac    # macOS package (DMG)
-npm run build:linux  # Linux package (AppImage/DEB/RPM)
-```
-
-### Build unpacked (for testing/debugging)
-
-```bash
+# Unpacked (no installer, useful for testing)
 npm run build:unpack
 ```
 
+See [BUILD.md](BUILD.md) for the full build guide including native modules and the Rust tracer.
+
 ---
 
-## 🧰 Repository Structure
+## Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start in development mode |
+| `npm run start` | Preview production build |
+| `npm run build` | Build for current platform |
+| `npm run build:win` | Windows installer |
+| `npm run build:mac` | macOS package |
+| `npm run build:linux` | Linux package |
+| `npm run build:native` | Build Rust N-API native module |
+| `npm run build:tracer` | Build Rust tracer executable |
+| `npm run typecheck` | TypeScript type checking |
+| `npm run lint` | Run ESLint |
+| `npm run format` | Format with Prettier |
+| `npm run clean` | Remove build artifacts |
+
+---
+
+## Project Structure
 
 ```
-unreal-launcher/
-├── build/                  # Build scripts and templates
-├── resources/              # App assets (icons, installers, etc.)
+UnrealLauncher/
+├── native/              # Rust N-API native module (filesystem ops)
+├── tracer/              # Rust background tracer process
+├── resources/           # Packaged assets (icons, tracer binary)
 ├── src/
-│   ├── main/               # Electron main process
-│   ├── preload/            # Preload (IPC bridge) code
-│   └── renderer/           # React renderer UI
-│       ├── src/
-│       │   ├── components/  # Reusable UI components
-│       │   ├── pages/       # Screens (Engines, Projects, About)
-│       │   ├── store/       # Zustand state management
-│       │   └── utils/       # Helpers
-│       └── index.html       # Entry HTML
-├── electron.vite.config.ts  # Vite + Electron configuration
-├── electron-builder.yml     # Packaging configuration
-└── package.json             # Dependencies & scripts
+│   ├── main/            # Electron main process
+│   │   ├── index.ts     # Entry, protocol, single instance
+│   │   ├── ipcHandlers.ts
+│   │   ├── store.ts     # Data persistence (engines/projects/settings)
+│   │   ├── updater.ts
+│   │   ├── utils.ts
+│   │   └── window.ts
+│   ├── preload/         # IPC bridge (contextBridge)
+│   └── renderer/        # React UI
+│       └── src/
+│           ├── components/
+│           │   ├── about/
+│           │   ├── engines/
+│           │   ├── layout/
+│           │   ├── projects/
+│           │   ├── settings/
+│           │   └── ui/
+│           ├── pages/   # Engines, Projects, Settings, About
+│           ├── store/   # Zustand (page navigation)
+│           └── utils/   # Theme, settings, helpers
+├── electron.vite.config.ts
+├── electron-builder.yml
+└── package.json
 ```
 
 ---
 
-## 🧩 Features
+## Data Storage
 
-- **Engine Detection** — automatically scans standard Unreal Engine install paths
-- **One-click Launch** — start the editor with a single click
-- **Project Browser** — locate and open Unreal projects with thumbnail previews
-- **List & Grid View** — toggle between a flat list and a thumbnail grid, preference saved across sessions
-- **Batch Project Import** — import up to 20 projects at a time from a folder, with toast feedback on skipped items
-- **Recent Projects** — accurately sorted by last opened time via `Saved/Logs` timestamps
-- **Favorites System** — mark and quickly access your favorite projects
-- **3-dot Dropdown Menu** — per-card actions (favorites, open folder, remove) in a clean dropdown
-- **Advanced Search** — search across projects by name
-- **Settings Page** — customize app behavior including auto-close on launch
-- **Persist Last Page** — reopens the last visited page on next launch
-- **Smooth Animations** — framer-motion animations throughout the UI
-- **Toast Notifications** — stacking real-time feedback with auto-dismiss and close button
-- **Single Instance Lock** — prevents multiple app instances
-- **GitHub Version Check** — compare installed version against latest GitHub release
-- **Auto-updates** — GitHub Releases-based auto-update via `electron-updater`
-- **Error Boundary** — recoverable error screen instead of blank window on crash
-- **Material Icons** — consistent Material Design icons via `@mui/icons-material`
+App data is stored in Electron's `userData` directory:
 
-|                Command | Description                            |
-| ---------------------: | :------------------------------------- |
-|          `npm run dev` | Start the app in development mode      |
-|        `npm run start` | Preview the production build           |
-|        `npm run build` | Build the app for the current platform |
-|    `npm run build:win` | Build Windows installer                |
-|    `npm run build:mac` | Build macOS package                    |
-|  `npm run build:linux` | Build Linux package                    |
-| `npm run build:unpack` | Build unpacked app (no installer)      |
-|         `npm run lint` | Run ESLint                             |
-|       `npm run format` | Format code with Prettier              |
-|    `npm run typecheck` | TypeScript type checking               |
+```
+%APPDATA%\unreal-launcher\
+├── save\
+│   ├── engines.json
+│   ├── projects.json
+│   └── settings.json
+└── Tracer\
+    ├── engines.json
+    └── projects.json
+```
 
 ---
 
-## 📌 Notes / Troubleshooting
+## Contributing
 
-- If build tools fail on Windows, ensure you have the required dependencies installed (`python`, `windows-build-tools`, etc.) and that your shell has access to the correct toolchain.
-- The app scans standard Unreal Engine install paths. If your engine is installed in a custom directory, add it manually in the UI (if supported) or edit the scan paths in the source.
-
----
-
-## 🤝 Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 1. Fork the repo
-   2.Create a feature branch (`git checkout -b feature/your-feature`)
-2. Make changes and add tests if applicable
-3. Open a pull request and describe what you changed
-
-Please follow the existing code style and run `npm run lint` before submitting.
+2. Create a branch: `git checkout -b feature/your-feature`
+3. Run `npm run typecheck && npm run lint` before committing
+4. Open a pull request
 
 ---
 
-### 🖼️ Icons & Branding
+## License
 
-- Custom application icon (`build/icon.ico`)
-- Professional branding with "Unreal Launcher" product name
-- Native window controls with custom titlebar
+MIT — see [LICENSE](LICENSE)
 
-## 🤝 Contributing
+---
 
-We welcome contributions! 🎉
-
-Before you begin, please read through these documents:
-
-- 📘 [Contributing Guide](CONTRIBUTING.md)
-- 🧾 [Code of Conduct](CODE_OF_CONDUCT.md)
-- 🔐 [Security Policy](SECURITY.md)
-- 📝 [Changelog](CHANGELOG.md)
-
-### 🍴 How to contribute
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### 🏗️ Development Guidelines
-
-- Run `npm run lint` before committing
-- Ensure TypeScript types are correct
-- Test on multiple platforms when possible
-- Update documentation for new features
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **Epic Games** - For creating Unreal Engine
-- **Electron Team** - For the amazing desktop framework
-- **React Team** - For the best frontend library
-- **Tailwind CSS** - For the utility-first CSS framework
-
-## � Support & Donations
-
-If you encounter any issues or have questions:
+## Support
 
 - 🐛 [Open an Issue](https://github.com/NeelFrostrain/UnrealLauncher/issues)
-- 💬 [Start a Discussion](https://github.com/NeelFrostrain/UnrealLauncher/discussions)
-- 📧 Contact: nfrostrain@gmail.com
-
-### 🙏 Support the Project
-
-If you want to help keep Unreal Launcher growing, consider supporting the project:
-
-- 🧡 [Donate](DONATE.md)
-- ⭐ Star the repo to help others find it
-
----
+- 💬 [Discussions](https://github.com/NeelFrostrain/UnrealLauncher/discussions)
+- 📧 nfrostrain@gmail.com
+- ☕ [Ko-fi](https://ko-fi.com/neelfrostrain)
 
 <div align="left">
-  <p><strong>Made By</strong> Neel Frostrain</p>
+  <p>Made by <a href="https://github.com/NeelFrostrain">Neel Frostrain</a></p>
 </div>

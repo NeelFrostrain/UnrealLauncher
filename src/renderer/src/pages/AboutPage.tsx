@@ -1,46 +1,74 @@
 import PageWrapper from '../layout/PageWrapper'
 import AboutFeatures from '../components/about/AboutFeatures'
 import AboutUsage from '../components/about/AboutUsage'
-import {
-  AboutKnownIssues,
-  AboutTechnical,
-  AboutContributing,
-  AboutCodeOfConduct,
-  AboutSecurity,
-  AboutSupport,
-  AboutFooter
-} from '../components/about/AboutInfo'
-import AboutChangelog from '../components/about/AboutChangelog'
-import { BookOpen } from 'lucide-react'
+import { AboutFooter } from '../components/about/AboutInfo'
+import { Sparkles, GitBranch, ExternalLink } from 'lucide-react'
 
-const v190Added = [
-  'Enhanced Settings Page — comprehensive customization with theme system, border radius control, and profile management',
-  'Advanced Theme Customization — built-in themes, custom color overrides, and saveable theme profiles',
-  'Unreal Engine Tracer — background process for tracking engine and project usage with performance optimizations',
-  'Updates Section in Settings — moved auto-update and GitHub version checking from About page',
-  'Theme Border Radius Sync — project cards, engine cards, and settings cards now respect theme border radius',
-  'Windows Installer Generation — automated NSIS installer build with native modules and tracer included',
-  'TypeScript Type Safety — added NativeModule interfaces and removed all require() imports',
-  'Code Quality Improvements — fixed all ESLint warnings and TypeScript diagnostics',
-  'Build Process Documentation — comprehensive BUILD.md guide for developers'
+const highlights = [
+  { emoji: '🎨', title: 'Theme System', desc: 'Built-in themes, per-token overrides, saveable profiles, and border radius control' },
+  { emoji: '🔤', title: 'Font Customization', desc: 'Choose font family and size for the entire UI' },
+  { emoji: '⚡', title: 'Splash Screen', desc: 'Animated loading screen on startup' },
+  { emoji: '📐', title: 'Resizable Sidebar', desc: 'Drag to resize or collapse the sidebar' },
+  { emoji: '🦀', title: 'UE Tracer', desc: 'Rust background process tracking engine and project usage' },
+  { emoji: '🧵', title: 'Worker Threads', desc: 'Scanning and size calculation run off the main thread' }
 ]
 
-const WhatsNewSection = ({ added }: { added: string[] }): React.ReactElement => (
-  <div
-    className="p-6 space-y-4"
-    style={{
-      backgroundColor: 'var(--color-surface-elevated)',
-      border: '1px solid var(--color-border)',
-      borderRadius: 'var(--radius)'
-    }}
-  >
-    <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-green-400">✨ Release Highlights</h3>
-      <ul className="text-xs text-white/70 space-y-1 ml-4">
-        {added.map((item) => (
-          <li key={item}>• {item}</li>
+const WhatsNew = (): React.ReactElement => (
+  <div>
+    <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
+      <Sparkles size={20} className="text-yellow-400" />
+      What&apos;s New in v1.9.0
+    </h2>
+    <div
+      className="overflow-hidden"
+      style={{
+        backgroundColor: 'var(--color-surface-elevated)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius)'
+      }}
+    >
+      {/* Banner */}
+      <div
+        className="px-6 py-4 flex items-center justify-between border-b"
+        style={{
+          borderColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
+          background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent)'
+        }}
+      >
+        <div>
+          <p className="text-sm font-semibold text-white/90">v1.9_dev — 17 commits ahead of main</p>
+          <p className="text-xs text-white/40 mt-0.5">Branch comparison: v1.9_dev → main</p>
+        </div>
+        <button
+          onClick={() =>
+            window.electronAPI.openExternal(
+              'https://github.com/NeelFrostrain/UnrealLauncher/compare/main...v1.9_dev'
+            )
+          }
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border cursor-pointer transition-colors hover:bg-white/5"
+          style={{
+            color: 'var(--color-accent)',
+            borderColor: 'color-mix(in srgb, var(--color-accent) 35%, transparent)'
+          }}
+        >
+          <GitBranch size={12} />
+          Compare on GitHub
+          <ExternalLink size={11} />
+        </button>
+      </div>
+
+      {/* Highlights */}
+      <div className="p-6 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
+        {highlights.map(({ emoji, title, desc }) => (
+          <div key={title} className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-base">{emoji}</span>
+              <span className="text-sm font-semibold text-white/85">{title}</span>
+            </div>
+            <p className="text-xs text-white/50 ml-7">{desc}</p>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   </div>
 )
@@ -48,29 +76,14 @@ const WhatsNewSection = ({ added }: { added: string[] }): React.ReactElement => 
 const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement => {
   const content = (
     <div className="space-y-6 pb-8 p-5">
-      <div>
-        <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-          <BookOpen size={20} className="text-yellow-400" />
-          What&apos;s New
-        </h2>
-        <WhatsNewSection added={v190Added} />
-      </div>
+      <WhatsNew />
       <AboutFeatures />
-      <AboutChangelog />
       <AboutUsage />
-      <AboutKnownIssues />
-      <AboutTechnical />
-      <AboutContributing />
-      <AboutCodeOfConduct />
-      <AboutSecurity />
-      <AboutSupport />
       <AboutFooter />
     </div>
   )
 
-  if (modal) {
-    return content
-  }
+  if (modal) return content
 
   return (
     <PageWrapper>
