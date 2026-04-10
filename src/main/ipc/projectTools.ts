@@ -1,9 +1,8 @@
-import { ipcMain } from 'electron'
+import { ipcMain, app } from 'electron'
 import path from 'path'
 import fs from 'fs'
 
-// How many bytes to read from the end of the log on each poll
-const TAIL_BYTES = 64 * 1024 // 64 KB — enough for ~1000 recent lines
+const TAIL_BYTES = 64 * 1024
 
 function findLatestLog(projectPath: string): string | null {
   const logsDir = path.join(projectPath, 'Saved', 'Logs')
@@ -22,7 +21,20 @@ function findLatestLog(projectPath: string): string | null {
   return best?.file ?? null
 }
 
+function getTracerDir(): string {
+  const appdata = process.env.APPDATA ?? app.getPath('userData')
+  return path.join(appdata, 'Unreal Launcher', 'Tracer')
+}
+
 export function registerProjectToolHandlers(ipcMain_: typeof ipcMain): void {
+  // ── Active sessions ─────────────────────────────────────────────────────────
+  ipcMain_.handle('get-active-sessions', (): unknown[] => {
+    try {
+      const file = path.join(getTracerDir(), 'active_sessions.json')
+      if (!fs.existsSync(file)) return []
+      return JSON.parse(fs.readFileSync(file, 'utf8'))
+    } catch { return [] }
+  })
   // ── Log tail — only sends the last 64 KB, never the full file ───────────────
   ipcMain_.handle(
     'project-read-log',

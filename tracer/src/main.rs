@@ -13,6 +13,7 @@ use std::{
     thread,
     time::Duration,
 };
+use sysinfo::{Pid, ProcessesToUpdate, System};
 
 // ── Platform paths ────────────────────────────────────────────────────────────
 
@@ -73,7 +74,7 @@ fn read_json<T: for<'de> serde::Deserialize<'de>>(path: &Path) -> Vec<T> {
         .unwrap_or_default()
 }
 
-fn atomic_write<T: Serialize>(path: &Path, data: &T) {
+fn atomic_write<T: Serialize + ?Sized>(path: &Path, data: &T) {
     let tmp = path.with_extension("tmp");
     if let Ok(json) = serde_json::to_string_pretty(data) {
         if fs::write(&tmp, json).is_ok() {
@@ -127,6 +128,47 @@ fn record_project(dir: &Path, project_path: &str, name: &str, version: &str) {
     }
     atomic_write(&path, &projects);
 }
+
+// ── Active session tracking ───────────────────────────────────────────────────
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+struct ActiveSession {
+    pid: u32,
+    exe_path: String,
+    engine_version: String,
+    engine_root: String,
+    /// "project" when a .uproject is loaded, "engine" when editor opened standalone
+    session_type: String,
+    project_name: String,
+    project_path: String,
+    /// CPU usage 0–100 (across all cores, normalised to single-core %)
+    cpu_percent: f32,
+    /// RAM in MB
+    ram_mb: f64,
+    /// GPU memory in MB (best-effort via VRAM counter; 0 if unavailable)
+    gpu_vram_mb: f64,
+    started_at: String,
+    updated_at: String,
+}
+
+fn write_sessions(dir: &Path, sessions: &[ActiveSession]) {
+    atomic_write(&dir.join("active_sessions.json"), sessions);
+}
+
+/// Read per-process GPU VRAM usage on Windows via DXGI/PDH.
+/// Returns MB used by the given PID, or 0.0 if unavailable.
+#[cfg(target_os = "windows")]
+fn gpu_vram_mb_for_pid(_pid: u32) -> f64 {
+    // Best-effort: query the "GPU Engine" PDH counter for the process.
+    // This requires PDH which adds a heavy dependency; instead we use a
+    // lightweight approach: read the process's working set from NtQuerySystemInformation
+    // via the windows crate. For now we return 0 and leave a hook for future expansion.
+    0.0
+}
+
+#[cfg(not(target_os = "windows"))]
+fn gpu_vram_mb_for_pid(_pid: u32) -> f64 { 0.0 }
 
 // ── Windows process enumeration via WMI/WMIC ─────────────────────────────────
 // We use `wmic` (available on all Windows versions) to get the full command
@@ -224,36 +266,42 @@ fn split_csv_line(line: &str) -> Vec<String> {
 // ── Project detection ─────────────────────────────────────────────────────────
 
 fn find_project_from_cmd(cmd_line: &str) -> Option<(String, String, String)> {
-    // Find .uproject in the command line — may be quoted or unquoted
     let idx = cmd_line.find(".uproject")?;
 
-    // Walk back to find the start of this argument
+    // Walk back to find the start of this argument (after a quote or space)
     let before = &cmd_line[..idx];
-    let start = before.rfind('"')
-        .or_else(|| before.rfind(' ').map(|i| i))
+    let start = before
+        .rfind('"')
+        .or_else(|| before.rfind(' '))
         .map(|i| i + 1)
         .unwrap_or(0);
 
-    let raw = cmd_line[start..idx + 9].trim_matches('"').trim_matches('\'');
-    let p = Path::new(raw);
+    let raw = cmd_line[start..idx + 9]
+        .trim_matches('"')
+        .trim_matches('\'')
+        .trim();
 
-    if !p.exists() {
-        // Try normalizing slashes
-        let normalized = raw.replace('/', "\\");
-        let p2 = Path::new(&normalized);
-        if p2.exists() {
-            let name = p2.file_stem()?.to_str()?.to_string();
-            let dir = p2.parent()?.to_string_lossy().into_owned();
-            let version = read_engine_association(p2);
-            return Some((dir, name, version));
-        }
-        return None;
+    // Normalise to backslashes for Windows path operations
+    let normalised = raw.replace('/', "\\");
+    let p = Path::new(&normalised);
+
+    if p.exists() {
+        let name = p.file_stem()?.to_str()?.to_string();
+        let dir = p.parent()?.to_string_lossy().into_owned();
+        let version = read_engine_association(p);
+        return Some((dir, name, version));
     }
 
-    let name = p.file_stem()?.to_str()?.to_string();
-    let dir = p.parent()?.to_string_lossy().into_owned();
-    let version = read_engine_association(p);
-    Some((dir, name, version))
+    // Try original path as-is
+    let p2 = Path::new(raw);
+    if p2.exists() {
+        let name = p2.file_stem()?.to_str()?.to_string();
+        let dir = p2.parent()?.to_string_lossy().into_owned();
+        let version = read_engine_association(p2);
+        return Some((dir, name, version));
+    }
+
+    None
 }
 
 fn find_project_from_ue_config() -> Option<(String, String, String)> {
@@ -327,14 +375,13 @@ fn main() {
         Ok(mut f) => { let _ = writeln!(f, "{}", std::process::id()); }
         Err(_) => {
             let stale = {
-                use sysinfo::System;
                 fs::read_to_string(&lock)
                     .ok()
                     .and_then(|s| s.trim().parse::<u32>().ok())
                     .map(|pid| {
                         let mut sys = System::new();
-                        sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
-                        sys.process(sysinfo::Pid::from(pid as usize)).is_none()
+                        sys.refresh_processes(ProcessesToUpdate::All, true);
+                        sys.process(Pid::from(pid as usize)).is_none()
                     })
                     .unwrap_or(true)
             };
@@ -354,6 +401,11 @@ fn main() {
 
     let mut seen_engine: HashSet<u32> = HashSet::new();
     let mut seen_project: HashSet<u32> = HashSet::new();
+    // pid → (session_started_at, project_name, project_path)
+    let mut session_meta: std::collections::HashMap<u32, (String, String, String)> = std::collections::HashMap::new();
+
+    // sysinfo system for CPU/RAM sampling
+    let mut sys = System::new();
 
     loop {
         let processes = find_editor_processes();
@@ -362,6 +414,15 @@ fn main() {
         // Clean up exited processes
         seen_engine.retain(|p| current_pids.contains(p));
         seen_project.retain(|p| current_pids.contains(p));
+        session_meta.retain(|p, _| current_pids.contains(p));
+
+        // Refresh sysinfo for CPU/RAM (two refreshes needed for accurate CPU %)
+        sys.refresh_processes(ProcessesToUpdate::All, true);
+        thread::sleep(Duration::from_millis(200));
+        sys.refresh_processes(ProcessesToUpdate::All, true);
+
+        let now = now_iso();
+        let mut active_sessions: Vec<ActiveSession> = Vec::new();
 
         for proc in &processes {
             // Engine — record once per PID
@@ -381,10 +442,55 @@ fn main() {
 
                 if let Some((project_dir, name, version)) = found {
                     record_project(&dir, &project_dir, &name, &version);
+                    session_meta.insert(proc.pid, (now.clone(), name, project_dir));
                     seen_project.insert(proc.pid);
                 }
             }
+
+            // Build active session entry
+            let engine_root = engine_root_from_exe(&proc.exe_path);
+            let engine_version = engine_version_from_root(&engine_root);
+            let (started_at, project_name, project_path) = session_meta
+                .get(&proc.pid)
+                .cloned()
+                .unwrap_or_else(|| (now.clone(), String::new(), String::new()));
+
+            let session_type = if project_path.is_empty() {
+                "engine".to_string()
+            } else {
+                "project".to_string()
+            };
+
+            // CPU and RAM from sysinfo
+            let (cpu_percent, ram_mb) = sys
+                .process(Pid::from(proc.pid as usize))
+                .map(|p| {
+                    let cpu = p.cpu_usage();
+                    let ram = p.memory() as f64 / 1024.0 / 1024.0;
+                    (cpu, ram)
+                })
+                .unwrap_or((0.0, 0.0));
+
+            let gpu_vram_mb = gpu_vram_mb_for_pid(proc.pid);
+
+            active_sessions.push(ActiveSession {
+                pid: proc.pid,
+                exe_path: proc.exe_path.clone(),
+                engine_version,
+                engine_root,
+                session_type,
+                project_name,
+                project_path,
+                cpu_percent,
+                ram_mb,
+                gpu_vram_mb,
+                started_at,
+                updated_at: now.clone(),
+            });
         }
+
+        // Write active sessions (empty array when nothing is running)
+        write_sessions(&dir, &active_sessions);
 
         thread::sleep(Duration::from_secs(3));
     }

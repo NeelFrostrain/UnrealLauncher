@@ -67,6 +67,21 @@ declare global {
     assetType: string
   }
 
+  interface ActiveSession {
+    pid: number
+    exePath: string
+    engineVersion: string
+    engineRoot: string
+    sessionType: 'project' | 'engine'
+    projectName: string
+    projectPath: string
+    cpuPercent: number
+    ramMb: number
+    gpuVramMb: number
+    startedAt: string
+    updatedAt: string
+  }
+
   interface MarketplacePlugin {
     name: string
     path: string
@@ -137,6 +152,7 @@ declare global {
       setRegistryEngines: (enabled: boolean) => Promise<void>
       clearAppData: () => Promise<void>
       clearTracerData: () => Promise<void>
+      getDrives: () => Promise<{ mount: string; label: string; total: number; free: number; used: number; fsType: string }[]>
       scanMarketplacePlugins: (engineDir: string) => Promise<MarketplacePlugin[]>
       // Fab cache
       fabGetDefaultPath: () => Promise<string>
@@ -144,6 +160,7 @@ declare global {
       fabScanFolder: (folderPath: string) => Promise<FabAsset[]>
       fabSavePath: (folderPath: string) => Promise<void>
       fabLoadPath: () => Promise<string>
+      getActiveSessions: () => Promise<ActiveSession[]>
       projectReadLog: (
         projectPath: string,
         fromByte?: number

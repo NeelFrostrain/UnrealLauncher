@@ -3,10 +3,11 @@ import type { FC, ReactNode } from 'react'
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { PageType } from '../../types'
-import { Zap, Package, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Zap, Package, Settings, ChevronLeft, ChevronRight, LayoutDashboard } from 'lucide-react'
 import Engine_BG from '@renderer/assets/Engines_BG.webp'
 import Projects_BG from '@renderer/assets/Projects_BG.jpg'
 import Settings_BG from '@renderer/assets/Settings_BG.jpg'
+import About_BG from '@renderer/assets/About_BG.jpg'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -25,6 +26,7 @@ interface SidebarCardData {
 }
 
 const NAV_ITEMS: SidebarCardData[] = [
+  { title: 'Dashboard', path: '/dashboard', imageSrc: About_BG, icon: <LayoutDashboard size={16} /> },
   { title: 'Engines', path: '/engines', imageSrc: Engine_BG, icon: <Zap size={16} /> },
   { title: 'Projects', path: '/projects', imageSrc: Projects_BG, icon: <Package size={16} /> },
   { title: 'Settings', path: '/settings', imageSrc: Settings_BG, icon: <Settings size={16} /> }
@@ -34,9 +36,7 @@ const NAV_ITEMS: SidebarCardData[] = [
 
 const ExpandedCard: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item, isActive }) => (
   <Link to={item.path}>
-    <motion.div
-      whileHover={{ scale: 1.01 }}
-      whileTap={{ scale: 0.98 }}
+    <div
       className={`w-full relative h-28 rounded-md border-2 overflow-hidden transition-all duration-200 cursor-pointer`}
       style={{
         borderColor: isActive ? 'var(--color-accent)' : 'transparent',
@@ -48,7 +48,7 @@ const ExpandedCard: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item, 
       <img
         src={item.imageSrc}
         alt={item.title}
-        className={`w-full h-full object-cover transition-all duration-200 ${isActive ? 'scale-105' : ''}`}
+        className={`w-full h-full object-cover transition-all duration-200`}
       />
       <div
         className={`absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent z-10 transition-opacity duration-200 ${isActive ? 'opacity-90' : 'opacity-80 hover:opacity-90'}`}
@@ -57,7 +57,7 @@ const ExpandedCard: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item, 
         {item.icon}
         {item.title}
       </div>
-    </motion.div>
+    </div>
   </Link>
 )
 
@@ -226,8 +226,8 @@ const Sidebar = (): React.ReactElement => {
           className="absolute top-0 right-0 w-1 h-full cursor-col-resize transition-colors z-10"
           style={{ backgroundColor: 'transparent' }}
           onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              'color-mix(in srgb, var(--color-accent) 40%, transparent)')
+          (e.currentTarget.style.backgroundColor =
+            'color-mix(in srgb, var(--color-accent) 40%, transparent)')
           }
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           title="Drag to resize"

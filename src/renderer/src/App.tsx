@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 const EnginesPage = lazy(() => import('./pages/EnginesPage'))
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 
 // Loading component
 const PageLoader = (): React.ReactNode => (
@@ -20,10 +21,11 @@ const App = (): React.ReactNode => {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/engines" element={<EnginesPage />} />
         <Route path="/projects/*" element={<ProjectsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/" element={<Navigate to="/engines" replace />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Suspense>
   )
