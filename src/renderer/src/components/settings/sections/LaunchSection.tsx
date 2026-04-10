@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Zap } from 'lucide-react'
 import { SectionHeader, Card, SettingRow, Toggle } from '../SectionHelpers'
+import { useAnimations } from '../../../utils/AnimationContext'
 
 interface LaunchSectionProps {
   autoCloseOnLaunch: boolean
@@ -9,6 +10,7 @@ interface LaunchSectionProps {
 
 const LaunchSection = ({ autoCloseOnLaunch, onToggle }: LaunchSectionProps): React.ReactElement => {
   const [registryEngines, setRegistryEngines] = useState(true)
+  const { animationsEnabled, toggleAnimations } = useAnimations()
 
   useEffect(() => {
     window.electronAPI.getRegistryEngines().then(setRegistryEngines)
@@ -37,9 +39,15 @@ const LaunchSection = ({ autoCloseOnLaunch, onToggle }: LaunchSectionProps): Rea
         <SettingRow
           label="Scan registry for engines"
           description="Detect Unreal Engine installations registered in the Windows registry (HKLM\\SOFTWARE\\EpicGames)."
-          last
         >
           <Toggle on={registryEngines} onChange={handleRegistryToggle} />
+        </SettingRow>
+        <SettingRow
+          label="UI Animations"
+          description="Enable transitions and motion effects. Disable to reduce CPU/GPU usage and improve performance."
+          last
+        >
+          <Toggle on={animationsEnabled} onChange={toggleAnimations} />
         </SettingRow>
       </Card>
     </section>

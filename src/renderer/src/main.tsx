@@ -8,15 +8,19 @@ import { ToastProvider } from './components/ui/ToastContext'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import { ThemeProvider } from './utils/ThemeContext'
 
+import { AnimationProvider } from './utils/AnimationContext'
+
 createRoot(document.getElementById('root')!).render(
   <ThemeProvider>
     <Router>
       <ToastProvider>
-        <LayoutWrapper>
-          <ErrorBoundary>
-            <App />
-          </ErrorBoundary>
-        </LayoutWrapper>
+        <AnimationProvider>
+          <LayoutWrapper>
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
+          </LayoutWrapper>
+        </AnimationProvider>
       </ToastProvider>
     </Router>
   </ThemeProvider>

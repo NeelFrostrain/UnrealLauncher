@@ -2,6 +2,7 @@ export interface AppSettings {
   autoCloseOnLaunch: boolean
   tracerAutoStart: boolean
   logMaxLines: number
+  animationsEnabled: boolean
 }
 
 const SETTINGS_KEY = 'unrealLauncherSettings'
@@ -9,7 +10,8 @@ const SETTINGS_KEY = 'unrealLauncherSettings'
 const defaultSettings: AppSettings = {
   autoCloseOnLaunch: false,
   tracerAutoStart: false,
-  logMaxLines: 2000
+  logMaxLines: 2000,
+  animationsEnabled: true
 }
 
 // In-memory cache — avoids re-parsing localStorage on every getSetting call
