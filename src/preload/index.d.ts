@@ -133,6 +133,8 @@ declare global {
       getTracerDataDir: () => Promise<string>
       getTracerMerge: () => Promise<boolean>
       setTracerMerge: (enabled: boolean) => Promise<void>
+      getRegistryEngines: () => Promise<boolean>
+      setRegistryEngines: (enabled: boolean) => Promise<void>
       clearAppData: () => Promise<void>
       clearTracerData: () => Promise<void>
       scanMarketplacePlugins: (engineDir: string) => Promise<MarketplacePlugin[]>

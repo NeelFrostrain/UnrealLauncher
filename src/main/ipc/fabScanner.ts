@@ -48,6 +48,9 @@ function readManifest(folderPath: string): Record<string, unknown> | null {
   }
 }
 
+// Known non-asset folders that live inside VaultCache roots
+const SKIP_FOLDERS = new Set(['FabLibrary', 'Manifests', '.cache', 'temp', 'Temp'])
+
 export function scanFabFolder(rootDir: string): FabAsset[] {
   const assets: FabAsset[] = []
   if (!fs.existsSync(rootDir)) return assets
@@ -61,6 +64,7 @@ export function scanFabFolder(rootDir: string): FabAsset[] {
 
   for (const entry of entries) {
     if (!entry.isDirectory()) continue
+    if (SKIP_FOLDERS.has(entry.name)) continue
     const folderPath = path.join(rootDir, entry.name)
 
     let name = entry.name, version = '', description = ''

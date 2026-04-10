@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { Plus, RefreshCw, Search, List, Grid3X3, HardDrive, FolderOpen, X } from 'lucide-react'
+import { Plus, RefreshCw, Search, List, X, LayoutGrid, LayoutList } from 'lucide-react'
 import type { TabType } from '../../types'
 
 export type ViewMode = 'list' | 'grid'
@@ -128,7 +128,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
             }}
             title="List view"
           >
-            <List size={13} />
+            <LayoutList size={13} />
           </button>
           <button
             onClick={() => onViewChange('grid')}
@@ -139,7 +139,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
             }}
             title="Grid view"
           >
-            <Grid3X3 size={13} />
+            <LayoutGrid size={13} />
           </button>
         </div>
 

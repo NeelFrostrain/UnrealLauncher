@@ -9,7 +9,9 @@ const DataSection = (): React.ReactElement => {
     if (!confirm('Clear all saved engines and projects? This cannot be undone.')) return
     setClearing('app')
     await window.electronAPI.clearAppData()
+    await window.electronAPI.fabSavePath('')
     setClearing(null)
+    window.location.reload()
   }
 
   const handleClearTracerData = async (): Promise<void> => {
@@ -37,7 +39,7 @@ const DataSection = (): React.ReactElement => {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 hover:bg-red-500/18 text-red-400 border border-red-500/20 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
           >
             <Trash2 size={12} />
-            {clearing === 'app' ? 'Clearing…' : 'Clear'}
+            {clearing === 'app' ? 'Clearing…' : 'Reset All App Data'}
           </button>
         </SettingRow>
         <SettingRow

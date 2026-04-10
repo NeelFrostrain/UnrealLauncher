@@ -32,11 +32,13 @@ function migrateIfNeeded(): void {
 interface MainSettings {
   tracerMergeEnabled: boolean
   tracerStartupEnabled: boolean
+  registryEnginesEnabled: boolean
 }
 
 const defaultMainSettings: MainSettings = {
   tracerMergeEnabled: true,
-  tracerStartupEnabled: false
+  tracerStartupEnabled: false,
+  registryEnginesEnabled: true
 }
 
 export function loadMainSettings(): MainSettings {
@@ -62,6 +64,15 @@ export function saveMainSettings(settings: Partial<MainSettings>): void {
 export function clearAppData(): void {
   try { fs.writeFileSync(getEnginesDataPath(), '[]', 'utf8') } catch { /* ignore */ }
   try { fs.writeFileSync(getProjectsDataPath(), '[]', 'utf8') } catch { /* ignore */ }
+  // Also clear user-configured paths (e.g. Fab cache location) from settings
+  try {
+    const settingsPath = getSettingsPath()
+    if (fs.existsSync(settingsPath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'))
+      delete settings.fabCachePath
+      fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf8')
+    }
+  } catch { /* ignore */ }
 }
 
 export function clearTracerData(): void {

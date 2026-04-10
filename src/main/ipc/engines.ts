@@ -2,7 +2,7 @@ import { ipcMain, dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { exec, spawn } from 'child_process'
-import { loadEngines, saveEngines, mergeTracerEngines } from '../store'
+import { loadEngines, saveEngines, mergeTracerEngines, loadMainSettings } from '../store'
 import { generateGradient, validateEngineInstallation, formatBytes, getFullFolderSize } from '../utils'
 import { getNativeModulePath } from '../utils/native'
 import { getInstalledEngines } from '../utils/engines'
@@ -24,7 +24,9 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
     const raw = mergeTracerEngines(loadEngines(), generateGradient)
     const saved = Array.isArray(raw) ? raw : []
 
-    const registryEngines = await getInstalledEngines()
+    const registryEngines = loadMainSettings().registryEnginesEnabled
+      ? await getInstalledEngines()
+      : []
     for (const re of registryEngines) {
       if (!saved.find((s) => s.directoryPath === re.directoryPath)) {
         saved.push({

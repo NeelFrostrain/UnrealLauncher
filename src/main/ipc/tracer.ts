@@ -90,4 +90,12 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('tracer-set-merge', (_event, enabled: boolean): void => {
     saveMainSettings({ tracerMergeEnabled: enabled })
   })
+
+  ipcMain_.handle('engines-get-registry', (): boolean => {
+    return loadMainSettings().registryEnginesEnabled
+  })
+
+  ipcMain_.handle('engines-set-registry', (_event, enabled: boolean): void => {
+    saveMainSettings({ registryEnginesEnabled: enabled })
+  })
 }

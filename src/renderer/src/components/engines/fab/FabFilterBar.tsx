@@ -28,7 +28,7 @@ const FabFilterBar: FC<FabFilterBarProps> = ({ assets, typeFilter, typeLabels, o
         onClick={() => onFilterChange('all')}
         className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-all cursor-pointer shrink-0"
         style={{
-          borderRadius: '9999px',
+          borderRadius: 'var(--radius)',
           backgroundColor: typeFilter === 'all' ? 'var(--color-accent)' : 'var(--color-surface-card)',
           color: typeFilter === 'all' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
           border: `1px solid ${typeFilter === 'all' ? 'var(--color-accent)' : 'var(--color-border)'}`
@@ -46,7 +46,7 @@ const FabFilterBar: FC<FabFilterBarProps> = ({ assets, typeFilter, typeLabels, o
             onClick={() => onFilterChange(t)}
             className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-all cursor-pointer shrink-0"
             style={{
-              borderRadius: '9999px',
+              borderRadius: 'var(--radius)',
               backgroundColor: isActive ? 'var(--color-surface-elevated)' : 'var(--color-surface-card)',
               color: isActive ? color : 'var(--color-text-secondary)',
               border: `1px solid ${isActive ? color : 'var(--color-border)'}`
