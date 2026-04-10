@@ -34,8 +34,10 @@ const TracerSection = (): React.ReactElement => {
           <Toggle on={tracerMerge} onChange={handleTracerMergeChange} color="green" />
         </SettingRow>
 
-        <div className="flex items-center justify-between px-5 py-3"
-          style={{ borderTop: '1px solid var(--color-border)' }}>
+        <div
+          className="flex items-center justify-between px-5 py-3"
+          style={{ borderTop: '1px solid var(--color-border)' }}
+        >
           <div className="flex items-center gap-2">
             <span
               className="w-1.5 h-1.5 rounded-full"

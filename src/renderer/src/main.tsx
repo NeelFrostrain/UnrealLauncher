@@ -1,6 +1,5 @@
 import './assets/main.css'
 
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter as Router } from 'react-router-dom'
 import LayoutWrapper from './layout'
@@ -10,17 +9,15 @@ import ErrorBoundary from './components/ui/ErrorBoundary'
 import { ThemeProvider } from './utils/ThemeContext'
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <ThemeProvider>
-      <Router>
-        <ToastProvider>
-          <LayoutWrapper>
-            <ErrorBoundary>
-              <App />
-            </ErrorBoundary>
-          </LayoutWrapper>
-        </ToastProvider>
-      </Router>
-    </ThemeProvider>
-  </StrictMode>
+  <ThemeProvider>
+    <Router>
+      <ToastProvider>
+        <LayoutWrapper>
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
+        </LayoutWrapper>
+      </ToastProvider>
+    </Router>
+  </ThemeProvider>
 )

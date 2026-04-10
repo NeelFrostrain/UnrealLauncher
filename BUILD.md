@@ -56,6 +56,7 @@ npm run build
 ```
 
 This runs in order:
+
 1. `build:tracer` — compiles the Rust tracer
 2. `electron-vite build` — bundles main + renderer
 3. `copy:tracer` — copies `unreal_launcher_tracer.exe` → `resources/`
@@ -129,13 +130,13 @@ npm run build:win
 
 ## Useful scripts
 
-| Script | Description |
-|---|---|
-| `npm run build:native` | Build Rust N-API module |
-| `npm run build:tracer` | Build Rust tracer binary |
-| `npm run build` | Full production build |
-| `npm run build:win` | Windows installer |
-| `npm run build:unpack` | Unpacked build (no installer) |
-| `npm run clean` | Remove `out/`, `dist/`, caches |
-| `npm run typecheck` | TypeScript type check |
-| `npm run lint` | ESLint |
+| Script                 | Description                    |
+| ---------------------- | ------------------------------ |
+| `npm run build:native` | Build Rust N-API module        |
+| `npm run build:tracer` | Build Rust tracer binary       |
+| `npm run build`        | Full production build          |
+| `npm run build:win`    | Windows installer              |
+| `npm run build:unpack` | Unpacked build (no installer)  |
+| `npm run clean`        | Remove `out/`, `dist/`, caches |
+| `npm run typecheck`    | TypeScript type check          |
+| `npm run lint`         | ESLint                         |

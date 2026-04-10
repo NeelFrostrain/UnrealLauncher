@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   main: {
     build: {
-      minify: true  // minify main process too
+      minify: true // minify main process too
     }
   },
   preload: {},
@@ -21,18 +21,18 @@ export default defineConfig({
         output: {
           manualChunks: {
             'react-core': ['react', 'react-dom', 'react-router-dom'],
-            'framer': ['framer-motion'],
-            'lucide': ['lucide-react'],
-            'state': ['zustand']
+            framer: ['framer-motion'],
+            lucide: ['lucide-react'],
+            state: ['zustand']
           }
         }
       },
       minify: 'terser',
       terserOptions: {
         compress: {
-          drop_console: true,   // strip console.log in production
+          drop_console: true, // strip console.log in production
           drop_debugger: true,
-          passes: 2             // two compression passes
+          passes: 2 // two compression passes
         }
       },
       sourcemap: false,

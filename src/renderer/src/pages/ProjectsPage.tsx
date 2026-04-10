@@ -10,11 +10,11 @@ import type { Project, TabType } from '../types'
 import { useProjectFavorites } from '../hooks/useProjectFavorites'
 import { useProjectFilters } from '../hooks/useProjectFilters'
 import { useProjectActions } from '../hooks/useProjectActions'
+import { clearGitCache } from '../hooks/useGitStatus'
 
 const ProjectsPage = (): React.ReactElement => {
   const location = useLocation()
   const [projects, setProjects] = useState<Project[]>([])
-  const [, setAllProjects] = useState<Project[]>([])
   const [currentTab, setCurrentTab] = useState<TabType>(() => {
     const path = location.pathname
     if (path === '/projects/favorites') return 'favorites'
@@ -51,8 +51,8 @@ const ProjectsPage = (): React.ReactElement => {
       if (!window.electronAPI) return []
       try {
         const scannedProjects = await window.electronAPI.scanProjects()
+        clearGitCache()
         allProjectsRef.current = scannedProjects
-        setAllProjects(scannedProjects)
         const favs = JSON.parse(localStorage.getItem('projectFavorites') || '[]') as string[]
         const filtered = filterForTab(tab, scannedProjects, favs)
         setProjects(filtered)

@@ -9,12 +9,18 @@ import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
 import { loadMainSettings } from './store'
 
 // ── Chromium memory optimizations ─────────────────────────────────────────────
-// Must be set before app is ready.
-app.commandLine.appendSwitch('js-flags', '--max-old-space-size=256') // cap V8 heap to 256MB
-app.commandLine.appendSwitch('disable-http-cache') // no disk cache needed
-app.commandLine.appendSwitch('disable-background-networking') // no background net activity
-app.commandLine.appendSwitch('renderer-process-limit', '1') // only one renderer needed
-app.commandLine.appendSwitch('enable-smooth-scrolling') // smooth mouse wheel scroll
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=192') // tighter V8 heap cap
+app.commandLine.appendSwitch('disable-http-cache')
+app.commandLine.appendSwitch('disable-background-networking')
+app.commandLine.appendSwitch('renderer-process-limit', '1')
+app.commandLine.appendSwitch('enable-smooth-scrolling')
+app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors,TranslateUI,AutofillServerCommunication,AutofillEnableAccountWalletStorage')
+app.commandLine.appendSwitch('disable-extensions')
+app.commandLine.appendSwitch('disable-component-extensions-with-background-pages')
+app.commandLine.appendSwitch('disable-default-apps')
+app.commandLine.appendSwitch('no-first-run')
+app.commandLine.appendSwitch('disable-background-timer-throttling')
+app.commandLine.appendSwitch('disable-renderer-backgrounding')
 
 // ── Child process registry ────────────────────────────────────────────────────
 // Any spawned child processes that need cleanup on quit are stored here.

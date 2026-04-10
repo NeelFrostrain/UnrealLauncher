@@ -2,7 +2,7 @@ import { ipcMain, dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { exec, spawn } from 'child_process'
-import { loadProjects, saveProjects, mergeTracerProjects } from '../store'
+import { loadProjects, saveProjects, mergeTracerProjects, loadEngines } from '../store'
 import { findUprojectFiles, findProjectScreenshot, formatBytes, getFullFolderSize } from '../utils'
 import { getNativeModulePath } from '../utils/native'
 import { getMainWindow } from '../window'
@@ -153,20 +153,22 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
       try {
         const json = JSON.parse(fs.readFileSync(uprojectPath, 'utf8'))
         engineAssociation = json.EngineAssociation ?? ''
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
 
       // Find the engine exe — check saved engines first, then common paths
-      const { loadEngines } = await import('../store')
       const engines = loadEngines()
 
       let editorExe = ''
 
       // Match by version string
       if (engineAssociation) {
-        const match = engines.find(e =>
-          e.version === engineAssociation ||
-          e.version.startsWith(engineAssociation) ||
-          engineAssociation.startsWith(e.version)
+        const match = engines.find(
+          (e) =>
+            e.version === engineAssociation ||
+            e.version.startsWith(engineAssociation) ||
+            engineAssociation.startsWith(e.version)
         )
         if (match) editorExe = match.exePath
       }
@@ -177,7 +179,10 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
       }
 
       if (!editorExe || !fs.existsSync(editorExe)) {
-        return { success: false, error: `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab first.` }
+        return {
+          success: false,
+          error: `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab first.`
+        }
       }
 
       try {

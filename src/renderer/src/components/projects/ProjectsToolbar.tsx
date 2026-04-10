@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { Plus, RefreshCw, Search, List, X, LayoutGrid, LayoutList } from 'lucide-react'
+import { Plus, RefreshCw, Search, X, LayoutGrid, LayoutList } from 'lucide-react'
 import type { TabType } from '../../types'
 
 export type ViewMode = 'list' | 'grid'
@@ -27,7 +27,6 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
   searchOpen,
   searchQuery,
   refreshing,
-  calculatingSizes,
   addingProject,
   viewMode,
   onTabClick,

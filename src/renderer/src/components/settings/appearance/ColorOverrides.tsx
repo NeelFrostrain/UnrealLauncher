@@ -40,8 +40,14 @@ const ColorOverrides = ({
           opacity: hasAnyChanges ? 1 : 0,
           pointerEvents: hasAnyChanges ? 'auto' : 'none'
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-accent) 18%, transparent)')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-accent) 10%, transparent)')}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.backgroundColor =
+            'color-mix(in srgb, var(--color-accent) 18%, transparent)')
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.backgroundColor =
+            'color-mix(in srgb, var(--color-accent) 10%, transparent)')
+        }
       >
         <RotateCcw size={11} />
         Reset all to defaults

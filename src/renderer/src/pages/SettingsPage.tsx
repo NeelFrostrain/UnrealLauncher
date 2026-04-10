@@ -4,7 +4,14 @@ import AboutPage from './AboutPage'
 import { Info, X } from 'lucide-react'
 import { getSetting, setSetting } from '../utils/settings'
 import { useTheme } from '../utils/ThemeContext'
-import { loadPersistedRadius, applyRadius, persistRadius, applyScale, persistScale, loadPersistedScale } from '../utils/theme'
+import {
+  loadPersistedRadius,
+  applyRadius,
+  persistRadius,
+  applyScale,
+  persistScale,
+  loadPersistedScale
+} from '../utils/theme'
 import { SectionHeader, Card, SettingRow } from '../components/settings/SectionHelpers'
 import AppearanceSection from '../components/settings/AppearanceSection'
 import LaunchSection from '../components/settings/sections/LaunchSection'
@@ -37,14 +44,16 @@ const SettingsPage = (): React.ReactElement => {
   const [showAbout, setShowAbout] = useState(false)
 
   const hasAnyChanges =
-    Object.keys(customOverrides).length > 0 ||
-    radius !== 8 ||
-    Math.abs(scale - 1.0) > 0.01
+    Object.keys(customOverrides).length > 0 || radius !== 8 || Math.abs(scale - 1.0) > 0.01
 
   const handleFullReset = (): void => {
     resetOverrides()
-    setRadius(8); applyRadius(8); persistRadius(8)
-    setScale(1.0); applyScale(1.0); persistScale(1.0)
+    setRadius(8)
+    applyRadius(8)
+    persistRadius(8)
+    setScale(1.0)
+    applyScale(1.0)
+    persistScale(1.0)
   }
 
   const handleSaveProfile = (): void => {

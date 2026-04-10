@@ -17,22 +17,22 @@
 
 ## Features
 
-| | Feature | Description |
-|---|---|---|
-| ⚡ | One-Click Launch | Start any engine or project instantly |
-| 🔍 | Auto-Scan | Discovers UE4 & UE5 installs and `.uproject` files automatically |
-| 🗂️ | List & Grid View | Toggle between layouts for projects, preference persisted |
-| ⭐ | Favorites & Recent | Pin projects and track recently opened ones by actual timestamp |
-| 🔎 | Search | Filter projects by name |
-| 💾 | Size Calculation | Background folder size calculation via worker threads |
-| 🦀 | UE Tracer | Rust background process tracking engine/project usage |
-| 🎨 | Theme System | Built-in themes, per-token overrides, border radius, saveable profiles |
-| 🔤 | Font Customization | Choose font family and size for the entire UI |
-| 📐 | Resizable Sidebar | Drag to resize or collapse |
-| 🔔 | Toast Notifications | Stacking real-time feedback with auto-dismiss |
-| 🔄 | Auto Updates | GitHub Releases-based updates via `electron-updater` |
-| 🔒 | Single Instance | Second launch focuses the existing window |
-| 🛡️ | Error Boundary | Recoverable crash screen instead of blank window |
+|     | Feature             | Description                                                            |
+| --- | ------------------- | ---------------------------------------------------------------------- |
+| ⚡  | One-Click Launch    | Start any engine or project instantly                                  |
+| 🔍  | Auto-Scan           | Discovers UE4 & UE5 installs and `.uproject` files automatically       |
+| 🗂️  | List & Grid View    | Toggle between layouts for projects, preference persisted              |
+| ⭐  | Favorites & Recent  | Pin projects and track recently opened ones by actual timestamp        |
+| 🔎  | Search              | Filter projects by name                                                |
+| 💾  | Size Calculation    | Background folder size calculation via worker threads                  |
+| 🦀  | UE Tracer           | Rust background process tracking engine/project usage                  |
+| 🎨  | Theme System        | Built-in themes, per-token overrides, border radius, saveable profiles |
+| 🔤  | Font Customization  | Choose font family and size for the entire UI                          |
+| 📐  | Resizable Sidebar   | Drag to resize or collapse                                             |
+| 🔔  | Toast Notifications | Stacking real-time feedback with auto-dismiss                          |
+| 🔄  | Auto Updates        | GitHub Releases-based updates via `electron-updater`                   |
+| 🔒  | Single Instance     | Second launch focuses the existing window                              |
+| 🛡️  | Error Boundary      | Recoverable crash screen instead of blank window                       |
 
 ---
 
@@ -87,20 +87,20 @@ See [BUILD.md](BUILD.md) for the full build guide including native modules and t
 
 ## Scripts
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start in development mode |
-| `npm run start` | Preview production build |
-| `npm run build` | Build for current platform |
-| `npm run build:win` | Windows installer |
-| `npm run build:mac` | macOS package |
-| `npm run build:linux` | Linux package |
+| Command                | Description                    |
+| ---------------------- | ------------------------------ |
+| `npm run dev`          | Start in development mode      |
+| `npm run start`        | Preview production build       |
+| `npm run build`        | Build for current platform     |
+| `npm run build:win`    | Windows installer              |
+| `npm run build:mac`    | macOS package                  |
+| `npm run build:linux`  | Linux package                  |
 | `npm run build:native` | Build Rust N-API native module |
-| `npm run build:tracer` | Build Rust tracer executable |
-| `npm run typecheck` | TypeScript type checking |
-| `npm run lint` | Run ESLint |
-| `npm run format` | Format with Prettier |
-| `npm run clean` | Remove build artifacts |
+| `npm run build:tracer` | Build Rust tracer executable   |
+| `npm run typecheck`    | TypeScript type checking       |
+| `npm run lint`         | Run ESLint                     |
+| `npm run format`       | Format with Prettier           |
+| `npm run clean`        | Remove build artifacts         |
 
 ---
 

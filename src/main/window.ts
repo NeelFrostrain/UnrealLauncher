@@ -282,6 +282,14 @@ export function setupAppLifecycle(): void {
     app.on('browser-window-created', (_, window) => {
       optimizer.watchWindowShortcuts(window)
     })
+
+    // Periodically free unused memory when the window is not focused
+    setInterval(() => {
+      if (mainWindow && !mainWindow.isFocused()) {
+        app.commandLine.appendSwitch('js-flags', '--expose-gc')
+        mainWindow.webContents.executeJavaScript('if(typeof gc==="function")gc()').catch(() => {})
+      }
+    }, 30_000)
   })
 
   app.on('window-all-closed', () => {

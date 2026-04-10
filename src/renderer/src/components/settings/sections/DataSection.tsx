@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Database, Trash2, ScrollText } from 'lucide-react'
+import { Database, Trash2 } from 'lucide-react'
 import { SectionHeader, Card, SettingRow } from '../SectionHelpers'
 import { getSetting, setSetting } from '../../../utils/settings'
 
@@ -44,20 +44,24 @@ const DataSection = (): React.ReactElement => {
           description="Maximum lines kept in memory when viewing project logs. Lower = less RAM."
         >
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono w-14 text-right" style={{ color: 'var(--color-text-muted)' }}>
+            <span
+              className="text-xs font-mono w-14 text-right"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               {logMaxLines.toLocaleString()}
             </span>
             <div className="flex items-center gap-1">
-              {LOG_PRESETS.map(v => (
+              {LOG_PRESETS.map((v) => (
                 <button
                   key={v}
                   onClick={() => handleLogLines(v)}
                   className="px-2 py-1 text-[10px] font-mono cursor-pointer transition-colors"
                   style={{
                     borderRadius: 'calc(var(--radius) * 0.5)',
-                    backgroundColor: logMaxLines === v
-                      ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                      : 'var(--color-surface-card)',
+                    backgroundColor:
+                      logMaxLines === v
+                        ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                        : 'var(--color-surface-card)',
                     color: logMaxLines === v ? 'var(--color-accent)' : 'var(--color-text-muted)',
                     border: `1px solid ${logMaxLines === v ? 'color-mix(in srgb, var(--color-accent) 25%, transparent)' : 'var(--color-border)'}`
                   }}

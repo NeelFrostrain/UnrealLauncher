@@ -16,7 +16,12 @@ function scalePct(v: number): string {
   return `${((v - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)) * 100}%`
 }
 
-const RadiusControl = ({ radius, setRadius, scale, setScale }: RadiusControlProps): React.ReactElement => {
+const RadiusControl = ({
+  radius,
+  setRadius,
+  scale,
+  setScale
+}: RadiusControlProps): React.ReactElement => {
   const scaleRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -35,33 +40,54 @@ const RadiusControl = ({ radius, setRadius, scale, setScale }: RadiusControlProp
       {/* Border radius */}
       <div className="p-5" style={{ borderTop: '1px solid var(--color-border)' }}>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Border radius</p>
-          <span className="text-xs font-mono" style={{ color: 'var(--color-text-muted)' }}>{radius}px</span>
+          <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+            Border radius
+          </p>
+          <span className="text-xs font-mono" style={{ color: 'var(--color-text-muted)' }}>
+            {radius}px
+          </span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Sharp</span>
+          <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+            Sharp
+          </span>
           <input
-            type="range" min={0} max={24} step={1} value={radius}
+            type="range"
+            min={0}
+            max={24}
+            step={1}
+            value={radius}
             onChange={(e) => {
               const v = Number(e.target.value)
-              setRadius(v); applyRadius(v); persistRadius(v)
+              setRadius(v)
+              applyRadius(v)
+              persistRadius(v)
               e.currentTarget.style.setProperty('--range-pct', `${(v / 24) * 100}%`)
             }}
             className="flex-1 cursor-pointer"
             style={{ '--range-pct': `${(radius / 24) * 100}%` } as CSSProperties}
           />
-          <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Round</span>
+          <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+            Round
+          </span>
         </div>
         <div className="flex items-center gap-2 mt-3">
           {[0, 4, 8, 12, 16, 24].map((v) => (
             <button
               key={v}
-              onClick={() => { setRadius(v); applyRadius(v); persistRadius(v) }}
+              onClick={() => {
+                setRadius(v)
+                applyRadius(v)
+                persistRadius(v)
+              }}
               className="w-8 h-8 transition-all cursor-pointer text-[10px] font-mono"
               style={{
                 borderRadius: `${v}px`,
                 border: `1px solid ${radius === v ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                backgroundColor: radius === v ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)' : 'var(--color-surface-card)',
+                backgroundColor:
+                  radius === v
+                    ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                    : 'var(--color-surface-card)',
                 color: 'var(--color-text-muted)'
               }}
             >
@@ -75,7 +101,9 @@ const RadiusControl = ({ radius, setRadius, scale, setScale }: RadiusControlProp
       <div className="p-5" style={{ borderTop: '1px solid var(--color-border)' }}>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>UI Scale</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              UI Scale
+            </p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
               Scale the entire interface — text, icons, spacing.
             </p>
@@ -91,8 +119,14 @@ const RadiusControl = ({ radius, setRadius, scale, setScale }: RadiusControlProp
                   color: 'var(--color-accent)',
                   border: '1px solid color-mix(in srgb, var(--color-accent) 25%, transparent)'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-accent) 18%, transparent)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-accent) 10%, transparent)')}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor =
+                    'color-mix(in srgb, var(--color-accent) 18%, transparent)')
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor =
+                    'color-mix(in srgb, var(--color-accent) 10%, transparent)')
+                }
               >
                 ↺ Reset
               </button>
@@ -103,14 +137,22 @@ const RadiusControl = ({ radius, setRadius, scale, setScale }: RadiusControlProp
           </div>
         </div>
         <div className="flex items-center gap-3 mb-3">
-          <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Smaller</span>
+          <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+            Smaller
+          </span>
           <input
             ref={scaleRef}
-            type="range" min={SCALE_MIN} max={SCALE_MAX} step={0.05} value={scale}
+            type="range"
+            min={SCALE_MIN}
+            max={SCALE_MAX}
+            step={0.05}
+            value={scale}
             onChange={(e) => handleScale(Number(e.target.value))}
             className="flex-1 cursor-pointer"
           />
-          <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>Bigger</span>
+          <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+            Bigger
+          </span>
         </div>
         <div className="flex items-center gap-2">
           {SCALE_PRESETS.map((v) => (
@@ -121,7 +163,10 @@ const RadiusControl = ({ radius, setRadius, scale, setScale }: RadiusControlProp
               style={{
                 borderRadius: 'calc(var(--radius) * 0.5)',
                 border: `1px solid ${Math.abs(scale - v) < 0.01 ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                backgroundColor: Math.abs(scale - v) < 0.01 ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)' : 'var(--color-surface-card)',
+                backgroundColor:
+                  Math.abs(scale - v) < 0.01
+                    ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                    : 'var(--color-surface-card)',
                 color: 'var(--color-text-muted)'
               }}
             >

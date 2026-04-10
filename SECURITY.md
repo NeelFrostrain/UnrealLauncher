@@ -5,9 +5,9 @@
 Security fixes are applied to the latest stable release only.
 
 | Version | Supported |
-|---------|-----------|
-| 1.9.x   | ✅ |
-| < 1.9   | ❌ |
+| ------- | --------- |
+| 1.9.x   | ✅        |
+| < 1.9   | ❌        |
 
 ---
 
