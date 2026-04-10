@@ -40,91 +40,130 @@ function createSplashWindow(): void {
 
   const splashHtml = `
     <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Unreal Launcher</title>
-        <style>
-          :root {
-            --color-surface: #242424;
-            --color-surface-elevated: #1f1f1f;
-            --color-surface-card: #1a1a1a;
-            --color-border: rgba(255, 255, 255, 0.1);
-            --color-accent: #2563eb;
-            --color-accent-hover: #1d4ed8;
-            --color-text-primary: rgba(255, 255, 255, 0.9);
-            --color-text-secondary: rgba(255, 255, 255, 0.6);
-            --color-text-muted: rgba(255, 255, 255, 0.4);
-            --radius: 8px;
-          }
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unreal Launcher | Frostrain</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-obsidian: #0A0A0B;
+            --color-surface: #121214;
+            --color-accent: #3B82F6; /* Cyber Blue */
+            --color-text: #E2E8F0;
+            --color-border: #262626;
+            --neo-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+        }
 
-          body {
+        body {
             margin: 0;
             padding: 0;
             height: 100vh;
-            font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
-            background-color: var(--color-surface);
-            color: var(--color-text-primary);
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--color-obsidian);
+            color: var(--color-text);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             user-select: none;
-          }
+        }
 
-          .container {
-            text-align: center;
-          }
+        .loader-card {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-          @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.9; }
-            100% { transform: scale(1); opacity: 1; }
-          }
+        .logo-box {
+            background: var(--color-accent);
+            width: 40px;
+            height: 40px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: white;
+            box-shadow: 4px 4px 0px black;
+        }
 
-          .title {
-            font-size: 14px;
-            font-weight: 600;
+        .title {
+            font-size: 18px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 6px;
-            color: var(--color-text-primary);
-          }
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #fff, #666);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-          .status-text {
-            font-size: 13px;
-            color: var(--color-text-muted);
-            font-weight: 400;
-          }
-
-          /* Simple blinking dots */
-          .dot {
-            animation: blink 1.4s infinite both;
+        .status-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
             color: var(--color-accent);
-          }
+            background: rgba(59, 130, 246, 0.05);
+            padding: 4px 12px;
+            border-radius: 2px;
+        }
 
-          .dot:nth-child(2) { animation-delay: 0.2s; }
-          .dot:nth-child(3) { animation-delay: 0.4s; }
+        .progress-bar {
+            width: 100%;
+            height: 2px;
+            background: var(--color-border);
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
 
-          @keyframes blink {
-            0% { opacity: 0.1; }
-            20% { opacity: 1; }
-            100% { opacity: 0.1; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="title">Unreal Launcher</div>
-          <div class="status-text">
-            Opening Launcher<span class="loading-dots">
-              <span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+        .progress-fill {
+            position: absolute;
+            height: 100%;
+            background: var(--color-accent);
+            width: 30%;
+            animation: slide 1.5s infinite ease-in-out;
+        }
+
+        @keyframes slide {
+            0% { left: -30%; }
+            100% { left: 100%; }
+        }
+
+        .dot {
+            animation: blink 1.4s infinite both;
+        }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-card">
+        <div class="title">Unreal Launcher</div>
+        <div class="status-wrapper">
+            <span>INITIALIZING ENGINE_TRACER</span>
+            <span class="loading-dots">
+                <span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
             </span>
-          </div>
         </div>
-      </body>
-    </html>
+
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+    </div>
+</body>
+</html>
 `
 
   splashWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(splashHtml)}`)
