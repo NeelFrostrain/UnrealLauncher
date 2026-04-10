@@ -147,7 +147,11 @@ export function createWindow(): void {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      backgroundThrottling: true,      // throttle timers/animations when minimized
+      spellcheck: false,               // no spell check needed in a launcher
+      enableWebSQL: false,             // unused, saves memory
+      v8CacheOptions: 'bypassHeatCheck' // faster JS startup via V8 code cache
     },
     icon: path.join(__dirname, '../../resources/icon.png'),
     frame: false,
@@ -180,6 +184,11 @@ export function createWindow(): void {
       splashWindow = null
     }
     mainWindow = null
+  })
+
+  // Free renderer memory when minimized — reclaimed automatically on restore
+  mainWindow.on('minimize', () => {
+    mainWindow?.webContents.session.clearCache()
   })
 
   if (process.env.NODE_ENV === 'development') {

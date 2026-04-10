@@ -3,29 +3,41 @@ import path from 'path'
 import { app } from 'electron'
 import type { Engine, Project } from './types'
 
-const userDataPath = app.getPath('userData')
-
-// ── Save directory: root/save/ ────────────────────────────────────────────────
-const saveDir = path.join(userDataPath, 'save')
-const enginesDataPath = path.join(saveDir, 'engines.json')
-const projectsDataPath = path.join(saveDir, 'projects.json')
-const settingsPath = path.join(saveDir, 'settings.json')
-
-// ── Tracer directory: root/Tracer/ ────────────────────────────────────────────
-const tracerDir = path.join(userDataPath, 'Tracer')
-const tracerEnginesPath = path.join(tracerDir, 'engines.json')
-const tracerProjectsPath = path.join(tracerDir, 'projects.json')
+// ── Lazy path resolution ──────────────────────────────────────────────────────
+// app.getPath() must not be called at module scope before app is ready.
+// All path references go through these getters so they resolve on first use.
+function getSaveDir(): string {
+  return path.join(app.getPath('userData'), 'save')
+}
+function getEnginesDataPath(): string {
+  return path.join(getSaveDir(), 'engines.json')
+}
+function getProjectsDataPath(): string {
+  return path.join(getSaveDir(), 'projects.json')
+}
+function getSettingsPath(): string {
+  return path.join(getSaveDir(), 'settings.json')
+}
+function getTracerDir(): string {
+  return path.join(app.getPath('userData'), 'Tracer')
+}
+function getTracerEnginesPath(): string {
+  return path.join(getTracerDir(), 'engines.json')
+}
+function getTracerProjectsPath(): string {
+  return path.join(getTracerDir(), 'projects.json')
+}
 
 function ensureSaveDir(): void {
-  if (!fs.existsSync(saveDir)) fs.mkdirSync(saveDir, { recursive: true })
+  if (!fs.existsSync(getSaveDir())) fs.mkdirSync(getSaveDir(), { recursive: true })
 }
 
 // Migrate old root-level files to save/ on first run
 function migrateIfNeeded(): void {
   ensureSaveDir()
   for (const file of ['engines.json', 'projects.json']) {
-    const oldPath = path.join(userDataPath, file)
-    const newPath = path.join(saveDir, file)
+    const oldPath = path.join(app.getPath('userData'), file)
+    const newPath = path.join(getSaveDir(), file)
     if (fs.existsSync(oldPath) && !fs.existsSync(newPath)) {
       try {
         fs.renameSync(oldPath, newPath)
@@ -36,20 +48,25 @@ function migrateIfNeeded(): void {
   }
 }
 
-migrateIfNeeded()
+// migrateIfNeeded() is now called lazily on first load instead of at module scope
 
 // ── App settings (main-readable) ──────────────────────────────────────────────
 
 interface MainSettings {
   tracerMergeEnabled: boolean
+  tracerStartupEnabled: boolean
 }
 
-const defaultMainSettings: MainSettings = { tracerMergeEnabled: true }
+const defaultMainSettings: MainSettings = {
+  tracerMergeEnabled: true,
+  tracerStartupEnabled: false
+}
 
 export function loadMainSettings(): MainSettings {
   try {
-    if (fs.existsSync(settingsPath)) {
-      return { ...defaultMainSettings, ...JSON.parse(fs.readFileSync(settingsPath, 'utf8')) }
+    migrateIfNeeded()
+    if (fs.existsSync(getSettingsPath())) {
+      return { ...defaultMainSettings, ...JSON.parse(fs.readFileSync(getSettingsPath(), 'utf8')) }
     }
   } catch {
     /* use defaults */
@@ -61,7 +78,7 @@ export function saveMainSettings(settings: Partial<MainSettings>): void {
   try {
     ensureSaveDir()
     const current = loadMainSettings()
-    fs.writeFileSync(settingsPath, JSON.stringify({ ...current, ...settings }, null, 2), 'utf8')
+    fs.writeFileSync(getSettingsPath(), JSON.stringify({ ...current, ...settings }, null, 2), 'utf8')
   } catch {
     /* ignore */
   }
@@ -72,12 +89,12 @@ export function saveMainSettings(settings: Partial<MainSettings>): void {
 /** Wipe save/engines.json and save/projects.json — resets the app's data. */
 export function clearAppData(): void {
   try {
-    fs.writeFileSync(enginesDataPath, '[]', 'utf8')
+    fs.writeFileSync(getEnginesDataPath(), '[]', 'utf8')
   } catch {
     /* ignore */
   }
   try {
-    fs.writeFileSync(projectsDataPath, '[]', 'utf8')
+    fs.writeFileSync(getProjectsDataPath(), '[]', 'utf8')
   } catch {
     /* ignore */
   }
@@ -86,12 +103,12 @@ export function clearAppData(): void {
 /** Wipe Tracer/engines.json and Tracer/projects.json — resets tracer history. */
 export function clearTracerData(): void {
   try {
-    fs.writeFileSync(tracerEnginesPath, '[]', 'utf8')
+    fs.writeFileSync(getTracerEnginesPath(), '[]', 'utf8')
   } catch {
     /* ignore */
   }
   try {
-    fs.writeFileSync(tracerProjectsPath, '[]', 'utf8')
+    fs.writeFileSync(getTracerProjectsPath(), '[]', 'utf8')
   } catch {
     /* ignore */
   }
@@ -101,8 +118,9 @@ export function clearTracerData(): void {
 
 export function loadEngines(): Engine[] {
   try {
-    if (fs.existsSync(enginesDataPath)) {
-      return JSON.parse(fs.readFileSync(enginesDataPath, 'utf8'))
+    if (fs.existsSync(getEnginesDataPath())) {
+      const parsed = JSON.parse(fs.readFileSync(getEnginesDataPath(), 'utf8'))
+      return Array.isArray(parsed) ? parsed : []
     }
   } catch (err) {
     console.error('Error loading engines:', err)
@@ -113,18 +131,17 @@ export function loadEngines(): Engine[] {
 export function saveEngines(engines: Engine[]): void {
   try {
     ensureSaveDir()
-    fs.writeFileSync(enginesDataPath, JSON.stringify(engines, null, 2), 'utf8')
+    fs.writeFileSync(getEnginesDataPath(), JSON.stringify(engines, null, 2), 'utf8')
   } catch {
     /* continue */
   }
 }
 
-// ── Projects ──────────────────────────────────────────────────────────────────
-
 export function loadProjects(): Project[] {
   try {
-    if (fs.existsSync(projectsDataPath)) {
-      return JSON.parse(fs.readFileSync(projectsDataPath, 'utf8'))
+    if (fs.existsSync(getProjectsDataPath())) {
+      const parsed = JSON.parse(fs.readFileSync(getProjectsDataPath(), 'utf8'))
+      return Array.isArray(parsed) ? parsed : []
     }
   } catch (err) {
     console.error('Error loading projects:', err)
@@ -135,7 +152,7 @@ export function loadProjects(): Project[] {
 export function saveProjects(projects: Project[]): void {
   try {
     ensureSaveDir()
-    fs.writeFileSync(projectsDataPath, JSON.stringify(projects, null, 2), 'utf8')
+    fs.writeFileSync(getProjectsDataPath(), JSON.stringify(projects, null, 2), 'utf8')
   } catch {
     /* continue */
   }
@@ -177,11 +194,11 @@ function formatDateDisplay(raw: string): string {
 
 export function mergeTracerEngines(saved: Engine[], generateGradient: () => string): Engine[] {
   if (!loadMainSettings().tracerMergeEnabled) return saved
-  if (!fs.existsSync(tracerEnginesPath)) return saved
+  if (!fs.existsSync(getTracerEnginesPath())) return saved
 
   let tracerEngines: TracerEngine[] = []
   try {
-    tracerEngines = JSON.parse(fs.readFileSync(tracerEnginesPath, 'utf8'))
+    tracerEngines = JSON.parse(fs.readFileSync(getTracerEnginesPath(), 'utf8'))
   } catch {
     return saved
   }
@@ -219,11 +236,11 @@ export function mergeTracerEngines(saved: Engine[], generateGradient: () => stri
 
 export function mergeTracerProjects(saved: Project[]): Project[] {
   if (!loadMainSettings().tracerMergeEnabled) return saved
-  if (!fs.existsSync(tracerProjectsPath)) return saved
+  if (!fs.existsSync(getTracerProjectsPath())) return saved
 
   let tracerProjects: TracerProject[] = []
   try {
-    tracerProjects = JSON.parse(fs.readFileSync(tracerProjectsPath, 'utf8'))
+    tracerProjects = JSON.parse(fs.readFileSync(getTracerProjectsPath(), 'utf8'))
   } catch {
     return saved
   }

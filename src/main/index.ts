@@ -1,16 +1,33 @@
 import { app, protocol, net } from 'electron'
 import { execSync, spawn } from 'child_process'
+import type { ChildProcess } from 'child_process'
 import path from 'path'
 import fs from 'fs'
 import { setupAppLifecycle, getMainWindow } from './window'
 import { setupAutoUpdaterEvents } from './updater'
-import { registerIpcHandlers } from './ipcHandlers'
+import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
+import { loadMainSettings } from './store'
+
+// ── Chromium memory optimizations ─────────────────────────────────────────────
+// Must be set before app is ready.
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=256') // cap V8 heap to 256MB
+app.commandLine.appendSwitch('disable-http-cache')                   // no disk cache needed
+app.commandLine.appendSwitch('disable-background-networking')        // no background net activity
+app.commandLine.appendSwitch('renderer-process-limit', '1')          // only one renderer needed
+app.commandLine.appendSwitch('enable-smooth-scrolling')              // smooth mouse wheel scroll
+
+// ── Child process registry ────────────────────────────────────────────────────
+// Any spawned child processes that need cleanup on quit are stored here.
+const childProcesses: ChildProcess[] = []
+export function trackChildProcess(cp: ChildProcess): void {
+  childProcesses.push(cp)
+  cp.once('exit', () => {
+    const i = childProcesses.indexOf(cp)
+    if (i !== -1) childProcesses.splice(i, 1)
+  })
+}
 
 // ── Custom protocol: local-asset:// ──────────────────────────────────────────
-// Allows the renderer to load arbitrary local files via
-//   <img src="local-asset:///C:/path/to/file.png" />
-// without exposing Node APIs or doing base64 round-trips.
-// Must be registered before app is ready.
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'local-asset',
@@ -23,11 +40,14 @@ protocol.registerSchemesAsPrivileged([
   }
 ])
 
-// Single instance lock
+// ── Single instance lock ──────────────────────────────────────────────────────
+// If a second instance launches, quit it immediately and focus the first.
 const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock) {
+  // This IS the second instance — quit right away, no window created
   app.quit()
 } else {
+  // Primary instance — focus/restore the window if a second one tried to open
   app.on('second-instance', () => {
     const win = getMainWindow()
     if (win) {
@@ -36,12 +56,20 @@ if (!gotTheLock) {
     }
   })
 
-  // Re-write the tracer startup registry entry on every launch so the path
-  // stays correct after updates or if the user moved the install directory.
-  // Also auto-start the tracer if it's registered but not currently running.
+  // ── before-quit: clean up all child processes and workers ─────────────────
+  app.on('before-quit', () => {
+    // Kill any tracked child processes (e.g. tracer spawned by this instance)
+    for (const cp of childProcesses) {
+      try { cp.kill() } catch { /* already dead */ }
+    }
+    childProcesses.length = 0
+
+    // Terminate any in-flight worker threads
+    cleanupWorkers()
+  })
+
   app.whenReady().then(() => {
-    // ── Handle local-asset:// requests ──────────────────────────────────────
-    // local-asset:///C:/path/to/file.png  →  serve the file from disk
+    // ── local-asset:// protocol handler ──────────────────────────────────────
     protocol.handle('local-asset', (request) => {
       let filePath = decodeURIComponent(new URL(request.url).pathname)
       if (process.platform === 'win32' && filePath.startsWith('/')) {
@@ -49,39 +77,56 @@ if (!gotTheLock) {
       }
       return net.fetch(`file:///${filePath.replace(/\\/g, '/')}`)
     })
-    if (process.platform !== 'win32') return
-    const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
-    const KEY_NAME = 'Unreal Launcher Tracer'
-    const tracerExe = path.join(app.getAppPath(), 'resources', 'unreal_launcher_tracer.exe')
 
+    // ── Tracer auto-start (Windows only) ─────────────────────────────────────
+    // Logic:
+    //   1. Read tracerStartupEnabled from settings.json (fast, no registry query)
+    //   2. If disabled → do nothing
+    //   3. If enabled → check if tracer is already running (tasklist)
+    //   4. Only spawn if NOT already running
+    //   5. Keep the registry Run key in sync with the setting
+    if (process.platform !== 'win32') return
+
+    const tracerExe = path.join(app.getAppPath(), 'resources', 'unreal_launcher_tracer.exe')
     if (!fs.existsSync(tracerExe)) return
 
+    const { tracerStartupEnabled } = loadMainSettings()
+
+    const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
+    const KEY_NAME = 'Unreal Launcher Tracer'
+
+    if (!tracerStartupEnabled) {
+      // Ensure registry key is also removed if setting is off
+      try {
+        execSync(`reg delete "${RUN_KEY}" /v "${KEY_NAME}" /f 2>nul`, { stdio: 'pipe' })
+      } catch { /* key didn't exist — fine */ }
+      return
+    }
+
+    // Setting is ON — keep registry entry up to date with current exe path
     try {
-      // Check if the startup key exists (user has it enabled)
-      const regOut = execSync(`reg query "${RUN_KEY}" /v "${KEY_NAME}" 2>nul`, {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe']
-      })
-      if (!regOut.includes(KEY_NAME)) return
-
-      // Re-write with current path (handles app updates / moves)
-      execSync(`reg add "${RUN_KEY}" /v "${KEY_NAME}" /t REG_SZ /d "\\"${tracerExe}\\"" /f`, {
-        stdio: 'pipe'
-      })
-
-      // Start the tracer if it's not already running
-      const running = execSync(
-        'tasklist /FI "IMAGENAME eq unreal_launcher_tracer.exe" /NH /FO CSV',
-        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+      execSync(
+        `reg add "${RUN_KEY}" /v "${KEY_NAME}" /t REG_SZ /d "\\"${tracerExe}\\"" /f`,
+        { stdio: 'pipe' }
       )
-        .toLowerCase()
-        .includes('unreal_launcher_tracer.exe')
+    } catch { /* ignore registry errors */ }
 
-      if (!running) {
-        spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
+    // Check if tracer is already running before spawning
+    const alreadyRunning = (() => {
+      try {
+        return execSync(
+          'tasklist /FI "IMAGENAME eq unreal_launcher_tracer.exe" /NH /FO CSV',
+          { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+        ).toLowerCase().includes('unreal_launcher_tracer.exe')
+      } catch {
+        return false
       }
-    } catch {
-      /* key doesn't exist — user hasn't enabled it */
+    })()
+
+    if (!alreadyRunning) {
+      // Tracer is detached + unref'd — it outlives the launcher intentionally.
+      // NOT tracked in childProcesses since we don't want to kill it on quit.
+      spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
     }
   })
 

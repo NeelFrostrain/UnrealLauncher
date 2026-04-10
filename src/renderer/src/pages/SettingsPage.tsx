@@ -208,31 +208,6 @@ const SettingsPage = (): React.ReactElement => {
         </div>
 
         <div className="px-6 py-5 space-y-7">
-          <AppearanceSection
-            activeThemeId={activeThemeId}
-            customOverrides={customOverrides}
-            setTheme={setTheme}
-            setOverride={setOverride}
-            resetOverrides={resetOverrides}
-            profiles={profiles}
-            activeProfileId={activeProfileId}
-            applyProfile={applyProfile}
-            deleteProfile={deleteProfile}
-            radius={radius}
-            setRadius={setRadius}
-            savingProfile={savingProfile}
-            setSavingProfile={setSavingProfile}
-            newProfileName={newProfileName}
-            setNewProfileName={setNewProfileName}
-            editingProfileId={editingProfileId}
-            editingName={editingName}
-            setEditingName={setEditingName}
-            nameInputRef={nameInputRef}
-            handleSaveProfile={handleSaveProfile}
-            handleStartEdit={handleStartEdit}
-            handleFinishEdit={handleFinishEdit}
-          />
-
           {/* ── Launch Behavior ── */}
           <section>
             <SectionHeader
@@ -323,6 +298,33 @@ const SettingsPage = (): React.ReactElement => {
               </div>
             </Card>
           </section>
+
+
+<AppearanceSection
+            activeThemeId={activeThemeId}
+            customOverrides={customOverrides}
+            setTheme={setTheme}
+            setOverride={setOverride}
+            resetOverrides={resetOverrides}
+            profiles={profiles}
+            activeProfileId={activeProfileId}
+            applyProfile={applyProfile}
+            deleteProfile={deleteProfile}
+            radius={radius}
+            setRadius={setRadius}
+            savingProfile={savingProfile}
+            setSavingProfile={setSavingProfile}
+            newProfileName={newProfileName}
+            setNewProfileName={setNewProfileName}
+            editingProfileId={editingProfileId}
+            editingName={editingName}
+            setEditingName={setEditingName}
+            nameInputRef={nameInputRef}
+            handleSaveProfile={handleSaveProfile}
+            handleStartEdit={handleStartEdit}
+            handleFinishEdit={handleFinishEdit}
+          />
+
 
           {/* ── Data ── */}
           <section>

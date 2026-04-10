@@ -27,6 +27,26 @@ import { handleCheckForUpdates, handleCheckGithubVersion, autoUpdater } from './
 import { getMainWindow, getIsMaximized, handleWindowMinimize, handleWindowMaximize } from './window'
 import type { Engine, Project, EngineSelectionResult, ProjectSelectionResult } from './types'
 
+// ── Active worker registry ────────────────────────────────────────────────────
+// All Worker threads created during IPC calls are tracked here so they can be
+// terminated cleanly when the app quits (before-quit in index.ts).
+const activeWorkers = new Set<Worker>()
+
+function spawnWorker(script: string, workerData: unknown): Worker {
+  const w = new Worker(script, { eval: true, workerData })
+  activeWorkers.add(w)
+  w.once('exit', () => activeWorkers.delete(w))
+  return w
+}
+
+/** Called from index.ts before-quit to terminate all in-flight workers. */
+export function cleanupWorkers(): void {
+  for (const w of activeWorkers) {
+    try { w.terminate() } catch { /* already done */ }
+  }
+  activeWorkers.clear()
+}
+
 export function registerIpcHandlers(): void {
   // ── Updates ────────────────────────────────────────────────────────────────
   ipcMain.handle('check-for-updates', handleCheckForUpdates)
@@ -51,10 +71,11 @@ export function registerIpcHandlers(): void {
   // ── Engines ────────────────────────────────────────────────────────────────
 
   ipcMain.handle('scan-engines', async (): Promise<Engine[]> => {
-    const saved = mergeTracerEngines(loadEngines(), generateGradient)
+    const raw = mergeTracerEngines(loadEngines(), generateGradient)
+    const saved = Array.isArray(raw) ? raw : []
     // Run all FS work in a Worker thread — keeps main process event loop free
     return new Promise((resolve, reject) => {
-      const w = new Worker(
+      const w = spawnWorker(
         `
         const { parentPort, workerData } = require('worker_threads');
         const fs = require('fs'), path = require('path');
@@ -91,7 +112,7 @@ export function registerIpcHandlers(): void {
           return 'linear-gradient(' + pick(dirs) + ', ' + from + ', ' + to + ')';
         }
 
-        const saved = workerData.saved;
+        const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
         const scanned = scanEnginePaths().map(e => {
           const ex = saved.find(s => s.directoryPath === e.directoryPath);
           return { version: e.version, exePath: e.exePath, directoryPath: e.directoryPath,
@@ -114,10 +135,7 @@ export function registerIpcHandlers(): void {
         }
         parentPort.postMessage(merged.filter(e => fs.existsSync(e.exePath)));
         `,
-        {
-          eval: true,
-          workerData: { saved, nativePath: require.resolve('../../native/dist/index') }
-        }
+        { saved, nativePath: require.resolve('../../native/dist/index') }
       )
       w.once('message', resolve)
       w.once('error', reject)
@@ -221,9 +239,10 @@ export function registerIpcHandlers(): void {
   // ── Projects ───────────────────────────────────────────────────────────────
 
   ipcMain.handle('scan-projects', async (): Promise<Project[]> => {
-    const saved = mergeTracerProjects(loadProjects())
+    const raw = mergeTracerProjects(loadProjects())
+    const saved = Array.isArray(raw) ? raw : []
     return new Promise((resolve, reject) => {
-      const w = new Worker(
+      const w = spawnWorker(
         `
         const { parentPort, workerData } = require('worker_threads');
         const fs = require('fs'), path = require('path'), os = require('os');
@@ -268,7 +287,7 @@ export function registerIpcHandlers(): void {
           return latest ? latest.toISOString() : null;
         }
 
-        const saved = workerData.saved;
+        const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
         const searchPaths = [
           path.join(os.homedir(), 'Documents', 'Unreal Projects'),
           'C:\\\\Users\\\\Public\\\\Documents\\\\Unreal Projects',
@@ -303,10 +322,7 @@ export function registerIpcHandlers(): void {
         }
         parentPort.postMessage(merged.filter(p => p.projectPath && fs.existsSync(path.join(p.projectPath, p.name + '.uproject'))));
         `,
-        {
-          eval: true,
-          workerData: { saved, nativePath: require.resolve('../../native/dist/index') }
-        }
+        { saved, nativePath: require.resolve('../../native/dist/index') }
       )
       w.once('message', resolve)
       w.once('error', reject)
@@ -550,37 +566,39 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('tracer-set-startup', async (_event, enabled: boolean): Promise<void> => {
     if (process.platform !== 'win32') return
-    console.log('[tracer-startup] exe path:', tracerExe, '| exists:', fs.existsSync(tracerExe))
+
+    // Persist the setting so index.ts can read it on next launch
+    saveMainSettings({ tracerStartupEnabled: enabled })
+
     try {
       if (enabled) {
-        if (!fs.existsSync(tracerExe)) {
-          console.error('[tracer-startup] exe not found at:', tracerExe)
-          return
-        }
-        // Register in startup
+        if (!fs.existsSync(tracerExe)) return
+
+        // Keep registry Run key in sync
         execSync(
           `reg add "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /t REG_SZ /d "\\"${tracerExe}\\"" /f`,
           { stdio: 'pipe' }
         )
-        // Start immediately if not already running — use spawn detached, never execSync
+
+        // Start immediately if not already running
         const running = execSync(
           'tasklist /FI "IMAGENAME eq unreal_launcher_tracer.exe" /NH /FO CSV',
           { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-        )
-          .toLowerCase()
-          .includes('unreal_launcher_tracer.exe')
+        ).toLowerCase().includes('unreal_launcher_tracer.exe')
+
         if (!running) {
           spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
         }
       } else {
-        // Unregister from startup
-        execSync(`reg delete "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /f`, { stdio: 'pipe' })
-        // Force kill — use execSync only for taskkill which returns fast
+        // Remove registry Run key
+        try {
+          execSync(`reg delete "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /f`, { stdio: 'pipe' })
+        } catch { /* key didn't exist */ }
+
+        // Kill the running tracer process
         try {
           execSync('taskkill /F /IM unreal_launcher_tracer.exe', { stdio: 'pipe' })
-        } catch {
-          /* not running — fine */
-        }
+        } catch { /* not running — fine */ }
       }
     } catch {
       /* ignore */

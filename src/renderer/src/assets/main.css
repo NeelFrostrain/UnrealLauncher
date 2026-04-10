@@ -183,6 +183,11 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Smooth scroll on all scrollable containers */
+* {
+  scroll-behavior: smooth;
+}
+
 /* Custom scrollbar with better performance */
 ::-webkit-scrollbar {
   width: 8px;
