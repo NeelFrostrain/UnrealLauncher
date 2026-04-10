@@ -1,4 +1,6 @@
 import { ipcMain, dialog } from 'electron'
+import path from 'path'
+import fs from 'fs'
 import { exec, spawn } from 'child_process'
 import { loadEngines, saveEngines, mergeTracerEngines } from '../store'
 import { generateGradient, validateEngineInstallation, formatBytes, getFullFolderSize } from '../utils'
@@ -7,6 +9,14 @@ import { getInstalledEngines } from '../utils/engines'
 import { getMainWindow } from '../window'
 import { spawnWorker } from './workers'
 import type { Engine, EngineSelectionResult } from '../types'
+
+interface MarketplacePlugin {
+  name: string
+  path: string
+  description: string
+  version: string
+  icon: string | null
+}
 
 export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('scan-engines', async (): Promise<Engine[]> => {
@@ -189,4 +199,41 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
       }
     }
   )
+
+  ipcMain_.handle('scan-marketplace-plugins', (_event, engineDir: string): MarketplacePlugin[] => {
+    const marketplacePath = path.join(engineDir, 'Engine', 'Plugins', 'Marketplace')
+    if (!fs.existsSync(marketplacePath)) return []
+    try {
+      return fs.readdirSync(marketplacePath, { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+        .map((d) => {
+          const pluginDir = path.join(marketplacePath, d.name)
+          let name = d.name
+          let description = ''
+          let version = ''
+          let icon: string | null = null
+
+          try {
+            // Find .uplugin file — use FriendlyName as display name
+            const upluginFile = fs.readdirSync(pluginDir).find((f) => f.endsWith('.uplugin'))
+            if (upluginFile) {
+              const meta = JSON.parse(fs.readFileSync(path.join(pluginDir, upluginFile), 'utf8'))
+              name = meta.FriendlyName || meta.Name || d.name
+              description = meta.Description || ''
+              version = meta.VersionName || String(meta.Version || '')
+            }
+          } catch { /* keep folder name */ }
+
+          // Load icon: Resources/Icon128.png
+          const iconPath = path.join(pluginDir, 'Resources', 'Icon128.png')
+          if (fs.existsSync(iconPath)) {
+            icon = iconPath
+          }
+
+          return { name, path: pluginDir, description, version, icon }
+        })
+    } catch {
+      return []
+    }
+  })
 }

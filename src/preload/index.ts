@@ -69,7 +69,9 @@ if (process.contextIsolated) {
       getTracerMerge: () => ipcRenderer.invoke('tracer-get-merge'),
       setTracerMerge: (enabled: boolean) => ipcRenderer.invoke('tracer-set-merge', enabled),
       clearAppData: () => ipcRenderer.invoke('clear-app-data'),
-      clearTracerData: () => ipcRenderer.invoke('clear-tracer-data')
+      clearTracerData: () => ipcRenderer.invoke('clear-tracer-data'),
+      scanMarketplacePlugins: (engineDir: string) =>
+        ipcRenderer.invoke('scan-marketplace-plugins', engineDir)
     })
   } catch (error) {
     console.error(error)

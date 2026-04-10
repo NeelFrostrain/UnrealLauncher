@@ -53,6 +53,14 @@ declare global {
     error?: string
   }
 
+  interface MarketplacePlugin {
+    name: string
+    path: string
+    description: string
+    version: string
+    icon: string | null
+  }
+
   interface Window {
     electron: ElectronAPI
     electronAPI: {
@@ -113,6 +121,7 @@ declare global {
       setTracerMerge: (enabled: boolean) => Promise<void>
       clearAppData: () => Promise<void>
       clearTracerData: () => Promise<void>
+      scanMarketplacePlugins: (engineDir: string) => Promise<MarketplacePlugin[]>
     }
   }
 }

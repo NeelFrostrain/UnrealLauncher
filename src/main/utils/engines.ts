@@ -55,6 +55,7 @@ export interface EngineValidationResult {
 }
 
 export function validateEngineInstallation(folder: string): EngineValidationResult {
+  const native = getNative()
   if (native) {
     try {
       const r = native.validateEngineFolder(folder)
@@ -172,6 +173,7 @@ export async function getInstalledEngines(): Promise<ScannedEngine[]> {
 }
 
 export function scanEnginePaths(extraPaths: string[] = []): ScannedEngine[] {
+  const native = getNative()
   if (native) {
     try {
       return native.scanEngines(extraPaths)
