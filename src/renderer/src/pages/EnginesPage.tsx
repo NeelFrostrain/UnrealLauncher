@@ -5,31 +5,28 @@ import EngineCard from '@renderer/components/engines/EngineCard'
 import InstalledPluginsTab from '@renderer/components/engines/InstalledPluginsTab'
 import FabTab from '@renderer/components/engines/FabTab'
 import DropdownPortal from '../components/ui/DropdownPortal'
-import { useToast } from '../components/ui/ToastContext'
-import { getSetting } from '../utils/settings'
+import { useEngineActions } from '../hooks/useEngineActions'
 import { Plus, RefreshCw, Zap, ShoppingBag, ChevronDown, Check, Store } from 'lucide-react'
 
 type EngineTab = 'engines' | 'plugins' | 'fab'
 
 const EnginesPage = (): React.ReactElement => {
   const [engines, setEngines] = useState<EngineCardProps[]>([])
-  const [scanning, setScanning] = useState(false)
-  const [addingEngine, setAddingEngine] = useState(false)
   const [displayStart, setDisplayStart] = useState(0)
   const [activeTab, setActiveTab] = useState<EngineTab>('engines')
   const [selectedEngine, setSelectedEngine] = useState<EngineCardProps | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownAnchorRef = useRef<HTMLButtonElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const { addToast } = useToast()
   const ITEMS_PER_BATCH = 30
 
-  // ── Scroll virtualization ─────────────────────────────────────────────────
+  const { scanning, addingEngine, handleScan, handleLaunch, handleOpenDir, handleDelete, handleAddEngine } =
+    useEngineActions(setEngines)
+
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     setDisplayStart(Math.max(0, Math.floor(e.currentTarget.scrollTop / 128) - 5))
   }, [])
 
-  // ── Data loading ──────────────────────────────────────────────────────────
   useEffect(() => {
     const load = async (): Promise<void> => {
       if (!window.electronAPI) return
@@ -46,59 +43,6 @@ const EnginesPage = (): React.ReactElement => {
     return () => {}
   }, [])
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
-  const handleScan = async (): Promise<void> => {
-    setScanning(true)
-    try { setEngines(await window.electronAPI.scanEngines()) }
-    catch (err) { console.error('Failed to scan engines:', err) }
-    setScanning(false)
-  }
-
-  const handleLaunch = async (exePath: string): Promise<void> => {
-    const result = await window.electronAPI.launchEngine(exePath)
-    if (!result.success) {
-      addToast('Failed to launch engine: ' + result.error, 'error')
-    } else {
-      setEngines((prev) => prev.map((e) => e.exePath === exePath
-        ? { ...e, lastLaunch: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }
-        : e
-      ))
-      if (getSetting('autoCloseOnLaunch')) setTimeout(() => window.electronAPI?.windowClose(), 1000)
-    }
-  }
-
-  const handleOpenDir = async (dirPath: string): Promise<void> => {
-    await window.electronAPI.openDirectory(dirPath)
-  }
-
-  const handleDelete = async (dirPath: string): Promise<void> => {
-    try {
-      const success = await window.electronAPI.deleteEngine(dirPath)
-      if (!success) { addToast('Failed to remove engine from storage', 'error'); return }
-      setEngines((prev) => prev.filter((e) => e.directoryPath !== dirPath))
-      addToast('Engine removed from list', 'success')
-    } catch { addToast('Failed to remove engine', 'error') }
-  }
-
-  const handleAddEngine = async (): Promise<void> => {
-    if (!window.electronAPI || addingEngine) return
-    setAddingEngine(true)
-    try {
-      const result = await Promise.race([
-        window.electronAPI.selectEngineFolder(),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 30000))
-      ])
-      if (!result) { addToast('No engine folder was selected', 'info'); return }
-      if (result.invalid) { addToast(result.message || 'Invalid Unreal Engine installation', 'error'); return }
-      if (result.duplicate) { addToast(result.message || 'This engine is already added', 'warning'); return }
-      if (result.added) {
-        addToast(`Added engine ${result.added.version}`, 'success')
-        setEngines(await window.electronAPI.scanEngines())
-      }
-    } catch { addToast('Failed to add engine. Please try again.', 'error') }
-    finally { setAddingEngine(false) }
-  }
-
   const activeEngine = selectedEngine ?? engines[0] ?? null
 
   const tabs: { id: EngineTab; label: string; icon: React.ReactNode }[] = [
@@ -109,23 +53,12 @@ const EnginesPage = (): React.ReactElement => {
 
   return (
     <PageWrapper>
-      {/* ── Toolbar: identity + tabs + actions all in one row ── */}
+      {/* ── Toolbar ── */}
       <div
         className="flex items-center gap-3 px-4 py-3 shrink-0 border-b"
         style={{ borderColor: 'var(--color-border)' }}
       >
-        {/* Page identity */}
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)' }}
-          >
-            <Zap size={14} style={{ color: 'var(--color-accent)' }} />
-          </div>
-
-        </div>
-
-        {/* Tabs — inline */}
+        {/* Tabs */}
         <div
           className="flex items-center gap-0.5 px-1 py-1 rounded-lg"
           style={{ backgroundColor: 'var(--color-surface-card)', border: '1px solid var(--color-border)' }}
@@ -176,11 +109,7 @@ const EnginesPage = (): React.ReactElement => {
                 UE {activeEngine?.version ?? '—'}
                 <ChevronDown size={11} style={{ color: 'var(--color-text-muted)' }} className={dropdownOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
               </button>
-              <DropdownPortal
-                open={dropdownOpen}
-                anchorRef={dropdownAnchorRef}
-                onClose={() => setDropdownOpen(false)}
-              >
+              <DropdownPortal open={dropdownOpen} anchorRef={dropdownAnchorRef} onClose={() => setDropdownOpen(false)}>
                 {engines.map((e) => {
                   const isActive = activeEngine?.directoryPath === e.directoryPath
                   return (

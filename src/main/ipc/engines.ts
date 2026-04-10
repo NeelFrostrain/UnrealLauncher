@@ -8,6 +8,7 @@ import { getNativeModulePath } from '../utils/native'
 import { getInstalledEngines } from '../utils/engines'
 import { getMainWindow } from '../window'
 import { spawnWorker } from './workers'
+import { ENGINE_SCAN_WORKER } from './scanWorkers'
 import type { Engine, EngineSelectionResult } from '../types'
 
 interface MarketplacePlugin {
@@ -23,7 +24,6 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
     const raw = mergeTracerEngines(loadEngines(), generateGradient)
     const saved = Array.isArray(raw) ? raw : []
 
-    // Merge registry-discovered engines into saved so the worker picks them up
     const registryEngines = await getInstalledEngines()
     for (const re of registryEngines) {
       if (!saved.find((s) => s.directoryPath === re.directoryPath)) {
@@ -39,73 +39,10 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
     }
 
     return new Promise((resolve, reject) => {
-      const w = spawnWorker(
-        `
-        const { parentPort, workerData } = require('worker_threads');
-        const fs = require('fs'), path = require('path');
-        let native = null;
-        try { native = require(workerData.nativePath); } catch {}
-
-        function scanEnginePaths() {
-          if (native) { try { return native.scanEngines([]); } catch {} }
-          const bases = ['D:\\\\Engine\\\\UnrealEditors','C:\\\\Program Files\\\\Epic Games','C:\\\\Program Files (x86)\\\\Epic Games','D:\\\\Unreal'];
-          const results = [];
-          for (const base of bases) {
-            if (!fs.existsSync(base)) continue;
-            try {
-              for (const item of fs.readdirSync(base)) {
-                if (!item.startsWith('UE_')) continue;
-                const ep = path.join(base, item);
-                const bin = path.join(ep, 'Engine', 'Binaries', 'Win64');
-                let exe = path.join(bin, 'UnrealEditor.exe');
-                if (!fs.existsSync(exe)) exe = path.join(bin, 'UE4Editor.exe');
-                if (!fs.existsSync(exe)) continue;
-                results.push({ version: item.replace('UE_', ''), exePath: exe, directoryPath: ep });
-              }
-            } catch {}
-          }
-          return results;
-        }
-
-        function generateGradient() {
-          const dirs = ['to top','to top right','to right','to bottom right','to bottom','to bottom left','to left','to top left'];
-          const colors = ['#2563eb','#4f46e5','#06b6d4','#10b981','#7c3aed','#c026d3','#f43f5e','#f59e0b'];
-          const pick = a => a[Math.floor(Math.random() * a.length)];
-          const from = pick(colors); let to = pick(colors);
-          while (to === from) to = pick(colors);
-          return 'linear-gradient(' + pick(dirs) + ', ' + from + ', ' + to + ')';
-        }
-
-        const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
-        const scanned = scanEnginePaths().map(e => {
-          const ex = saved.find(s => s.directoryPath === e.directoryPath);
-          return { version: e.version, exePath: e.exePath, directoryPath: e.directoryPath,
-            folderSize: ex?.folderSize || '~35-45 GB',
-            lastLaunch: ex?.lastLaunch || 'Unknown',
-            gradient: ex?.gradient || generateGradient() };
-        });
-        const merged = [];
-        for (const s of scanned) {
-          const ex = saved.find(e => e.directoryPath === s.directoryPath);
-          if (ex) {
-            if (ex.gradient) s.gradient = ex.gradient;
-            if (ex.folderSize && !ex.folderSize.startsWith('~')) s.folderSize = ex.folderSize;
-            if (ex.lastLaunch) s.lastLaunch = ex.lastLaunch;
-          }
-          merged.push(s);
-        }
-        for (const e of saved) {
-          if (!merged.find(m => m.directoryPath === e.directoryPath)) merged.push(e);
-        }
-        parentPort.postMessage(merged.filter(e => fs.existsSync(e.exePath)));
-        `,
-        { saved, nativePath: getNativeModulePath() }
-      )
+      const w = spawnWorker(ENGINE_SCAN_WORKER, { saved, nativePath: getNativeModulePath() })
       w.once('message', resolve)
       w.once('error', reject)
-      w.once('exit', (c: number) => {
-        if (c !== 0) reject(new Error(`Worker exited ${c}`))
-      })
+      w.once('exit', (c: number) => { if (c !== 0) reject(new Error(`Worker exited ${c}`)) })
     }).then((valid: unknown) => {
       saveEngines(valid as Engine[])
       return valid as Engine[]
@@ -161,9 +98,7 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
       const engine = engines.find((e) => e.exePath === exePath)
       if (engine) {
         engine.lastLaunch = new Date().toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
+          month: 'short', day: 'numeric', year: 'numeric'
         })
         saveEngines(engines)
       }
@@ -182,23 +117,17 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
     }
   })
 
-  ipcMain_.handle(
-    'calculate-engine-size',
-    async (_event, directoryPath): Promise<Record<string, unknown>> => {
-      try {
-        const sizeStr = formatBytes(await getFullFolderSize(directoryPath))
-        const engines = loadEngines()
-        const engine = engines.find((e) => e.directoryPath === directoryPath)
-        if (engine) {
-          engine.folderSize = sizeStr
-          saveEngines(engines)
-        }
-        return { success: true, size: sizeStr }
-      } catch (err) {
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
-      }
+  ipcMain_.handle('calculate-engine-size', async (_event, directoryPath): Promise<Record<string, unknown>> => {
+    try {
+      const sizeStr = formatBytes(await getFullFolderSize(directoryPath))
+      const engines = loadEngines()
+      const engine = engines.find((e) => e.directoryPath === directoryPath)
+      if (engine) { engine.folderSize = sizeStr; saveEngines(engines) }
+      return { success: true, size: sizeStr }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
     }
-  )
+  })
 
   ipcMain_.handle('scan-marketplace-plugins', (_event, engineDir: string): MarketplacePlugin[] => {
     const marketplacePath = path.join(engineDir, 'Engine', 'Plugins', 'Marketplace')
@@ -208,13 +137,8 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
         .filter((d) => d.isDirectory())
         .map((d) => {
           const pluginDir = path.join(marketplacePath, d.name)
-          let name = d.name
-          let description = ''
-          let version = ''
-          let icon: string | null = null
-
+          let name = d.name, description = '', version = '', icon: string | null = null
           try {
-            // Find .uplugin file — use FriendlyName as display name
             const upluginFile = fs.readdirSync(pluginDir).find((f) => f.endsWith('.uplugin'))
             if (upluginFile) {
               const meta = JSON.parse(fs.readFileSync(path.join(pluginDir, upluginFile), 'utf8'))
@@ -223,13 +147,8 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
               version = meta.VersionName || String(meta.Version || '')
             }
           } catch { /* keep folder name */ }
-
-          // Load icon: Resources/Icon128.png
           const iconPath = path.join(pluginDir, 'Resources', 'Icon128.png')
-          if (fs.existsSync(iconPath)) {
-            icon = iconPath
-          }
-
+          if (fs.existsSync(iconPath)) icon = iconPath
           return { name, path: pluginDir, description, version, icon }
         })
     } catch {

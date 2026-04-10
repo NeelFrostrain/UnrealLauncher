@@ -66,8 +66,8 @@ const InstalledPluginsTab = ({ engineDir, engineVersion }: InstalledPluginsTabPr
     <div className="flex flex-col h-full">
       {/* Toolbar */}
       <div
-        className="flex items-center gap-2 px-4 py-2.5 border-b shrink-0"
-        style={{ borderColor: 'var(--color-border)' }}
+        className="flex items-center gap-2 px-4 py-2.5 shrink-0"
+        // style={{ borderColor: 'var(--color-border)' }}
       >
         <div
           className="flex items-center gap-2 flex-1 px-3 py-1.5 text-xs"

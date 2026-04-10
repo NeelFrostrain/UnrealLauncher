@@ -7,6 +7,7 @@ import { findUprojectFiles, findProjectScreenshot, formatBytes, getFullFolderSiz
 import { getNativeModulePath } from '../utils/native'
 import { getMainWindow } from '../window'
 import { spawnWorker } from './workers'
+import { PROJECT_SCAN_WORKER } from './scanWorkers'
 import type { Project, ProjectSelectionResult } from '../types'
 
 export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
@@ -14,93 +15,10 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
     const raw = mergeTracerProjects(loadProjects())
     const saved = Array.isArray(raw) ? raw : []
     return new Promise((resolve, reject) => {
-      const w = spawnWorker(
-        `
-        const { parentPort, workerData } = require('worker_threads');
-        const fs = require('fs'), path = require('path'), os = require('os');
-        let native = null;
-        try { native = require(workerData.nativePath); } catch {}
-
-        function findUprojectFiles(dir, maxDepth, maxFiles) {
-          if (native) { try { return native.findUprojectFiles(dir, maxDepth, maxFiles); } catch {} }
-          const files = []; let count = 0;
-          const SKIP = new Set(['node_modules','.git','Binaries','Intermediate','DerivedDataCache','Saved','Plugins']);
-          function scan(cur, depth) {
-            if (depth > maxDepth || count >= maxFiles) return;
-            try {
-              for (const item of fs.readdirSync(cur)) {
-                if (count >= maxFiles) return;
-                const full = path.join(cur, item);
-                if (fs.statSync(full).isDirectory() && !item.startsWith('.') && !SKIP.has(item)) scan(full, depth+1);
-                else if (item.endsWith('.uproject')) { files.push(full); count++; }
-              }
-            } catch {}
-          }
-          scan(dir, 0); return files;
-        }
-
-        function findScreenshot(p) {
-          if (native) { try { return native.findProjectScreenshot(p) ?? null; } catch {} }
-          const s = path.join(p, 'Saved', 'AutoScreenshot.png');
-          return fs.existsSync(s) ? s : null;
-        }
-
-        function findLogTimestamp(p) {
-          if (native) { try { return native.findLatestLogTimestamp(p) ?? null; } catch {} }
-          const logsRoot = path.join(p, 'Saved', 'Logs');
-          if (!fs.existsSync(logsRoot)) return null;
-          let latest = null;
-          try {
-            for (const item of fs.readdirSync(logsRoot)) {
-              if (path.extname(item).toLowerCase() !== '.log') continue;
-              try { const s = fs.statSync(path.join(logsRoot, item)); if (s.isFile() && (!latest || s.mtime > latest)) latest = s.mtime; } catch {}
-            }
-          } catch { return null; }
-          return latest ? latest.toISOString() : null;
-        }
-
-        const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
-        const searchPaths = [
-          path.join(os.homedir(), 'Documents', 'Unreal Projects'),
-          'C:\\\\Users\\\\Public\\\\Documents\\\\Unreal Projects',
-          'D:\\\\Unreal\\\\Projects'
-        ];
-        const scanned = [];
-        for (const sp of searchPaths) {
-          if (!fs.existsSync(sp)) continue;
-          for (const up of findUprojectFiles(sp, 5, 1000)) {
-            try {
-              const dir = path.dirname(up), name = path.basename(dir);
-              const stats = fs.statSync(dir);
-              let version = 'Unknown';
-              try { const m = fs.readFileSync(up,'utf8').match(/"EngineAssociation":\\s*"([^"]+)"/); if (m) version = m[1]; } catch {}
-              const ex = saved.find(p => p.projectPath === dir);
-              scanned.push({ name, version, size: ex?.size || '~2-5 GB',
-                createdAt: stats.birthtime.toISOString().split('T')[0],
-                lastOpenedAt: findLogTimestamp(dir) || ex?.lastOpenedAt,
-                projectPath: dir, thumbnail: findScreenshot(dir) });
-            } catch {}
-          }
-        }
-        const merged = [];
-        for (const s of scanned) {
-          const ex = saved.find(p => p.projectPath === s.projectPath);
-          if (ex?.size && !ex.size.startsWith('~')) s.size = ex.size;
-          merged.push(s);
-        }
-        for (const p of saved) {
-          if (!merged.find(m => m.projectPath === p.projectPath))
-            merged.push({ ...p, lastOpenedAt: findLogTimestamp(p.projectPath) || p.lastOpenedAt });
-        }
-        parentPort.postMessage(merged.filter(p => p.projectPath && fs.existsSync(path.join(p.projectPath, p.name + '.uproject'))));
-        `,
-        { saved, nativePath: getNativeModulePath() }
-      )
+      const w = spawnWorker(PROJECT_SCAN_WORKER, { saved, nativePath: getNativeModulePath() })
       w.once('message', resolve)
       w.once('error', reject)
-      w.once('exit', (c: number) => {
-        if (c !== 0) reject(new Error(`Worker exited ${c}`))
-      })
+      w.once('exit', (c: number) => { if (c !== 0) reject(new Error(`Worker exited ${c}`)) })
     }).then((valid: unknown) => {
       saveProjects(valid as Project[])
       return valid as Project[]
@@ -156,10 +74,7 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
         if (typeof json.EngineAssociation === 'string') version = json.EngineAssociation
         if (typeof json.ProjectID === 'string') projectId = json.ProjectID
       } catch {
-        response.invalidProjects.push({
-          projectPath: projectDir,
-          reason: 'Invalid or corrupted .uproject file.'
-        })
+        response.invalidProjects.push({ projectPath: projectDir, reason: 'Invalid or corrupted .uproject file.' })
         continue
       }
 
@@ -173,8 +88,7 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
         response.duplicateProjects.push({
           projectPath: projectDir,
           name: projectName,
-          reason:
-            existing.projectPath === projectDir ? 'Already added' : 'Duplicate project name or ID'
+          reason: existing.projectPath === projectDir ? 'Already added' : 'Duplicate project name or ID'
         })
         continue
       }
@@ -193,10 +107,7 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
         response.addedProjects.push(newProject)
         known.push(newProject)
       } catch {
-        response.invalidProjects.push({
-          projectPath: projectDir,
-          reason: 'Unable to read project folder metadata.'
-        })
+        response.invalidProjects.push({ projectPath: projectDir, reason: 'Unable to read project folder metadata.' })
       }
     }
 
@@ -205,21 +116,18 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
     return response
   })
 
-  ipcMain_.handle(
-    'launch-project',
-    async (_event, projectPath): Promise<Record<string, unknown>> => {
-      const projectName = path.basename(projectPath)
-      const uprojectPath = path.join(projectPath, `${projectName}.uproject`)
-      if (!fs.existsSync(uprojectPath)) return { success: false, error: 'Project file not found' }
-      try {
-        if (process.platform === 'win32') exec(`start "" "${uprojectPath}"`)
-        else spawn('open', [uprojectPath], { detached: true, stdio: 'ignore' })
-        return { success: true }
-      } catch (err) {
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
-      }
+  ipcMain_.handle('launch-project', async (_event, projectPath): Promise<Record<string, unknown>> => {
+    const projectName = path.basename(projectPath)
+    const uprojectPath = path.join(projectPath, `${projectName}.uproject`)
+    if (!fs.existsSync(uprojectPath)) return { success: false, error: 'Project file not found' }
+    try {
+      if (process.platform === 'win32') exec(`start "" "${uprojectPath}"`)
+      else spawn('open', [uprojectPath], { detached: true, stdio: 'ignore' })
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
     }
-  )
+  })
 
   ipcMain_.handle('open-directory', (_event, dirPath): void => {
     spawn('explorer', [dirPath], { detached: true, stdio: 'ignore' })
@@ -234,31 +142,22 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
     }
   })
 
-  ipcMain_.handle(
-    'calculate-project-size',
-    async (_event, projectPath): Promise<Record<string, unknown>> => {
-      try {
-        const sizeStr = formatBytes(await getFullFolderSize(projectPath))
-        const projects = loadProjects()
-        const project = projects.find((p) => p.projectPath === projectPath)
-        if (project) {
-          project.size = sizeStr
-          saveProjects(projects)
-        }
-        return { success: true, size: sizeStr }
-      } catch (err) {
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
-      }
+  ipcMain_.handle('calculate-project-size', async (_event, projectPath): Promise<Record<string, unknown>> => {
+    try {
+      const sizeStr = formatBytes(await getFullFolderSize(projectPath))
+      const projects = loadProjects()
+      const project = projects.find((p) => p.projectPath === projectPath)
+      if (project) { project.size = sizeStr; saveProjects(projects) }
+      return { success: true, size: sizeStr }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
     }
-  )
+  })
 
-  // Calculate sizes for all projects that still have approximate sizes.
-  // Runs with concurrency=2 so the system stays responsive.
   // Streams results back via 'size-calculated' push events as each finishes.
   ipcMain_.handle('calculate-all-project-sizes', async (): Promise<void> => {
     const win = getMainWindow()
     if (!win) return
-
     const projects = loadProjects()
     if (projects.length === 0) return
 
@@ -272,20 +171,11 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
         const sizeStr = formatBytes(await getFullFolderSize(project.projectPath))
         const all = loadProjects()
         const entry = all.find((p) => p.projectPath === project.projectPath)
-        if (entry) {
-          entry.size = sizeStr
-          saveProjects(all)
-        }
+        if (entry) { entry.size = sizeStr; saveProjects(all) }
         if (win && !win.isDestroyed()) {
-          win.webContents.send('size-calculated', {
-            type: 'project',
-            path: project.projectPath,
-            size: sizeStr
-          })
+          win.webContents.send('size-calculated', { type: 'project', path: project.projectPath, size: sizeStr })
         }
-      } catch {
-        /* skip failed entries */
-      }
+      } catch { /* skip */ }
       await next()
     }
 

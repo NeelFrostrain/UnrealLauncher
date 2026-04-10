@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import PageWrapper from '../layout/PageWrapper'
 import ProjectCard from '../components/projects/ProjectCard'
 import ProjectCardGrid from '../components/projects/ProjectCardGrid'
+import { FolderOpen, Clock, Star } from 'lucide-react'
 import ProjectsToolbar from '../components/projects/ProjectsToolbar'
 import type { ViewMode } from '../components/projects/ProjectsToolbar'
 import type { Project, TabType } from '../types'
@@ -131,9 +132,9 @@ const ProjectsPage = (): React.ReactElement => {
     <PageWrapper>
       <ProjectsToolbar
         tabs={[
-          { id: 'all', label: 'All Projects' },
-          { id: 'recent', label: 'Recent' },
-          { id: 'favorites', label: 'Favorites' }
+          { id: 'all', label: 'All', icon: <FolderOpen size={11} /> },
+          { id: 'recent', label: 'Recent', icon: <Clock size={11} /> },
+          { id: 'favorites', label: 'Favorites', icon: <Star size={11} /> }
         ]}
         currentTab={currentTab}
         searchOpen={searchOpen}

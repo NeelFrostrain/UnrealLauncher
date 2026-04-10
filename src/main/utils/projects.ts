@@ -5,6 +5,7 @@ import { getNative } from './native'
 // ── Project / uproject scanning ───────────────────────────────────────────────
 
 export function findUprojectFiles(dir: string, maxDepth = 5, maxFiles = 1000): string[] {
+  const native = getNative()
   if (native) {
     try {
       return native.findUprojectFiles(dir, maxDepth, maxFiles)
@@ -54,6 +55,7 @@ function _findUprojectFilesJS(dir: string, maxDepth: number, maxFiles: number): 
 // ── Project metadata helpers ──────────────────────────────────────────────────
 
 export function findProjectScreenshot(projectPath: string): string | null {
+  const native = getNative()
   if (native) {
     try {
       return native.findProjectScreenshot(projectPath) ?? null
@@ -66,6 +68,7 @@ export function findProjectScreenshot(projectPath: string): string | null {
 }
 
 export function findLatestProjectLogTimestamp(projectPath: string): string | null {
+  const native = getNative()
   if (native) {
     try {
       return native.findLatestLogTimestamp(projectPath) ?? null
