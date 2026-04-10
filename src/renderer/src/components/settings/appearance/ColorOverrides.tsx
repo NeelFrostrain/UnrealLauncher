@@ -32,11 +32,18 @@ const ColorOverrides = ({
       {hasOverrides && (
         <button
           onClick={resetOverrides}
-          className="flex items-center gap-1 text-[11px] transition-colors cursor-pointer"
-          style={{ color: 'var(--color-text-muted)' }}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium cursor-pointer transition-all"
+          style={{
+            borderRadius: 'calc(var(--radius) * 0.6)',
+            backgroundColor: 'rgba(167,139,250,0.1)',
+            color: '#a78bfa',
+            border: '1px solid rgba(167,139,250,0.25)'
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(167,139,250,0.18)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(167,139,250,0.1)')}
         >
           <RotateCcw size={11} />
-          Reset
+          Reset to defaults
         </button>
       )}
     </div>
