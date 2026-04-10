@@ -217,20 +217,38 @@ export function loadPersistedRadius(): number {
   try {
     const v = localStorage.getItem(RADIUS_KEY)
     if (v !== null) return Math.min(24, Math.max(0, Number(v)))
-  } catch {
-    /* ignore */
-  }
-  return 8 // default
+  } catch { /* ignore */ }
+  return 8
 }
 
 export function persistRadius(px: number): void {
-  try {
-    localStorage.setItem(RADIUS_KEY, String(px))
-  } catch {
-    /* ignore */
-  }
+  try { localStorage.setItem(RADIUS_KEY, String(px)) } catch { /* ignore */ }
 }
 
 export function applyRadius(px: number): void {
   document.documentElement.style.setProperty('--radius', `${px}px`)
+}
+
+// ── UI Scale ──────────────────────────────────────────────────────────────────
+
+const SCALE_KEY = 'unrealLauncherUIScale'
+
+export function loadPersistedScale(): number {
+  try {
+    const v = localStorage.getItem(SCALE_KEY)
+    if (v !== null) return Math.min(1.5, Math.max(0.7, Number(v)))
+  } catch { /* ignore */ }
+  return 1.0
+}
+
+export function persistScale(scale: number): void {
+  try { localStorage.setItem(SCALE_KEY, String(scale)) } catch { /* ignore */ }
+}
+
+export function applyScale(scale: number): void {
+  // Apply zoom only to the app content root, not the document
+  const root = document.getElementById('app-scale-root')
+  if (root) {
+    ;(root.style as CSSStyleDeclaration & { zoom: string }).zoom = String(scale)
+  }
 }

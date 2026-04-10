@@ -11,6 +11,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
       <div
+        id="app-scale-root"
         className="w-full h-full flex flex-col"
         style={{ backgroundColor: 'var(--color-surface)' }}
       >

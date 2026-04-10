@@ -15,7 +15,9 @@ import {
   createProfile,
   resolveTokens,
   loadPersistedRadius,
-  applyRadius
+  applyRadius,
+  loadPersistedScale,
+  applyScale
 } from './theme'
 
 interface ThemeContextType {
@@ -53,6 +55,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }): React.Reac
   // Apply radius on mount
   useEffect(() => {
     applyRadius(loadPersistedRadius())
+    applyScale(loadPersistedScale())
   }, [])
 
   // Apply CSS variables whenever active theme/overrides/profile changes

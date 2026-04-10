@@ -14,12 +14,15 @@ export interface AppearanceSectionProps {
   setTheme: (id: string) => void
   setOverride: (token: ThemeToken, value: string) => void
   resetOverrides: () => void
+  hasAnyChanges: boolean
   profiles: Array<{ id: string; name: string; tokens: Record<ThemeToken, string> }>
   activeProfileId: string | null
   applyProfile: (id: string) => void
   deleteProfile: (id: string) => void
   radius: number
   setRadius: (value: number) => void
+  scale: number
+  setScale: (value: number) => void
   savingProfile: boolean
   setSavingProfile: (value: boolean) => void
   newProfileName: string
@@ -39,12 +42,15 @@ const AppearanceSection = ({
   setTheme,
   setOverride,
   resetOverrides,
+  hasAnyChanges,
   profiles,
   activeProfileId,
   applyProfile,
   deleteProfile,
   radius,
   setRadius,
+  scale,
+  setScale,
   savingProfile,
   setSavingProfile,
   newProfileName,
@@ -77,11 +83,11 @@ const AppearanceSection = ({
           customOverrides={customOverrides}
           setOverride={setOverride}
         />
-        <RadiusControl radius={radius} setRadius={setRadius} />
+        <RadiusControl radius={radius} setRadius={setRadius} scale={scale} setScale={setScale} />
         <ColorOverrides
           activeThemeId={activeThemeId}
           customOverrides={customOverrides}
-          hasOverrides={hasOverrides}
+          hasAnyChanges={hasAnyChanges}
           setOverride={setOverride}
           resetOverrides={resetOverrides}
         />

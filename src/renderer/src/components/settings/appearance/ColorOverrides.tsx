@@ -12,7 +12,7 @@ const COLOR_TOKENS: Array<{ token: ThemeToken; label: string }> = [
 interface ColorOverridesProps {
   activeThemeId: string
   customOverrides: Partial<Record<ThemeToken, string>>
-  hasOverrides: boolean
+  hasAnyChanges: boolean
   setOverride: (token: ThemeToken, value: string) => void
   resetOverrides: () => void
 }
@@ -20,7 +20,7 @@ interface ColorOverridesProps {
 const ColorOverrides = ({
   activeThemeId,
   customOverrides,
-  hasOverrides,
+  hasAnyChanges,
   setOverride,
   resetOverrides
 }: ColorOverridesProps): React.ReactElement => (
@@ -29,23 +29,23 @@ const ColorOverrides = ({
       <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
         Custom colors
       </p>
-      {hasOverrides && (
-        <button
-          onClick={resetOverrides}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium cursor-pointer transition-all"
-          style={{
-            borderRadius: 'calc(var(--radius) * 0.6)',
-            backgroundColor: 'rgba(167,139,250,0.1)',
-            color: '#a78bfa',
-            border: '1px solid rgba(167,139,250,0.25)'
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(167,139,250,0.18)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(167,139,250,0.1)')}
-        >
-          <RotateCcw size={11} />
-          Reset to defaults
-        </button>
-      )}
+      <button
+        onClick={resetOverrides}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium cursor-pointer transition-all"
+        style={{
+          borderRadius: 'calc(var(--radius) * 0.6)',
+          backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)',
+          color: 'var(--color-accent)',
+          border: '1px solid color-mix(in srgb, var(--color-accent) 25%, transparent)',
+          opacity: hasAnyChanges ? 1 : 0,
+          pointerEvents: hasAnyChanges ? 'auto' : 'none'
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-accent) 18%, transparent)')}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-accent) 10%, transparent)')}
+      >
+        <RotateCcw size={11} />
+        Reset all to defaults
+      </button>
     </div>
     <div
       className="grid gap-3"
