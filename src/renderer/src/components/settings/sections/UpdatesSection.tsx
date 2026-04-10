@@ -2,18 +2,44 @@ import { RefreshCw, Download, CheckCircle, GitBranch } from 'lucide-react'
 import { SectionHeader, Card } from '../SectionHelpers'
 import { useUpdateCheck } from '../../../hooks/useUpdateCheck'
 
+// Status-specific semantic colors — these are intentional fixed colors, not theme tokens
+const STATUS_COLOR = {
+  error:    { text: '#f87171', bg: 'rgba(248,113,113,0.1)',  border: 'rgba(248,113,113,0.2)' },
+  warning:  { text: '#fbbf24', bg: 'rgba(251,191,36,0.1)',   border: 'rgba(251,191,36,0.2)'  },
+  success:  { text: '#4ade80', bg: 'rgba(74,222,128,0.1)',   border: 'rgba(74,222,128,0.2)'  },
+  accent:   { text: 'var(--color-accent)', bg: 'color-mix(in srgb, var(--color-accent) 10%, transparent)', border: 'color-mix(in srgb, var(--color-accent) 20%, transparent)' },
+  purple:   { text: '#a78bfa', bg: 'rgba(167,139,250,0.1)',  border: 'rgba(167,139,250,0.2)' },
+}
+
+function ActionBtn({ onClick, disabled, color, icon, label }: {
+  onClick?: () => void; disabled?: boolean
+  color: keyof typeof STATUS_COLOR; icon: React.ReactNode; label: string
+}): React.ReactElement {
+  const c = STATUS_COLOR[color]
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium cursor-pointer transition-all disabled:cursor-not-allowed disabled:opacity-60"
+      style={{ borderRadius: 'var(--radius)', backgroundColor: c.bg, color: c.text, border: `1px solid ${c.border}` }}
+    >
+      {icon}{label}
+    </button>
+  )
+}
+
 const UpdatesSection = (): React.ReactElement => {
   const {
-    updateStatus,
-    updateMessage,
-    updateVersion,
-    githubVersion,
-    githubStatus,
-    githubMessage,
-    handleCheckForUpdates,
-    handleDownloadUpdate,
-    checkGitHubVersion
+    updateStatus, updateMessage, updateVersion,
+    githubVersion, githubStatus, githubMessage,
+    handleCheckForUpdates, handleDownloadUpdate, checkGitHubVersion
   } = useUpdateCheck()
+
+  const updateMsgColor =
+    updateStatus === 'error' ? STATUS_COLOR.error.text
+    : updateStatus === 'available' ? STATUS_COLOR.warning.text
+    : updateStatus === 'ready' ? STATUS_COLOR.success.text
+    : 'var(--color-text-muted)'
 
   return (
     <section>
@@ -23,128 +49,66 @@ const UpdatesSection = (): React.ReactElement => {
         accent="bg-blue-500/20"
       />
       <Card>
-        {/* Check for updates */}
-        <div className="px-5 py-4 border-b border-white/5">
+        {/* Auto-updater */}
+        <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white/85">Check for updates</p>
-              <p className="text-xs text-white/40 mt-0.5 leading-relaxed">
+              <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Check for updates</p>
+              <p className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
                 Check for and download new versions of Unreal Launcher
               </p>
               {updateMessage && (
-                <p
-                  className={`text-xs mt-2 ${
-                    updateStatus === 'error'
-                      ? 'text-red-400'
-                      : updateStatus === 'available'
-                        ? 'text-yellow-400'
-                        : updateStatus === 'ready'
-                          ? 'text-green-400'
-                          : 'text-white/50'
-                  }`}
-                >
-                  {updateMessage}
-                </p>
+                <p className="text-xs mt-2" style={{ color: updateMsgColor }}>{updateMessage}</p>
               )}
             </div>
             <div className="shrink-0 flex gap-2">
-              {(updateStatus === 'idle' ||
-                updateStatus === 'no-update' ||
-                updateStatus === 'error') && (
-                <button
-                  onClick={handleCheckForUpdates}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/10 hover:bg-blue-500/18 text-blue-400 border border-blue-500/20 transition-all cursor-pointer"
-                >
-                  <RefreshCw size={12} />
-                  Check
-                </button>
+              {(updateStatus === 'idle' || updateStatus === 'no-update' || updateStatus === 'error') && (
+                <ActionBtn onClick={handleCheckForUpdates} color="accent" icon={<RefreshCw size={12} />} label="Check" />
               )}
               {updateStatus === 'checking' && (
-                <button
-                  disabled
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/5 text-blue-400/50 border border-blue-500/15 cursor-not-allowed"
-                >
-                  <RefreshCw size={12} className="animate-spin" />
-                  Checking…
-                </button>
+                <ActionBtn disabled color="accent" icon={<RefreshCw size={12} className="animate-spin" />} label="Checking…" />
               )}
               {updateStatus === 'available' && (
-                <button
-                  onClick={handleDownloadUpdate}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/10 hover:bg-green-500/18 text-green-400 border border-green-500/20 transition-all cursor-pointer"
-                >
-                  <Download size={12} />v{updateVersion}
-                </button>
+                <ActionBtn onClick={handleDownloadUpdate} color="success" icon={<Download size={12} />} label={`v${updateVersion}`} />
               )}
               {updateStatus === 'downloading' && (
-                <button
-                  disabled
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/5 text-green-400/50 border border-green-500/15 cursor-not-allowed"
-                >
-                  <Download size={12} className="animate-pulse" />
-                  Downloading…
-                </button>
+                <ActionBtn disabled color="success" icon={<Download size={12} className="animate-pulse" />} label="Downloading…" />
               )}
               {updateStatus === 'ready' && (
-                <button
-                  onClick={() => window.electronAPI?.installUpdate?.()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/10 hover:bg-purple-500/18 text-purple-400 border border-purple-500/20 transition-all cursor-pointer"
-                >
-                  <CheckCircle size={12} />
-                  Install
-                </button>
+                <ActionBtn onClick={() => window.electronAPI?.installUpdate?.()} color="purple" icon={<CheckCircle size={12} />} label="Install" />
               )}
             </div>
           </div>
         </div>
 
-        {/* Check GitHub version */}
+        {/* GitHub version check */}
         <div className="px-5 py-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white/85">GitHub version check</p>
-              <p className="text-xs text-white/40 mt-0.5 leading-relaxed">
+              <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>GitHub version check</p>
+              <p className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
                 Check the latest release version on GitHub
               </p>
               {githubVersion && (
-                <p className="text-xs text-white/50 mt-2">Latest on GitHub: v{githubVersion}</p>
+                <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>Latest on GitHub: v{githubVersion}</p>
               )}
               {githubMessage && (
-                <p
-                  className={`text-xs mt-2 ${githubStatus === 'error' ? 'text-red-400' : 'text-white/50'}`}
-                >
+                <p className="text-xs mt-2" style={{ color: githubStatus === 'error' ? STATUS_COLOR.error.text : 'var(--color-text-muted)' }}>
                   {githubMessage}
                 </p>
               )}
             </div>
             <div className="shrink-0 flex gap-2">
-              {(githubStatus === 'idle' ||
-                githubStatus === 'success' ||
-                githubStatus === 'error') && (
-                <button
+              {(githubStatus === 'idle' || githubStatus === 'success' || githubStatus === 'error') && (
+                <ActionBtn
                   onClick={checkGitHubVersion}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                    githubStatus === 'error'
-                      ? 'bg-red-500/10 hover:bg-red-500/18 text-red-400 border border-red-500/20'
-                      : 'bg-purple-500/10 hover:bg-purple-500/18 text-purple-400 border border-purple-500/20'
-                  }`}
-                >
-                  {githubStatus === 'error' ? <RefreshCw size={12} /> : <GitBranch size={12} />}
-                  {githubStatus === 'success'
-                    ? 'Recheck'
-                    : githubStatus === 'error'
-                      ? 'Retry'
-                      : 'Check'}
-                </button>
+                  color={githubStatus === 'error' ? 'error' : 'purple'}
+                  icon={githubStatus === 'error' ? <RefreshCw size={12} /> : <GitBranch size={12} />}
+                  label={githubStatus === 'success' ? 'Recheck' : githubStatus === 'error' ? 'Retry' : 'Check'}
+                />
               )}
               {githubStatus === 'checking' && (
-                <button
-                  disabled
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/5 text-purple-400/50 border border-purple-500/15 cursor-not-allowed"
-                >
-                  <RefreshCw size={12} className="animate-spin" />
-                  Checking…
-                </button>
+                <ActionBtn disabled color="purple" icon={<RefreshCw size={12} className="animate-spin" />} label="Checking…" />
               )}
             </div>
           </div>

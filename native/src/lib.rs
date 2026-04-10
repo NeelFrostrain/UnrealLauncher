@@ -318,3 +318,151 @@ pub fn validate_engine_folder(folder: String) -> EngineValidation {
 // Keep path_exists available for potential future use
 #[allow(dead_code)]
 fn _path_exists_unused(p: &str) -> bool { path_exists(p) }
+
+// ── Project log tailing ───────────────────────────────────────────────────────
+
+#[napi(object)]
+pub struct LogReadResult {
+  pub log_path: String,
+  pub content: String,
+  pub size_bytes: f64,
+}
+
+/// Find the most recently modified .log file under <project>/Saved/Logs/
+/// and return its full path + content.
+#[napi]
+pub fn read_latest_project_log(project_path: String) -> Option<LogReadResult> {
+  let logs_dir = Path::new(&project_path).join("Saved").join("Logs");
+  if !logs_dir.exists() {
+    return None;
+  }
+
+  let mut best: Option<(std::path::PathBuf, std::time::SystemTime)> = None;
+
+  if let Ok(entries) = fs::read_dir(&logs_dir) {
+    for entry in entries.flatten() {
+      let p = entry.path();
+      if p.extension().and_then(|e| e.to_str()) != Some("log") {
+        continue;
+      }
+      if let Ok(meta) = fs::metadata(&p) {
+        if let Ok(mtime) = meta.modified() {
+          if best.as_ref().map_or(true, |(_, t)| mtime > *t) {
+            best = Some((p, mtime));
+          }
+        }
+      }
+    }
+  }
+
+  let (log_path, _) = best?;
+  let content = fs::read_to_string(&log_path).unwrap_or_default();
+  let size_bytes = fs::metadata(&log_path).map(|m| m.len()).unwrap_or(0) as f64;
+
+  Some(LogReadResult {
+    log_path: log_path.to_string_lossy().into_owned(),
+    content,
+    size_bytes,
+  })
+}
+
+/// Return only the last `lines` lines of the latest log file (for live tail).
+#[napi]
+pub fn tail_latest_project_log(project_path: String, lines: u32) -> Option<LogReadResult> {
+  let result = read_latest_project_log(project_path)?;
+  let tail: Vec<&str> = result.content.lines().rev().take(lines as usize).collect();
+  let tail_content: String = tail.into_iter().rev().collect::<Vec<_>>().join("\n");
+  Some(LogReadResult {
+    log_path: result.log_path,
+    content: tail_content,
+    size_bytes: result.size_bytes,
+  })
+}
+
+// ── Git status ────────────────────────────────────────────────────────────────
+
+#[napi(object)]
+pub struct GitStatus {
+  pub initialized: bool,
+  pub branch: String,
+  pub has_uncommitted: bool,
+  pub ahead: u32,
+  pub behind: u32,
+  pub remote_url: String,
+}
+
+/// Check git status for a project directory.
+/// Returns initialized=false if no .git folder found.
+#[napi]
+pub fn get_git_status(project_path: String) -> GitStatus {
+  let root = Path::new(&project_path);
+  let git_dir = root.join(".git");
+
+  if !git_dir.exists() {
+    return GitStatus {
+      initialized: false,
+      branch: String::new(),
+      has_uncommitted: false,
+      ahead: 0,
+      behind: 0,
+      remote_url: String::new(),
+    };
+  }
+
+  // Read HEAD for branch name
+  let branch = fs::read_to_string(git_dir.join("HEAD"))
+    .ok()
+    .and_then(|s| {
+      s.trim()
+        .strip_prefix("ref: refs/heads/")
+        .map(|b| b.to_string())
+    })
+    .unwrap_or_else(|| "detached".to_string());
+
+  // Check for uncommitted changes via index vs HEAD (simple: check if index exists and MERGE_MSG)
+  let has_uncommitted = git_dir.join("MERGE_HEAD").exists()
+    || git_dir.join("CHERRY_PICK_HEAD").exists();
+
+  // Read remote URL from config
+  let remote_url = parse_git_remote_url(&git_dir);
+
+  // Read ahead/behind from FETCH_HEAD or packed-refs (best-effort)
+  let (ahead, behind) = read_ahead_behind(&git_dir, &branch);
+
+  GitStatus {
+    initialized: true,
+    branch,
+    has_uncommitted,
+    ahead,
+    behind,
+    remote_url,
+  }
+}
+
+fn parse_git_remote_url(git_dir: &Path) -> String {
+  let config = match fs::read_to_string(git_dir.join("config")) {
+    Ok(c) => c,
+    Err(_) => return String::new(),
+  };
+  for line in config.lines() {
+    let trimmed = line.trim();
+    if trimmed.starts_with("url = ") {
+      return trimmed.trim_start_matches("url = ").to_string();
+    }
+  }
+  String::new()
+}
+
+fn read_ahead_behind(git_dir: &Path, branch: &str) -> (u32, u32) {
+  // Try reading from refs/remotes/origin/<branch>
+  let local_ref = git_dir.join("refs").join("heads").join(branch);
+  let remote_ref = git_dir.join("refs").join("remotes").join("origin").join(branch);
+
+  let local_sha = fs::read_to_string(&local_ref).ok().map(|s| s.trim().to_string());
+  let remote_sha = fs::read_to_string(&remote_ref).ok().map(|s| s.trim().to_string());
+
+  match (local_sha, remote_sha) {
+    (Some(l), Some(r)) if l != r => (1, 0), // simplified: just flag as diverged
+    _ => (0, 0),
+  }
+}

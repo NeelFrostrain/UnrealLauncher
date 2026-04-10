@@ -34,19 +34,24 @@ const TracerSection = (): React.ReactElement => {
           <Toggle on={tracerMerge} onChange={handleTracerMergeChange} color="green" />
         </SettingRow>
 
-        <div className="flex items-center justify-between px-5 py-3 border-t border-white/5">
+        <div className="flex items-center justify-between px-5 py-3"
+          style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="flex items-center gap-2">
             <span
-              className={`w-1.5 h-1.5 rounded-full ${tracerRunning ? 'bg-green-400' : 'bg-white/20'}`}
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: tracerRunning ? '#4ade80' : 'var(--color-border)' }}
             />
-            <span className="text-[11px] text-white/40">
+            <span className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
               {tracerRunning ? 'Running' : 'Not running'}
             </span>
           </div>
           {tracerDataDir && (
             <button
               onClick={() => window.electronAPI.openDirectory(tracerDataDir)}
-              className="flex items-center gap-1 text-[11px] text-white/30 hover:text-white/60 transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-[11px] cursor-pointer transition-colors"
+              style={{ color: 'var(--color-text-muted)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-muted)')}
             >
               <FolderOpen size={12} />
               Open data folder

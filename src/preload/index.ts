@@ -78,7 +78,10 @@ if (process.contextIsolated) {
       fabSelectFolder: () => ipcRenderer.invoke('fab-select-folder'),
       fabScanFolder: (folderPath: string) => ipcRenderer.invoke('fab-scan-folder', folderPath),
       fabSavePath: (folderPath: string) => ipcRenderer.invoke('fab-save-path', folderPath),
-      fabLoadPath: () => ipcRenderer.invoke('fab-load-path')
+      fabLoadPath: () => ipcRenderer.invoke('fab-load-path'),
+      projectReadLog: (projectPath: string, fromByte?: number) => ipcRenderer.invoke('project-read-log', projectPath, fromByte ?? 0),
+      projectGitStatus: (projectPath: string) => ipcRenderer.invoke('project-git-status', projectPath),
+      projectGitInit: (projectPath: string) => ipcRenderer.invoke('project-git-init', projectPath),
     })
   } catch (error) {
     console.error(error)

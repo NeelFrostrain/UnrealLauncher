@@ -1,13 +1,15 @@
 export interface AppSettings {
   autoCloseOnLaunch: boolean
   tracerAutoStart: boolean
+  logMaxLines: number
 }
 
 const SETTINGS_KEY = 'unrealLauncherSettings'
 
 const defaultSettings: AppSettings = {
   autoCloseOnLaunch: false,
-  tracerAutoStart: false
+  tracerAutoStart: false,
+  logMaxLines: 2000
 }
 
 // In-memory cache — avoids re-parsing localStorage on every getSetting call
