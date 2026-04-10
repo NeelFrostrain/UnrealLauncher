@@ -211,7 +211,8 @@ const Sidebar = (): React.ReactElement => {
       <div className={`pb-3 flex ${collapsed ? 'justify-center' : 'justify-end pr-3'}`}>
         <button
           onClick={toggleCollapse}
-          className="w-7 h-7 rounded-md flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/8 transition-colors cursor-pointer"
+          className="w-7 h-7 rounded-md flex items-center justify-center transition-colors cursor-pointer"
+          style={{ color: 'var(--color-text-muted)' }}
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
@@ -222,7 +223,10 @@ const Sidebar = (): React.ReactElement => {
       {!collapsed && (
         <div
           onMouseDown={onMouseDown}
-          className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-blue-500/40 transition-colors z-10"
+          className="absolute top-0 right-0 w-1 h-full cursor-col-resize transition-colors z-10"
+          style={{ backgroundColor: 'transparent' }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-accent) 40%, transparent)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           title="Drag to resize"
         />
       )}

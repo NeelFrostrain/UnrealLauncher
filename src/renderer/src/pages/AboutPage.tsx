@@ -15,7 +15,7 @@ const highlights = [
 
 const WhatsNew = (): React.ReactElement => (
   <div>
-    <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
+    <h2 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
       <Sparkles size={20} className="text-yellow-400" />
       What&apos;s New in v1.9.0
     </h2>
@@ -36,8 +36,8 @@ const WhatsNew = (): React.ReactElement => (
         }}
       >
         <div>
-          <p className="text-sm font-semibold text-white/90">v1.9_dev — 17 commits ahead of main</p>
-          <p className="text-xs text-white/40 mt-0.5">Branch comparison: v1.9_dev → main</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>v1.9_dev — 17 commits ahead of main</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>Branch comparison: v1.9_dev → main</p>
         </div>
         <button
           onClick={() =>
@@ -63,9 +63,9 @@ const WhatsNew = (): React.ReactElement => (
           <div key={title} className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-base">{emoji}</span>
-              <span className="text-sm font-semibold text-white/85">{title}</span>
+              <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>{title}</span>
             </div>
-            <p className="text-xs text-white/50 ml-7">{desc}</p>
+            <p className="text-xs ml-7" style={{ color: 'var(--color-text-muted)' }}>{desc}</p>
           </div>
         ))}
       </div>

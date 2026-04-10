@@ -37,16 +37,17 @@ const SavedProfilesSection = ({
   applyProfile,
   deleteProfile
 }: SavedProfilesSectionProps) => (
-  <div className="p-5 border-t border-white/5">
+  <div className="p-5" style={{ borderTop: '1px solid var(--color-border)' }}>
     <div className="flex items-center justify-between mb-3">
-      <p className="text-sm font-medium text-white/85">Saved profiles</p>
+      <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Saved profiles</p>
       {!savingProfile && (
         <button
           onClick={() => {
             setSavingProfile(true)
             setTimeout(() => nameInputRef.current?.focus(), 50)
           }}
-          className="flex items-center gap-1 text-[11px] text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+          className="flex items-center gap-1 text-[11px] transition-colors cursor-pointer"
+          style={{ color: 'var(--color-text-muted)' }}
         >
           <Plus size={12} />
           Save current
@@ -66,7 +67,8 @@ const SavedProfilesSection = ({
             if (e.key === 'Escape') setSavingProfile(false)
           }}
           placeholder="Profile name…"
-          className="flex-1 px-3 py-1.5 rounded-lg text-xs bg-white/5 border border-white/10 text-white/80 placeholder:text-white/25 outline-none focus:border-white/25"
+          className="flex-1 px-3 py-1.5 text-xs outline-none"
+          style={{ borderRadius: 'var(--radius)', backgroundColor: 'var(--color-surface-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
         />
         <button
           onClick={handleSaveProfile}
@@ -76,7 +78,8 @@ const SavedProfilesSection = ({
         </button>
         <button
           onClick={() => setSavingProfile(false)}
-          className="p-1.5 rounded-lg text-white/30 hover:text-white/60 cursor-pointer"
+          className="p-1.5 cursor-pointer transition-colors"
+          style={{ borderRadius: 'var(--radius)', color: 'var(--color-text-muted)' }}
         >
           <X size={13} />
         </button>
@@ -84,7 +87,7 @@ const SavedProfilesSection = ({
     )}
 
     {profiles.length === 0 && !savingProfile && (
-      <p className="text-xs text-white/25 italic">No saved profiles yet.</p>
+      <p className="text-xs italic" style={{ color: 'var(--color-text-muted)' }}>No saved profiles yet.</p>
     )}
 
     <div
@@ -124,7 +127,8 @@ const SavedProfilesSection = ({
                   if (e.key === 'Enter' || e.key === 'Escape') handleFinishEdit()
                 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full text-[11px] bg-transparent border-b border-white/30 text-white/80 outline-none"
+                className="w-full text-[11px] bg-transparent outline-none"
+              style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
               />
             ) : (
               <>
@@ -156,25 +160,21 @@ const SavedProfilesSection = ({
               </div>
             )}
 
-            <div className="flex items-center gap-1 mt-2 pt-1.5 border-t border-white/8">
+            <div className="flex items-center gap-1 mt-2 pt-1.5" style={{ borderTop: '1px solid var(--color-border)' }}>
               <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleStartEdit(profile.id, profile.name)
-                }}
-                className="flex items-center gap-1 text-[10px] text-white/35 hover:text-white/70 transition-colors cursor-pointer"
+                onClick={(e) => { e.stopPropagation(); handleStartEdit(profile.id, profile.name) }}
+                className="flex items-center gap-1 text-[10px] transition-colors cursor-pointer"
+                style={{ color: 'var(--color-text-muted)' }}
                 title="Rename"
               >
                 <Pencil size={10} />
                 Rename
               </button>
-              <span className="text-white/15 text-[10px]">·</span>
+              <span className="text-[10px]" style={{ color: 'var(--color-border)' }}>·</span>
               <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  deleteProfile(profile.id)
-                }}
-                className="flex items-center gap-1 text-[10px] text-white/35 hover:text-red-400 transition-colors cursor-pointer"
+                onClick={(e) => { e.stopPropagation(); deleteProfile(profile.id) }}
+                className="flex items-center gap-1 text-[10px] hover:text-red-400 transition-colors cursor-pointer"
+                style={{ color: 'var(--color-text-muted)' }}
                 title="Delete"
               >
                 <Trash2 size={10} />

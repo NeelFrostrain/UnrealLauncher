@@ -48,8 +48,14 @@ const DropdownPortal = ({
       {open && (
         <motion.div
           ref={dropRef}
-          className="fixed z-9999 w-44 bg-[#1e1e1e] border border-white/10 rounded-lg shadow-xl overflow-hidden"
-          style={{ top: pos.top, right: pos.right }}
+          className="fixed z-9999 w-44 border shadow-xl overflow-hidden"
+          style={{
+            top: pos.top,
+            right: pos.right,
+            backgroundColor: 'var(--color-surface-elevated)',
+            borderColor: 'var(--color-border)',
+            borderRadius: 'var(--radius)'
+          }}
           initial={{ opacity: 0, scale: 0.95, y: -4 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -4 }}
