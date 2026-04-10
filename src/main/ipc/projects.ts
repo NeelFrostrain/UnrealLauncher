@@ -141,6 +141,55 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
     }
   )
 
+  ipcMain_.handle(
+    'launch-project-game',
+    async (_event, projectPath): Promise<Record<string, unknown>> => {
+      const projectName = path.basename(projectPath)
+      const uprojectPath = path.join(projectPath, `${projectName}.uproject`)
+      if (!fs.existsSync(uprojectPath)) return { success: false, error: 'Project file not found' }
+
+      // Read engine association from .uproject
+      let engineAssociation = ''
+      try {
+        const json = JSON.parse(fs.readFileSync(uprojectPath, 'utf8'))
+        engineAssociation = json.EngineAssociation ?? ''
+      } catch { /* ignore */ }
+
+      // Find the engine exe — check saved engines first, then common paths
+      const { loadEngines } = await import('../store')
+      const engines = loadEngines()
+
+      let editorExe = ''
+
+      // Match by version string
+      if (engineAssociation) {
+        const match = engines.find(e =>
+          e.version === engineAssociation ||
+          e.version.startsWith(engineAssociation) ||
+          engineAssociation.startsWith(e.version)
+        )
+        if (match) editorExe = match.exePath
+      }
+
+      // Fallback: use any available engine
+      if (!editorExe && engines.length > 0) {
+        editorExe = engines[0].exePath
+      }
+
+      if (!editorExe || !fs.existsSync(editorExe)) {
+        return { success: false, error: `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab first.` }
+      }
+
+      try {
+        // Same as Windows shell "Launch game" — opens editor in -game mode
+        spawn(editorExe, [uprojectPath, '-game'], { detached: true, stdio: 'ignore' }).unref()
+        return { success: true }
+      } catch (err) {
+        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+      }
+    }
+  )
+
   ipcMain_.handle('open-directory', (_event, dirPath): void => {
     spawn('explorer', [dirPath], { detached: true, stdio: 'ignore' })
   })

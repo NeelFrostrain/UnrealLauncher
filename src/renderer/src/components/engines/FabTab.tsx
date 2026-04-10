@@ -77,7 +77,7 @@ const FabTab = (): React.ReactElement => {
     <div className="flex flex-col h-full">
       {/* ── Toolbar ── */}
       <div
-        className="flex items-center gap-2 px-4 py-2.5 border-b shrink-0"
+        className="flex items-center gap-2 py-2.5 shrink-0"
         style={{ borderColor: 'var(--color-border)' }}
       >
         {/* Folder picker */}
@@ -176,7 +176,7 @@ const FabTab = (): React.ReactElement => {
       )}
 
       {/* ── Content ── */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
+      <div className="flex-1 overflow-y-auto pb-4">
         {!folderPath ? (
           <div className="flex flex-col items-center justify-center h-full py-8 px-6">
             {/* Icon */}

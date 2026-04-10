@@ -147,6 +147,7 @@ declare global {
       projectReadLog: (projectPath: string, fromByte?: number) => Promise<{ logPath: string; content: string; sizeBytes: number; startByte: number } | null>
       projectGitStatus: (projectPath: string) => Promise<{ initialized: boolean; branch: string; hasUncommitted: boolean; ahead: number; behind: number; remoteUrl: string }>
       projectGitInit: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectLaunchGame: (projectPath: string) => Promise<{ success: boolean; error?: string }>
     }
   }
 }

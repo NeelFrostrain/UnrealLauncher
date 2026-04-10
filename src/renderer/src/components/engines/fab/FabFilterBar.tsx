@@ -29,7 +29,7 @@ const FabFilterBar: FC<FabFilterBarProps> = ({
 
   return (
     <div
-      className="flex items-center gap-1.5 px-4 py-2 shrink-0 overflow-x-auto"
+      className="flex items-center gap-1.5 py-2 shrink-0 overflow-x-auto"
       style={{ borderColor: 'var(--color-border)' }}
     >
       <button

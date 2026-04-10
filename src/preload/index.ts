@@ -82,6 +82,7 @@ if (process.contextIsolated) {
       projectReadLog: (projectPath: string, fromByte?: number) => ipcRenderer.invoke('project-read-log', projectPath, fromByte ?? 0),
       projectGitStatus: (projectPath: string) => ipcRenderer.invoke('project-git-status', projectPath),
       projectGitInit: (projectPath: string) => ipcRenderer.invoke('project-git-init', projectPath),
+      projectLaunchGame: (projectPath: string) => ipcRenderer.invoke('launch-project-game', projectPath),
     })
   } catch (error) {
     console.error(error)
