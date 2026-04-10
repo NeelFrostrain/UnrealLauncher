@@ -39,7 +39,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
 }) => {
   return (
     <div
-      className="flex items-center gap-3 px-4 py-3 shrink-0 border-b"
+      className="flex items-center gap-3 py-3 shrink-0 border-b"
       style={{ borderColor: 'var(--color-border)' }}
     >
       {/* Page identity */}

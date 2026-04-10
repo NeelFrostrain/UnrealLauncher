@@ -55,7 +55,7 @@ const EnginesPage = (): React.ReactElement => {
     <PageWrapper>
       {/* ── Toolbar ── */}
       <div
-        className="flex items-center gap-3 px-4 py-3 shrink-0 border-b"
+        className="flex items-center gap-3 py-3 shrink-0 border-b"
         style={{ borderColor: 'var(--color-border)' }}
       >
         {/* Tabs */}
@@ -164,7 +164,7 @@ const EnginesPage = (): React.ReactElement => {
       {activeTab === 'engines' ? (
         <div className="flex-1 overflow-hidden">
           {engines.length > 0 ? (
-            <div ref={containerRef} onScroll={handleScroll} className="space-y-2 overflow-y-auto py-2 px-4 h-full">
+            <div ref={containerRef} onScroll={handleScroll} className="space-y-2 overflow-y-auto py-2 h-full">
               {engines.slice(displayStart, displayStart + ITEMS_PER_BATCH).map((data) => (
                 <EngineCard key={data.directoryPath} {...data} onLaunch={handleLaunch} onOpenDir={handleOpenDir} onDelete={handleDelete} />
               ))}

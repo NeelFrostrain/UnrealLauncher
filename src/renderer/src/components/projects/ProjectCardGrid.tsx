@@ -92,24 +92,24 @@ const ProjectCardGrid = memo(
         />
 
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent" />
 
         {/* Top badges */}
         <div className="absolute top-2.5 inset-x-2.5 z-10 flex items-center justify-between">
-          <div className="bg-black/65 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-md text-[10px] font-mono text-blue-400 tracking-wider">
+          <div className="bg-black/65 backdrop-blur-md px-2 py-0.5 text-[10px] font-mono tracking-wider"
+            style={{ borderRadius: 'calc(var(--radius) * 0.5)', border: '1px solid rgba(255,255,255,0.12)', color: 'color-mix(in srgb, var(--color-accent) 90%, white)' }}>
             UE {versionLabel}
           </div>
           <motion.button
             whileTap={{ scale: 0.82 }}
             onClick={() => projectPath && onToggleFavorite(projectPath)}
-            className="flex p-1.5 rounded-md bg-black/50 backdrop-blur-md border border-white/10 hover:bg-black/70 transition-colors"
+            className="flex p-1.5 bg-black/50 backdrop-blur-md transition-colors cursor-pointer"
+            style={{ borderRadius: 'calc(var(--radius) * 0.5)', border: '1px solid rgba(255,255,255,0.12)' }}
             title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
-            {isFavorite ? (
-              <Star size={14} fill="currentColor" className="text-yellow-400" />
-            ) : (
-              <Star size={14} className="text-white/40" />
-            )}
+            {isFavorite
+              ? <Star size={14} fill="currentColor" className="text-yellow-400" />
+              : <Star size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />}
           </motion.button>
         </div>
 
@@ -132,7 +132,7 @@ const ProjectCardGrid = memo(
         <AnimatePresence>
           {hovered && !launching && (
             <motion.div
-              className="absolute bottom-0 inset-x-0 z-20 flex items-center justify-between px-4 gap-2 bg-gradient-to-t from-black/80 to-transparent py-4"
+              className="absolute bottom-0 inset-x-0 z-20 flex items-center justify-between px-4 gap-2 bg-linear-to-t from-black/80 to-transparent py-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
@@ -142,7 +142,12 @@ const ProjectCardGrid = memo(
                 whileHover={{ scale: 1.06 }}
                 whileTap={{ scale: 0.94 }}
                 onClick={handleLaunch}
-                className="flex w-full justify-center items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md text-xs font-bold shadow-lg shadow-blue-600/40 transition-colors cursor-pointer"
+                className="flex w-full justify-center items-center gap-1.5 px-4 py-2 bg-blue-600 text-xs font-bold shadow-lg shadow-blue-600/40 transition-colors cursor-pointer"
+                style={{
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'var(--color-surface-card)',
+                  borderColor: hovered ? 'var(--color-accent)' : 'transparent'
+                }}
               >
                 <Play size={14} />
                 Launch
@@ -150,19 +155,19 @@ const ProjectCardGrid = memo(
 
               <div className="flex gap-1.5">
                 <motion.button
-                  whileHover={{ scale: 1.06 }}
-                  whileTap={{ scale: 0.94 }}
+                  whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
                   onClick={() => projectPath && onOpenDir(projectPath)}
-                  className="flex p-2 rounded-md bg-white/10 hover:bg-white/20 border border-white/20 transition-colors cursor-pointer"
+                  className="flex p-2 transition-colors cursor-pointer"
+                  style={{ borderRadius: 'calc(var(--radius) * 0.6)', backgroundColor: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.8)' }}
                   title="Open Folder"
                 >
                   <FolderOpen size={14} />
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.06 }}
-                  whileTap={{ scale: 0.94 }}
+                  whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
                   onClick={() => projectPath && onDelete(projectPath)}
-                  className="flex p-2 rounded-md bg-white/10 hover:bg-red-500/30 border border-white/20 hover:border-red-500/40 transition-colors cursor-pointer text-white/60 hover:text-red-400"
+                  className="flex p-2 hover:bg-red-500/30 hover:border-red-500/40 hover:text-red-400 transition-colors cursor-pointer"
+                  style={{ borderRadius: 'calc(var(--radius) * 0.6)', backgroundColor: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)' }}
                   title="Remove from list"
                 >
                   <Trash2 size={14} />
@@ -176,17 +181,13 @@ const ProjectCardGrid = memo(
         <div
           className={`absolute bottom-0 inset-x-0 z-10 px-3 py-2.5 transition-opacity duration-150 ${hovered ? 'opacity-0' : 'opacity-100'}`}
         >
-          <p className="text-sm font-semibold text-white truncate mb-1.5" title={name}>
-            {name}
-          </p>
+          <p className="text-sm font-semibold text-white truncate mb-1.5" title={name}>{name}</p>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 text-white/45">
+            <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
               <Clock size={10} />
-              <span className="text-[10px]">
-                {dateType} {dateLabel}
-              </span>
+              <span className="text-[10px]">{dateType} {dateLabel}</span>
             </div>
-            <div className="flex items-center gap-1 text-white/45">
+            <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
               <Database size={10} />
               <span className="text-[10px] font-mono">{currentSize}</span>
             </div>

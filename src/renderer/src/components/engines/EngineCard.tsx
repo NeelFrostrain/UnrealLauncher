@@ -120,8 +120,13 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
               <button
                 onClick={handleLaunch}
                 disabled={launching}
-                className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold transition-all shadow-lg ${launching ? 'bg-green-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 cursor-pointer shadow-blue-600/20'}`}
-                style={{ borderRadius: 'var(--radius)', color: 'var(--color-text-primary)' }}
+                className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold transition-all shadow-lg ${launching ? 'cursor-not-allowed' : 'cursor-pointer'} hover:scale-105 ease-in-out duration-100`}
+                style={{
+                  borderRadius: 'var(--radius)',
+                  color: 'var(--color-text-primary)',
+                  backgroundColor: 'var(--color-accent)',
+                  boxShadow: launching ? 'none' : '0 4px 12px color-mix(in srgb, var(--color-accent) 30%, transparent)'
+                }}
                 title="Launch Engine"
               >
                 <Play size={14} className={launching ? 'animate-pulse' : ''} />

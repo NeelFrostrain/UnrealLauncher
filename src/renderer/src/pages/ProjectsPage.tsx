@@ -159,7 +159,7 @@ const ProjectsPage = (): React.ReactElement => {
           viewMode === 'grid' ? (
             <div
               ref={gridRef}
-              className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto py-2 px-2 h-full content-start"
+              className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto py-2 h-full content-start"
             >
               {visibleProjects.map((data) => (
                 <ProjectCardGrid
@@ -177,7 +177,7 @@ const ProjectsPage = (): React.ReactElement => {
             <div
               ref={containerRef}
               onScroll={handleListScroll}
-              className="flex flex-col gap-2 overflow-y-auto py-2 px-2 h-full"
+              className="flex flex-col gap-2 overflow-y-auto py-2 h-full"
             >
               {visibleProjects.slice(displayStart, displayStart + ITEMS_PER_BATCH).map((data) => (
                 <ProjectCard
