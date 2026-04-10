@@ -53,6 +53,20 @@ declare global {
     error?: string
   }
 
+  interface FabAsset {
+    name: string
+    folderPath: string
+    type: 'plugin' | 'content' | 'project' | 'unknown'
+    version: string
+    description: string
+    icon: string | null
+    thumbnailUrl: string | null
+    hasContent: boolean
+    compatibleApps: string[]
+    category: string
+    assetType: string
+  }
+
   interface MarketplacePlugin {
     name: string
     path: string
@@ -122,6 +136,12 @@ declare global {
       clearAppData: () => Promise<void>
       clearTracerData: () => Promise<void>
       scanMarketplacePlugins: (engineDir: string) => Promise<MarketplacePlugin[]>
+      // Fab cache
+      fabGetDefaultPath: () => Promise<string>
+      fabSelectFolder: () => Promise<string | null>
+      fabScanFolder: (folderPath: string) => Promise<FabAsset[]>
+      fabSavePath: (folderPath: string) => Promise<void>
+      fabLoadPath: () => Promise<string>
     }
   }
 }

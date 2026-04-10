@@ -71,7 +71,12 @@ if (process.contextIsolated) {
       clearAppData: () => ipcRenderer.invoke('clear-app-data'),
       clearTracerData: () => ipcRenderer.invoke('clear-tracer-data'),
       scanMarketplacePlugins: (engineDir: string) =>
-        ipcRenderer.invoke('scan-marketplace-plugins', engineDir)
+        ipcRenderer.invoke('scan-marketplace-plugins', engineDir),
+      fabGetDefaultPath: () => ipcRenderer.invoke('fab-get-default-path'),
+      fabSelectFolder: () => ipcRenderer.invoke('fab-select-folder'),
+      fabScanFolder: (folderPath: string) => ipcRenderer.invoke('fab-scan-folder', folderPath),
+      fabSavePath: (folderPath: string) => ipcRenderer.invoke('fab-save-path', folderPath),
+      fabLoadPath: () => ipcRenderer.invoke('fab-load-path')
     })
   } catch (error) {
     console.error(error)

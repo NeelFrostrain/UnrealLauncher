@@ -68,8 +68,12 @@ const ProjectCardGrid = memo(
 
     return (
       <motion.div
-        className="relative w-full h-48 overflow-hidden cursor-pointer select-none bg-[#111] border-2 border-transparent hover:border-none transition-all duration-300"
-        style={{ borderRadius: 'var(--radius)' }}
+        className="relative w-full h-48 overflow-hidden cursor-pointer select-none border-2 transition-all duration-300"
+        style={{
+          borderRadius: 'var(--radius)',
+          backgroundColor: 'var(--color-surface-card)',
+          borderColor: hovered ? 'var(--color-accent)' : 'transparent'
+        }}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -2 }}

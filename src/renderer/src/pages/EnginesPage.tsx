@@ -3,12 +3,13 @@ import type { EngineCardProps } from '../types'
 import PageWrapper from '@renderer/layout/PageWrapper'
 import EngineCard from '@renderer/components/engines/EngineCard'
 import InstalledPluginsTab from '@renderer/components/engines/InstalledPluginsTab'
+import FabTab from '@renderer/components/engines/FabTab'
 import DropdownPortal from '../components/ui/DropdownPortal'
 import { useToast } from '../components/ui/ToastContext'
 import { getSetting } from '../utils/settings'
-import { Plus, RefreshCw, Zap, ShoppingBag, ChevronDown, Check } from 'lucide-react'
+import { Plus, RefreshCw, Zap, ShoppingBag, ChevronDown, Check, Store } from 'lucide-react'
 
-type EngineTab = 'engines' | 'plugins'
+type EngineTab = 'engines' | 'plugins' | 'fab'
 
 const EnginesPage = (): React.ReactElement => {
   const [engines, setEngines] = useState<EngineCardProps[]>([])
@@ -102,7 +103,8 @@ const EnginesPage = (): React.ReactElement => {
 
   const tabs: { id: EngineTab; label: string; icon: React.ReactNode }[] = [
     { id: 'engines', label: 'Installed', icon: <Zap size={11} /> },
-    { id: 'plugins', label: 'Plugins', icon: <ShoppingBag size={11} /> }
+    { id: 'plugins', label: 'Plugins', icon: <ShoppingBag size={11} /> },
+    { id: 'fab', label: 'Fab', icon: <Store size={11} /> }
   ]
 
   return (
@@ -253,9 +255,8 @@ const EnginesPage = (): React.ReactElement => {
             </div>
           )}
         </div>
-      ) : (
+      ) : activeTab === 'plugins' ? (
         <div className="flex flex-col flex-1 overflow-hidden">
-          {/* Plugin content */}
           <div className="flex-1 overflow-hidden">
             {activeEngine ? (
               <InstalledPluginsTab engineDir={activeEngine.directoryPath} engineVersion={activeEngine.version} />
@@ -265,6 +266,10 @@ const EnginesPage = (): React.ReactElement => {
               </div>
             )}
           </div>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-hidden">
+          <FabTab />
         </div>
       )}
     </PageWrapper>
