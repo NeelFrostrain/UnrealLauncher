@@ -77,7 +77,9 @@ export function useProjectActions({
   const handleDelete = useCallback(
     async (
       projectPath: string,
-      setProjects: (fn: (prev: import('../types').Project[]) => import('../types').Project[]) => void
+      setProjects: (
+        fn: (prev: import('../types').Project[]) => import('../types').Project[]
+      ) => void
     ): Promise<void> => {
       try {
         if (window.electronAPI) {
@@ -135,8 +137,10 @@ export function useProjectActions({
         ).length
 
         if (added > 0) addToast(`Added ${added} new project${added === 1 ? '' : 's'}`, 'success')
-        if (duplicates > 0) addToast(`${duplicates} already exist${duplicates === 1 ? 's' : ''}`, 'warning')
-        if (invalid > 0) addToast(`${invalid} invalid project${invalid === 1 ? '' : 's'} skipped`, 'error')
+        if (duplicates > 0)
+          addToast(`${duplicates} already exist${duplicates === 1 ? 's' : ''}`, 'warning')
+        if (invalid > 0)
+          addToast(`${invalid} invalid project${invalid === 1 ? '' : 's'} skipped`, 'error')
         if (batchMsg) addToast(`Batch limit: ${batchMsg.reason}`, 'warning')
         if (added === 0 && duplicates === 0 && invalid === 0 && !batchMsg) {
           addToast('No new projects were added', 'info')

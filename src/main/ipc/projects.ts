@@ -18,7 +18,9 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
       const w = spawnWorker(PROJECT_SCAN_WORKER, { saved, nativePath: getNativeModulePath() })
       w.once('message', resolve)
       w.once('error', reject)
-      w.once('exit', (c: number) => { if (c !== 0) reject(new Error(`Worker exited ${c}`)) })
+      w.once('exit', (c: number) => {
+        if (c !== 0) reject(new Error(`Worker exited ${c}`))
+      })
     }).then((valid: unknown) => {
       saveProjects(valid as Project[])
       return valid as Project[]
@@ -74,7 +76,10 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
         if (typeof json.EngineAssociation === 'string') version = json.EngineAssociation
         if (typeof json.ProjectID === 'string') projectId = json.ProjectID
       } catch {
-        response.invalidProjects.push({ projectPath: projectDir, reason: 'Invalid or corrupted .uproject file.' })
+        response.invalidProjects.push({
+          projectPath: projectDir,
+          reason: 'Invalid or corrupted .uproject file.'
+        })
         continue
       }
 
@@ -88,7 +93,8 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
         response.duplicateProjects.push({
           projectPath: projectDir,
           name: projectName,
-          reason: existing.projectPath === projectDir ? 'Already added' : 'Duplicate project name or ID'
+          reason:
+            existing.projectPath === projectDir ? 'Already added' : 'Duplicate project name or ID'
         })
         continue
       }
@@ -107,7 +113,10 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
         response.addedProjects.push(newProject)
         known.push(newProject)
       } catch {
-        response.invalidProjects.push({ projectPath: projectDir, reason: 'Unable to read project folder metadata.' })
+        response.invalidProjects.push({
+          projectPath: projectDir,
+          reason: 'Unable to read project folder metadata.'
+        })
       }
     }
 
@@ -116,18 +125,21 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
     return response
   })
 
-  ipcMain_.handle('launch-project', async (_event, projectPath): Promise<Record<string, unknown>> => {
-    const projectName = path.basename(projectPath)
-    const uprojectPath = path.join(projectPath, `${projectName}.uproject`)
-    if (!fs.existsSync(uprojectPath)) return { success: false, error: 'Project file not found' }
-    try {
-      if (process.platform === 'win32') exec(`start "" "${uprojectPath}"`)
-      else spawn('open', [uprojectPath], { detached: true, stdio: 'ignore' })
-      return { success: true }
-    } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  ipcMain_.handle(
+    'launch-project',
+    async (_event, projectPath): Promise<Record<string, unknown>> => {
+      const projectName = path.basename(projectPath)
+      const uprojectPath = path.join(projectPath, `${projectName}.uproject`)
+      if (!fs.existsSync(uprojectPath)) return { success: false, error: 'Project file not found' }
+      try {
+        if (process.platform === 'win32') exec(`start "" "${uprojectPath}"`)
+        else spawn('open', [uprojectPath], { detached: true, stdio: 'ignore' })
+        return { success: true }
+      } catch (err) {
+        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+      }
     }
-  })
+  )
 
   ipcMain_.handle('open-directory', (_event, dirPath): void => {
     spawn('explorer', [dirPath], { detached: true, stdio: 'ignore' })
@@ -142,17 +154,23 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
     }
   })
 
-  ipcMain_.handle('calculate-project-size', async (_event, projectPath): Promise<Record<string, unknown>> => {
-    try {
-      const sizeStr = formatBytes(await getFullFolderSize(projectPath))
-      const projects = loadProjects()
-      const project = projects.find((p) => p.projectPath === projectPath)
-      if (project) { project.size = sizeStr; saveProjects(projects) }
-      return { success: true, size: sizeStr }
-    } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  ipcMain_.handle(
+    'calculate-project-size',
+    async (_event, projectPath): Promise<Record<string, unknown>> => {
+      try {
+        const sizeStr = formatBytes(await getFullFolderSize(projectPath))
+        const projects = loadProjects()
+        const project = projects.find((p) => p.projectPath === projectPath)
+        if (project) {
+          project.size = sizeStr
+          saveProjects(projects)
+        }
+        return { success: true, size: sizeStr }
+      } catch (err) {
+        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+      }
     }
-  })
+  )
 
   // Streams results back via 'size-calculated' push events as each finishes.
   ipcMain_.handle('calculate-all-project-sizes', async (): Promise<void> => {
@@ -171,11 +189,20 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
         const sizeStr = formatBytes(await getFullFolderSize(project.projectPath))
         const all = loadProjects()
         const entry = all.find((p) => p.projectPath === project.projectPath)
-        if (entry) { entry.size = sizeStr; saveProjects(all) }
-        if (win && !win.isDestroyed()) {
-          win.webContents.send('size-calculated', { type: 'project', path: project.projectPath, size: sizeStr })
+        if (entry) {
+          entry.size = sizeStr
+          saveProjects(all)
         }
-      } catch { /* skip */ }
+        if (win && !win.isDestroyed()) {
+          win.webContents.send('size-calculated', {
+            type: 'project',
+            path: project.projectPath,
+            size: sizeStr
+          })
+        }
+      } catch {
+        /* skip */
+      }
       await next()
     }
 

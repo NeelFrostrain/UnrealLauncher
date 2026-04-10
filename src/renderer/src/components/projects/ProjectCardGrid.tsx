@@ -96,20 +96,31 @@ const ProjectCardGrid = memo(
 
         {/* Top badges */}
         <div className="absolute top-2.5 inset-x-2.5 z-10 flex items-center justify-between">
-          <div className="bg-black/65 backdrop-blur-md px-2 py-0.5 text-[10px] font-mono tracking-wider"
-            style={{ borderRadius: 'calc(var(--radius) * 0.5)', border: '1px solid rgba(255,255,255,0.12)', color: 'color-mix(in srgb, var(--color-accent) 90%, white)' }}>
+          <div
+            className="bg-black/65 backdrop-blur-md px-2 py-0.5 text-[10px] font-mono tracking-wider"
+            style={{
+              borderRadius: 'calc(var(--radius) * 0.5)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: 'color-mix(in srgb, var(--color-accent) 90%, white)'
+            }}
+          >
             UE {versionLabel}
           </div>
           <motion.button
             whileTap={{ scale: 0.82 }}
             onClick={() => projectPath && onToggleFavorite(projectPath)}
             className="flex p-1.5 bg-black/50 backdrop-blur-md transition-colors cursor-pointer"
-            style={{ borderRadius: 'calc(var(--radius) * 0.5)', border: '1px solid rgba(255,255,255,0.12)' }}
+            style={{
+              borderRadius: 'calc(var(--radius) * 0.5)',
+              border: '1px solid rgba(255,255,255,0.12)'
+            }}
             title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
-            {isFavorite
-              ? <Star size={14} fill="currentColor" className="text-yellow-400" />
-              : <Star size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />}
+            {isFavorite ? (
+              <Star size={14} fill="currentColor" className="text-yellow-400" />
+            ) : (
+              <Star size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />
+            )}
           </motion.button>
         </div>
 
@@ -155,19 +166,31 @@ const ProjectCardGrid = memo(
 
               <div className="flex gap-1.5">
                 <motion.button
-                  whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.94 }}
                   onClick={() => projectPath && onOpenDir(projectPath)}
                   className="flex p-2 transition-colors cursor-pointer"
-                  style={{ borderRadius: 'calc(var(--radius) * 0.6)', backgroundColor: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.8)' }}
+                  style={{
+                    borderRadius: 'calc(var(--radius) * 0.6)',
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    color: 'rgba(255,255,255,0.8)'
+                  }}
                   title="Open Folder"
                 >
                   <FolderOpen size={14} />
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.94 }}
                   onClick={() => projectPath && onDelete(projectPath)}
                   className="flex p-2 hover:bg-red-500/30 hover:border-red-500/40 hover:text-red-400 transition-colors cursor-pointer"
-                  style={{ borderRadius: 'calc(var(--radius) * 0.6)', backgroundColor: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)' }}
+                  style={{
+                    borderRadius: 'calc(var(--radius) * 0.6)',
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    color: 'rgba(255,255,255,0.6)'
+                  }}
                   title="Remove from list"
                 >
                   <Trash2 size={14} />
@@ -181,11 +204,15 @@ const ProjectCardGrid = memo(
         <div
           className={`absolute bottom-0 inset-x-0 z-10 px-3 py-2.5 transition-opacity duration-150 ${hovered ? 'opacity-0' : 'opacity-100'}`}
         >
-          <p className="text-sm font-semibold text-white truncate mb-1.5" title={name}>{name}</p>
+          <p className="text-sm font-semibold text-white truncate mb-1.5" title={name}>
+            {name}
+          </p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
               <Clock size={10} />
-              <span className="text-[10px]">{dateType} {dateLabel}</span>
+              <span className="text-[10px]">
+                {dateType} {dateLabel}
+              </span>
             </div>
             <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
               <Database size={10} />

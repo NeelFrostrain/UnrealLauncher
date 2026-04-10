@@ -55,7 +55,10 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       {/* Tab switcher — same style as EnginesPage */}
       <div
         className="flex items-center gap-0.5 px-1 py-1 rounded-lg"
-        style={{ backgroundColor: 'var(--color-surface-card)', border: '1px solid var(--color-border)' }}
+        style={{
+          backgroundColor: 'var(--color-surface-card)',
+          border: '1px solid var(--color-border)'
+        }}
       >
         {tabs.map((tab) => {
           const isActive = currentTab === tab.id
@@ -73,7 +76,9 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
               }}
             >
               {tab.icon && (
-                <span style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
+                <span
+                  style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
+                >
                   {tab.icon}
                 </span>
               )}
@@ -123,7 +128,8 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
             onClick={() => onViewChange('list')}
             className="flex items-center p-1.5 cursor-pointer transition-colors"
             style={{
-              backgroundColor: viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+              backgroundColor:
+                viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
               color: viewMode === 'list' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
             }}
             title="List view"
@@ -134,7 +140,8 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
             onClick={() => onViewChange('grid')}
             className="flex items-center p-1.5 cursor-pointer transition-colors"
             style={{
-              backgroundColor: viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+              backgroundColor:
+                viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
               color: viewMode === 'grid' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
             }}
             title="Grid view"

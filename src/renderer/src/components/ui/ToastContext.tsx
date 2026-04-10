@@ -49,14 +49,23 @@ const ToastItem = ({
       exit={{ opacity: 0, x: 60, scale: 0.95 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       className="flex items-center gap-3 w-80 border shadow-2xl overflow-hidden pr-3"
-      style={{ backgroundColor: 'var(--color-surface-elevated)', borderColor: 'var(--color-border)', borderRadius: 'var(--radius)' }}
+      style={{
+        backgroundColor: 'var(--color-surface-elevated)',
+        borderColor: 'var(--color-border)',
+        borderRadius: 'var(--radius)'
+      }}
     >
       {/* Left accent bar */}
       <div className={`w-1 self-stretch shrink-0 ${bar}`} />
 
       <Icon size={18} className={`shrink-0 ${iconCls}`} />
 
-      <p className="flex-1 text-xs py-3 leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>{toast.message}</p>
+      <p
+        className="flex-1 text-xs py-3 leading-relaxed"
+        style={{ color: 'var(--color-text-secondary)' }}
+      >
+        {toast.message}
+      </p>
 
       <button
         onClick={() => onRemove(toast.id)}

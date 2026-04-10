@@ -21,9 +21,7 @@ export function useProjectFilters(): UseProjectFiltersReturn {
       if (tab === 'recent') {
         return source
           .filter((p) => !!p.lastOpenedAt)
-          .sort(
-            (a, b) => new Date(b.lastOpenedAt!).getTime() - new Date(a.lastOpenedAt!).getTime()
-          )
+          .sort((a, b) => new Date(b.lastOpenedAt!).getTime() - new Date(a.lastOpenedAt!).getTime())
           .slice(0, 20)
       }
       if (tab === 'favorites') {

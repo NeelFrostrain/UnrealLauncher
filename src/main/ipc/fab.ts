@@ -34,7 +34,9 @@ export function registerFabHandlers(ipcMain_: typeof ipcMain): void {
       }
       settings.fabCachePath = folderPath
       fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf8')
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   })
 
   ipcMain_.handle('fab-load-path', (): string => {
@@ -44,7 +46,9 @@ export function registerFabHandlers(ipcMain_: typeof ipcMain): void {
         const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'))
         return typeof settings.fabCachePath === 'string' ? settings.fabCachePath : ''
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     return ''
   })
 }

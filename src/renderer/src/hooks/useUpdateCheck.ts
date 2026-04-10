@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react'
 
-type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'no-update' | 'error'
+type UpdateStatus =
+  | 'idle'
+  | 'checking'
+  | 'available'
+  | 'downloading'
+  | 'ready'
+  | 'no-update'
+  | 'error'
 type GithubStatus = 'idle' | 'checking' | 'success' | 'error'
 
 export interface UseUpdateCheckReturn {

@@ -67,11 +67,16 @@ export function scanFabFolder(rootDir: string): FabAsset[] {
     if (SKIP_FOLDERS.has(entry.name)) continue
     const folderPath = path.join(rootDir, entry.name)
 
-    let name = entry.name, version = '', description = ''
-    let icon: string | null = null, thumbnailUrl: string | null = null
+    let name = entry.name,
+      version = '',
+      description = ''
+    let icon: string | null = null,
+      thumbnailUrl: string | null = null
     let type: FabAsset['type'] = 'unknown'
-    let hasContent = false, compatibleApps: string[] = []
-    let category = '', assetType = ''
+    let hasContent = false,
+      compatibleApps: string[] = []
+    let category = '',
+      assetType = ''
 
     try {
       const children = fs.readdirSync(folderPath)
@@ -101,7 +106,9 @@ export function scanFabFolder(rootDir: string): FabAsset[] {
             if (!name || name === entry.name) name = meta.FriendlyName || meta.Name || entry.name
             if (!version) version = meta.VersionName || String(meta.Version || '')
             if (!description) description = meta.Description || ''
-          } catch { /* keep defaults */ }
+          } catch {
+            /* keep defaults */
+          }
         } else if (uprojectFile) {
           type = 'project'
         } else if (children.includes('Content')) {
@@ -117,9 +124,23 @@ export function scanFabFolder(rootDir: string): FabAsset[] {
         path.join(folderPath, 'Icon128.png')
       ]
       icon = iconCandidates.find((p) => fs.existsSync(p)) ?? null
-    } catch { /* skip unreadable */ }
+    } catch {
+      /* skip unreadable */
+    }
 
-    assets.push({ name, folderPath, type, version, description, icon, thumbnailUrl, hasContent, compatibleApps, category, assetType })
+    assets.push({
+      name,
+      folderPath,
+      type,
+      version,
+      description,
+      icon,
+      thumbnailUrl,
+      hasContent,
+      compatibleApps,
+      category,
+      assetType
+    })
   }
 
   return assets.sort((a, b) => a.name.localeCompare(b.name))

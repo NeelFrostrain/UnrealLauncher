@@ -1,4 +1,15 @@
-import { Zap, FolderOpen, Activity, Star, HardDrive, RefreshCw, Palette, Shield, LayoutGrid, Cpu } from 'lucide-react'
+import {
+  Zap,
+  FolderOpen,
+  Activity,
+  Star,
+  HardDrive,
+  RefreshCw,
+  Palette,
+  Shield,
+  LayoutGrid,
+  Cpu
+} from 'lucide-react'
 
 const features = [
   {

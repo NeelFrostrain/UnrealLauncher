@@ -46,21 +46,24 @@ const ProjectsPage = (): React.ReactElement => {
     setDisplayStart(startIndex)
   }, [])
 
-  const loadProjectsForTab = useCallback(async (tab: TabType): Promise<Project[]> => {
-    if (!window.electronAPI) return []
-    try {
-      const scannedProjects = await window.electronAPI.scanProjects()
-      allProjectsRef.current = scannedProjects
-      setAllProjects(scannedProjects)
-      const favs = JSON.parse(localStorage.getItem('projectFavorites') || '[]') as string[]
-      const filtered = filterForTab(tab, scannedProjects, favs)
-      setProjects(filtered)
-      return filtered
-    } catch (err) {
-      console.error('Failed to load projects for tab:', tab, err)
-      return []
-    }
-  }, [filterForTab])
+  const loadProjectsForTab = useCallback(
+    async (tab: TabType): Promise<Project[]> => {
+      if (!window.electronAPI) return []
+      try {
+        const scannedProjects = await window.electronAPI.scanProjects()
+        allProjectsRef.current = scannedProjects
+        setAllProjects(scannedProjects)
+        const favs = JSON.parse(localStorage.getItem('projectFavorites') || '[]') as string[]
+        const filtered = filterForTab(tab, scannedProjects, favs)
+        setProjects(filtered)
+        return filtered
+      } catch (err) {
+        console.error('Failed to load projects for tab:', tab, err)
+        return []
+      }
+    },
+    [filterForTab]
+  )
 
   const { handleRefresh, handleLaunch, handleOpenDir, handleDelete, handleAddProject } =
     useProjectActions({ currentTab, loadProjectsForTab })
@@ -146,7 +149,13 @@ const ProjectsPage = (): React.ReactElement => {
         onToggleSearch={toggleSearch}
         onSearchChange={(value) => setSearchQuery(value)}
         onAddProject={() => handleAddProject({ addingProject, setAddingProject })}
-        onRefresh={() => handleRefresh({ setRefreshing, setCalculatingSizes, setProjects: (v) => setProjects(v as Project[]) })}
+        onRefresh={() =>
+          handleRefresh({
+            setRefreshing,
+            setCalculatingSizes,
+            setProjects: (v) => setProjects(v as Project[])
+          })
+        }
         viewMode={viewMode}
         onViewChange={(mode) => {
           setViewMode(mode)

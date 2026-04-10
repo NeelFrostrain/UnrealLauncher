@@ -107,9 +107,7 @@ const UpdatesSection = (): React.ReactElement => {
                 Check the latest release version on GitHub
               </p>
               {githubVersion && (
-                <p className="text-xs text-white/50 mt-2">
-                  Latest on GitHub: v{githubVersion}
-                </p>
+                <p className="text-xs text-white/50 mt-2">Latest on GitHub: v{githubVersion}</p>
               )}
               {githubMessage && (
                 <p
@@ -132,7 +130,11 @@ const UpdatesSection = (): React.ReactElement => {
                   }`}
                 >
                   {githubStatus === 'error' ? <RefreshCw size={12} /> : <GitBranch size={12} />}
-                  {githubStatus === 'success' ? 'Recheck' : githubStatus === 'error' ? 'Retry' : 'Check'}
+                  {githubStatus === 'success'
+                    ? 'Recheck'
+                    : githubStatus === 'error'
+                      ? 'Retry'
+                      : 'Check'}
                 </button>
               )}
               {githubStatus === 'checking' && (

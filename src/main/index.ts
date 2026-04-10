@@ -11,10 +11,10 @@ import { loadMainSettings } from './store'
 // ── Chromium memory optimizations ─────────────────────────────────────────────
 // Must be set before app is ready.
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=256') // cap V8 heap to 256MB
-app.commandLine.appendSwitch('disable-http-cache')                   // no disk cache needed
-app.commandLine.appendSwitch('disable-background-networking')        // no background net activity
-app.commandLine.appendSwitch('renderer-process-limit', '1')          // only one renderer needed
-app.commandLine.appendSwitch('enable-smooth-scrolling')              // smooth mouse wheel scroll
+app.commandLine.appendSwitch('disable-http-cache') // no disk cache needed
+app.commandLine.appendSwitch('disable-background-networking') // no background net activity
+app.commandLine.appendSwitch('renderer-process-limit', '1') // only one renderer needed
+app.commandLine.appendSwitch('enable-smooth-scrolling') // smooth mouse wheel scroll
 
 // ── Child process registry ────────────────────────────────────────────────────
 // Any spawned child processes that need cleanup on quit are stored here.
@@ -60,7 +60,11 @@ if (!gotTheLock) {
   app.on('before-quit', () => {
     // Kill any tracked child processes (e.g. tracer spawned by this instance)
     for (const cp of childProcesses) {
-      try { cp.kill() } catch { /* already dead */ }
+      try {
+        cp.kill()
+      } catch {
+        /* already dead */
+      }
     }
     childProcesses.length = 0
 
@@ -99,25 +103,30 @@ if (!gotTheLock) {
       // Ensure registry key is also removed if setting is off
       try {
         execSync(`reg delete "${RUN_KEY}" /v "${KEY_NAME}" /f 2>nul`, { stdio: 'pipe' })
-      } catch { /* key didn't exist — fine */ }
+      } catch {
+        /* key didn't exist — fine */
+      }
       return
     }
 
     // Setting is ON — keep registry entry up to date with current exe path
     try {
-      execSync(
-        `reg add "${RUN_KEY}" /v "${KEY_NAME}" /t REG_SZ /d "\\"${tracerExe}\\"" /f`,
-        { stdio: 'pipe' }
-      )
-    } catch { /* ignore registry errors */ }
+      execSync(`reg add "${RUN_KEY}" /v "${KEY_NAME}" /t REG_SZ /d "\\"${tracerExe}\\"" /f`, {
+        stdio: 'pipe'
+      })
+    } catch {
+      /* ignore registry errors */
+    }
 
     // Check if tracer is already running before spawning
     const alreadyRunning = (() => {
       try {
-        return execSync(
-          'tasklist /FI "IMAGENAME eq unreal_launcher_tracer.exe" /NH /FO CSV',
-          { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-        ).toLowerCase().includes('unreal_launcher_tracer.exe')
+        return execSync('tasklist /FI "IMAGENAME eq unreal_launcher_tracer.exe" /NH /FO CSV', {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'pipe']
+        })
+          .toLowerCase()
+          .includes('unreal_launcher_tracer.exe')
       } catch {
         return false
       }

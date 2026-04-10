@@ -225,7 +225,10 @@ const Sidebar = (): React.ReactElement => {
           onMouseDown={onMouseDown}
           className="absolute top-0 right-0 w-1 h-full cursor-col-resize transition-colors z-10"
           style={{ backgroundColor: 'transparent' }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-accent) 40%, transparent)')}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor =
+              'color-mix(in srgb, var(--color-accent) 40%, transparent)')
+          }
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           title="Drag to resize"
         />

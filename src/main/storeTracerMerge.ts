@@ -25,7 +25,9 @@ function formatDateDisplay(raw: string): string {
   if (!raw || raw === 'Unknown') return raw
   try {
     return new Date(raw).toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric'
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     })
   } catch {
     return raw
@@ -75,10 +77,7 @@ export function mergeTracerEngines(
   return result
 }
 
-export function mergeTracerProjects(
-  saved: Project[],
-  tracerProjectsPath: string
-): Project[] {
+export function mergeTracerProjects(saved: Project[], tracerProjectsPath: string): Project[] {
   if (!loadMainSettings().tracerMergeEnabled) return saved
   if (!fs.existsSync(tracerProjectsPath)) return saved
 

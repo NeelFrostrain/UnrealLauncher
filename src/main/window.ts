@@ -148,9 +148,9 @@ export function createWindow(): void {
       contextIsolation: true,
       preload: path.join(__dirname, '../preload/index.js'),
       sandbox: false,
-      backgroundThrottling: true,      // throttle timers/animations when minimized
-      spellcheck: false,               // no spell check needed in a launcher
-      enableWebSQL: false,             // unused, saves memory
+      backgroundThrottling: true, // throttle timers/animations when minimized
+      spellcheck: false, // no spell check needed in a launcher
+      enableWebSQL: false, // unused, saves memory
       v8CacheOptions: 'bypassHeatCheck' // faster JS startup via V8 code cache
     },
     icon: path.join(__dirname, '../../resources/icon.png'),

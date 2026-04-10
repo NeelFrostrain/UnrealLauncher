@@ -36,10 +36,7 @@ export function useTracerSettings(): UseTracerSettingsReturn {
     setTracerAutoStart(next)
     setSetting('tracerAutoStart', next)
     await window.electronAPI.setTracerStartup(next)
-    setTimeout(
-      async () => setTracerRunning(await window.electronAPI.isTracerRunning()),
-      1500
-    )
+    setTimeout(async () => setTracerRunning(await window.electronAPI.isTracerRunning()), 1500)
   }
 
   const handleTracerMergeChange = async (): Promise<void> => {

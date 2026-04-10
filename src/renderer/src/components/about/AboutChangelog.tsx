@@ -18,7 +18,10 @@ const v190commits = [
   { type: 'fix', msg: 'TypeScript require() imports replaced with ES6 imports' },
   { type: 'fix', msg: 'All ESLint warnings and TypeScript diagnostics cleared' },
   { type: 'refactor', msg: 'Replaced MUI icons with Lucide icons throughout' },
-  { type: 'refactor', msg: 'Main process split into index, window, updater, ipcHandlers, store, utils' }
+  {
+    type: 'refactor',
+    msg: 'Main process split into index, window, updater, ipcHandlers, store, utils'
+  }
 ]
 
 const v180commits = [
@@ -46,10 +49,12 @@ const CommitRow = ({ type, msg }: { type: string; msg: string }): React.ReactEle
   const style = typeStyle[type as CommitType] ?? typeStyle.feat
   return (
     <div className="flex items-start gap-2.5 py-1.5">
-      <GitCommit size={12} className="mt-0.5 shrink-0" style={{ color: 'var(--color-text-muted)' }} />
-      <span
-        className={`shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded border ${style.cls}`}
-      >
+      <GitCommit
+        size={12}
+        className="mt-0.5 shrink-0"
+        style={{ color: 'var(--color-text-muted)' }}
+      />
+      <span className={`shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded border ${style.cls}`}>
         {style.label}
       </span>
       <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
@@ -83,8 +88,12 @@ const VersionBlock = ({
     <div
       className="flex items-center justify-between px-4 py-3 border-b"
       style={{
-        borderColor: isCurrent ? 'color-mix(in srgb, var(--color-accent) 30%, transparent)' : 'var(--color-border)',
-        backgroundColor: isCurrent ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)' : 'transparent'
+        borderColor: isCurrent
+          ? 'color-mix(in srgb, var(--color-accent) 30%, transparent)'
+          : 'var(--color-border)',
+        backgroundColor: isCurrent
+          ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)'
+          : 'transparent'
       }}
     >
       <div className="flex items-center gap-2.5">
@@ -96,7 +105,9 @@ const VersionBlock = ({
         <span className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
           v{version}
         </span>
-        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{date}</span>
+        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+          {date}
+        </span>
         {branch && (
           <div className="flex items-center gap-1">
             <GitBranch size={11} style={{ color: 'var(--color-text-muted)' }} />
@@ -159,12 +170,7 @@ const AboutChangelog = (): React.ReactElement => (
       commits={v190commits}
       isCurrent
     />
-    <VersionBlock
-      version="1.8.0"
-      date="2026-04-05"
-      branch="main"
-      commits={v180commits}
-    />
+    <VersionBlock version="1.8.0" date="2026-04-05" branch="main" commits={v180commits} />
   </div>
 )
 

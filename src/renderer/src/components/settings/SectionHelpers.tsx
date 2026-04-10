@@ -14,7 +14,9 @@ export const SettingRow = ({
     style={!last ? { borderBottom: '1px solid var(--color-border)' } : undefined}
   >
     <div className="min-w-0">
-      <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>{label}</p>
+      <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+        {label}
+      </p>
       {description && (
         <p className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
           {description}
@@ -62,7 +64,10 @@ export const SectionHeader = ({
 }): React.ReactElement => (
   <div className="flex items-center gap-2.5 mb-2 px-1">
     <div className={`w-6 h-6 rounded-md flex items-center justify-center ${accent}`}>{icon}</div>
-    <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
+    <span
+      className="text-xs font-semibold uppercase tracking-widest"
+      style={{ color: 'var(--color-text-muted)' }}
+    >
       {label}
     </span>
   </div>

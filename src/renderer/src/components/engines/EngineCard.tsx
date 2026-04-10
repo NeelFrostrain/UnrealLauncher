@@ -12,7 +12,17 @@ interface EngineCardComponentProps extends EngineCardProps {
 }
 
 const EngineCard: FC<EngineCardComponentProps> = memo(
-  ({ version, exePath, directoryPath, folderSize, lastLaunch, gradient, onLaunch, onOpenDir, onDelete }): ReactElement => {
+  ({
+    version,
+    exePath,
+    directoryPath,
+    folderSize,
+    lastLaunch,
+    gradient,
+    onLaunch,
+    onOpenDir,
+    onDelete
+  }): ReactElement => {
     const [currentGradient] = useState(gradient || generateGradient())
     const [launching, setLaunching] = useState(false)
     const [calculating, setCalculating] = useState(false)
@@ -38,7 +48,11 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     return (
       <motion.div
         className="w-full h-36 overflow-hidden flex select-text"
-        style={{ backgroundColor: 'var(--color-surface-card)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
+        style={{
+          backgroundColor: 'var(--color-surface-card)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius)'
+        }}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -1 }}
@@ -51,20 +65,30 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
         >
           <div className="absolute z-0 inset-0 bg-black/10 backdrop-blur-[1px]" />
           <div className="relative z-10">
-            <p className="opacity-80 uppercase text-[10px] font-bold tracking-[0.2em] text-white">Version</p>
+            <p className="opacity-80 uppercase text-[10px] font-bold tracking-[0.2em] text-white">
+              Version
+            </p>
           </div>
           <h1 className="text-4xl z-20 font-black tracking-tight mt-1 text-white">{version}</h1>
         </div>
 
         {/* Info panel */}
-        <div className="flex-1 h-full flex flex-col p-4 justify-between"
-          style={{ backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 50%, transparent)' }}>
+        <div
+          className="flex-1 h-full flex flex-col p-4 justify-between"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 50%, transparent)'
+          }}
+        >
           <div className="flex justify-between items-start">
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
                 Unreal Engine {version}
               </h3>
-              <p className="text-[11px] mt-1 font-mono truncate" style={{ color: 'var(--color-text-muted)' }} title={directoryPath}>
+              <p
+                className="text-[11px] mt-1 font-mono truncate"
+                style={{ color: 'var(--color-text-muted)' }}
+                title={directoryPath}
+              >
                 {directoryPath}
               </p>
             </div>
@@ -82,7 +106,10 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
             <div className="flex gap-4">
               <div className="flex flex-col">
                 <div className="flex items-center gap-1 mb-0.5">
-                  <span className="text-[9px] uppercase tracking-wide font-semibold" style={{ color: 'var(--color-text-muted)' }}>
+                  <span
+                    className="text-[9px] uppercase tracking-wide font-semibold"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
                     Size
                   </span>
                   {currentSize.startsWith('~') && (
@@ -90,20 +117,30 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                       onClick={handleCalculateSize}
                       disabled={calculating}
                       className="text-[8px] px-1 py-0.5 rounded cursor-pointer disabled:opacity-50 transition-colors"
-                      style={{ color: 'color-mix(in srgb, var(--color-accent) 90%, white)', backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)' }}
+                      style={{
+                        color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
+                        backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
+                      }}
                       title="Calculate exact size"
                     >
                       calc
                     </button>
                   )}
                 </div>
-                <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{currentSize}</span>
+                <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                  {currentSize}
+                </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[9px] uppercase tracking-wide font-semibold" style={{ color: 'var(--color-text-muted)' }}>
+                <span
+                  className="text-[9px] uppercase tracking-wide font-semibold"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   Usage
                 </span>
-                <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{lastLaunch}</span>
+                <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                  {lastLaunch}
+                </span>
               </div>
             </div>
 
@@ -111,7 +148,12 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
               <button
                 onClick={() => onOpenDir(directoryPath)}
                 className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
-                style={{ backgroundColor: 'var(--color-surface-elevated)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', color: 'var(--color-text-secondary)' }}
+                style={{
+                  backgroundColor: 'var(--color-surface-elevated)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius)',
+                  color: 'var(--color-text-secondary)'
+                }}
                 title="Open in Explorer"
               >
                 <FolderOpen size={14} />
@@ -125,7 +167,9 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                   borderRadius: 'var(--radius)',
                   color: 'var(--color-text-primary)',
                   backgroundColor: 'var(--color-accent)',
-                  boxShadow: launching ? 'none' : '0 4px 12px color-mix(in srgb, var(--color-accent) 30%, transparent)'
+                  boxShadow: launching
+                    ? 'none'
+                    : '0 4px 12px color-mix(in srgb, var(--color-accent) 30%, transparent)'
                 }}
                 title="Launch Engine"
               >

@@ -36,10 +36,12 @@ const SavedProfilesSection = ({
   handleFinishEdit,
   applyProfile,
   deleteProfile
-}: SavedProfilesSectionProps) => (
+}: SavedProfilesSectionProps): React.ReactElement => (
   <div className="p-5" style={{ borderTop: '1px solid var(--color-border)' }}>
     <div className="flex items-center justify-between mb-3">
-      <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Saved profiles</p>
+      <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+        Saved profiles
+      </p>
       {!savingProfile && (
         <button
           onClick={() => {
@@ -68,7 +70,12 @@ const SavedProfilesSection = ({
           }}
           placeholder="Profile name…"
           className="flex-1 px-3 py-1.5 text-xs outline-none"
-          style={{ borderRadius: 'var(--radius)', backgroundColor: 'var(--color-surface-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
+          style={{
+            borderRadius: 'var(--radius)',
+            backgroundColor: 'var(--color-surface-card)',
+            border: '1px solid var(--color-border)',
+            color: 'var(--color-text-primary)'
+          }}
         />
         <button
           onClick={handleSaveProfile}
@@ -87,7 +94,9 @@ const SavedProfilesSection = ({
     )}
 
     {profiles.length === 0 && !savingProfile && (
-      <p className="text-xs italic" style={{ color: 'var(--color-text-muted)' }}>No saved profiles yet.</p>
+      <p className="text-xs italic" style={{ color: 'var(--color-text-muted)' }}>
+        No saved profiles yet.
+      </p>
     )}
 
     <div
@@ -128,7 +137,10 @@ const SavedProfilesSection = ({
                 }}
                 onClick={(e) => e.stopPropagation()}
                 className="w-full text-[11px] bg-transparent outline-none"
-              style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
+                style={{
+                  borderBottom: '1px solid var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
               />
             ) : (
               <>
@@ -160,9 +172,15 @@ const SavedProfilesSection = ({
               </div>
             )}
 
-            <div className="flex items-center gap-1 mt-2 pt-1.5" style={{ borderTop: '1px solid var(--color-border)' }}>
+            <div
+              className="flex items-center gap-1 mt-2 pt-1.5"
+              style={{ borderTop: '1px solid var(--color-border)' }}
+            >
               <button
-                onClick={(e) => { e.stopPropagation(); handleStartEdit(profile.id, profile.name) }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleStartEdit(profile.id, profile.name)
+                }}
                 className="flex items-center gap-1 text-[10px] transition-colors cursor-pointer"
                 style={{ color: 'var(--color-text-muted)' }}
                 title="Rename"
@@ -170,9 +188,14 @@ const SavedProfilesSection = ({
                 <Pencil size={10} />
                 Rename
               </button>
-              <span className="text-[10px]" style={{ color: 'var(--color-border)' }}>·</span>
+              <span className="text-[10px]" style={{ color: 'var(--color-border)' }}>
+                ·
+              </span>
               <button
-                onClick={(e) => { e.stopPropagation(); deleteProfile(profile.id) }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  deleteProfile(profile.id)
+                }}
                 className="flex items-center gap-1 text-[10px] hover:text-red-400 transition-colors cursor-pointer"
                 style={{ color: 'var(--color-text-muted)' }}
                 title="Delete"
