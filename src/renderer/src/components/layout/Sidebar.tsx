@@ -51,7 +51,7 @@ const ExpandedCard: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item, 
         className={`w-full h-full object-cover transition-all duration-200 ${isActive ? 'scale-105' : ''}`}
       />
       <div
-        className={`absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-10 transition-opacity duration-200 ${isActive ? 'opacity-90' : 'opacity-80 hover:opacity-90'}`}
+        className={`absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent z-10 transition-opacity duration-200 ${isActive ? 'opacity-90' : 'opacity-80 hover:opacity-90'}`}
       />
       <div className="absolute bottom-1 left-2 text-white text-sm font-semibold p-1 flex items-center gap-1.5 uppercase z-20">
         {item.icon}
