@@ -25,8 +25,6 @@ interface LogLine {
 }
 
 const MAX_LINES = 5000
-const ROW_H = 22
-const OVERSCAN = 30
 
 let _seq = 0
 function parseLine(raw: string): LogLine {
@@ -70,72 +68,53 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: 'verbose', label: 'Verbose' },
 ]
 
-// ── Virtual list ──────────────────────────────────────────────────────────────
-function VirtualRows({ lines, scrollRef }: {
+// Font size steps in px
+const FONT_SIZES = [10, 11, 12, 13, 14]
+
+// ── Log rows — wrapping, fully readable ───────────────────────────────────────
+function LogRows({ lines, scrollRef, fontSize }: {
   lines: LogLine[]
   scrollRef: React.RefObject<HTMLDivElement | null>
+  fontSize: number
 }): React.ReactElement {
-  const [scrollTop, setScrollTop] = useState(0)
-  const [viewH, setViewH] = useState(400)
-  const rafRef = useRef<number | null>(null)
-  const latestTop = useRef(0)
-
-  useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    setViewH(el.clientHeight)
-    const ro = new ResizeObserver(() => { if (scrollRef.current) setViewH(scrollRef.current.clientHeight) })
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [scrollRef])
-
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    latestTop.current = e.currentTarget.scrollTop
-    if (rafRef.current !== null) return
-    rafRef.current = requestAnimationFrame(() => {
-      setScrollTop(latestTop.current)
-      rafRef.current = null
-    })
-  }, [])
-
-  const totalH = lines.length * ROW_H
-  const start = Math.max(0, Math.floor(scrollTop / ROW_H) - OVERSCAN)
-  const end = Math.min(lines.length, Math.ceil((scrollTop + viewH) / ROW_H) + OVERSCAN)
-
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto" onScroll={handleScroll}
+    <div ref={scrollRef} className="flex-1 overflow-y-auto"
       style={{ backgroundColor: 'var(--color-surface-card)', fontFamily: "'JetBrains Mono','Cascadia Code','Fira Code',monospace" }}>
-      <div style={{ height: totalH, position: 'relative' }}>
-        <div style={{ position: 'absolute', top: start * ROW_H, left: 0, right: 0 }}>
-          {lines.slice(start, end).map((line) => {
-            const { color, bg, badge } = LEVEL_CONFIG[line.level]
-            return (
-              <div key={line.id}
-                className="flex items-center gap-0 select-text"
-                style={{ height: ROW_H, backgroundColor: bg, borderBottom: '1px solid transparent', fontSize: 11 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-accent) 4%, var(--color-surface-elevated))')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = bg)}
-              >
-                {/* Level badge */}
-                <span style={{ width: 36, flexShrink: 0, fontSize: 9, fontWeight: 800, textAlign: 'center', color, opacity: badge ? 0.8 : 0 }}>
-                  {badge}
-                </span>
-                {/* Timestamp */}
-                <span style={{ width: 68, flexShrink: 0, fontSize: 10, color: 'var(--color-text-muted)', opacity: 0.5, paddingRight: 8, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-                  {line.timestamp}
-                </span>
-                {/* Category */}
-                <span style={{ width: 130, flexShrink: 0, paddingRight: 8, fontSize: 10, color: 'color-mix(in srgb, var(--color-accent) 65%, #a78bfa)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {line.category}
-                </span>
-                {/* Message */}
-                <span style={{ flex: 1, color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 12 }}>
-                  {line.category ? line.message : line.raw}
-                </span>
-              </div>
-            )
-          })}
-        </div>
+      <div className="py-1">
+        {lines.map((line) => {
+          const { color, bg, badge } = LEVEL_CONFIG[line.level]
+          return (
+            <div key={line.id}
+              className="flex items-start gap-2 px-3 py-0.5 select-text"
+              style={{ backgroundColor: bg, fontSize }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--color-accent) 4%, var(--color-surface-elevated))')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = bg)}
+            >
+              {/* Compact meta: badge + time + category */}
+              <span className="shrink-0 flex items-center gap-1.5 pt-px select-none" style={{ minWidth: 0 }}>
+                {badge && (
+                  <span style={{ fontSize: fontSize - 2, fontWeight: 800, color, opacity: 0.75, letterSpacing: '0.05em' }}>
+                    {badge}
+                  </span>
+                )}
+                {line.timestamp && (
+                  <span style={{ fontSize: fontSize - 2, color: 'var(--color-text-muted)', opacity: 0.45, fontVariantNumeric: 'tabular-nums' }}>
+                    {line.timestamp}
+                  </span>
+                )}
+                {line.category && (
+                  <span style={{ fontSize: fontSize - 2, color: 'color-mix(in srgb, var(--color-accent) 65%, #a78bfa)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {line.category}
+                  </span>
+                )}
+              </span>
+              {/* Full message — wraps */}
+              <span style={{ color, flex: 1, wordBreak: 'break-all', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                {line.category ? line.message : line.raw}
+              </span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -151,6 +130,7 @@ export default function ProjectLogDialog({ projectName, projectPath, onClose }: 
   const [autoScroll, setAutoScroll] = useState(true)
   const [sizeKb, setSizeKb] = useState(0)
   const [live, setLive] = useState(true)
+  const [fontSizeIdx, setFontSizeIdx] = useState(1) // default 11px
 
   const maxLines = Math.min(MAX_LINES, Math.max(100, getSetting('logMaxLines')))
   const nextByteRef = useRef(0)
@@ -197,7 +177,12 @@ export default function ProjectLogDialog({ projectName, projectPath, onClose }: 
   }, [lines, autoScroll])
 
   useEffect(() => {
-    const h = (e: KeyboardEvent): void => { if (e.key === 'Escape') onClose() }
+    const h = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') onClose()
+      if ((e.ctrlKey || e.metaKey) && e.key === '=') { e.preventDefault(); setFontSizeIdx(i => Math.min(i + 1, FONT_SIZES.length - 1)) }
+      if ((e.ctrlKey || e.metaKey) && e.key === '-') { e.preventDefault(); setFontSizeIdx(i => Math.max(i - 1, 0)) }
+      if ((e.ctrlKey || e.metaKey) && e.key === '0') { e.preventDefault(); setFontSizeIdx(1) }
+    }
     document.addEventListener('keydown', h)
     return () => document.removeEventListener('keydown', h)
   }, [onClose])
@@ -320,6 +305,24 @@ export default function ProjectLogDialog({ projectName, projectPath, onClose }: 
 
           <div className="flex-1" />
 
+          {/* Zoom */}
+          <div className="flex items-center overflow-hidden shrink-0"
+            style={{ borderRadius: 'calc(var(--radius) * 0.5)', border: '1px solid var(--color-border)' }}>
+            <button onClick={() => setFontSizeIdx(i => Math.max(i - 1, 0))}
+              disabled={fontSizeIdx === 0}
+              className="px-2 py-1 text-xs cursor-pointer disabled:opacity-30 transition-colors"
+              style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)' }}
+              title="Zoom out (Ctrl -)">A−</button>
+            <span className="px-2 text-[10px] font-mono" style={{ color: 'var(--color-text-muted)', backgroundColor: 'var(--color-surface-elevated)', borderLeft: '1px solid var(--color-border)', borderRight: '1px solid var(--color-border)' }}>
+              {FONT_SIZES[fontSizeIdx]}px
+            </span>
+            <button onClick={() => setFontSizeIdx(i => Math.min(i + 1, FONT_SIZES.length - 1))}
+              disabled={fontSizeIdx === FONT_SIZES.length - 1}
+              className="px-2 py-1 text-xs cursor-pointer disabled:opacity-30 transition-colors"
+              style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)' }}
+              title="Zoom in (Ctrl +)">A+</button>
+          </div>
+
           {/* Auto-scroll */}
           <button onClick={() => setAutoScroll(v => !v)}
             className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium cursor-pointer shrink-0"
@@ -328,17 +331,6 @@ export default function ProjectLogDialog({ projectName, projectPath, onClose }: 
             Auto-scroll
           </button>
         </div>
-
-        {/* ── Column headers ── */}
-        {!loading && filtered.length > 0 && (
-          <div className="flex items-center shrink-0 px-0 text-[9px] font-semibold uppercase tracking-widest select-none"
-            style={{ height: 24, backgroundColor: 'var(--color-surface-elevated)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
-            <span style={{ width: 36, textAlign: 'center', flexShrink: 0 }}>LVL</span>
-            <span style={{ width: 68, textAlign: 'right', paddingRight: 8, flexShrink: 0 }}>TIME</span>
-            <span style={{ width: 130, paddingRight: 8, flexShrink: 0 }}>CATEGORY</span>
-            <span style={{ flex: 1, paddingRight: 12 }}>MESSAGE</span>
-          </div>
-        )}
 
         {/* ── Log body ── */}
         {loading ? (
@@ -352,7 +344,7 @@ export default function ProjectLogDialog({ projectName, projectPath, onClose }: 
             <span className="text-xs">{search ? 'No lines match your search' : 'No log entries found'}</span>
           </div>
         ) : (
-          <VirtualRows lines={filtered} scrollRef={logScrollRef} />
+          <LogRows lines={filtered} scrollRef={logScrollRef} fontSize={FONT_SIZES[fontSizeIdx]} />
         )}
 
         {/* ── Status bar ── */}
