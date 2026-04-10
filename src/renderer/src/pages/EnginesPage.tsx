@@ -3,16 +3,12 @@ import type { EngineCardProps } from '../types'
 import PageWrapper from '@renderer/layout/PageWrapper'
 import EngineCard from '@renderer/components/engines/EngineCard'
 import InstalledPluginsTab from '@renderer/components/engines/InstalledPluginsTab'
+import DropdownPortal from '../components/ui/DropdownPortal'
 import { useToast } from '../components/ui/ToastContext'
 import { getSetting } from '../utils/settings'
-import { Plus, RefreshCw, Zap, ShoppingBag, GripVertical } from 'lucide-react'
+import { Plus, RefreshCw, Zap, ShoppingBag, ChevronDown, Check } from 'lucide-react'
 
 type EngineTab = 'engines' | 'plugins'
-
-const SIDEBAR_MIN = 100
-const SIDEBAR_MAX = 280
-const SIDEBAR_DEFAULT = 148
-const SIDEBAR_KEY = 'pluginSidebarWidth'
 
 const EnginesPage = (): React.ReactElement => {
   const [engines, setEngines] = useState<EngineCardProps[]>([])
@@ -21,44 +17,11 @@ const EnginesPage = (): React.ReactElement => {
   const [displayStart, setDisplayStart] = useState(0)
   const [activeTab, setActiveTab] = useState<EngineTab>('engines')
   const [selectedEngine, setSelectedEngine] = useState<EngineCardProps | null>(null)
-  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
-    const saved = parseInt(localStorage.getItem(SIDEBAR_KEY) || '', 10)
-    return isNaN(saved) ? SIDEBAR_DEFAULT : Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, saved))
-  })
-
-  const dragging = useRef(false)
-  const dragStartX = useRef(0)
-  const dragStartWidth = useRef(0)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownAnchorRef = useRef<HTMLButtonElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const { addToast } = useToast()
   const ITEMS_PER_BATCH = 30
-
-  // ── Resizable sidebar drag ────────────────────────────────────────────────
-  const onDragStart = useCallback((e: React.MouseEvent) => {
-    dragging.current = true
-    dragStartX.current = e.clientX
-    dragStartWidth.current = sidebarWidth
-    document.body.style.cursor = 'col-resize'
-    document.body.style.userSelect = 'none'
-  }, [sidebarWidth])
-
-  useEffect(() => {
-    const onMove = (e: MouseEvent): void => {
-      if (!dragging.current) return
-      const next = Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, dragStartWidth.current + (e.clientX - dragStartX.current)))
-      setSidebarWidth(next)
-    }
-    const onUp = (): void => {
-      if (!dragging.current) return
-      dragging.current = false
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-      setSidebarWidth((w) => { localStorage.setItem(SIDEBAR_KEY, String(w)); return w })
-    }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
-    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
-  }, [])
 
   // ── Scroll virtualization ─────────────────────────────────────────────────
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -157,14 +120,7 @@ const EnginesPage = (): React.ReactElement => {
           >
             <Zap size={14} style={{ color: 'var(--color-accent)' }} />
           </div>
-          <div>
-            <h1 className="text-sm font-semibold leading-none" style={{ color: 'var(--color-text-primary)' }}>
-              Engines
-            </h1>
-            <p className="text-[11px] mt-0.5 leading-none" style={{ color: 'var(--color-text-muted)' }}>
-              {engines.length > 0 ? `${engines.length} installed` : 'No engines found'}
-            </p>
-          </div>
+
         </div>
 
         {/* Tabs — inline */}
@@ -201,13 +157,60 @@ const EnginesPage = (): React.ReactElement => {
 
         {/* Actions */}
         <div className="flex items-center gap-1.5">
+          {activeTab === 'plugins' && engines.length > 1 && (
+            <>
+              <button
+                ref={dropdownAnchorRef}
+                onClick={() => setDropdownOpen((o) => !o)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
+                style={{
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'var(--color-surface-card)',
+                  color: 'var(--color-text-secondary)',
+                  border: '1px solid var(--color-border)'
+                }}
+              >
+                <Zap size={11} style={{ color: 'var(--color-accent)' }} />
+                UE {activeEngine?.version ?? '—'}
+                <ChevronDown size={11} style={{ color: 'var(--color-text-muted)' }} className={dropdownOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
+              </button>
+              <DropdownPortal
+                open={dropdownOpen}
+                anchorRef={dropdownAnchorRef}
+                onClose={() => setDropdownOpen(false)}
+              >
+                {engines.map((e) => {
+                  const isActive = activeEngine?.directoryPath === e.directoryPath
+                  return (
+                    <button
+                      key={e.directoryPath}
+                      onClick={() => { setSelectedEngine(e); setDropdownOpen(false) }}
+                      className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs transition-colors cursor-pointer"
+                      style={{
+                        color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                        backgroundColor: isActive ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)' : 'transparent'
+                      }}
+                      onMouseEnter={(el) => { if (!isActive) el.currentTarget.style.backgroundColor = 'var(--color-surface-elevated)' }}
+                      onMouseLeave={(el) => { if (!isActive) el.currentTarget.style.backgroundColor = 'transparent' }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Zap size={11} style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)' }} />
+                        UE {e.version}
+                      </div>
+                      {isActive && <Check size={11} style={{ color: 'var(--color-accent)' }} />}
+                    </button>
+                  )
+                })}
+              </DropdownPortal>
+            </>
+          )}
           {activeTab === 'engines' && (
             <>
               <button
                 onClick={handleScan}
                 disabled={scanning}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-                style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                style={{ borderRadius: 'var(--radius)', backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' }}
               >
                 <RefreshCw size={12} className={scanning ? 'animate-spin' : ''} />
                 {scanning ? 'Scanning…' : 'Scan'}
@@ -215,8 +218,8 @@ const EnginesPage = (): React.ReactElement => {
               <button
                 onClick={handleAddEngine}
                 disabled={addingEngine}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-                style={{ backgroundColor: 'var(--color-accent)' }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                style={{ borderRadius: 'var(--radius)', backgroundColor: 'var(--color-accent)' }}
               >
                 <Plus size={12} />
                 Add Engine
@@ -251,58 +254,7 @@ const EnginesPage = (): React.ReactElement => {
           )}
         </div>
       ) : (
-        <div className="flex flex-1 overflow-hidden">
-          {/* Resizable engine selector sidebar — only shown when multiple engines */}
-          {engines.length > 1 && (
-            <div
-              className="relative shrink-0 flex flex-col border-r overflow-hidden"
-              style={{ width: sidebarWidth, borderColor: 'var(--color-border)' }}
-            >
-              <p
-                className="px-3 pt-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider shrink-0"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                Engine
-              </p>
-              <div className="flex-1 overflow-y-auto">
-                {engines.map((e) => {
-                  const isActive = activeEngine?.directoryPath === e.directoryPath
-                  return (
-                    <button
-                      key={e.directoryPath}
-                      onClick={() => setSelectedEngine(e)}
-                      className="w-full text-left px-3 py-2 text-xs transition-colors cursor-pointer flex items-center gap-2"
-                      style={{
-                        color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                        backgroundColor: isActive ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)' : 'transparent',
-                        borderLeft: `2px solid ${isActive ? 'var(--color-accent)' : 'transparent'}`
-                      }}
-                    >
-                      <Zap size={11} style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)', flexShrink: 0 }} />
-                      <span className="truncate">UE {e.version}</span>
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Drag handle */}
-              <div
-                onMouseDown={onDragStart}
-                className="absolute top-0 right-0 w-3 h-full flex items-center justify-center cursor-col-resize group z-10"
-              >
-                <div
-                  className="w-0.5 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ backgroundColor: 'var(--color-accent)' }}
-                />
-                <GripVertical
-                  size={10}
-                  className="absolute opacity-0 group-hover:opacity-40 transition-opacity"
-                  style={{ color: 'var(--color-text-muted)' }}
-                />
-              </div>
-            </div>
-          )}
-
+        <div className="flex flex-col flex-1 overflow-hidden">
           {/* Plugin content */}
           <div className="flex-1 overflow-hidden">
             {activeEngine ? (

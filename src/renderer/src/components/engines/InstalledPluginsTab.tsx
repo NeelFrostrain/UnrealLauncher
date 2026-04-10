@@ -6,7 +6,6 @@ interface InstalledPluginsTabProps {
   engineVersion: string
 }
 
-// Icon with fallback — same pattern as project card thumbnails
 const PluginIcon = ({ icon, name }: { icon: string | null; name: string }): React.ReactElement => {
   const [failed, setFailed] = useState(false)
   const src = icon ? `local-asset:///${icon.replace(/\\/g, '/')}` : null
@@ -17,7 +16,8 @@ const PluginIcon = ({ icon, name }: { icon: string | null; name: string }): Reac
         src={src}
         alt={name}
         onError={() => setFailed(true)}
-        className="w-9 h-9 rounded-lg object-cover shrink-0"
+        className="w-9 h-9 object-cover shrink-0"
+        style={{ borderRadius: 'var(--radius)' }}
         loading="lazy"
         decoding="async"
       />
@@ -26,8 +26,11 @@ const PluginIcon = ({ icon, name }: { icon: string | null; name: string }): Reac
 
   return (
     <div
-      className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-      style={{ backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)' }}
+      className="w-9 h-9 flex items-center justify-center shrink-0"
+      style={{
+        borderRadius: 'var(--radius)',
+        backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+      }}
     >
       <Package size={16} style={{ color: 'var(--color-accent)' }} />
     </div>
@@ -67,8 +70,9 @@ const InstalledPluginsTab = ({ engineDir, engineVersion }: InstalledPluginsTabPr
         style={{ borderColor: 'var(--color-border)' }}
       >
         <div
-          className="flex items-center gap-2 flex-1 px-3 py-1.5 rounded-lg text-xs"
+          className="flex items-center gap-2 flex-1 px-3 py-1.5 text-xs"
           style={{
+            borderRadius: 'var(--radius)',
             backgroundColor: 'var(--color-surface-card)',
             border: '1px solid var(--color-border)'
           }}
@@ -79,15 +83,20 @@ const InstalledPluginsTab = ({ engineDir, engineVersion }: InstalledPluginsTabPr
             placeholder="Search plugins…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 bg-transparent outline-none placeholder:text-white/25"
-            style={{ color: 'var(--color-text-primary)' }}
+            className="flex-1 bg-transparent outline-none"
+            style={{
+              color: 'var(--color-text-primary)',
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ['--tw-placeholder-color' as any]: 'var(--color-text-muted)'
+            }}
           />
         </div>
         <button
           onClick={load}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50 cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer"
           style={{
+            borderRadius: 'var(--radius)',
             backgroundColor: 'var(--color-surface-card)',
             color: 'var(--color-text-secondary)',
             border: '1px solid var(--color-border)'
@@ -102,7 +111,7 @@ const InstalledPluginsTab = ({ engineDir, engineVersion }: InstalledPluginsTabPr
       {!loading && plugins.length > 0 && (
         <div className="px-4 py-2 shrink-0">
           <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-            {filtered.length} plugin{filtered.length !== 1 ? 's' : ''} in UE{engineVersion} — Installed
+            {filtered.length} plugin{filtered.length !== 1 ? 's' : ''} — UE {engineVersion}
           </p>
         </div>
       )}
@@ -116,12 +125,16 @@ const InstalledPluginsTab = ({ engineDir, engineVersion }: InstalledPluginsTabPr
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-center">
-            <ShoppingBag size={28} className="mb-2 opacity-20" style={{ color: 'var(--color-text-muted)' }} />
+            <ShoppingBag
+              size={28}
+              className="mb-2"
+              style={{ color: 'var(--color-text-muted)', opacity: 0.25 }}
+            />
             <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-              {searchQuery ? 'No plugins match your search' : 'No Marketplace plugins found'}
+              {searchQuery ? 'No plugins match your search' : 'No installed plugins found'}
             </p>
             {!searchQuery && (
-              <p className="text-[11px] mt-1 opacity-60" style={{ color: 'var(--color-text-muted)' }}>
+              <p className="text-[11px] mt-1" style={{ color: 'var(--color-text-muted)', opacity: 0.5 }}>
                 Install plugins from the Epic Games Marketplace to see them here
               </p>
             )}
@@ -134,8 +147,9 @@ const InstalledPluginsTab = ({ engineDir, engineVersion }: InstalledPluginsTabPr
             {filtered.map((plugin) => (
               <div
                 key={plugin.path}
-                className="p-3 rounded-lg border transition-colors"
+                className="p-3 border transition-colors"
                 style={{
+                  borderRadius: 'var(--radius)',
                   backgroundColor: 'var(--color-surface-card)',
                   borderColor: 'var(--color-border)'
                 }}
@@ -160,8 +174,13 @@ const InstalledPluginsTab = ({ engineDir, engineVersion }: InstalledPluginsTabPr
                   </div>
                   <button
                     onClick={() => window.electronAPI.openDirectory(plugin.path)}
-                    className="shrink-0 p-1 rounded cursor-pointer transition-colors hover:bg-white/5"
-                    style={{ color: 'var(--color-text-muted)' }}
+                    className="shrink-0 p-1 cursor-pointer transition-colors"
+                    style={{
+                      borderRadius: 'calc(var(--radius) * 0.6)',
+                      color: 'var(--color-text-muted)'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-elevated)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     title="Open folder"
                   >
                     <FolderOpen size={12} />
