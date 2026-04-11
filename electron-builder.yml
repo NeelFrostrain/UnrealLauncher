@@ -20,6 +20,7 @@ asarUnpack:
   - resources/**
   - native/dist/*.node
 forceCodeSigning: false
+artifactBuildStarted: null
 compression: maximum
 
 win:
