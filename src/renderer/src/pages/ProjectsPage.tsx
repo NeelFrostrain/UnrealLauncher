@@ -1,3 +1,7 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import PageWrapper from '../layout/PageWrapper'

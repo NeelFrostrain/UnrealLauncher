@@ -1,75 +1,70 @@
 # Contributing to Unreal Launcher
 
-Thanks for taking the time to contribute! Here's everything you need to get started.
+> **Important — read before contributing.**
+> This project is licensed under a **proprietary license**, not an open-source license.
+> By submitting any contribution you agree to the terms below. Please read them carefully.
 
 ---
 
-## Getting Started
+## Intellectual Property Agreement
 
-1. **Fork** the repository on GitHub
-2. **Clone** your fork:
+By contributing to this project in any form — pull requests, patches, issues, suggestions, code snippets, or otherwise — you **irrevocably transfer all intellectual property rights** for that contribution to **NeelFrostrain**.
+
+This means:
+
+- You grant NeelFrostrain full, exclusive, perpetual, worldwide rights to your contribution.
+- You waive any claim to ownership, credit, or compensation for the contributed work.
+- Your contribution becomes part of proprietary software and is subject to the same license restrictions as the rest of the codebase.
+- You may **not** reuse, republish, or redistribute your own contribution once submitted.
+
+If you do not agree to these terms, **do not submit a contribution**.
+
+---
+
+## What You Can Contribute
+
+Contributions are accepted for:
+
+- Bug reports (via GitHub Issues)
+- Bug fixes (via Pull Requests)
+- Performance improvements
+- Documentation corrections
+
+Contributions are **not** accepted for:
+
+- New features without prior discussion and written approval from NeelFrostrain
+- Refactors that change the project's architecture without approval
+- Changes that conflict with the project's proprietary nature (e.g. adding open-source licenses to files)
+
+---
+
+## How to Report a Bug
+
+1. Check [existing issues](https://github.com/NeelFrostrain/UnrealLauncher/issues) first — it may already be reported.
+2. Open a new issue with:
+   - A clear title describing the problem
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Your OS, app version, and any relevant logs
+
+---
+
+## How to Submit a Pull Request
+
+1. Open an issue first and get explicit approval before writing code.
+2. Fork the repository and create a branch:
+   - `fix/<short-description>` for bug fixes
+   - `docs/<short-description>` for documentation only
+3. Make your changes. Run these before committing:
 
 ```bash
-git clone https://github.com/<your-username>/UnrealLauncher.git
-cd UnrealLauncher
-npm install
+npm run typecheck   # must pass with zero errors
+npm run lint        # must pass with zero warnings
+npm run format      # apply Prettier formatting
 ```
 
-3. **Run** the app in dev mode:
-
-```bash
-npm run dev
-```
-
----
-
-## Branching
-
-Use descriptive branch names:
-
-- `feature/<name>` — new features
-- `fix/<name>` — bug fixes
-- `docs/<name>` — documentation only
-- `refactor/<name>` — code cleanup
-
-Keep branches focused. One concern per PR.
-
----
-
-## Before You Commit
-
-Run these and make sure they pass:
-
-```bash
-npm run typecheck   # TypeScript
-npm run lint        # ESLint
-npm run format      # Prettier
-```
-
----
-
-## Pull Request Checklist
-
-- [ ] `npm run typecheck` passes with no errors
-- [ ] `npm run lint` passes with no warnings
-- [ ] Changes are described clearly in the PR description
-- [ ] Documentation updated if applicable (README, BUILD.md, CHANGELOG.md)
-
----
-
-## Project Structure
-
-```
-src/
-├── main/          # Electron main process (IPC, store, updater, window)
-├── preload/       # contextBridge IPC bridge
-└── renderer/      # React UI
-    └── src/
-        ├── components/   # Reusable UI (engines, projects, settings, about, layout, ui)
-        ├── pages/        # Page components (Engines, Projects, Settings, About)
-        ├── store/        # Zustand stores
-        └── utils/        # Theme, settings, helpers
-```
+4. Open a Pull Request with a clear description of what changed and why.
+5. By opening a PR you confirm you have read and agree to the IP agreement above.
 
 ---
 
@@ -77,14 +72,14 @@ src/
 
 - TypeScript strict mode — no `any`, no `require()`
 - Functional React components with hooks only
-- CSS via Tailwind + CSS variables (`var(--color-*)`) — no hardcoded colors
-- Lucide React for icons
-- Framer Motion for animations
+- All colors via CSS variables (`var(--color-*)`) — no hardcoded hex values
+- Lucide React for icons, Framer Motion for animations
+- Keep the license header at the top of every source file intact
 
 ---
 
-## Need Help?
+## Contact
 
-- Check [open issues](https://github.com/NeelFrostrain/UnrealLauncher/issues) for `good first issue` or `help wanted` labels
-- Open a [Discussion](https://github.com/NeelFrostrain/UnrealLauncher/discussions) for questions
 - Email: nfrostrain@gmail.com
+- GitHub Issues: [UnrealLauncher/issues](https://github.com/NeelFrostrain/UnrealLauncher/issues)
+- Discord: [discord.gg/vq4UDfevG2](https://discord.gg/vq4UDfevG2)

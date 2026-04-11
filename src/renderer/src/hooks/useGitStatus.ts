@@ -1,3 +1,7 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
 /**
  * Shared git status cache — avoids one IPC call per card.
  * Results are cached by projectPath and reused across all card instances.

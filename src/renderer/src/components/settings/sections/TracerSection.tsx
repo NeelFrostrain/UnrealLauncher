@@ -1,3 +1,7 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
 import { useEffect, useState } from 'react'
 import { Activity, FolderOpen, Cpu } from 'lucide-react'
 import { SectionHeader, Card, SettingRow, Toggle } from '../SectionHelpers'

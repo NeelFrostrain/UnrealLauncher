@@ -1,33 +1,70 @@
 # Security Policy
 
+> This project is proprietary software. All security reports are handled exclusively
+> by NeelFrostrain. Do not disclose vulnerabilities publicly before a fix is released.
+
+---
+
 ## Supported Versions
 
-Security fixes are applied to the latest stable release only.
+Security fixes are applied to the **latest stable release only**. Older versions are not patched.
 
 | Version | Supported |
-| ------- | --------- |
-| 1.9.x   | ✅        |
+|---------|-----------|
+| 2.0.x   | ✅        |
+| 1.9.x   | ❌        |
 | < 1.9   | ❌        |
 
 ---
 
 ## Reporting a Vulnerability
 
-Please **do not** open a public GitHub issue for security vulnerabilities.
+**Do not open a public GitHub issue for security vulnerabilities.**
 
-Send a private report to: **nfrostrain@gmail.com**
+Report privately to: **nfrostrain@gmail.com**
 
-Include:
+Include in your report:
 
 - A clear description of the vulnerability
 - Steps to reproduce
-- Affected version(s)
-- Any suggested fixes or mitigations
+- Affected version(s) and operating system
+- Potential impact assessment
+- Any suggested fix or mitigation (optional)
 
-You'll receive a response within 72 hours. Please allow time to patch before any public disclosure.
+You will receive an acknowledgement within **72 hours**. Please allow reasonable time for a patch to be developed and released before any public disclosure.
+
+---
+
+## Responsible Disclosure
+
+- Do not exploit the vulnerability beyond what is necessary to demonstrate it.
+- Do not access, modify, or delete data that does not belong to you.
+- Do not disclose the vulnerability to any third party before a fix is publicly released.
+- Violating these terms may result in legal action under applicable law.
 
 ---
 
 ## Scope
 
-This policy covers the Unreal Launcher desktop application and its associated source code. It does not cover third-party dependencies — report those to their respective maintainers.
+This policy covers:
+
+- The Unreal Launcher desktop application (all platforms)
+- The Rust native module (`native/`)
+- The Rust tracer executable (`resources/unreal_launcher_tracer.exe`)
+- The Electron main process and IPC layer
+
+Out of scope:
+
+- Third-party npm dependencies — report those to their respective maintainers
+- Vulnerabilities in Electron, Node.js, or Chromium itself — report to those projects directly
+- Issues in user-installed Unreal Engine versions
+
+---
+
+## Legal
+
+Unreal Launcher is proprietary software. Researching vulnerabilities in this software
+does not grant any rights to the source code, nor does it constitute permission to
+copy, modify, or redistribute any part of the codebase. See [LICENSE](LICENSE) for full terms.
+
+Contact: **nfrostrain@gmail.com**

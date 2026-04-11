@@ -488,7 +488,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
+Copyright (c) 2026 NeelFrostrain. All rights reserved.
+
+This project uses a proprietary license. You may download and run the compiled binary for personal use, but you may **not** copy, modify, redistribute, or use the source code in your own projects. See [LICENSE](LICENSE) for full terms.
 
 ---
 

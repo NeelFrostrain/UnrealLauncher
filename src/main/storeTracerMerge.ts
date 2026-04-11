@@ -1,3 +1,7 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
 /**
  * Tracer merge helpers — reads the tracer's output files and merges any new
  * entries into the app's saved data. Kept separate to keep store.ts focused.
