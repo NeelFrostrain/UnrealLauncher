@@ -1,7 +1,6 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
 declare global {
-  // Shared data shapes — single source of truth
   interface ProjectData {
     name: string
     version: string
@@ -67,21 +66,6 @@ declare global {
     assetType: string
   }
 
-  interface ActiveSession {
-    pid: number
-    exePath: string
-    engineVersion: string
-    engineRoot: string
-    sessionType: 'project' | 'engine'
-    projectName: string
-    projectPath: string
-    cpuPercent: number
-    ramMb: number
-    gpuVramMb: number
-    startedAt: string
-    updatedAt: string
-  }
-
   interface MarketplacePlugin {
     name: string
     path: string
@@ -98,17 +82,13 @@ declare global {
       launchEngine: (exePath: string) => Promise<{ success: boolean; error?: string }>
       selectEngineFolder: () => Promise<EngineSelectionResult | null>
       deleteEngine: (directoryPath: string) => Promise<boolean>
-      calculateEngineSize: (
-        directoryPath: string
-      ) => Promise<{ success: boolean; size?: string; error?: string }>
+      calculateEngineSize: (directoryPath: string) => Promise<{ success: boolean; size?: string; error?: string }>
       // Projects
       scanProjects: () => Promise<ProjectData[]>
       launchProject: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       selectProjectFolder: () => Promise<ProjectSelectionResult | null>
       deleteProject: (projectPath: string) => Promise<boolean>
-      calculateProjectSize: (
-        projectPath: string
-      ) => Promise<{ success: boolean; size?: string; error?: string }>
+      calculateProjectSize: (projectPath: string) => Promise<{ success: boolean; size?: string; error?: string }>
       calculateAllProjectSizes: () => Promise<void>
       // Filesystem
       openDirectory: (dirPath: string) => Promise<void>
@@ -133,14 +113,7 @@ declare global {
         message?: string
         error?: string
       }>
-      onDownloadProgress: (
-        callback: (progress: {
-          percent: number
-          bytesPerSecond: number
-          transferred: number
-          total: number
-        }) => void
-      ) => () => void
+      onDownloadProgress: (callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void) => () => void
       // Tracer / startup
       getTracerStartup: () => Promise<boolean>
       setTracerStartup: (enabled: boolean) => Promise<void>
@@ -152,7 +125,6 @@ declare global {
       setRegistryEngines: (enabled: boolean) => Promise<void>
       clearAppData: () => Promise<void>
       clearTracerData: () => Promise<void>
-      getDrives: () => Promise<{ mount: string; label: string; total: number; free: number; used: number; fsType: string }[]>
       scanMarketplacePlugins: (engineDir: string) => Promise<MarketplacePlugin[]>
       // Fab cache
       fabGetDefaultPath: () => Promise<string>
@@ -160,26 +132,9 @@ declare global {
       fabScanFolder: (folderPath: string) => Promise<FabAsset[]>
       fabSavePath: (folderPath: string) => Promise<void>
       fabLoadPath: () => Promise<string>
-      getActiveSessions: () => Promise<ActiveSession[]>
-      projectReadLog: (
-        projectPath: string,
-        fromByte?: number
-      ) => Promise<{
-        logPath: string
-        content: string
-        sizeBytes: number
-        startByte: number
-      } | null>
-      projectGitStatus: (
-        projectPath: string
-      ) => Promise<{
-        initialized: boolean
-        branch: string
-        hasUncommitted: boolean
-        ahead: number
-        behind: number
-        remoteUrl: string
-      }>
+      // Project tools
+      projectReadLog: (projectPath: string, fromByte?: number) => Promise<{ logPath: string; content: string; sizeBytes: number; startByte: number } | null>
+      projectGitStatus: (projectPath: string) => Promise<{ initialized: boolean; branch: string; hasUncommitted: boolean; ahead: number; behind: number; remoteUrl: string }>
       projectGitInit: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       projectLaunchGame: (projectPath: string) => Promise<{ success: boolean; error?: string }>
     }

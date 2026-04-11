@@ -72,7 +72,6 @@ if (process.contextIsolated) {
       setRegistryEngines: (enabled: boolean) => ipcRenderer.invoke('engines-set-registry', enabled),
       clearAppData: () => ipcRenderer.invoke('clear-app-data'),
       clearTracerData: () => ipcRenderer.invoke('clear-tracer-data'),
-      getDrives: () => ipcRenderer.invoke('get-drives'),
       scanMarketplacePlugins: (engineDir: string) =>
         ipcRenderer.invoke('scan-marketplace-plugins', engineDir),
       fabGetDefaultPath: () => ipcRenderer.invoke('fab-get-default-path'),
@@ -80,7 +79,6 @@ if (process.contextIsolated) {
       fabScanFolder: (folderPath: string) => ipcRenderer.invoke('fab-scan-folder', folderPath),
       fabSavePath: (folderPath: string) => ipcRenderer.invoke('fab-save-path', folderPath),
       fabLoadPath: () => ipcRenderer.invoke('fab-load-path'),
-      getActiveSessions: () => ipcRenderer.invoke('get-active-sessions'),
       projectReadLog: (projectPath: string, fromByte?: number) =>
         ipcRenderer.invoke('project-read-log', projectPath, fromByte ?? 0),
       projectGitStatus: (projectPath: string) =>
