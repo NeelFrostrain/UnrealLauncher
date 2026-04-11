@@ -6,7 +6,7 @@
   "main": "./out/main/index.js",
   "author": "NeelFrostrain",
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://github.com/NeelFrostrain/UnrealLauncher#readme",
+  "homepage": "https://neelfrostrain.github.io/UnrealLauncher/",
   "download:win": "https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v2.0.0/unreal-launcher-2.0.0-setup.exe",
   "scripts": {
     "format": "prettier --write .",
