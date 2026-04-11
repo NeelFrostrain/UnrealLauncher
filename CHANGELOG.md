@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2.0.1] - 2026-04-11 — `v2.0.1`
+
+### 🛠️ Fixed
+
+- Prevent duplicate project import entries by deduplicating saved projects by `projectPath` and project ID
+- Use actual `.uproject` filenames for project scans, imports, and launch paths
+- Resolve Rust native module path more reliably in development and packaged builds
+
+---
+
 ## [1.9.0] - 2026-04-09 — `v1.9_dev`
 
 ### ✅ Added

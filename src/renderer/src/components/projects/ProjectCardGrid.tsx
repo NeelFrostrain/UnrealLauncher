@@ -43,6 +43,7 @@ const ProjectCardGrid = memo(
       branch: ''
     })
 
+    const displayName = name || projectPath.split(/[/\\]/).pop() || 'Unknown Project'
     const imageSrc = thumbnail
       ? `local-asset:///${thumbnail.replace(/\\/g, '/')}`
       : resolveAsset(undefined)
@@ -103,7 +104,7 @@ const ProjectCardGrid = memo(
           {/* Thumbnail */}
           <img
             src={imageSrc}
-            alt={name}
+            alt={displayName}
             className="absolute inset-0 w-full h-full object-cover bg-center"
             style={{
               transform: hovered ? 'scale(1.04)' : 'scale(1)',
@@ -191,8 +192,8 @@ const ProjectCardGrid = memo(
           <div
             className={`absolute bottom-0 inset-x-0 z-10 px-3 py-2.5 transition-opacity duration-150 ${hovered ? 'opacity-0' : 'opacity-100'}`}
           >
-            <p className="text-sm font-semibold text-white truncate mb-1.5" title={name}>
-              {name}
+            <p className="text-sm font-semibold text-white truncate mb-1.5" title={displayName}>
+              {displayName}
             </p>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.55)' }}>

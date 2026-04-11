@@ -3,14 +3,28 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { app } from 'electron'
+import fs from 'fs'
 import path from 'path'
 
 // ── Native module path ────────────────────────────────────────────────────────
-// Uses app.getAppPath() so it resolves correctly in both dev and packaged builds.
-// Cannot use relative require() paths — electron-vite bundles everything into
-// out/main/index.js so relative paths from source files don't survive.
+// Uses app.getAppPath() and process.resourcesPath so it resolves correctly in
+// both dev and packaged builds. Electron may place native artifacts under
+// resources/app or resources depending on packaging, so we try both locations.
 export function getNativeModulePath(): string {
-  return path.join(app.getAppPath(), 'native', 'dist', 'index')
+  const candidates = [
+    path.join(app.getAppPath(), 'native', 'dist', 'index'),
+    path.join(app.getAppPath(), '..', 'native', 'dist', 'index'),
+    path.join(process.resourcesPath, 'app', 'native', 'dist', 'index'),
+    path.join(process.resourcesPath, 'native', 'dist', 'index')
+  ]
+
+  const found = candidates.find((candidate) =>
+    fs.existsSync(candidate) ||
+    fs.existsSync(`${candidate}.node`) ||
+    fs.existsSync(`${candidate}.js`)
+  )
+
+  return found ?? candidates[0]
 }
 
 export interface NativeModule {
@@ -44,9 +58,13 @@ export function getNative(): NativeModule | null {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     _native = require(getNativeModulePath())
     if (!_native) throw new Error('module resolved to null')
-    console.log('[native] Rust module loaded.')
+    console.log('[native] Rust module loaded from', getNativeModulePath())
   } catch (e) {
-    console.warn('[native] Rust module unavailable, using JS fallback.', (e as Error).message)
+    console.warn(
+      '[native] Rust module unavailable, using JS fallback.',
+      getNativeModulePath(),
+      (e as Error).message
+    )
     _native = null
   }
   return _native

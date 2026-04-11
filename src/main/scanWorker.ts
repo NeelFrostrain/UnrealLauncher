@@ -254,7 +254,7 @@ function runScanProjects(saved: Project[]): Project[] {
     for (const uprojectPath of findUprojectFiles(searchPath)) {
       try {
         const projectDir = path.dirname(uprojectPath)
-        const projectName = path.basename(projectDir)
+        const projectName = path.basename(uprojectPath, '.uproject') || path.basename(projectDir)
         const stats = fs.statSync(projectDir)
         let version = 'Unknown'
         try {
@@ -293,9 +293,16 @@ function runScanProjects(saved: Project[]): Project[] {
     }
   }
 
-  return merged.filter(
-    (p) => p.projectPath && fs.existsSync(path.join(p.projectPath, `${p.name}.uproject`))
-  )
+  return merged.filter((p) => {
+    if (!p.projectPath) return false
+    const expectedUproject = path.join(p.projectPath, `${p.name}.uproject`)
+    if (fs.existsSync(expectedUproject)) return true
+    try {
+      return fs.readdirSync(p.projectPath).some((file) => file.endsWith('.uproject'))
+    } catch {
+      return false
+    }
+  })
 }
 
 // ── Entry point ───────────────────────────────────────────────────────────────

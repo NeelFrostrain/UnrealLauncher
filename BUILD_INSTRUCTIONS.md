@@ -107,7 +107,7 @@ UnrealLauncher/
 - ✓ `resources/unreal_launcher_tracer.exe` (Tracer tool)
 
 ### After admin build:
-- ✓ `dist/Unreal Launcher-2.0.0-setup.exe` (NSIS Installer)
+- ✓ `dist/Unreal Launcher-2.0.1-setup.exe` (NSIS Installer)
 - ✓ All of the above
 
 ## Notes

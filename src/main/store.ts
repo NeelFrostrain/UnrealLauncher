@@ -153,11 +153,20 @@ export function saveEngines(engines: Engine[]): void {
 
 // ── Projects ──────────────────────────────────────────────────────────────────
 
+function dedupeProjects(projects: Project[]): Project[] {
+  const seen = new Set<string>()
+  return projects.filter((project) => {
+    if (!project.projectPath || seen.has(project.projectPath)) return false
+    seen.add(project.projectPath)
+    return true
+  })
+}
+
 export function loadProjects(): Project[] {
   try {
     if (fs.existsSync(getProjectsDataPath())) {
       const parsed = JSON.parse(fs.readFileSync(getProjectsDataPath(), 'utf8'))
-      return Array.isArray(parsed) ? parsed : []
+      return Array.isArray(parsed) ? dedupeProjects(parsed) : []
     }
   } catch (err) {
     console.error('Error loading projects:', err)
@@ -168,7 +177,11 @@ export function loadProjects(): Project[] {
 export function saveProjects(projects: Project[]): void {
   try {
     ensureSaveDir()
-    fs.writeFileSync(getProjectsDataPath(), JSON.stringify(projects, null, 2), 'utf8')
+    fs.writeFileSync(
+      getProjectsDataPath(),
+      JSON.stringify(dedupeProjects(projects), null, 2),
+      'utf8'
+    )
   } catch {
     /* continue */
   }

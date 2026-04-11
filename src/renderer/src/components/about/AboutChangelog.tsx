@@ -4,7 +4,7 @@
 // See LICENSE in the project root for full license terms.
 import { GitBranch, GitCommit, Plus, Wrench } from 'lucide-react'
 
-// v2.0.0 commits
+// v2.0.1 commits
 const v200commits = [
   { type: 'feat', msg: 'Feedback & bug report dialog with Discord webhook integration' },
   { type: 'feat', msg: 'Join Discord button in titlebar' },
@@ -16,6 +16,8 @@ const v200commits = [
   { type: 'fix', msg: 'Discord webhook routed through main process to bypass CSP' },
   { type: 'fix', msg: 'fab-select-folder null window guard' },
   { type: 'fix', msg: 'Unused imports cleared — Play in ProjectLogDialog, getSetting in useTracerSettings' },
+  { type: 'fix', msg: 'Prevent duplicate project entries when re-adding existing projects' },
+  { type: 'fix', msg: 'Fix Rust native module path resolution in dev and packaged builds' },
   { type: 'refactor', msg: 'Dashboard page removed — engines page is now the default route' },
 ]
 
@@ -160,7 +162,7 @@ const VersionBlock = ({
 const AboutChangelog = (): React.ReactElement => (
   <div className="space-y-3">
     <VersionBlock
-      version="2.0.0"
+      version="2.0.1"
       date="2026-04-11"
       branch="main"
       commits={v200commits}

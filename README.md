@@ -13,7 +13,7 @@
 
 **Unreal Launcher** is a full replacement for the Epic Games Launcher for day-to-day Unreal Engine development. It auto-scans your drives for installed engines and `.uproject` files, lets you launch them with one click, browses your Fab marketplace assets, and stays completely out of your way. No bloat, no login, no waiting.
 
-**Version:** 2.0.0  
+**Version:** 2.0.1  
 **Stack:** TypeScript · React 19 · Electron 39 · Vite 7 · Tailwind CSS 4 · Zustand · Framer Motion · Rust (napi-rs)
 
 ---

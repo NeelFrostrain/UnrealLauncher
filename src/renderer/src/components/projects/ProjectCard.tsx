@@ -55,6 +55,7 @@ const ProjectCard = memo(
     })
     const menuBtnRef = useRef<HTMLButtonElement>(null)
 
+    const displayName = name || projectPath.split(/[/\\]/).pop() || 'Unknown Project'
     const imageSrc = thumbnail ? `local-asset:///${thumbnail.replace(/\\/g, '/')}` : null
 
     useEffect(() => {
@@ -146,10 +147,10 @@ const ProjectCard = memo(
               }}
             >
               {imageSrc ? (
-                <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
+                <img src={imageSrc} alt={displayName} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-2xl font-black" style={{ color: 'var(--color-border)' }}>
-                  {name.charAt(0).toUpperCase()}
+                  {displayName.charAt(0).toUpperCase()}
                 </span>
               )}
             </div>
@@ -160,9 +161,9 @@ const ProjectCard = memo(
                 <p
                   className="text-sm font-semibold truncate"
                   style={{ color: 'var(--color-text-primary)' }}
-                  title={name}
+                  title={displayName}
                 >
-                  {name}
+                  {displayName}
                 </p>
                 <span
                   className="shrink-0 text-[10px] font-mono px-1.5 py-px"

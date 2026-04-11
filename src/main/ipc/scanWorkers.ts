@@ -62,9 +62,10 @@ for (const sp of searchPaths) {
   if (!fs.existsSync(sp)) continue;
   for (const up of findUprojectFiles(sp, 5, 1000)) {
     try {
-      const dir = path.dirname(up), name = path.basename(dir);
-      const stats = fs.statSync(dir);
-      let version = 'Unknown';
+      const dir = path.dirname(up)
+      const name = path.basename(up, '.uproject') || path.basename(dir)
+      const stats = fs.statSync(dir)
+      let version = 'Unknown'
       try { const m = fs.readFileSync(up,'utf8').match(/"EngineAssociation":\\s*"([^"]+)"/); if (m) version = m[1]; } catch {}
       const ex = saved.find(p => p.projectPath === dir);
       scanned.push({ name, version, size: ex?.size || '~2-5 GB',
@@ -84,7 +85,16 @@ for (const p of saved) {
   if (!merged.find(m => m.projectPath === p.projectPath))
     merged.push({ ...p, lastOpenedAt: findLogTimestamp(p.projectPath) || p.lastOpenedAt });
 }
-parentPort.postMessage(merged.filter(p => p.projectPath && fs.existsSync(path.join(p.projectPath, p.name + '.uproject'))));
+parentPort.postMessage(merged.filter((p) => {
+  if (!p.projectPath) return false;
+  const expected = path.join(p.projectPath, p.name + '.uproject');
+  if (fs.existsSync(expected)) return true;
+  try {
+    return fs.readdirSync(p.projectPath).some((file) => file.endsWith('.uproject'))
+  } catch {
+    return false;
+  }
+}));
 `
 
 export const ENGINE_SCAN_WORKER = `
