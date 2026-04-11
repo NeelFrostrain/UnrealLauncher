@@ -10,10 +10,14 @@ const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 
 const PageLoader = (): React.ReactNode => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="text-center">
-      <p className="text-white/70">Loading...</p>
-    </div>
+  <div className="flex items-center justify-center h-full">
+    <div
+      className="w-5 h-5 rounded-full border-2 animate-spin"
+      style={{
+        borderColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
+        borderTopColor: 'var(--color-accent)'
+      }}
+    />
   </div>
 )
 

@@ -118,19 +118,18 @@ const FeatureGrid = (): React.ReactElement => (
       accent="bg-yellow-500/20"
     />
     <div
-      className="grid gap-px overflow-hidden"
+      className="grid gap-2 overflow-hidden"
       style={{
         gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-        backgroundColor: 'var(--color-border)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius)'
+        // border: '1px solid var(--color-border)',
+        // borderRadius: 'var(--radius)'
       }}
     >
       {features.map(({ icon, label, desc }) => (
         <div
           key={label}
-          className="flex flex-col gap-1.5 px-4 py-3"
-          style={{ backgroundColor: 'var(--color-surface-elevated)' }}
+          className="flex flex-col gap-1.5 px-4 py-3 border"
+          style={{ backgroundColor: 'var(--color-surface-elevated)', borderColor: 'var(--color-border)' }}
         >
           <div className="flex items-center gap-2">
             {icon}

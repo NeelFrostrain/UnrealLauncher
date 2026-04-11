@@ -19,6 +19,7 @@ import { clearGitCache } from '../hooks/useGitStatus'
 const ProjectsPage = (): React.ReactElement => {
   const location = useLocation()
   const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
   const [currentTab, setCurrentTab] = useState<TabType>(() => {
     const path = location.pathname
     if (path === '/projects/favorites') return 'favorites'
@@ -52,7 +53,7 @@ const ProjectsPage = (): React.ReactElement => {
 
   const loadProjectsForTab = useCallback(
     async (tab: TabType): Promise<Project[]> => {
-      if (!window.electronAPI) return []
+      if (!window.electronAPI) { setLoading(false); return [] }
       try {
         const scannedProjects = await window.electronAPI.scanProjects()
         clearGitCache()
@@ -64,6 +65,8 @@ const ProjectsPage = (): React.ReactElement => {
       } catch (err) {
         console.error('Failed to load projects for tab:', tab, err)
         return []
+      } finally {
+        setLoading(false)
       }
     },
     [filterForTab]
@@ -168,7 +171,17 @@ const ProjectsPage = (): React.ReactElement => {
       />
 
       <div className="flex-1 overflow-hidden mt-1">
-        {visibleProjects.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div
+              className="w-5 h-5 rounded-full border-2 animate-spin"
+              style={{
+                borderColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
+                borderTopColor: 'var(--color-accent)'
+              }}
+            />
+          </div>
+        ) : visibleProjects.length > 0 ? (
           viewMode === 'grid' ? (
             <div
               ref={gridRef}

@@ -16,6 +16,7 @@ type EngineTab = 'engines' | 'plugins' | 'fab'
 
 const EnginesPage = (): React.ReactElement => {
   const [engines, setEngines] = useState<EngineCardProps[]>([])
+  const [loading, setLoading] = useState(true)
   const [displayStart, setDisplayStart] = useState(0)
   const [activeTab, setActiveTab] = useState<EngineTab>('engines')
   const [selectedEngine, setSelectedEngine] = useState<EngineCardProps | null>(null)
@@ -40,11 +41,13 @@ const EnginesPage = (): React.ReactElement => {
 
   useEffect(() => {
     const load = async (): Promise<void> => {
-      if (!window.electronAPI) return
+      if (!window.electronAPI) { setLoading(false); return }
       try {
         setEngines(await window.electronAPI.scanEngines())
       } catch (err) {
         console.error('Failed to load engines:', err)
+      } finally {
+        setLoading(false)
       }
     }
     load()
@@ -218,7 +221,17 @@ const EnginesPage = (): React.ReactElement => {
       {/* ── Content ── */}
       {activeTab === 'engines' ? (
         <div className="flex-1 overflow-hidden">
-          {engines.length > 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div
+                className="w-5 h-5 rounded-full border-2 animate-spin"
+                style={{
+                  borderColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
+                  borderTopColor: 'var(--color-accent)'
+                }}
+              />
+            </div>
+          ) : engines.length > 0 ? (
             <div
               ref={containerRef}
               onScroll={handleScroll}
