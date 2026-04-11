@@ -3,6 +3,7 @@ export interface AppSettings {
   tracerAutoStart: boolean
   logMaxLines: number
   animationsEnabled: boolean
+  showTitlebarButtons: boolean
 }
 
 const SETTINGS_KEY = 'unrealLauncherSettings'
@@ -11,7 +12,8 @@ const defaultSettings: AppSettings = {
   autoCloseOnLaunch: false,
   tracerAutoStart: false,
   logMaxLines: 2000,
-  animationsEnabled: true
+  animationsEnabled: true,
+  showTitlebarButtons: true
 }
 
 // In-memory cache — avoids re-parsing localStorage on every getSetting call
@@ -48,4 +50,6 @@ export const getSetting = <K extends keyof AppSettings>(key: K): AppSettings[K] 
 
 export const setSetting = <K extends keyof AppSettings>(key: K, value: AppSettings[K]): void => {
   saveSettings({ [key]: value })
+  // Notify same-window listeners
+  window.dispatchEvent(new CustomEvent('app-settings-changed', { detail: { key, value } }))
 }

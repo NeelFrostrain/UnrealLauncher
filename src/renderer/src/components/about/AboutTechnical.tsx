@@ -1,5 +1,5 @@
 const techDetails = [
-  { label: 'Version', value: '1.8.0', mono: true },
+  { label: 'Version', value: '2.0.0', mono: true },
   { label: 'Framework', value: 'Electron 39.2.6' },
   { label: 'UI Library', value: 'React 19.2.1' },
   { label: 'Language', value: 'TypeScript 5.9.3' },

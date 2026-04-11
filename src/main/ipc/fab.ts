@@ -14,6 +14,7 @@ export function registerFabHandlers(ipcMain_: typeof ipcMain): void {
 
   ipcMain_.handle('fab-select-folder', async (): Promise<string | null> => {
     const win = getMainWindow()
+    if (!win) return null
     const result = await dialog.showOpenDialog(win, {
       title: 'Select Fab Cache / Download Folder',
       properties: ['openDirectory']

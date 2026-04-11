@@ -10,8 +10,7 @@ import {
   ChevronDown,
   Search,
   Terminal,
-  Pause,
-  Play
+  Pause
 } from 'lucide-react'
 import { getSetting } from '../../utils/settings'
 

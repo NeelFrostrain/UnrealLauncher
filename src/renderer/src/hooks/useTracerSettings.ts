@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getSetting, setSetting } from '../utils/settings'
+import { setSetting } from '../utils/settings'
 
 export interface UseTracerSettingsReturn {
   tracerAutoStart: boolean

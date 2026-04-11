@@ -70,6 +70,9 @@ if (process.contextIsolated) {
       setTracerMerge: (enabled: boolean) => ipcRenderer.invoke('tracer-set-merge', enabled),
       getRegistryEngines: () => ipcRenderer.invoke('engines-get-registry'),
       setRegistryEngines: (enabled: boolean) => ipcRenderer.invoke('engines-set-registry', enabled),
+      sendDiscordWebhook: (webhookUrl: string, payload: string) =>
+        ipcRenderer.invoke('send-discord-webhook', webhookUrl, payload),
+      getNativeStatus: () => ipcRenderer.invoke('get-native-status'),
       clearAppData: () => ipcRenderer.invoke('clear-app-data'),
       clearTracerData: () => ipcRenderer.invoke('clear-tracer-data'),
       scanMarketplacePlugins: (engineDir: string) =>

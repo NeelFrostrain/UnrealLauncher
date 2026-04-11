@@ -1,54 +1,66 @@
-import { AlertTriangle, BookOpen, Code, GitBranch } from 'lucide-react'
+import { AlertTriangle, BookOpen, Code, GitBranch, MessageCircle } from 'lucide-react'
+import config from '../../../../config'
+
+const LINKS = [
+  {
+    label: 'GitHub',
+    icon: <GitBranch size={14} />,
+    url: config.githubRepo,
+    style: { color: 'var(--color-text-secondary)', borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-card)' }
+  },
+  {
+    label: 'Changelog',
+    icon: <BookOpen size={14} />,
+    url: `${config.githubRepo}/blob/main/CHANGELOG.md`,
+    style: { color: 'var(--color-text-secondary)', borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-card)' }
+  },
+  {
+    label: 'Contribute',
+    icon: <Code size={14} />,
+    url: `${config.githubRepo}/blob/main/CONTRIBUTING.md`,
+    style: { color: 'var(--color-text-secondary)', borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-card)' }
+  },
+  {
+    label: 'Issues',
+    icon: <AlertTriangle size={14} />,
+    url: `${config.githubRepo}/issues`,
+    style: { color: 'var(--color-text-secondary)', borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-card)' }
+  },
+  {
+    label: 'Discord',
+    icon: <MessageCircle size={14} />,
+    url: config.discordInvite,
+    style: { color: '#818cf8', borderColor: 'rgba(99,102,241,0.3)', backgroundColor: 'rgba(99,102,241,0.08)' }
+  },
+  {
+    label: 'Ko-fi',
+    icon: <span className="text-sm leading-none">☕</span>,
+    url: config.kofi,
+    style: { color: '#fb923c', borderColor: 'rgba(251,146,60,0.3)', backgroundColor: 'rgba(251,146,60,0.08)' }
+  }
+]
 
 export const AboutFooter = (): React.ReactElement => (
-  <div className="text-center space-y-4">
+  <div className="text-center space-y-3 pt-2">
     <div className="flex flex-wrap items-center justify-center gap-2">
-      {[
-        {
-          label: 'GitHub',
-          icon: <GitBranch size={16} />,
-          url: 'https://github.com/NeelFrostrain/UnrealLauncher',
-          cls: 'bg-white/5 hover:bg-white/10 border-white/10'
-        },
-        {
-          label: 'Changelog',
-          icon: <BookOpen size={16} />,
-          url: 'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CHANGELOG.md',
-          cls: 'bg-white/5 hover:bg-white/10 border-white/10'
-        },
-        {
-          label: 'Contribute',
-          icon: <Code size={16} />,
-          url: 'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CONTRIBUTING.md',
-          cls: 'bg-white/5 hover:bg-white/10 border-white/10'
-        },
-        {
-          label: 'Issues',
-          icon: <AlertTriangle size={16} />,
-          url: 'https://github.com/NeelFrostrain/UnrealLauncher/issues',
-          cls: 'bg-white/5 hover:bg-white/10 border-white/10'
-        },
-        {
-          label: 'Donate',
-          icon: <span>☕</span>,
-          url: 'https://ko-fi.com/neelfrostrain',
-          cls: 'bg-orange-600/20 hover:bg-orange-600/30 border-orange-500/30'
-        }
-      ].map(({ label, icon, url, cls }) => (
+      {LINKS.map(({ label, icon, url, style }) => (
         <button
           key={label}
           onClick={() => window.electronAPI.openExternal(url)}
-          className={`flex items-center gap-2 px-3 py-2 ${cls} border rounded-lg text-sm transition-colors cursor-pointer`}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border transition-all cursor-pointer hover:opacity-80"
+          style={{ ...style, borderRadius: 'var(--radius)' }}
         >
-          {icon} {label}
+          {icon}
+          {label}
         </button>
       ))}
     </div>
-    <p className="text-xs text-white/40 flex items-center justify-center gap-1.5 tracking-wide uppercase font-medium">
-      <span>Made By</span>
+    <p className="text-[11px] uppercase tracking-widest font-medium" style={{ color: 'var(--color-text-muted)' }}>
+      Made by{' '}
       <button
-        onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain')}
-        className="text-white/80 hover:text-white transition-colors cursor-default"
+        onClick={() => window.electronAPI.openExternal(`${config.githubRepo.split('/').slice(0, 4).join('/')}`)}
+        className="transition-colors cursor-pointer hover:opacity-80"
+        style={{ color: 'var(--color-text-secondary)' }}
       >
         Neel Frostrain
       </button>

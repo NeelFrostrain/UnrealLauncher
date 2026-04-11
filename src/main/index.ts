@@ -14,7 +14,10 @@ app.commandLine.appendSwitch('disable-http-cache')
 app.commandLine.appendSwitch('disable-background-networking')
 app.commandLine.appendSwitch('renderer-process-limit', '1')
 app.commandLine.appendSwitch('enable-smooth-scrolling')
-app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors,TranslateUI,AutofillServerCommunication,AutofillEnableAccountWalletStorage')
+app.commandLine.appendSwitch(
+  'disable-features',
+  'OutOfBlinkCors,TranslateUI,AutofillServerCommunication,AutofillEnableAccountWalletStorage'
+)
 app.commandLine.appendSwitch('disable-extensions')
 app.commandLine.appendSwitch('disable-component-extensions-with-background-pages')
 app.commandLine.appendSwitch('disable-default-apps')

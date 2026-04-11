@@ -1,4 +1,5 @@
-import { Activity, FolderOpen } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Activity, FolderOpen, Cpu } from 'lucide-react'
 import { SectionHeader, Card, SettingRow, Toggle } from '../SectionHelpers'
 import { useTracerSettings } from '../../../hooks/useTracerSettings'
 
@@ -11,6 +12,12 @@ const TracerSection = (): React.ReactElement => {
     handleTracerAutoStartChange,
     handleTracerMergeChange
   } = useTracerSettings()
+
+  const [nativeLoaded, setNativeLoaded] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    window.electronAPI.getNativeStatus().then(setNativeLoaded)
+  }, [])
 
   return (
     <section>
@@ -38,14 +45,32 @@ const TracerSection = (): React.ReactElement => {
           className="flex items-center justify-between px-5 py-3"
           style={{ borderTop: '1px solid var(--color-border)' }}
         >
-          <div className="flex items-center gap-2">
-            <span
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: tracerRunning ? '#4ade80' : 'var(--color-border)' }}
-            />
-            <span className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-              {tracerRunning ? 'Running' : 'Not running'}
-            </span>
+          <div className="flex items-center gap-3">
+            {/* Tracer status */}
+            <div className="flex items-center gap-2">
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: tracerRunning ? '#4ade80' : 'var(--color-border)' }}
+              />
+              <span className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+                Tracer {tracerRunning ? 'running' : 'not running'}
+              </span>
+            </div>
+            {/* Native module status */}
+            {nativeLoaded !== null && (
+              <div className="flex items-center gap-1.5">
+                <Cpu
+                  size={11}
+                  style={{ color: nativeLoaded ? '#60a5fa' : 'var(--color-text-muted)' }}
+                />
+                <span
+                  className="text-[11px]"
+                  style={{ color: nativeLoaded ? '#60a5fa' : 'var(--color-text-muted)' }}
+                >
+                  Rust module {nativeLoaded ? 'loaded' : 'unavailable'}
+                </span>
+              </div>
+            )}
           </div>
           {tracerDataDir && (
             <button

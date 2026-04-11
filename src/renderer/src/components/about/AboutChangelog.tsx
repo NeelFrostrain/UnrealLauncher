@@ -1,4 +1,19 @@
-import { GitBranch, GitCommit, ExternalLink, Plus, Wrench } from 'lucide-react'
+import { GitBranch, GitCommit, Plus, Wrench } from 'lucide-react'
+
+// v2.0.0 commits
+const v200commits = [
+  { type: 'feat', msg: 'Feedback & bug report dialog with Discord webhook integration' },
+  { type: 'feat', msg: 'Join Discord button in titlebar' },
+  { type: 'feat', msg: 'Rust native module status indicator in Settings' },
+  { type: 'feat', msg: 'app.config.ts for Discord webhook and invite link configuration' },
+  { type: 'feat', msg: 'Show/hide titlebar buttons setting with real-time sync' },
+  { type: 'feat', msg: 'Project list card fully synced with theme — no hardcoded colors' },
+  { type: 'fix', msg: 'Git initialized menu item now disabled (not clickable) in list card' },
+  { type: 'fix', msg: 'Discord webhook routed through main process to bypass CSP' },
+  { type: 'fix', msg: 'fab-select-folder null window guard' },
+  { type: 'fix', msg: 'Unused imports cleared — Play in ProjectLogDialog, getSetting in useTracerSettings' },
+  { type: 'refactor', msg: 'Dashboard page removed — engines page is now the default route' },
+]
 
 // v1.9_dev vs main — commits from git log main..HEAD
 const v190commits = [
@@ -139,36 +154,19 @@ const VersionBlock = ({
 )
 
 const AboutChangelog = (): React.ReactElement => (
-  <div className="space-y-4">
-    <div className="flex items-center justify-between">
-      <h2 className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-        Changelog
-      </h2>
-      <button
-        onClick={() =>
-          window.electronAPI.openExternal(
-            'https://github.com/NeelFrostrain/UnrealLauncher/compare/main...v1.9_dev'
-          )
-        }
-        className="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg border cursor-pointer transition-colors hover:border-white/20"
-        style={{
-          color: 'var(--color-text-muted)',
-          borderColor: 'var(--color-border)',
-          backgroundColor: 'var(--color-surface-card)'
-        }}
-      >
-        <GitBranch size={11} />
-        Compare v1.9_dev → main on GitHub
-        <ExternalLink size={10} />
-      </button>
-    </div>
-
+  <div className="space-y-3">
+    <VersionBlock
+      version="2.0.0"
+      date="2026-04-11"
+      branch="main"
+      commits={v200commits}
+      isCurrent
+    />
     <VersionBlock
       version="1.9.0"
       date="2026-04-09"
       branch="v1.9_dev"
       commits={v190commits}
-      isCurrent
     />
     <VersionBlock version="1.8.0" date="2026-04-05" branch="main" commits={v180commits} />
   </div>

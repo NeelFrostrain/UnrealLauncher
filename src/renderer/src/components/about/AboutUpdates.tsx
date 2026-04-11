@@ -35,7 +35,7 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
     setUpdateMessage('Checking for updates...')
 
     const result = await window.electronAPI.checkForUpdates()
-    const currentVersion = appVersion || '1.7.0'
+    const currentVersion = appVersion || '2.0.0'
 
     if (result.success && result.updateInfo) {
       const latestVersion = String(result.updateInfo.version || '').replace(/^v/i, '')

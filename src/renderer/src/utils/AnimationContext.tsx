@@ -33,9 +33,13 @@ export const AnimationProvider = ({ children }: { children: ReactNode }): React.
         {/* CSS class on root disables CSS transitions/animations too */}
         <div
           id="animation-root"
-          style={animationsEnabled ? undefined : {
-            // Kill all CSS transitions and animations
-          }}
+          style={
+            animationsEnabled
+              ? undefined
+              : {
+                  // Kill all CSS transitions and animations
+                }
+          }
           className={animationsEnabled ? '' : 'no-animations'}
         >
           {children}

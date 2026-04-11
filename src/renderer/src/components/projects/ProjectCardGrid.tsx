@@ -191,13 +191,13 @@ const ProjectCardGrid = memo(
               {name}
             </p>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.55)' }}>
                 <Clock size={10} />
                 <span className="text-[10px]">
                   {dateType} {dateLabel}
                 </span>
               </div>
-              <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.55)' }}>
                 <Database size={10} />
                 <span className="text-[10px] font-mono">{currentSize}</span>
               </div>

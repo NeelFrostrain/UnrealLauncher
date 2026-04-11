@@ -86,25 +86,31 @@ const ProjectCard = memo(
       icon,
       label,
       onClick,
-      danger = false
+      danger = false,
+      disabled = false
     }: {
       icon: React.ReactNode
       label: string
       onClick: () => void
       danger?: boolean
+      disabled?: boolean
     }): React.ReactElement => (
       <button
         onClick={() => {
-          onClick()
-          setMenuOpen(false)
+          if (!disabled) {
+            onClick()
+            setMenuOpen(false)
+          }
         }}
-        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs transition-colors cursor-pointer"
+        disabled={disabled}
+        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default"
         style={{ color: danger ? '#f87171' : 'var(--color-text-secondary)' }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.backgroundColor = danger
-            ? 'rgba(248,113,113,0.08)'
-            : 'var(--color-surface-card)')
-        }
+        onMouseEnter={(e) => {
+          if (!disabled)
+            e.currentTarget.style.backgroundColor = danger
+              ? 'color-mix(in srgb, #f87171 8%, transparent)'
+              : 'var(--color-surface-card)'
+        }}
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
       >
         {icon}
@@ -170,8 +176,8 @@ const ProjectCard = memo(
                     className="flex items-center gap-1 text-[9px] font-mono px-1.5 py-px shrink-0"
                     style={{
                       borderRadius: 'calc(var(--radius) * 0.4)',
-                      backgroundColor: 'rgba(52,211,153,0.1)',
-                      border: '1px solid rgba(52,211,153,0.25)',
+                      backgroundColor: 'color-mix(in srgb, #34d399 10%, transparent)',
+                      border: '1px solid color-mix(in srgb, #34d399 25%, transparent)',
                       color: '#34d399'
                     }}
                   >
@@ -212,8 +218,8 @@ const ProjectCard = memo(
                 className="flex items-center p-1.5 cursor-pointer"
                 style={{
                   borderRadius: 'var(--radius)',
-                  backgroundColor: 'rgba(74,222,128,0.1)',
-                  border: '1px solid rgba(74,222,128,0.25)',
+                  backgroundColor: 'color-mix(in srgb, #4ade80 10%, transparent)',
+                  border: '1px solid color-mix(in srgb, #4ade80 25%, transparent)',
                   color: '#4ade80'
                 }}
                 title="Launch as Game"
@@ -226,8 +232,15 @@ const ProjectCard = memo(
                 whileTap={{ scale: 0.95 }}
                 onClick={handleLaunch}
                 disabled={launching}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer ${launching ? 'bg-green-600/70 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500'}`}
-                style={{ borderRadius: 'var(--radius)', color: 'var(--color-text-primary)' }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold cursor-pointer disabled:opacity-60"
+                style={{
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-text-primary)',
+                  boxShadow: launching
+                    ? 'none'
+                    : '0 2px 8px color-mix(in srgb, var(--color-accent) 30%, transparent)'
+                }}
               >
                 <Play size={13} className={launching ? 'animate-pulse' : ''} />
                 {launching ? 'Launching…' : 'Launch'}
@@ -290,6 +303,7 @@ const ProjectCard = memo(
                       icon={<GitBranch size={14} style={{ color: '#34d399' }} />}
                       label={`Git: ${git.branch}`}
                       onClick={() => {}}
+                      disabled
                     />
                   ) : (
                     <MenuItem

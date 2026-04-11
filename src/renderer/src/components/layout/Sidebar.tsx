@@ -3,12 +3,10 @@ import type { FC, ReactNode } from 'react'
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { PageType } from '../../types'
-import { Zap, Package, Settings, ChevronLeft, ChevronRight, MessageSquarePlus, MessageCircle } from 'lucide-react'
+import { Zap, Package, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
 import Engine_BG from '@renderer/assets/Engines_BG.webp'
 import Projects_BG from '@renderer/assets/Projects_BG.jpg'
 import Settings_BG from '@renderer/assets/Settings_BG.jpg'
-import FeedbackDialog from './FeedbackDialog'
-import { AnimatePresence as AP } from 'framer-motion'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -83,7 +81,6 @@ const CollapsedItem: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item,
 
 const Sidebar = (): React.ReactElement => {
   const location = useLocation()
-  const [dialog, setDialog] = useState<boolean>(false)
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('sidebarCollapsed') === 'true'
@@ -208,41 +205,6 @@ const Sidebar = (): React.ReactElement => {
         </AnimatePresence>
       </div>
 
-      {/* Bottom actions */}
-      <div className={`flex flex-col gap-1 pb-2 ${collapsed ? 'items-center px-1.5' : 'px-3'}`}
-        style={{ borderTop: '1px solid var(--color-border)', paddingTop: 8 }}>
-        {collapsed ? (
-          <>
-            <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
-              onClick={() => setDialog(true)}
-              className="w-9 h-9 rounded-lg flex items-center justify-center cursor-pointer"
-              style={{ color: 'var(--color-text-muted)' }} title="Feedback">
-              <MessageSquarePlus size={16} />
-            </motion.button>
-            <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
-              onClick={() => window.electronAPI.openExternal('https://discord.gg/your-invite')}
-              className="w-9 h-9 rounded-lg flex items-center justify-center cursor-pointer"
-              style={{ color: '#5865F2' }} title="Join Discord">
-              <MessageCircle size={16} />
-            </motion.button>
-          </>
-        ) : (
-          <div className="flex gap-1.5">
-            <button onClick={() => setDialog(true)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium cursor-pointer"
-              style={{ borderRadius: 'var(--radius)', backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}>
-              <MessageSquarePlus size={12} /> Feedback
-            </button>
-            <button
-              onClick={() => window.electronAPI.openExternal('https://discord.gg/your-invite')}
-              className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold cursor-pointer"
-              style={{ borderRadius: 'var(--radius)', backgroundColor: 'color-mix(in srgb, #5865F2 12%, transparent)', color: '#7289da', border: '1px solid color-mix(in srgb, #5865F2 25%, transparent)' }}>
-              <MessageCircle size={12} /> Discord
-            </button>
-          </div>
-        )}
-      </div>
-
       {/* Collapse toggle */}
       <div className={`pb-3 flex ${collapsed ? 'justify-center' : 'justify-end pr-3'}`}>
         <button
@@ -255,13 +217,6 @@ const Sidebar = (): React.ReactElement => {
         </button>
       </div>
 
-      {/* Feedback dialog */}
-      <AP mode="wait">
-        {dialog && (
-          <FeedbackDialog key="feedback" onClose={() => setDialog(false)} />
-        )}
-      </AP>
-
       {/* Drag handle — only when expanded */}
       {!collapsed && (
         <div
@@ -269,8 +224,8 @@ const Sidebar = (): React.ReactElement => {
           className="absolute top-0 right-0 w-1 h-full cursor-col-resize transition-colors z-10"
           style={{ backgroundColor: 'transparent' }}
           onMouseEnter={(e) =>
-          (e.currentTarget.style.backgroundColor =
-            'color-mix(in srgb, var(--color-accent) 40%, transparent)')
+            (e.currentTarget.style.backgroundColor =
+              'color-mix(in srgb, var(--color-accent) 40%, transparent)')
           }
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           title="Drag to resize"

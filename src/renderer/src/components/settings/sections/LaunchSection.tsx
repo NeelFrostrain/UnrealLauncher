@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Zap } from 'lucide-react'
 import { SectionHeader, Card, SettingRow, Toggle } from '../SectionHelpers'
 import { useAnimations } from '../../../utils/AnimationContext'
+import { getSetting, setSetting } from '../../../utils/settings'
 
 interface LaunchSectionProps {
   autoCloseOnLaunch: boolean
@@ -11,6 +12,9 @@ interface LaunchSectionProps {
 const LaunchSection = ({ autoCloseOnLaunch, onToggle }: LaunchSectionProps): React.ReactElement => {
   const [registryEngines, setRegistryEngines] = useState(true)
   const { animationsEnabled, toggleAnimations } = useAnimations()
+  const [showTitlebarButtons, setShowTitlebarButtons] = useState(() =>
+    getSetting('showTitlebarButtons')
+  )
 
   useEffect(() => {
     window.electronAPI.getRegistryEngines().then(setRegistryEngines)
@@ -45,9 +49,22 @@ const LaunchSection = ({ autoCloseOnLaunch, onToggle }: LaunchSectionProps): Rea
         <SettingRow
           label="UI Animations"
           description="Enable transitions and motion effects. Disable to reduce CPU/GPU usage and improve performance."
-          last
         >
           <Toggle on={animationsEnabled} onChange={toggleAnimations} />
+        </SettingRow>
+        <SettingRow
+          label="Show Feedback & Discord buttons"
+          description="Display the Feedback and Discord buttons in the titlebar."
+          last
+        >
+          <Toggle
+            on={showTitlebarButtons}
+            onChange={() => {
+              const next = !showTitlebarButtons
+              setShowTitlebarButtons(next)
+              setSetting('showTitlebarButtons', next)
+            }}
+          />
         </SettingRow>
       </Card>
     </section>

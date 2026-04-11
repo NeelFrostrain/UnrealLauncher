@@ -82,13 +82,17 @@ declare global {
       launchEngine: (exePath: string) => Promise<{ success: boolean; error?: string }>
       selectEngineFolder: () => Promise<EngineSelectionResult | null>
       deleteEngine: (directoryPath: string) => Promise<boolean>
-      calculateEngineSize: (directoryPath: string) => Promise<{ success: boolean; size?: string; error?: string }>
+      calculateEngineSize: (
+        directoryPath: string
+      ) => Promise<{ success: boolean; size?: string; error?: string }>
       // Projects
       scanProjects: () => Promise<ProjectData[]>
       launchProject: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       selectProjectFolder: () => Promise<ProjectSelectionResult | null>
       deleteProject: (projectPath: string) => Promise<boolean>
-      calculateProjectSize: (projectPath: string) => Promise<{ success: boolean; size?: string; error?: string }>
+      calculateProjectSize: (
+        projectPath: string
+      ) => Promise<{ success: boolean; size?: string; error?: string }>
       calculateAllProjectSizes: () => Promise<void>
       // Filesystem
       openDirectory: (dirPath: string) => Promise<void>
@@ -113,7 +117,14 @@ declare global {
         message?: string
         error?: string
       }>
-      onDownloadProgress: (callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void) => () => void
+      onDownloadProgress: (
+        callback: (progress: {
+          percent: number
+          bytesPerSecond: number
+          transferred: number
+          total: number
+        }) => void
+      ) => () => void
       // Tracer / startup
       getTracerStartup: () => Promise<boolean>
       setTracerStartup: (enabled: boolean) => Promise<void>
@@ -123,6 +134,11 @@ declare global {
       setTracerMerge: (enabled: boolean) => Promise<void>
       getRegistryEngines: () => Promise<boolean>
       setRegistryEngines: (enabled: boolean) => Promise<void>
+      sendDiscordWebhook: (
+        webhookUrl: string,
+        payload: string
+      ) => Promise<{ ok: boolean; status: number }>
+      getNativeStatus: () => Promise<boolean>
       clearAppData: () => Promise<void>
       clearTracerData: () => Promise<void>
       scanMarketplacePlugins: (engineDir: string) => Promise<MarketplacePlugin[]>
@@ -133,8 +149,23 @@ declare global {
       fabSavePath: (folderPath: string) => Promise<void>
       fabLoadPath: () => Promise<string>
       // Project tools
-      projectReadLog: (projectPath: string, fromByte?: number) => Promise<{ logPath: string; content: string; sizeBytes: number; startByte: number } | null>
-      projectGitStatus: (projectPath: string) => Promise<{ initialized: boolean; branch: string; hasUncommitted: boolean; ahead: number; behind: number; remoteUrl: string }>
+      projectReadLog: (
+        projectPath: string,
+        fromByte?: number
+      ) => Promise<{
+        logPath: string
+        content: string
+        sizeBytes: number
+        startByte: number
+      } | null>
+      projectGitStatus: (projectPath: string) => Promise<{
+        initialized: boolean
+        branch: string
+        hasUncommitted: boolean
+        ahead: number
+        behind: number
+        remoteUrl: string
+      }>
       projectGitInit: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       projectLaunchGame: (projectPath: string) => Promise<{ success: boolean; error?: string }>
     }

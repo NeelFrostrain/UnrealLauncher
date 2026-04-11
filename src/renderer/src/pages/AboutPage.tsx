@@ -1,118 +1,124 @@
 import PageWrapper from '../layout/PageWrapper'
-import AboutFeatures from '../components/about/AboutFeatures'
-import AboutUsage from '../components/about/AboutUsage'
-import { AboutFooter } from '../components/about/AboutInfo'
-import { Sparkles, GitBranch, ExternalLink } from 'lucide-react'
+import { AboutFooter } from '../components/about/AboutFooter'
+import {
+  Zap,
+  FolderOpen,
+  Star,
+  HardDrive,
+  Cpu,
+  Palette,
+  RefreshCw,
+  Shield,
+  LayoutGrid,
+  Activity,
+  Store,
+  GitBranch as GitIcon,
+  FileText,
+  Sparkles
+} from 'lucide-react'
+import { SectionHeader, Card } from '../components/settings/SectionHelpers'
 
-const highlights = [
-  {
-    emoji: '🎨',
-    title: 'Theme System',
-    desc: 'Built-in themes, per-token overrides, saveable profiles, and border radius control'
-  },
-  {
-    emoji: '🔤',
-    title: 'Font Customization',
-    desc: 'Choose font family and size for the entire UI'
-  },
-  { emoji: '⚡', title: 'Splash Screen', desc: 'Animated loading screen on startup' },
-  { emoji: '📐', title: 'Resizable Sidebar', desc: 'Drag to resize or collapse the sidebar' },
-  {
-    emoji: '🦀',
-    title: 'UE Tracer',
-    desc: 'Rust background process tracking engine and project usage'
-  },
-  {
-    emoji: '🧵',
-    title: 'Worker Threads',
-    desc: 'Scanning and size calculation run off the main thread'
-  }
+// ── Feature grid ──────────────────────────────────────────────────────────────
+
+const features = [
+  { icon: <FolderOpen size={14} className="text-blue-400" />,   label: 'Auto-Scan',        desc: 'Finds UE4 & UE5 installs and .uproject files automatically' },
+  { icon: <Zap size={14} className="text-yellow-400" />,        label: 'One-Click Launch',  desc: 'Start any engine or project instantly, no Epic Launcher needed' },
+  { icon: <LayoutGrid size={14} className="text-purple-400" />, label: 'List & Grid View',  desc: 'Toggle layouts for projects, preference persisted across sessions' },
+  { icon: <Star size={14} className="text-orange-400" />,       label: 'Favorites & Recent',desc: 'Pin projects and track recently opened ones by timestamp' },
+  { icon: <HardDrive size={14} className="text-cyan-400" />,    label: 'Size Calculation',  desc: 'Background worker calculates folder sizes without blocking the UI' },
+  { icon: <Cpu size={14} className="text-green-400" />,         label: 'UE Tracer',         desc: 'Rust background process tracking engine and project usage' },
+  { icon: <Store size={14} className="text-pink-400" />,        label: 'Fab Browser',       desc: 'Browse downloaded Fab marketplace assets directly in the app' },
+  { icon: <GitIcon size={14} className="text-emerald-400" />,   label: 'Git Integration',   desc: 'Detect git status, branch, remote URL, and init new repos' },
+  { icon: <FileText size={14} className="text-sky-400" />,      label: 'Log Viewer',        desc: 'Tail the latest .log file from Saved/Logs inside the app' },
+  { icon: <Palette size={14} className="text-rose-400" />,      label: 'Theme System',      desc: 'Built-in themes, per-token overrides, profiles, radius & font controls' },
+  { icon: <RefreshCw size={14} className="text-indigo-400" />,  label: 'Auto Updates',      desc: 'GitHub Releases-based updater with download and install flow' },
+  { icon: <Activity size={14} className="text-red-400" />,      label: 'Performance',       desc: 'Scroll virtualization, worker threads, and lazy-loaded pages' },
+  { icon: <Shield size={14} className="text-teal-400" />,       label: 'Single Instance',   desc: 'Second launch focuses the existing window instead of duplicating' },
 ]
 
-const WhatsNew = (): React.ReactElement => (
-  <div>
-    <h2
-      className="text-xl font-bold mb-4 flex items-center gap-2"
-      style={{ color: 'var(--color-text-primary)' }}
-    >
-      <Sparkles size={20} className="text-yellow-400" />
-      What&apos;s New in v1.9.0
-    </h2>
+const FeatureGrid = (): React.ReactElement => (
+  <section>
+    <SectionHeader
+      icon={<Sparkles size={13} className="text-yellow-300" />}
+      label="Features"
+      accent="bg-yellow-500/20"
+    />
     <div
-      className="overflow-hidden"
+      className="grid gap-px overflow-hidden"
       style={{
-        backgroundColor: 'var(--color-surface-elevated)',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+        backgroundColor: 'var(--color-border)',
         border: '1px solid var(--color-border)',
         borderRadius: 'var(--radius)'
       }}
     >
-      {/* Banner */}
-      <div
-        className="px-6 py-4 flex items-center justify-between border-b"
-        style={{
-          borderColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
-          background:
-            'linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent)'
-        }}
-      >
-        <div>
-          <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-            v1.9_dev — 17 commits ahead of main
-          </p>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
-            Branch comparison: v1.9_dev → main
+      {features.map(({ icon, label, desc }) => (
+        <div
+          key={label}
+          className="flex flex-col gap-1.5 px-4 py-3"
+          style={{ backgroundColor: 'var(--color-surface-elevated)' }}
+        >
+          <div className="flex items-center gap-2">
+            {icon}
+            <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              {label}
+            </span>
+          </div>
+          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+            {desc}
           </p>
         </div>
-        <button
-          onClick={() =>
-            window.electronAPI.openExternal(
-              'https://github.com/NeelFrostrain/UnrealLauncher/compare/main...v1.9_dev'
-            )
-          }
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border cursor-pointer transition-colors hover:bg-white/5"
-          style={{
-            color: 'var(--color-accent)',
-            borderColor: 'color-mix(in srgb, var(--color-accent) 35%, transparent)'
-          }}
-        >
-          <GitBranch size={12} />
-          Compare on GitHub
-          <ExternalLink size={11} />
-        </button>
-      </div>
+      ))}
+    </div>
+  </section>
+)
 
-      {/* Highlights */}
-      <div
-        className="p-6 grid gap-3"
-        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}
-      >
-        {highlights.map(({ emoji, title, desc }) => (
-          <div key={title} className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-base">{emoji}</span>
-              <span
-                className="text-sm font-semibold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                {title}
-              </span>
-            </div>
-            <p className="text-xs ml-7" style={{ color: 'var(--color-text-muted)' }}>
-              {desc}
-            </p>
-          </div>
+// ── Stack ─────────────────────────────────────────────────────────────────────
+
+const stack = [
+  { label: 'React 19',        color: 'text-cyan-400'   },
+  { label: 'TypeScript 5.9',  color: 'text-blue-400'   },
+  { label: 'Electron 39',     color: 'text-purple-400' },
+  { label: 'Vite 7',          color: 'text-yellow-400' },
+  { label: 'Tailwind CSS 4',  color: 'text-sky-400'    },
+  { label: 'Zustand 5',       color: 'text-orange-400' },
+  { label: 'Framer Motion 12',color: 'text-pink-400'   },
+  { label: 'Rust (napi-rs)',  color: 'text-red-400'    },
+]
+
+const StackSection = (): React.ReactElement => (
+  <section>
+    <SectionHeader
+      icon={<Cpu size={13} className="text-purple-300" />}
+      label="Built With"
+      accent="bg-purple-500/20"
+    />
+    <Card>
+      <div className="px-5 py-4 flex flex-wrap gap-2">
+        {stack.map(({ label, color }) => (
+          <span
+            key={label}
+            className={`text-xs font-mono px-2.5 py-1 rounded-md border ${color}`}
+            style={{
+              backgroundColor: 'var(--color-surface-card)',
+              borderColor: 'var(--color-border)'
+            }}
+          >
+            {label}
+          </span>
         ))}
       </div>
-    </div>
-  </div>
+    </Card>
+  </section>
 )
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement => {
   const content = (
     <div className="space-y-6 pb-8 p-5">
-      <WhatsNew />
-      <AboutFeatures />
-      <AboutUsage />
+      <FeatureGrid />
+      <StackSection />
       <AboutFooter />
     </div>
   )
