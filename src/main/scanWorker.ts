@@ -248,12 +248,15 @@ function runScanProjects(saved: Project[]): Project[] {
     'D:\\Unreal\\Projects'
   ]
 
-  const scanned: Project[] = []
+  const scannedByPath = new Map<string, Project>()
   for (const searchPath of searchPaths) {
     if (!fs.existsSync(searchPath)) continue
     for (const uprojectPath of findUprojectFiles(searchPath)) {
       try {
         const projectDir = path.dirname(uprojectPath)
+        const projectKey = path.normalize(projectDir).toLowerCase()
+        if (scannedByPath.has(projectKey)) continue
+
         const projectName = path.basename(uprojectPath, '.uproject') || path.basename(projectDir)
         const stats = fs.statSync(projectDir)
         let version = 'Unknown'
@@ -265,8 +268,8 @@ function runScanProjects(saved: Project[]): Project[] {
         } catch {
           /* keep Unknown */
         }
-        const existing = saved.find((p) => p.projectPath === projectDir)
-        scanned.push({
+        const existing = saved.find((p) => p.projectPath && path.normalize(p.projectPath).toLowerCase() === projectKey)
+        scannedByPath.set(projectKey, {
           name: projectName,
           version,
           size: existing?.size || '~2-5 GB',
@@ -281,19 +284,21 @@ function runScanProjects(saved: Project[]): Project[] {
     }
   }
 
-  // Dedupe scanned projects by projectPath to prevent duplicates
-  const uniqueScanned = scanned.filter((s, index, self) => 
-    self.findIndex(x => x.projectPath === s.projectPath) === index
-  )
-
   const merged: Project[] = []
-  for (const s of uniqueScanned) {
-    const existing = saved.find((p) => p.projectPath === s.projectPath)
+  const mergedKeys = new Set<string>()
+  for (const s of scannedByPath.values()) {
+    const normalized = path.normalize(s.projectPath).toLowerCase()
+    if (mergedKeys.has(normalized)) continue
+    const existing = saved.find((p) => p.projectPath && path.normalize(p.projectPath).toLowerCase() === normalized)
     if (existing?.size && !existing.size.startsWith('~')) s.size = existing.size
+    mergedKeys.add(normalized)
     merged.push(s)
   }
   for (const p of saved) {
-    if (!merged.find((m) => m.projectPath === p.projectPath)) {
+    if (!p.projectPath) continue
+    const normalized = path.normalize(p.projectPath).toLowerCase()
+    if (!mergedKeys.has(normalized)) {
+      mergedKeys.add(normalized)
       merged.push({ ...p, lastOpenedAt: findLatestLogTimestamp(p.projectPath) || p.lastOpenedAt })
     }
   }

@@ -153,11 +153,17 @@ export function saveEngines(engines: Engine[]): void {
 
 // ── Projects ──────────────────────────────────────────────────────────────────
 
+function normalizeProjectPath(projectPath: string): string {
+  return path.normalize(projectPath).toLowerCase()
+}
+
 function dedupeProjects(projects: Project[]): Project[] {
   const seen = new Set<string>()
   return projects.filter((project) => {
-    if (!project.projectPath || seen.has(project.projectPath)) return false
-    seen.add(project.projectPath)
+    if (!project.projectPath) return false
+    const normalizedPath = normalizeProjectPath(project.projectPath)
+    if (seen.has(normalizedPath)) return false
+    seen.add(normalizedPath)
     return true
   })
 }

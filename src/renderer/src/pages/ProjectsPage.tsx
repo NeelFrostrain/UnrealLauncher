@@ -43,6 +43,16 @@ const ProjectsPage = (): React.ReactElement => {
 
   const allProjectsRef = useRef<Project[]>([])
 
+  const dedupeProjectList = useCallback((source: Project[]): Project[] => {
+    const seen = new Set<string>()
+    return source.filter((project) => {
+      const key = project.projectPath?.toLowerCase()
+      if (!key || seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  }, [])
+
   const handleListScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget
     const scrollTop = container.scrollTop
@@ -57,9 +67,10 @@ const ProjectsPage = (): React.ReactElement => {
       try {
         const scannedProjects = await window.electronAPI.scanProjects()
         clearGitCache()
-        allProjectsRef.current = scannedProjects
+        const dedupedProjects = dedupeProjectList(scannedProjects)
+        allProjectsRef.current = dedupedProjects
         const favs = JSON.parse(localStorage.getItem('projectFavorites') || '[]') as string[]
-        const filtered = filterForTab(tab, scannedProjects, favs)
+        const filtered = filterForTab(tab, dedupedProjects, favs)
         setProjects(filtered)
         return filtered
       } catch (err) {
@@ -69,7 +80,7 @@ const ProjectsPage = (): React.ReactElement => {
         setLoading(false)
       }
     },
-    [filterForTab]
+    [dedupeProjectList, filterForTab]
   )
 
   const { handleRefresh, handleLaunch, handleOpenDir, handleDelete, handleAddProject } =
