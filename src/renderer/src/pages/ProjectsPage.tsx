@@ -43,15 +43,21 @@ const ProjectsPage = (): React.ReactElement => {
 
   const allProjectsRef = useRef<Project[]>([])
 
+  const normalizeProjectPath = useCallback((projectPath: string): string => {
+    return projectPath.replace(/\\/g, '/').toLowerCase()
+  }, [])
+
   const dedupeProjectList = useCallback((source: Project[]): Project[] => {
     const seen = new Set<string>()
     return source.filter((project) => {
-      const key = project.projectPath?.toLowerCase()
-      if (!key || seen.has(key)) return false
+      const rawPath = project.projectPath
+      if (!rawPath) return false
+      const key = normalizeProjectPath(rawPath)
+      if (seen.has(key)) return false
       seen.add(key)
       return true
     })
-  }, [])
+  }, [normalizeProjectPath])
 
   const handleListScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget

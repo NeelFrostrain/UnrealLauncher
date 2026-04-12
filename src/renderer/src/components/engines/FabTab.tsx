@@ -212,9 +212,10 @@ const FabTab = (): React.ReactElement => {
               {[
                 { n: '1', text: 'Open the Epic Games Launcher' },
                 { n: '2', text: 'Click your profile icon → Settings' },
-                { n: '3', text: 'Scroll to Advanced Settings' },
-                { n: '4', text: 'Find "Fab Library Data Cache Directory" and copy the path' },
-                { n: '5', text: 'Paste or browse to that path below' }
+                { n: '3', text: 'Click "Download Settings"' },
+                { n: '4', text: 'Scroll to Advanced' },
+                { n: '5', text: 'Find "Fab Library Data Cache Directory" and copy the path' },
+                { n: '6', text: 'Paste or browse to that path below' }
               ].map(({ n, text }) => (
                 <div
                   key={n}

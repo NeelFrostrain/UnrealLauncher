@@ -240,7 +240,9 @@ function runScanEngines(saved: Engine[]): Engine[] {
 
   return merged.filter((e) => fs.existsSync(e.exePath))
 }
-
+function normalizeProjectPath(projectPath: string): string {
+  return path.normalize(projectPath).toLowerCase()
+}
 function runScanProjects(saved: Project[]): Project[] {
   const searchPaths = [
     path.join(os.homedir(), 'Documents', 'Unreal Projects'),
@@ -268,7 +270,7 @@ function runScanProjects(saved: Project[]): Project[] {
         } catch {
           /* keep Unknown */
         }
-        const existing = saved.find((p) => p.projectPath && path.normalize(p.projectPath).toLowerCase() === projectKey)
+        const existing = saved.find((p) => p.projectPath && normalizeProjectPath(p.projectPath) === projectKey)
         scannedByPath.set(projectKey, {
           name: projectName,
           version,
@@ -287,16 +289,16 @@ function runScanProjects(saved: Project[]): Project[] {
   const merged: Project[] = []
   const mergedKeys = new Set<string>()
   for (const s of scannedByPath.values()) {
-    const normalized = path.normalize(s.projectPath).toLowerCase()
+    const normalized = normalizeProjectPath(s.projectPath)
     if (mergedKeys.has(normalized)) continue
-    const existing = saved.find((p) => p.projectPath && path.normalize(p.projectPath).toLowerCase() === normalized)
+    const existing = saved.find((p) => p.projectPath && normalizeProjectPath(p.projectPath) === normalized)
     if (existing?.size && !existing.size.startsWith('~')) s.size = existing.size
     mergedKeys.add(normalized)
     merged.push(s)
   }
   for (const p of saved) {
     if (!p.projectPath) continue
-    const normalized = path.normalize(p.projectPath).toLowerCase()
+    const normalized = normalizeProjectPath(p.projectPath)
     if (!mergedKeys.has(normalized)) {
       mergedKeys.add(normalized)
       merged.push({ ...p, lastOpenedAt: findLatestLogTimestamp(p.projectPath) || p.lastOpenedAt })
