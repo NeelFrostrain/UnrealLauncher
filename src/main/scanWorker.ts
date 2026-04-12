@@ -281,8 +281,13 @@ function runScanProjects(saved: Project[]): Project[] {
     }
   }
 
+  // Dedupe scanned projects by projectPath to prevent duplicates
+  const uniqueScanned = scanned.filter((s, index, self) => 
+    self.findIndex(x => x.projectPath === s.projectPath) === index
+  )
+
   const merged: Project[] = []
-  for (const s of scanned) {
+  for (const s of uniqueScanned) {
     const existing = saved.find((p) => p.projectPath === s.projectPath)
     if (existing?.size && !existing.size.startsWith('~')) s.size = existing.size
     merged.push(s)

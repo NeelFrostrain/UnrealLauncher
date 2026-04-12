@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.3] - 2026-04-12 — `v2.0.3`
+
+### 🛠️ Fixed
+
+- Prevent duplicate project cards when switching between tabs or pressing refresh by deduplicating scanned projects
+
+---
+
 ## [2.0.2] - 2026-04-12 — `v2.0.2`
 
 ### 🛠️ Fixed
