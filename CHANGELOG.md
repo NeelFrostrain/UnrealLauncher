@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.2] - 2026-04-12 — `v2.0.2`
+
+### 🛠️ Fixed
+
+- Checks only directory path (which is guaranteed to be unique) For Preventing duplicate engines 
+
 ---
 
 ## [2.0.1] - 2026-04-11 — `v2.0.1`

@@ -55,7 +55,6 @@ const Hero = (): React.ReactElement => (
     />
     <div className="relative">
       <div className="flex items-center justify-center gap-2 mb-3">
-        <Rocket size={22} style={{ color: 'var(--color-accent)' }} />
         <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
           Unreal Launcher
         </h1>
@@ -66,7 +65,7 @@ const Hero = (): React.ReactElement => (
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2">
         {[
-          { label: 'Version', value: '2.0.1' },
+          { label: 'Version', value: '2.0.2' },
           { label: 'Features', value: '44' },
           { label: 'IPC Channels', value: '30+' },
           { label: 'License', value: 'Proprietary' },
