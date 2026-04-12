@@ -10,4 +10,4 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 Write-Host "Running as Administrator"
 Set-Location "E:\Projects\UnrealLauncher"
-npm run build:unpack && npm run build:win
+npm run build:win

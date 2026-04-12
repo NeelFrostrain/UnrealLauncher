@@ -65,7 +65,7 @@ const Hero = (): React.ReactElement => (
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2">
         {[
-          { label: 'Version', value: '2.0.3' },
+          { label: 'Version', value: '2.0.4' },
           { label: 'Features', value: '44' },
           { label: 'IPC Channels', value: '30+' },
           { label: 'License', value: 'Proprietary' },

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.4] - 2026-04-13 — `v2.0.4`
+
+### 🛠️ Fixed
+
+- Improved project deduplication with path normalization to prevent duplicate cards on tab switches and refreshes
+
+---
+
 ## [2.0.3] - 2026-04-12 — `v2.0.3`
 
 ### 🛠️ Fixed

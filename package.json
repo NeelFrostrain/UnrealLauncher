@@ -1,13 +1,13 @@
 {
   "name": "unreal-launcher",
   "productName": "Unreal Launcher",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "NeelFrostrain",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://neelfrostrain.github.io/UnrealLauncher/",
-  "download:win": "https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v2.0.3/unreal-launcher-2.0.3-setup.exe",
+  "download:win": "https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v2.0.4/unreal-launcher-2.0.4-setup.exe",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
