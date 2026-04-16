@@ -55,7 +55,7 @@ const ProjectCard = memo(
     })
     const menuBtnRef = useRef<HTMLButtonElement>(null)
 
-    const displayName = name || projectPath.split(/[/\\]/).pop() || 'Unknown Project'
+    const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
     const imageSrc = thumbnail ? `local-asset:///${thumbnail.replace(/\\/g, '/')}` : null
 
     useEffect(() => {
@@ -68,14 +68,22 @@ const ProjectCard = memo(
     const handleLaunch = async (): Promise<void> => {
       if (!projectPath) return
       setLaunching(true)
-      onLaunch(projectPath)
-      setTimeout(() => setLaunching(false), 3000)
+      try {
+        await onLaunch(projectPath)
+      } finally {
+        setLaunching(false)
+      }
     }
 
     const handleLaunchGame = async (): Promise<void> => {
       if (!projectPath) return
-      const result = await window.electronAPI.projectLaunchGame(projectPath)
-      if (!result.success) showErrorToast(result.error ?? 'Failed to launch as game')
+      setLaunching(true)
+      try {
+        const result = await window.electronAPI.projectLaunchGame(projectPath)
+        if (!result.success) showErrorToast(result.error ?? 'Failed to launch as game')
+      } finally {
+        setLaunching(false)
+      }
     }
 
     const handleGitInit = async (): Promise<void> => {

@@ -43,7 +43,7 @@ const ProjectCardGrid = memo(
       branch: ''
     })
 
-    const displayName = name || projectPath.split(/[/\\]/).pop() || 'Unknown Project'
+    const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
     const imageSrc = thumbnail
       ? `local-asset:///${thumbnail.replace(/\\/g, '/')}`
       : resolveAsset(undefined)
@@ -55,11 +55,14 @@ const ProjectCardGrid = memo(
       if (projectPath) getGitStatus(projectPath).then((s) => setGit(s))
     }, [projectPath])
 
-    const handleClick = useCallback((): void => {
+    const handleClick = useCallback(async (): Promise<void> => {
       if (!projectPath || launching) return
       setLaunching(true)
-      onLaunch(projectPath)
-      setTimeout(() => setLaunching(false), 3000)
+      try {
+        await onLaunch(projectPath)
+      } finally {
+        setLaunching(false)
+      }
     }, [projectPath, launching, onLaunch])
 
     const handleContextMenu = useCallback((e: React.MouseEvent): void => {
@@ -75,9 +78,14 @@ const ProjectCardGrid = memo(
 
     const handleLaunchGame = useCallback(async (): Promise<void> => {
       if (!projectPath) return
-      const result = await window.electronAPI.projectLaunchGame(projectPath)
-      if (!result.success) showErrorToast(result.error ?? 'Failed to launch as game')
-    }, [projectPath])
+      setLaunching(true)
+      try {
+        const result = await window.electronAPI.projectLaunchGame(projectPath)
+        if (!result.success) showErrorToast(result.error ?? 'Failed to launch as game')
+      } finally {
+        setLaunching(false)
+      }
+    }, [projectPath, showErrorToast])
 
     const dateLabel = lastOpenedAt ? formatDate(lastOpenedAt) : createdAt
     const dateType = lastOpenedAt ? 'Opened' : 'Created'

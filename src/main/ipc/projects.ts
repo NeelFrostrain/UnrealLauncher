@@ -14,12 +14,17 @@ import { spawnWorker } from './workers'
 import { PROJECT_SCAN_WORKER } from './scanWorkers'
 import type { Project, ProjectSelectionResult } from '../types'
 
-function locateUproject(projectPath: string): string | null {
+async function locateUproject(projectPath: string): Promise<string | null> {
   const projectName = path.basename(projectPath)
   const direct = path.join(projectPath, `${projectName}.uproject`)
-  if (fs.existsSync(direct)) return direct
   try {
-    const files = fs.readdirSync(projectPath)
+    await fs.promises.access(direct)
+    return direct
+  } catch {
+    // File doesn't exist, continue to find any .uproject
+  }
+  try {
+    const files = await fs.promises.readdir(projectPath)
     const uprojectFile = files.find((file) => file.endsWith('.uproject'))
     return uprojectFile ? path.join(projectPath, uprojectFile) : null
   } catch {
@@ -142,7 +147,7 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle(
     'launch-project',
     async (_event, projectPath): Promise<Record<string, unknown>> => {
-      const uprojectPath = locateUproject(projectPath)
+      const uprojectPath = await locateUproject(projectPath)
       if (!uprojectPath) return { success: false, error: 'Project file not found' }
       try {
         if (process.platform === 'win32') exec(`start "" "${uprojectPath}"`)
@@ -157,13 +162,14 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle(
     'launch-project-game',
     async (_event, projectPath): Promise<Record<string, unknown>> => {
-      const uprojectPath = locateUproject(projectPath)
+      const uprojectPath = await locateUproject(projectPath)
       if (!uprojectPath) return { success: false, error: 'Project file not found' }
 
       // Read engine association from .uproject
       let engineAssociation = ''
       try {
-        const json = JSON.parse(fs.readFileSync(uprojectPath, 'utf8'))
+        const content = await fs.promises.readFile(uprojectPath, 'utf8')
+        const json = JSON.parse(content)
         engineAssociation = json.EngineAssociation ?? ''
       } catch {
         /* ignore */
@@ -190,7 +196,17 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
         editorExe = engines[0].exePath
       }
 
-      if (!editorExe || !fs.existsSync(editorExe)) {
+      if (!editorExe) {
+        return {
+          success: false,
+          error: `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab first.`
+        }
+      }
+
+      // Check if editor exe exists with async access
+      try {
+        await fs.promises.access(editorExe)
+      } catch {
         return {
           success: false,
           error: `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab first.`
