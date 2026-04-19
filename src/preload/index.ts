@@ -79,6 +79,9 @@ if (process.contextIsolated) {
       getNativeStatus: () => ipcRenderer.invoke('get-native-status'),
       clearAppData: () => ipcRenderer.invoke('clear-app-data'),
       clearTracerData: () => ipcRenderer.invoke('clear-tracer-data'),
+      getMainSettings: () => ipcRenderer.invoke('get-main-settings'),
+      saveMainSettings: (settings) => ipcRenderer.invoke('save-main-settings', settings),
+      selectFolder: () => ipcRenderer.invoke('select-folder'),
       scanMarketplacePlugins: (engineDir: string) =>
         ipcRenderer.invoke('scan-marketplace-plugins', engineDir),
       fabGetDefaultPath: () => ipcRenderer.invoke('fab-get-default-path'),

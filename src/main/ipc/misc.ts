@@ -2,8 +2,8 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { ipcMain, app, shell } from 'electron'
-import { clearAppData, clearTracerData } from '../store'
+import { ipcMain, app, shell, dialog } from 'electron'
+import { clearAppData, clearTracerData, loadMainSettings, saveMainSettings } from '../store'
 import { getIsMaximized, handleWindowMinimize, handleWindowMaximize } from '../window'
 import { getNative } from '../utils/native'
 
@@ -125,5 +125,23 @@ export function registerMiscHandlers(ipcMain_: typeof ipcMain): void {
 
   ipcMain_.handle('clear-tracer-data', (): void => {
     clearTracerData()
+  })
+
+  ipcMain_.handle('get-main-settings', (): any => {
+    return loadMainSettings()
+  })
+
+  ipcMain_.handle('save-main-settings', (_event, settings: any): void => {
+    saveMainSettings(settings)
+  })
+
+  ipcMain_.handle('select-folder', async (): Promise<string[] | null> => {
+    const win = (await import('../window')).getMainWindow()
+    if (!win) return null
+    const result = await dialog.showOpenDialog(win, {
+      title: 'Select Folder',
+      properties: ['openDirectory']
+    })
+    return result.canceled ? null : result.filePaths
   })
 }

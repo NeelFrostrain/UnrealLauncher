@@ -55,6 +55,7 @@ interface MainSettings {
   tracerMergeEnabled: boolean
   tracerStartupEnabled: boolean
   registryEnginesEnabled: boolean
+  projectScanPaths?: string[]
 }
 
 const defaultMainSettings: MainSettings = {

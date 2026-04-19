@@ -6,7 +6,7 @@ import { ipcMain, dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { exec, spawn } from 'child_process'
-import { loadProjects, saveProjects, mergeTracerProjects, loadEngines } from '../store'
+import { loadProjects, saveProjects, mergeTracerProjects, loadEngines, loadMainSettings } from '../store'
 import { findUprojectFiles, findProjectScreenshot, formatBytes, getFullFolderSize } from '../utils'
 import { getNativeModulePath } from '../utils/native'
 import { getMainWindow } from '../window'
@@ -36,8 +36,9 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('scan-projects', async (): Promise<Project[]> => {
     const raw = mergeTracerProjects(loadProjects())
     const saved = Array.isArray(raw) ? raw : []
+    const settings = loadMainSettings()
     return new Promise((resolve, reject) => {
-      const w = spawnWorker(PROJECT_SCAN_WORKER, { saved, nativePath: getNativeModulePath() })
+      const w = spawnWorker(PROJECT_SCAN_WORKER, { saved, nativePath: getNativeModulePath(), customScanPaths: settings.projectScanPaths || [] })
       w.once('message', resolve)
       w.once('error', reject)
       w.once('exit', (c: number) => {

@@ -57,6 +57,13 @@ const searchPaths = [
   'C:\\\\Users\\\\Public\\\\Documents\\\\Unreal Projects',
   'D:\\\\Unreal\\\\Projects'
 ];
+if (Array.isArray(workerData.customScanPaths)) {
+  for (const customPath of workerData.customScanPaths) {
+    if (customPath && fs.existsSync(customPath)) {
+      searchPaths.push(customPath);
+    }
+  }
+}
 const scanned = [];
 for (const sp of searchPaths) {
   if (!fs.existsSync(sp)) continue;

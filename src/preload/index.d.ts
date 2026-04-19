@@ -145,6 +145,9 @@ declare global {
       getNativeStatus: () => Promise<boolean>
       clearAppData: () => Promise<void>
       clearTracerData: () => Promise<void>
+      getMainSettings: () => Promise<any>
+      saveMainSettings: (settings: any) => Promise<void>
+      selectFolder: () => Promise<string[] | null>
       scanMarketplacePlugins: (engineDir: string) => Promise<MarketplacePlugin[]>
       // Fab cache
       fabGetDefaultPath: () => Promise<string>

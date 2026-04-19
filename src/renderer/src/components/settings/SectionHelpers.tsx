@@ -6,15 +6,17 @@ export const SettingRow = ({
   label,
   description,
   children,
-  last = false
+  last = false,
+  className
 }: {
   label: string
   description?: string
   children: React.ReactNode
   last?: boolean
+  className?: string
 }): React.ReactElement => (
   <div
-    className={`flex items-center justify-between gap-6 px-5 py-4`}
+    className={`flex items-center justify-between gap-6 px-5 py-4 ${className || ''}`}
     style={!last ? { borderBottom: '1px solid var(--color-border)' } : undefined}
   >
     <div className="min-w-0">
@@ -77,9 +79,9 @@ export const SectionHeader = ({
   </div>
 )
 
-export const Card = ({ children }: { children: React.ReactNode }): React.ReactElement => (
+export const Card = ({ children }: { children: React.ReactNode; }): React.ReactElement => (
   <div
-    className="overflow-hidden"
+    className={`overflow-hidden`}
     style={{
       backgroundColor: 'var(--color-surface-elevated)',
       border: '1px solid var(--color-border)',
