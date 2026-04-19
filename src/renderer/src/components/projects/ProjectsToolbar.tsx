@@ -14,6 +14,7 @@ interface ProjectsToolbarProps {
   searchOpen: boolean
   searchQuery: string
   refreshing: boolean
+  backgroundScanning: boolean
   calculatingSizes: boolean
   addingProject: boolean
   viewMode: ViewMode
@@ -31,6 +32,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
   searchOpen,
   searchQuery,
   refreshing,
+  backgroundScanning,
   addingProject,
   viewMode,
   onTabClick,
@@ -183,7 +185,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
           }}
         >
           <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
-          {refreshing ? 'Refreshing…' : 'Refresh'}
+          {refreshing ? 'Refreshing…' : backgroundScanning ? 'Scanning…' : 'Refresh'}
         </button>
 
         {/* Add Project */}

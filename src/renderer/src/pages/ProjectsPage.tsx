@@ -19,7 +19,7 @@ import { clearGitCache } from '../hooks/useGitStatus'
 const ProjectsPage = (): React.ReactElement => {
   const location = useLocation()
   const [projects, setProjects] = useState<Project[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [currentTab, setCurrentTab] = useState<TabType>(() => {
     const path = location.pathname
     if (path === '/projects/favorites') return 'favorites'
@@ -27,6 +27,7 @@ const ProjectsPage = (): React.ReactElement => {
     return 'all'
   })
   const [refreshing, setRefreshing] = useState(false)
+  const [backgroundScanning, setBackgroundScanning] = useState(false)
   const [calculatingSizes, setCalculatingSizes] = useState(false)
   const [addingProject, setAddingProject] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
@@ -67,6 +68,79 @@ const ProjectsPage = (): React.ReactElement => {
     setDisplayStart(startIndex)
   }, [])
 
+  const loadSavedProjectsForTab = useCallback(
+    async (tab: TabType): Promise<Project[]> => {
+      if (!window.electronAPI) { setLoading(false); return [] }
+      try {
+        const savedProjects = await window.electronAPI.loadSavedProjects()
+        clearGitCache()
+        const dedupedProjects = dedupeProjectList(savedProjects)
+        allProjectsRef.current = dedupedProjects
+        const filtered = filterForTab(tab, dedupedProjects, favoritePaths)
+        setProjects(filtered)
+        return dedupedProjects
+      } catch (err) {
+        console.error('Failed to load saved projects for tab:', tab, err)
+        return []
+      } finally {
+        setLoading(false)
+      }
+    },
+    [dedupeProjectList, filterForTab, favoritePaths]
+  )
+
+  const scanProjectsInBackground = useCallback(
+    async (tab: TabType): Promise<void> => {
+      if (!window.electronAPI) return
+      setBackgroundScanning(true)
+      try {
+        const scannedProjects = await window.electronAPI.scanProjects()
+        clearGitCache()
+        const dedupedProjects = dedupeProjectList(scannedProjects)
+
+        const existingMap = new Map<string, Project>()
+        allProjectsRef.current.forEach((project) => {
+          if (project.projectPath) {
+            existingMap.set(normalizeProjectPath(project.projectPath), project)
+          }
+        })
+
+        const mergedProjects = [...allProjectsRef.current]
+        let addedCount = 0
+
+        for (const project of dedupedProjects) {
+          if (!project.projectPath) continue
+          const normalized = normalizeProjectPath(project.projectPath)
+          const existing = existingMap.get(normalized)
+          if (!existing) {
+            mergedProjects.push(project)
+            existingMap.set(normalized, project)
+            addedCount += 1
+          } else {
+            const updated = { ...existing, ...project }
+            const index = mergedProjects.findIndex(
+              (p) => p.projectPath && normalizeProjectPath(p.projectPath) === normalized
+            )
+            if (index !== -1) mergedProjects[index] = updated
+          }
+        }
+
+        const dedupedMerged = dedupeProjectList(mergedProjects)
+        allProjectsRef.current = dedupedMerged
+        setProjects(filterForTab(tab, dedupedMerged, favoritePaths))
+
+        if (addedCount > 0) {
+          console.info(`Background scan added ${addedCount} new project(s).`)
+        }
+      } catch (err) {
+        console.error('Background project scan failed:', err)
+      } finally {
+        setBackgroundScanning(false)
+      }
+    },
+    [dedupeProjectList, favoritePaths, filterForTab, normalizeProjectPath]
+  )
+
   const loadProjectsForTab = useCallback(
     async (tab: TabType): Promise<Project[]> => {
       if (!window.electronAPI) { setLoading(false); return [] }
@@ -75,8 +149,7 @@ const ProjectsPage = (): React.ReactElement => {
         clearGitCache()
         const dedupedProjects = dedupeProjectList(scannedProjects)
         allProjectsRef.current = dedupedProjects
-        const favs = JSON.parse(localStorage.getItem('projectFavorites') || '[]') as string[]
-        const filtered = filterForTab(tab, dedupedProjects, favs)
+        const filtered = filterForTab(tab, dedupedProjects, favoritePaths)
         setProjects(filtered)
         return filtered
       } catch (err) {
@@ -86,7 +159,7 @@ const ProjectsPage = (): React.ReactElement => {
         setLoading(false)
       }
     },
-    [dedupeProjectList, filterForTab]
+    [dedupeProjectList, filterForTab, favoritePaths]
   )
 
   const { handleRefresh, handleLaunch, handleOpenDir, handleDelete, handleAddProject } =
@@ -112,7 +185,11 @@ const ProjectsPage = (): React.ReactElement => {
   }
 
   useEffect(() => {
-    loadProjectsForTab('all')
+    const init = async (): Promise<void> => {
+      await loadSavedProjectsForTab('all')
+      await scanProjectsInBackground('all')
+    }
+    init()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -180,6 +257,7 @@ const ProjectsPage = (): React.ReactElement => {
             setProjects: (v) => setProjects(v as Project[])
           })
         }
+        backgroundScanning={backgroundScanning}
         viewMode={viewMode}
         onViewChange={(mode) => {
           setViewMode(mode)

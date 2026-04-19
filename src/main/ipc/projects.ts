@@ -50,6 +50,11 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
     })
   })
 
+  ipcMain_.handle('load-saved-projects', async (): Promise<Project[]> => {
+    const raw = mergeTracerProjects(loadProjects())
+    return Array.isArray(raw) ? raw : []
+  })
+
   ipcMain_.handle('select-project-folder', async (): Promise<ProjectSelectionResult | null> => {
     const win = getMainWindow()
     if (!win) return null

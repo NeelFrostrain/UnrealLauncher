@@ -82,6 +82,7 @@ if (process.contextIsolated) {
       getMainSettings: () => ipcRenderer.invoke('get-main-settings'),
       saveMainSettings: (settings) => ipcRenderer.invoke('save-main-settings', settings),
       selectFolder: () => ipcRenderer.invoke('select-folder'),
+      loadSavedProjects: () => ipcRenderer.invoke('load-saved-projects'),
       scanMarketplacePlugins: (engineDir: string) =>
         ipcRenderer.invoke('scan-marketplace-plugins', engineDir),
       fabGetDefaultPath: () => ipcRenderer.invoke('fab-get-default-path'),

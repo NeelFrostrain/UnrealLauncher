@@ -50,7 +50,6 @@ export function useProjectActions({
     }): Promise<void> => {
       setRefreshing(true)
       setCalculatingSizes(true)
-      setProjects([])
       await loadProjectsForTab(currentTab)
       setRefreshing(false)
       await window.electronAPI.calculateAllProjectSizes()

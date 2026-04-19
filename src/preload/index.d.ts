@@ -148,6 +148,7 @@ declare global {
       getMainSettings: () => Promise<any>
       saveMainSettings: (settings: any) => Promise<void>
       selectFolder: () => Promise<string[] | null>
+      loadSavedProjects: () => Promise<ProjectData[]>
       scanMarketplacePlugins: (engineDir: string) => Promise<MarketplacePlugin[]>
       // Fab cache
       fabGetDefaultPath: () => Promise<string>
