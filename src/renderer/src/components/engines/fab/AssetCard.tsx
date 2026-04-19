@@ -19,6 +19,10 @@ export interface FabAsset {
   compatibleApps: string[]
   category: string
   assetType: string
+  actionUrl?: string
+  tags?: string[]
+  isCodeProject?: boolean
+  filters?: string[]
 }
 
 export const TYPE_LABELS: Record<
@@ -42,7 +46,7 @@ export const AssetThumb = ({
   name: string
 }): React.ReactElement => {
   const [failed, setFailed] = useState(false)
-  const src = !failed ? (icon ? `local-asset:///${icon.replace(/\\/g, '/')}` : thumbnailUrl) : null
+  const src = !failed ? (thumbnailUrl || (icon ? `local-asset:///${icon.replace(/\\/g, '/')}` : null)) : null
 
   if (src) {
     return (
@@ -56,12 +60,13 @@ export const AssetThumb = ({
       />
     )
   }
+
   return (
     <div
       className="w-full h-full flex items-center justify-center"
       style={{ backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)' }}
     >
-      <Package size={20} style={{ color: 'var(--color-accent)', opacity: 0.6 }} />
+      <Package size={32} style={{ color: 'var(--color-accent)', opacity: 0.6 }} />
     </div>
   )
 }
@@ -85,7 +90,7 @@ export const AssetListCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
       onMouseLeave={() => setHovered(false)}
     >
       <div
-        className="w-10 h-10 shrink-0 overflow-hidden"
+        className="w-16 h-16 shrink-0 overflow-hidden"
         style={{
           borderRadius: 'calc(var(--radius) * 0.75)',
           border: '1px solid var(--color-border)'
@@ -117,7 +122,8 @@ export const AssetListCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+
+        <div className="flex items-center gap-2 flex-wrap mb-1">
           <span
             className="flex items-center gap-0.5 text-[10px] px-1.5 py-px font-medium shrink-0"
             style={{
@@ -127,11 +133,19 @@ export const AssetListCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
               border: `1px solid color-mix(in srgb, ${color} 22%, transparent)`
             }}
           >
-            {icon} {label}
+            {icon} {asset.assetType || label}
           </span>
-          {asset.category && (
-            <span className="text-[10px] truncate" style={{ color: 'var(--color-text-muted)' }}>
-              {asset.category}
+          {asset.isCodeProject && (
+            <span
+              className="text-[9px] px-1 py-px font-mono shrink-0"
+              style={{
+                borderRadius: 'calc(var(--radius) * 0.4)',
+                backgroundColor: 'color-mix(in srgb, #f59e0b 15%, transparent)',
+                color: '#f59e0b',
+                border: '1px solid color-mix(in srgb, #f59e0b 25%, transparent)'
+              }}
+            >
+              Code
             </span>
           )}
           {recentApps.length > 0 && (
@@ -158,6 +172,31 @@ export const AssetListCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
             </div>
           )}
         </div>
+
+        {(asset.tags || asset.filters) && (
+          <div className="flex items-center gap-1 flex-wrap mb-1">
+            {(asset.tags || asset.filters || []).slice(0, 3).map((tag, index) => (
+              <span
+                key={index}
+                className="text-[9px] px-1.5 py-px"
+                style={{
+                  borderRadius: 'calc(var(--radius) * 0.4)',
+                  backgroundColor: 'var(--color-surface-elevated)',
+                  color: 'var(--color-text-muted)',
+                  border: '1px solid var(--color-border)'
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+            {((asset.tags?.length || 0) + (asset.filters?.length || 0)) > 3 && (
+              <span className="text-[9px]" style={{ color: 'var(--color-text-muted)' }}>
+                +{((asset.tags?.length || 0) + (asset.filters?.length || 0)) - 3}
+              </span>
+            )}
+          </div>
+        )}
+
         {asset.description && (
           <p className="text-[10px] mt-1 line-clamp-1" style={{ color: 'var(--color-text-muted)' }}>
             {asset.description}
@@ -165,20 +204,42 @@ export const AssetListCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
         )}
       </div>
 
-      <button
-        onClick={() => window.electronAPI.openDirectory(asset.folderPath)}
-        className="shrink-0 p-1.5 transition-all cursor-pointer"
-        style={{
-          borderRadius: 'calc(var(--radius) * 0.6)',
-          color: 'var(--color-text-muted)',
-          backgroundColor: hovered ? 'var(--color-surface-card)' : 'transparent',
-          opacity: hovered ? 1 : 0,
-          border: `1px solid ${hovered ? 'var(--color-border)' : 'transparent'}`
-        }}
-        title="Open folder"
-      >
-        <FolderOpen size={13} />
-      </button>
+      <div className="flex items-center gap-1">
+        {asset.actionUrl && (
+          <button
+            onClick={() => window.electronAPI.openExternal(asset.actionUrl!)}
+            className="shrink-0 p-1.5 transition-all cursor-pointer"
+            style={{
+              borderRadius: 'calc(var(--radius) * 0.6)',
+              color: 'var(--color-text-muted)',
+              backgroundColor: hovered ? 'var(--color-surface-card)' : 'transparent',
+              opacity: hovered ? 1 : 0,
+              border: `1px solid ${hovered ? 'var(--color-border)' : 'transparent'}`
+            }}
+            title="View on Fab"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15,3 21,3 21,9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </button>
+        )}
+        <button
+          onClick={() => window.electronAPI.openDirectory(asset.folderPath)}
+          className="shrink-0 p-1.5 transition-all cursor-pointer"
+          style={{
+            borderRadius: 'calc(var(--radius) * 0.6)',
+            color: 'var(--color-text-muted)',
+            backgroundColor: hovered ? 'var(--color-surface-card)' : 'transparent',
+            opacity: hovered ? 1 : 0,
+            border: `1px solid ${hovered ? 'var(--color-border)' : 'transparent'}`
+          }}
+          title="Open folder"
+        >
+          <FolderOpen size={13} />
+        </button>
+      </div>
     </div>
   )
 }
@@ -204,7 +265,7 @@ export const AssetGridCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
       {/* Header: icon + name + folder btn */}
       <div className="flex items-start gap-2.5">
         <div
-          className="w-9 h-9 shrink-0 overflow-hidden"
+          className="w-12 h-12 shrink-0 overflow-hidden"
           style={{
             borderRadius: 'calc(var(--radius) * 0.65)',
             border: '1px solid var(--color-border)'
@@ -226,20 +287,42 @@ export const AssetGridCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
             </p>
           )}
         </div>
-        <button
-          onClick={() => window.electronAPI.openDirectory(asset.folderPath)}
-          className="shrink-0 p-1 cursor-pointer transition-all"
-          style={{
-            borderRadius: 'calc(var(--radius) * 0.5)',
-            color: 'var(--color-text-muted)',
-            backgroundColor: hovered ? 'var(--color-surface-card)' : 'transparent',
-            opacity: hovered ? 1 : 0,
-            border: `1px solid ${hovered ? 'var(--color-border)' : 'transparent'}`
-          }}
-          title="Open folder"
-        >
-          <FolderOpen size={12} />
-        </button>
+        <div className="flex items-center gap-1">
+          {asset.actionUrl && (
+            <button
+              onClick={() => window.electronAPI.openExternal(asset.actionUrl!)}
+              className="shrink-0 p-1 cursor-pointer transition-all"
+              style={{
+                borderRadius: 'calc(var(--radius) * 0.5)',
+                color: 'var(--color-text-muted)',
+                backgroundColor: hovered ? 'var(--color-surface-card)' : 'transparent',
+                opacity: hovered ? 1 : 0,
+                border: `1px solid ${hovered ? 'var(--color-border)' : 'transparent'}`
+              }}
+              title="View on Fab"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15,3 21,3 21,9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            </button>
+          )}
+          <button
+            onClick={() => window.electronAPI.openDirectory(asset.folderPath)}
+            className="shrink-0 p-1 cursor-pointer transition-all"
+            style={{
+              borderRadius: 'calc(var(--radius) * 0.5)',
+              color: 'var(--color-text-muted)',
+              backgroundColor: hovered ? 'var(--color-surface-card)' : 'transparent',
+              opacity: hovered ? 1 : 0,
+              border: `1px solid ${hovered ? 'var(--color-border)' : 'transparent'}`
+            }}
+            title="Open folder"
+          >
+            <FolderOpen size={12} />
+          </button>
+        </div>
       </div>
 
       {/* Description */}
@@ -250,6 +333,31 @@ export const AssetGridCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
         >
           {asset.description}
         </p>
+      )}
+
+      {/* Tags */}
+      {(asset.tags || asset.filters) && (
+        <div className="flex items-center gap-1 flex-wrap">
+          {(asset.tags || asset.filters || []).slice(0, 3).map((tag, index) => (
+            <span
+              key={index}
+              className="text-[9px] px-1.5 py-px"
+              style={{
+                borderRadius: 'calc(var(--radius) * 0.4)',
+                backgroundColor: 'var(--color-surface-elevated)',
+                color: 'var(--color-text-muted)',
+                border: '1px solid var(--color-border)'
+              }}
+            >
+              {tag}
+            </span>
+          ))}
+          {((asset.tags?.length || 0) + (asset.filters?.length || 0)) > 3 && (
+            <span className="text-[9px]" style={{ color: 'var(--color-text-muted)' }}>
+              +{((asset.tags?.length || 0) + (asset.filters?.length || 0)) - 3}
+            </span>
+          )}
+        </div>
       )}
 
       {/* Divider */}
@@ -268,8 +376,21 @@ export const AssetGridCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
               border: `1px solid color-mix(in srgb, ${color} 22%, transparent)`
             }}
           >
-            {icon} {label}
+            {icon} {asset.assetType || label}
           </span>
+          {asset.isCodeProject && (
+            <span
+              className="text-[9px] px-1 py-px font-mono shrink-0"
+              style={{
+                borderRadius: 'calc(var(--radius) * 0.4)',
+                backgroundColor: 'color-mix(in srgb, #f59e0b 15%, transparent)',
+                color: '#f59e0b',
+                border: '1px solid color-mix(in srgb, #f59e0b 25%, transparent)'
+              }}
+            >
+              Code
+            </span>
+          )}
           {asset.version && (
             <span
               className="text-[9px] font-mono px-1 py-px shrink-0"
@@ -302,9 +423,9 @@ export const AssetGridCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
                 UE {app.replace('UE_', '')}
               </span>
             ))}
-            {asset.compatibleApps.length > 3 && (
+            {asset.compatibleApps.length > 2 && (
               <span className="text-[9px]" style={{ color: 'var(--color-text-muted)' }}>
-                +{asset.compatibleApps.length - 3}
+                +{asset.compatibleApps.length - 2}
               </span>
             )}
           </div>

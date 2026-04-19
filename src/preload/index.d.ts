@@ -68,6 +68,10 @@ declare global {
     compatibleApps: string[]
     category: string
     assetType: string
+    actionUrl?: string
+    tags?: string[]
+    isCodeProject?: boolean
+    filters?: string[]
   }
 
   interface MarketplacePlugin {

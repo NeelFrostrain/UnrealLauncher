@@ -18,6 +18,10 @@ export interface FabAsset {
   compatibleApps: string[]
   category: string
   assetType: string
+  actionUrl?: string
+  tags?: string[]
+  isCodeProject?: boolean
+  filters?: string[]
 }
 
 export function getDefaultFabPaths(): string[] {
@@ -81,6 +85,10 @@ export function scanFabFolder(rootDir: string): FabAsset[] {
       compatibleApps: string[] = []
     let category = '',
       assetType = ''
+    let actionUrl: string | undefined
+    let tags: string[] | undefined
+    let isCodeProject = false
+    let filters: string[] | undefined
 
     try {
       const children = fs.readdirSync(folderPath)
@@ -93,9 +101,13 @@ export function scanFabFolder(rootDir: string): FabAsset[] {
         thumbnailUrl = cf['Vault.ThumbnailUrl'] || null
         category = cf['Vault.Filters'] || cf['Vault.Tags'] || ''
         assetType = cf['Vault.Type'] || ''
+        actionUrl = cf['Vault.ActionURL'] || undefined
+        tags = cf['Vault.Tags'] ? cf['Vault.Tags'].split(',').map(s => s.trim()) : undefined
+        isCodeProject = cf['Vault.IsCodeProject'] === 'true'
+        filters = cf['Vault.Filters'] ? cf['Vault.Filters'].split(',').map(s => s.trim()) : undefined
         const compat = cf['CompatibleApps'] || ''
         compatibleApps = compat ? compat.split(',').map((s) => s.trim()) : []
-        if (assetType === 'Plugin' || cf['Vault.IsCodeProject'] === 'true') type = 'plugin'
+        if (assetType === 'Plugin' || isCodeProject) type = 'plugin'
         else if (assetType === 'AssetPack' || assetType === 'ContentPack') type = 'content'
         else if (assetType === 'Project') type = 'project'
       }
@@ -128,6 +140,17 @@ export function scanFabFolder(rootDir: string): FabAsset[] {
         path.join(folderPath, 'Icon128.png')
       ]
       icon = iconCandidates.find((p) => fs.existsSync(p)) ?? null
+
+      // Look for local thumbnail
+      const thumbnailCandidates = [
+        path.join(folderPath, 'Resources', 'Thumbnail.png'),
+        path.join(folderPath, 'Content', 'Thumbnail.png'),
+        path.join(folderPath, 'Thumbnail.png')
+      ]
+      const localThumbnail = thumbnailCandidates.find((p) => fs.existsSync(p))
+      if (localThumbnail) {
+        thumbnailUrl = `local-asset:///${localThumbnail.replace(/\\/g, '/')}`
+      }
     } catch {
       /* skip unreadable */
     }
@@ -143,7 +166,11 @@ export function scanFabFolder(rootDir: string): FabAsset[] {
       hasContent,
       compatibleApps,
       category,
-      assetType
+      assetType,
+      actionUrl,
+      tags,
+      isCodeProject,
+      filters
     })
   }
 

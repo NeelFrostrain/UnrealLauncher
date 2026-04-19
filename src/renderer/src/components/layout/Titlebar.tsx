@@ -45,7 +45,7 @@ const Titlebar = (): React.ReactElement => {
   return (
     <>
       <div
-        className="w-full h-10 flex items-center select-none shrink-0"
+        className="w-full h-8 flex items-center select-none shrink-0"
         style={{
           backgroundColor: 'var(--color-surface-elevated)',
           borderBottom: '1px solid var(--color-border)'
