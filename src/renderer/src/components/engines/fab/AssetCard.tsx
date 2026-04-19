@@ -23,6 +23,7 @@ export interface FabAsset {
   tags?: string[]
   isCodeProject?: boolean
   filters?: string[]
+  broken?: boolean
 }
 
 export const TYPE_LABELS: Record<
@@ -48,12 +49,19 @@ export const AssetThumb = ({
   const [failed, setFailed] = useState(false)
   const src = !failed ? (thumbnailUrl || (icon ? `local-asset:///${icon.replace(/\\/g, '/')}` : null)) : null
 
+  if (!thumbnailUrl && !icon) {
+    console.log(`[AssetThumb] ${name}: No thumbnail or icon found`, { thumbnailUrl, icon })
+  }
+
   if (src) {
     return (
       <img
         src={src}
         alt={name}
-        onError={() => setFailed(true)}
+        onError={() => {
+          console.log(`[AssetThumb] ${name}: Image failed to load from "${src}"`)
+          setFailed(true)
+        }}
         className="w-full h-full object-cover"
         loading="lazy"
         decoding="async"
@@ -146,6 +154,20 @@ export const AssetListCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
               }}
             >
               Code
+            </span>
+          )}
+          {asset.broken && (
+            <span
+              className="text-[9px] px-1 py-px font-mono shrink-0"
+              style={{
+                borderRadius: 'calc(var(--radius) * 0.4)',
+                backgroundColor: 'color-mix(in srgb, #ef4444 15%, transparent)',
+                color: '#ef4444',
+                border: '1px solid color-mix(in srgb, #ef4444 25%, transparent)'
+              }}
+              title="Metadata corrupted or missing"
+            >
+              Broken
             </span>
           )}
           {recentApps.length > 0 && (
@@ -389,6 +411,20 @@ export const AssetGridCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
               }}
             >
               Code
+            </span>
+          )}
+          {asset.broken && (
+            <span
+              className="text-[9px] px-1 py-px font-mono shrink-0"
+              style={{
+                borderRadius: 'calc(var(--radius) * 0.4)',
+                backgroundColor: 'color-mix(in srgb, #ef4444 15%, transparent)',
+                color: '#ef4444',
+                border: '1px solid color-mix(in srgb, #ef4444 25%, transparent)'
+              }}
+              title="Metadata corrupted or missing"
+            >
+              Broken
             </span>
           )}
           {asset.version && (

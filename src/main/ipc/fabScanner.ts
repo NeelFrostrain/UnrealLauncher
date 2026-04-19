@@ -22,6 +22,7 @@ export interface FabAsset {
   tags?: string[]
   isCodeProject?: boolean
   filters?: string[]
+  broken?: boolean
 }
 
 export function getDefaultFabPaths(): string[] {
@@ -89,6 +90,7 @@ export function scanFabFolder(rootDir: string): FabAsset[] {
     let tags: string[] | undefined
     let isCodeProject = false
     let filters: string[] | undefined
+    let broken = false
 
     try {
       const children = fs.readdirSync(folderPath)
@@ -110,6 +112,10 @@ export function scanFabFolder(rootDir: string): FabAsset[] {
         if (assetType === 'Plugin' || isCodeProject) type = 'plugin'
         else if (assetType === 'AssetPack' || assetType === 'ContentPack') type = 'content'
         else if (assetType === 'Project') type = 'project'
+      } else {
+        // Could not read manifest - mark as broken
+        broken = true
+        tags = ['broken']
       }
 
       if (type === 'unknown') {
@@ -170,7 +176,8 @@ export function scanFabFolder(rootDir: string): FabAsset[] {
       actionUrl,
       tags,
       isCodeProject,
-      filters
+      filters,
+      broken
     })
   }
 
