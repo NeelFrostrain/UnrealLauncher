@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0] - 2026-04-20 — `v2.1.0`
+
+### ✅ Added
+
+- 🐧 **Linux Support** — Full cross-platform compatibility with Linux (AppImage and .deb packages)
+- **Cross-platform path utilities** (`src/main/utils/platformPaths.ts`) — Platform-aware directory handling for AppData, Cache, Config, Engine installs, and project scanning paths
+- **Cross-platform process management** (`src/main/utils/processUtils.ts`) — Replaces Windows tasklist/taskkill with pgrep/pkill for Linux
+- **Linux build scripts** — Added `build-linux.sh` and updated `package.json` with Linux-specific build commands
+- **Native module cross-compilation** — Support for building native modules for Windows, Linux, and macOS
+- **Tracer binary cross-platform support** — Linux process enumeration via `/proc` filesystem
+- **Platform-aware UI elements** — Registry settings hidden on non-Windows platforms
+- **Auto project scan using folder mention settings** — Configurable custom directories for automatic project discovery
+- **Project scan path configuration** — New settings section for custom project scan directories
+- **Electron Updater Guide** — Comprehensive documentation for auto-update functionality
+- **Project Analysis Documentation** — Detailed project structure and architecture analysis
+
+### 🔧 Changed
+
+- **Build system** — Updated to support multi-platform native module compilation
+- **File operations** — Cross-platform file/directory opening using `xdg-open` on Linux
+- **Engine scanning** — Platform-specific binary paths and executable names
+- **IPC handlers** — Enhanced with platform-aware path handling
+- **UI layout** — Improved responsive design and cross-platform compatibility
+
+### 📚 Documentation
+
+- Added `ELECTRON_UPDATER_GUIDE.md` with complete auto-update setup instructions
+- Added `PROJECT_ANALYSIS.md` with comprehensive project structure analysis
+- Updated `BUILD.md` and `BUILD_INSTRUCTIONS.md` with Linux build instructions
+- Enhanced `README.md` with improved documentation
+
+---
+
 ## [2.0.4] - 2026-04-13 — `v2.0.4`
 
 ### 🛠️ Fixed
