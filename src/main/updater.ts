@@ -138,6 +138,30 @@ export async function handleCheckForUpdates(): Promise<Record<string, unknown>> 
   }
 }
 
+export async function checkForUpdatesOnStartup(): Promise<void> {
+  try {
+    // Only check for updates in production builds
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Skipping auto-update check in development mode')
+      return
+    }
+
+    console.log('Checking for updates on startup...')
+    const result = await autoUpdater.checkForUpdates()
+
+    if (result?.updateInfo) {
+      console.log(`Update available: ${result.updateInfo.version}`)
+      // The update-available event will be triggered automatically
+      // and handled by the setupAutoUpdaterEvents function
+    } else {
+      console.log('No updates available')
+    }
+  } catch (err) {
+    console.error('Auto-update check failed:', err)
+    // Don't show error dialog on startup - just log it
+  }
+}
+
 export async function handleCheckGithubVersion(
   currentVersion: string
 ): Promise<Record<string, unknown>> {
