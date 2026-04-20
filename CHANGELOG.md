@@ -28,8 +28,6 @@ All notable changes to this project will be documented in this file.
 
 ### 📚 Documentation
 
-- Added `ELECTRON_UPDATER_GUIDE.md` with complete auto-update setup instructions
-- Added `PROJECT_ANALYSIS.md` with comprehensive project structure analysis
 - Updated `BUILD.md` and `BUILD_INSTRUCTIONS.md` with Linux build instructions
 - Enhanced `README.md` with improved documentation
 
