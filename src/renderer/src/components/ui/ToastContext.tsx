@@ -1,10 +1,10 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
+import { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import ErrorIcon from '@mui/icons-material/Error'
-import WarningAmberIcon from '@mui/icons-material/WarningAmber'
-import InfoIcon from '@mui/icons-material/Info'
-import CloseIcon from '@mui/icons-material/Close'
+import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
 
 type ToastType = 'success' | 'error' | 'warning' | 'info'
 
@@ -26,37 +26,57 @@ export const useToast = (): ToastContextType => {
   return ctx
 }
 
-const config: Record<ToastType, { icon: React.ElementType; bar: string; iconCls: string }> = {
-  success: { icon: CheckCircleIcon,  bar: 'bg-green-500',  iconCls: 'text-green-400' },
-  error:   { icon: ErrorIcon,        bar: 'bg-red-500',    iconCls: 'text-red-400'   },
-  warning: { icon: WarningAmberIcon, bar: 'bg-yellow-500', iconCls: 'text-yellow-400'},
-  info:    { icon: InfoIcon,         bar: 'bg-blue-500',   iconCls: 'text-blue-400'  },
+const config: Record<
+  ToastType,
+  { icon: React.ComponentType<{ size?: number; className?: string }>; bar: string; iconCls: string }
+> = {
+  success: { icon: CheckCircle, bar: 'bg-green-500', iconCls: 'text-green-400' },
+  error: { icon: XCircle, bar: 'bg-red-500', iconCls: 'text-red-400' },
+  warning: { icon: AlertTriangle, bar: 'bg-yellow-500', iconCls: 'text-yellow-400' },
+  info: { icon: Info, bar: 'bg-blue-500', iconCls: 'text-blue-400' }
 }
 
-const ToastItem = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }): React.ReactElement => {
+const ToastItem = ({
+  toast,
+  onRemove
+}: {
+  toast: Toast
+  onRemove: (id: string) => void
+}): React.ReactElement => {
   const { icon: Icon, bar, iconCls } = config[toast.type]
 
   return (
     <motion.div
       layout
       initial={{ opacity: 0, x: 60, scale: 0.95 }}
-      animate={{ opacity: 1, x: 0,  scale: 1    }}
-      exit={{    opacity: 0, x: 60, scale: 0.95 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 60, scale: 0.95 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="flex items-center gap-3 w-80 bg-[#1c1c1c] border border-white/10 rounded-lg shadow-2xl overflow-hidden pr-3"
+      className="flex items-center gap-3 w-80 border shadow-2xl overflow-hidden pr-3"
+      style={{
+        backgroundColor: 'var(--color-surface-elevated)',
+        borderColor: 'var(--color-border)',
+        borderRadius: 'var(--radius)'
+      }}
     >
       {/* Left accent bar */}
       <div className={`w-1 self-stretch shrink-0 ${bar}`} />
 
-      <Icon sx={{ fontSize: 18 }} className={`shrink-0 ${iconCls}`} />
+      <Icon size={18} className={`shrink-0 ${iconCls}`} />
 
-      <p className="flex-1 text-xs text-white/85 py-3 leading-relaxed">{toast.message}</p>
+      <p
+        className="flex-1 text-xs py-3 leading-relaxed"
+        style={{ color: 'var(--color-text-secondary)' }}
+      >
+        {toast.message}
+      </p>
 
       <button
         onClick={() => onRemove(toast.id)}
-        className="shrink-0 p-1 rounded text-white/30 hover:text-white/70 transition-colors cursor-pointer"
+        className="shrink-0 p-1 rounded cursor-pointer transition-colors"
+        style={{ color: 'var(--color-text-muted)' }}
       >
-        <CloseIcon sx={{ fontSize: 14 }} />
+        <X size={14} />
       </button>
     </motion.div>
   )
@@ -64,15 +84,11 @@ const ToastItem = ({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
 
 export const ToastProvider = ({ children }: { children: ReactNode }): ReactNode => {
   const [toasts, setToasts] = useState<Toast[]>([])
+  const counter = useRef(0)
 
   const addToast = useCallback((message: string, type: ToastType): void => {
-    const id = Date.now().toString()
-    setToasts((prev) => {
-      // Cap at 5 visible toasts
-      const next = [...prev, { id, message, type }]
-      return next.slice(-5)
-    })
-    // Auto-remove after 4s
+    const id = String(++counter.current)
+    setToasts((prev) => [...prev, { id, message, type }].slice(-5))
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
     }, 4000)

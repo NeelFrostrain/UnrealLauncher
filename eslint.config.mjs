@@ -26,6 +26,9 @@ export default defineConfig(
     rules: {
       ...eslintPluginReactHooks.configs.recommended.rules,
       ...eslintPluginReactRefresh.configs.vite.rules,
+      // TypeScript projects do not need React prop-types and may export hooks.
+      'react/prop-types': 'off',
+      'react-refresh/only-export-components': 'off',
       // Performance optimizations
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn'

@@ -1,10 +1,18 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
 import { useState } from 'react'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import DownloadIcon from '@mui/icons-material/Download'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import GitHubIcon from '@mui/icons-material/GitHub'
+import { RefreshCw, Download, CheckCircle, GitBranch } from 'lucide-react'
 
-type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'no-update' | 'error'
+type UpdateStatus =
+  | 'idle'
+  | 'checking'
+  | 'available'
+  | 'downloading'
+  | 'ready'
+  | 'no-update'
+  | 'error'
 type GithubStatus = 'idle' | 'checking' | 'success' | 'error'
 
 function compareVersions(v1: string, v2: string): boolean {
@@ -31,7 +39,7 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
     setUpdateMessage('Checking for updates...')
 
     const result = await window.electronAPI.checkForUpdates()
-    const currentVersion = appVersion || '1.7.0'
+    const currentVersion = appVersion || '2.0.1'
 
     if (result.success && result.updateInfo) {
       const latestVersion = String(result.updateInfo.version || '').replace(/^v/i, '')
@@ -41,7 +49,9 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
         setUpdateMessage(`Version ${latestVersion} is available!`)
       } else {
         setUpdateStatus('no-update')
-        setUpdateMessage(`No update available. Installed version ${currentVersion} is newer or equal to ${latestVersion}.`)
+        setUpdateMessage(
+          `No update available. Installed version ${currentVersion} is newer or equal to ${latestVersion}.`
+        )
       }
     } else if (result.success) {
       setUpdateStatus('no-update')
@@ -69,7 +79,8 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
   const checkGitHubVersion = async (): Promise<void> => {
     setGithubStatus('checking')
     try {
-      if (!window.electronAPI?.checkGithubVersion) throw new Error('GitHub version check is not available')
+      if (!window.electronAPI?.checkGithubVersion)
+        throw new Error('GitHub version check is not available')
       const result = await window.electronAPI.checkGithubVersion()
       if (!result.success) throw new Error(result.error || 'GitHub version check failed')
       setGithubVersion(result.latestVersion || '')
@@ -77,14 +88,16 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
       setGithubMessage(result.message || '')
     } catch (error) {
       setGithubStatus('error')
-      setGithubMessage(`Failed to check GitHub: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setGithubMessage(
+        `Failed to check GitHub: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 
   return (
     <div>
       <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
-        <RefreshIcon sx={{ fontSize: 20 }} className="text-blue-400" />
+        <RefreshCw size={20} className="text-blue-400" />
         Updates
       </h2>
       <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
@@ -93,35 +106,54 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
           <div className="flex-1">
             <p className="text-sm text-white/90 mb-1">Auto-Update Check</p>
             {updateMessage && (
-              <p className={`text-xs ${updateStatus === 'error' ? 'text-red-400' : updateStatus === 'available' ? 'text-yellow-400' : updateStatus === 'ready' ? 'text-green-400' : 'text-white/50'}`}>
+              <p
+                className={`text-xs ${updateStatus === 'error' ? 'text-red-400' : updateStatus === 'available' ? 'text-yellow-400' : updateStatus === 'ready' ? 'text-green-400' : 'text-white/50'}`}
+              >
                 {updateMessage}
               </p>
             )}
           </div>
           <div className="flex gap-2">
-            {(updateStatus === 'idle' || updateStatus === 'no-update' || updateStatus === 'error') && (
-              <button onClick={handleCheckForUpdates} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 border border-blue-500/50 rounded-lg text-sm transition-colors cursor-pointer">
-                <RefreshIcon sx={{ fontSize: 16 }} /> Check Updates
+            {(updateStatus === 'idle' ||
+              updateStatus === 'no-update' ||
+              updateStatus === 'error') && (
+              <button
+                onClick={handleCheckForUpdates}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 border border-blue-500/50 rounded-lg text-sm transition-colors cursor-pointer"
+              >
+                <RefreshCw size={16} /> Check Updates
               </button>
             )}
             {updateStatus === 'checking' && (
-              <button disabled className="flex items-center gap-2 px-4 py-2 bg-blue-600/50 border border-blue-500/50 rounded-lg text-sm cursor-not-allowed">
-                <RefreshIcon sx={{ fontSize: 16 }} className="animate-spin" /> Checking...
+              <button
+                disabled
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600/50 border border-blue-500/50 rounded-lg text-sm cursor-not-allowed"
+              >
+                <RefreshCw size={16} className="animate-spin" /> Checking...
               </button>
             )}
             {updateStatus === 'available' && (
-              <button onClick={handleDownloadUpdate} className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 border border-green-500/50 rounded-lg text-sm transition-colors cursor-pointer">
-                <DownloadIcon sx={{ fontSize: 16 }} /> Download v{updateVersion}
+              <button
+                onClick={handleDownloadUpdate}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 border border-green-500/50 rounded-lg text-sm transition-colors cursor-pointer"
+              >
+                <Download size={16} /> Download v{updateVersion}
               </button>
             )}
             {updateStatus === 'downloading' && (
-              <button disabled className="flex items-center gap-2 px-4 py-2 bg-green-600/50 border border-green-500/50 rounded-lg text-sm cursor-not-allowed">
-                <DownloadIcon sx={{ fontSize: 16 }} className="animate-pulse" /> Downloading...
+              <button
+                disabled
+                className="flex items-center gap-2 px-4 py-2 bg-green-600/50 border border-green-500/50 rounded-lg text-sm cursor-not-allowed"
+              >
+                <Download size={16} className="animate-pulse" /> Downloading...
               </button>
             )}
             {updateStatus === 'ready' && (
-              <button onClick={() => window.electronAPI?.installUpdate?.()} className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 border border-purple-500/50 rounded-lg text-sm transition-colors cursor-pointer">
-                <CheckCircleIcon sx={{ fontSize: 16 }} /> Install &amp; Restart
+              <button
+                onClick={() => window.electronAPI?.installUpdate?.()}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 border border-purple-500/50 rounded-lg text-sm transition-colors cursor-pointer"
+              >
+                <CheckCircle size={16} /> Install &amp; Restart
               </button>
             )}
           </div>
@@ -132,21 +164,33 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm text-white/90 mb-1">GitHub Version Check</p>
-              {githubVersion && <p className="text-xs text-white/50">Latest on GitHub: v{githubVersion}</p>}
+              {githubVersion && (
+                <p className="text-xs text-white/50">Latest on GitHub: v{githubVersion}</p>
+              )}
               {githubMessage && <p className="text-xs text-white/70 mt-1">{githubMessage}</p>}
             </div>
             <div className="flex gap-2">
-              {(githubStatus === 'idle' || githubStatus === 'success' || githubStatus === 'error') && (
-                <button onClick={checkGitHubVersion}
+              {(githubStatus === 'idle' ||
+                githubStatus === 'success' ||
+                githubStatus === 'error') && (
+                <button
+                  onClick={checkGitHubVersion}
                   className={`flex items-center gap-2 px-4 py-2 ${githubStatus === 'error' ? 'bg-red-600 hover:bg-red-500 border-red-500/50' : 'bg-purple-600 hover:bg-purple-500 border-purple-500/50'} border rounded-lg text-sm transition-colors cursor-pointer`}
                 >
-                  {githubStatus === 'error' ? <RefreshIcon sx={{ fontSize: 16 }} /> : <GitHubIcon sx={{ fontSize: 16 }} />}
-                  {githubStatus === 'success' ? 'Recheck' : githubStatus === 'error' ? 'Retry' : 'Check GitHub'}
+                  {githubStatus === 'error' ? <RefreshCw size={16} /> : <GitBranch size={16} />}
+                  {githubStatus === 'success'
+                    ? 'Recheck'
+                    : githubStatus === 'error'
+                      ? 'Retry'
+                      : 'Check GitHub'}
                 </button>
               )}
               {githubStatus === 'checking' && (
-                <button disabled className="flex items-center gap-2 px-4 py-2 bg-purple-600/50 border border-purple-500/50 rounded-lg text-sm cursor-not-allowed">
-                  <RefreshIcon sx={{ fontSize: 16 }} className="animate-spin" /> Checking...
+                <button
+                  disabled
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600/50 border border-purple-500/50 rounded-lg text-sm cursor-not-allowed"
+                >
+                  <RefreshCw size={16} className="animate-spin" /> Checking...
                 </button>
               )}
             </div>

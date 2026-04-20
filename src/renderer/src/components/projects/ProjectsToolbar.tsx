@@ -1,20 +1,21 @@
-import { motion } from 'framer-motion'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
 import type { FC } from 'react'
-import AddIcon from '@mui/icons-material/Add'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import SearchIcon from '@mui/icons-material/Search'
-import ViewListIcon from '@mui/icons-material/ViewList'
-import GridViewIcon from '@mui/icons-material/GridView'
+import { Plus, RefreshCw, Search, X, LayoutGrid, LayoutList } from 'lucide-react'
 import type { TabType } from '../../types'
 
 export type ViewMode = 'list' | 'grid'
 
 interface ProjectsToolbarProps {
-  tabs: Array<{ id: TabType; label: string }>
+  tabs: Array<{ id: TabType; label: string; icon?: React.ReactNode }>
   currentTab: TabType
   searchOpen: boolean
   searchQuery: string
   refreshing: boolean
+  backgroundScanning: boolean
+  calculatingSizes: boolean
   addingProject: boolean
   viewMode: ViewMode
   onTabClick: (tab: TabType) => void
@@ -26,91 +27,199 @@ interface ProjectsToolbarProps {
 }
 
 const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
-  tabs, currentTab, searchOpen, searchQuery, refreshing, addingProject, viewMode,
-  onTabClick, onToggleSearch, onSearchChange, onAddProject, onRefresh, onViewChange
+  tabs,
+  currentTab,
+  searchOpen,
+  searchQuery,
+  refreshing,
+  backgroundScanning,
+  addingProject,
+  viewMode,
+  onTabClick,
+  onToggleSearch,
+  onSearchChange,
+  onAddProject,
+  onRefresh,
+  onViewChange
 }) => {
   return (
-    <motion.div
-      className="flex items-center gap-2 px-2 pt-3 pb-2 border-b border-white/10"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
+    <div
+      className="flex items-center gap-3 py-3 shrink-0 border-b"
+      style={{ borderColor: 'var(--color-border)' }}
     >
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => onTabClick(tab.id)}
-          className={`px-4 py-2 rounded-t-md font-medium text-sm transition-colors ${
-            currentTab === tab.id
-              ? 'bg-blue-600 text-white'
-              : 'bg-white/5 text-white/50'
-          }`}
+      {/* Page identity */}
+      {/* <div className="flex items-center gap-2.5">
+        <div
+          className="w-7 h-7 rounded-lg flex items-center justify-center"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)' }}
         >
-          {tab.label}
-        </button>
-      ))}
+          <FolderOpen size={14} style={{ color: 'var(--color-accent)' }} />
+        </div>
+      </div> */}
 
+      {/* Tab switcher — same style as EnginesPage */}
+      <div
+        className="flex items-center gap-0.5 px-1 py-1 rounded-lg"
+        style={{
+          backgroundColor: 'var(--color-surface-card)',
+          border: '1px solid var(--color-border)'
+        }}
+      >
+        {tabs.map((tab) => {
+          const isActive = currentTab === tab.id
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabClick(tab.id)}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer"
+              style={{
+                color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+                backgroundColor: isActive
+                  ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
+                  : 'transparent',
+                boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.3)' : 'none'
+              }}
+            >
+              {tab.icon && (
+                <span
+                  style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
+                >
+                  {tab.icon}
+                </span>
+              )}
+              {tab.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Search input inline */}
       {searchOpen && (
-        <div className="flex min-w-0 h-full items-center gap-2 px-3 rounded-md bg-white/5 border border-white/10 text-sm text-white/80 max-w-65 transition-all">
-          <SearchIcon sx={{ fontSize: 16 }} className="text-white/70" />
+        <div
+          className="flex items-center gap-2 px-3 py-1.5 text-xs w-48"
+          style={{
+            borderRadius: 'var(--radius)',
+            backgroundColor: 'var(--color-surface-card)',
+            border: '1px solid var(--color-border)'
+          }}
+        >
+          <Search size={12} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
           <input
+            autoFocus
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search projects"
-            className="min-w-0 w-full bg-transparent text-sm outline-none text-white placeholder:text-white/40"
+            placeholder="Search projects…"
+            className="flex-1 bg-transparent outline-none"
+            style={{ color: 'var(--color-text-primary)' }}
           />
+          {searchQuery && (
+            <button onClick={() => onSearchChange('')} className="cursor-pointer shrink-0">
+              <X size={11} style={{ color: 'var(--color-text-muted)' }} />
+            </button>
+          )}
         </div>
       )}
 
       <div className="flex-1" />
 
-      {/* View toggle */}
-      <div className="flex items-center bg-white/5 border border-white/10 rounded-md overflow-hidden">
-        <button
-          onClick={() => onViewChange('list')}
-          className={`flex p-2 cursor-pointer transition-colors ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-white/40'}`}
-          title="List view"
+      <div className="flex items-center gap-1.5">
+        {/* View toggle */}
+        <div
+          className="flex items-center overflow-hidden"
+          style={{ borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}
         >
-          <ViewListIcon sx={{ fontSize: 16 }} />
-        </button>
+          <button
+            onClick={() => onViewChange('list')}
+            className="flex items-center p-1.5 cursor-pointer transition-colors"
+            style={{
+              backgroundColor:
+                viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+              color: viewMode === 'list' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+            }}
+            title="List view"
+          >
+            <LayoutList size={13} />
+          </button>
+          <button
+            onClick={() => onViewChange('grid')}
+            className="flex items-center p-1.5 cursor-pointer transition-colors"
+            style={{
+              backgroundColor:
+                viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+              color: viewMode === 'grid' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+            }}
+            title="Grid view"
+          >
+            <LayoutGrid size={13} />
+          </button>
+        </div>
+
+        {/* Search toggle */}
         <button
-          onClick={() => onViewChange('grid')}
-          className={`flex p-2 cursor-pointer transition-colors ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-white/40'}`}
-          title="Grid view"
+          onClick={onToggleSearch}
+          className="flex items-center p-1.5 cursor-pointer transition-colors"
+          style={{
+            borderRadius: 'var(--radius)',
+            backgroundColor: searchOpen
+              ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+              : 'var(--color-surface-card)',
+            color: searchOpen ? 'var(--color-accent)' : 'var(--color-text-muted)',
+            border: '1px solid var(--color-border)'
+          }}
+          title="Search"
         >
-          <GridViewIcon sx={{ fontSize: 16 }} />
+          <Search size={13} />
         </button>
+
+        {/* Refresh */}
+        <button
+          onClick={onRefresh}
+          disabled={refreshing}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          style={{
+            borderRadius: 'var(--radius)',
+            backgroundColor: 'var(--color-surface-card)',
+            color: 'var(--color-text-secondary)',
+            border: '1px solid var(--color-border)'
+          }}
+        >
+          <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
+          {refreshing ? 'Refreshing…' : backgroundScanning ? 'Scanning…' : 'Refresh'}
+        </button>
+
+        {/* Add Project */}
+        <button
+          onClick={onAddProject}
+          disabled={addingProject}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          style={{
+            borderRadius: 'var(--radius)',
+            backgroundColor: 'var(--color-accent)',
+            color: 'var(--color-text-primary)'
+          }}
+        >
+          <Plus size={12} />
+          Add Project
+        </button>
+
+        {/* Sizing indicator */}
+        {/* {calculatingSizes && (
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1.5"
+            style={{
+              borderRadius: 'var(--radius)',
+              backgroundColor: 'var(--color-surface-card)',
+              color: 'var(--color-text-muted)',
+              border: '1px solid var(--color-border)'
+            }}
+          >
+            <HardDrive size={12} className="animate-pulse" style={{ color: 'var(--color-accent)' }} />
+            <span className="text-[11px]">Sizing…</span>
+          </div>
+        )} */}
       </div>
-
-      <button
-        onClick={onToggleSearch}
-        className={`flex items-center gap-2 px-3 py-2 rounded-md ${
-          searchOpen ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
-        } transition-all`}
-        title="Search projects"
-      >
-        <SearchIcon sx={{ fontSize: 16 }} />
-      </button>
-
-      <button
-        onClick={onAddProject}
-        disabled={addingProject}
-        className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        title="Add Project"
-      >
-        <AddIcon sx={{ fontSize: 16 }} />
-      </button>
-
-      <button
-        onClick={onRefresh}
-        disabled={refreshing}
-        className="flex items-center gap-2 px-3 py-2 rounded-md bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-50"
-        title="Refresh"
-      >
-        <RefreshIcon sx={{ fontSize: 16 }} className={refreshing ? 'animate-spin' : ''} />
-      </button>
-    </motion.div>
+    </div>
   )
 }
 

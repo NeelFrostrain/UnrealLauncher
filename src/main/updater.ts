@@ -1,3 +1,7 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
 import pkg from 'electron-updater'
 const { autoUpdater } = pkg
 import { BrowserWindow, dialog } from 'electron'
@@ -25,10 +29,16 @@ export function fetchGitHubLatestRelease(): Promise<Record<string, unknown>> {
 
     const req = https.request(options, (res) => {
       let rawData = ''
-      res.on('data', (chunk) => { rawData += chunk })
+      res.on('data', (chunk) => {
+        rawData += chunk
+      })
       res.on('end', () => {
         if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-          try { resolve(JSON.parse(rawData)) } catch (err) { reject(err) }
+          try {
+            resolve(JSON.parse(rawData))
+          } catch (err) {
+            reject(err)
+          }
         } else {
           reject(new Error(`GitHub API error: ${res.statusCode}`))
         }
@@ -44,27 +54,31 @@ export function setupAutoUpdaterEvents(getMainWindow: () => BrowserWindow | null
   autoUpdater.on('update-available', (info) => {
     const win = getMainWindow()
     if (!win || win.isDestroyed()) return
-    dialog.showMessageBox(win, {
-      type: 'info',
-      title: 'Update Available',
-      message: `A new version (${info.version}) is available. Do you want to download it now?`,
-      buttons: ['Download', 'Later']
-    }).then((result) => {
-      if (result.response === 0) autoUpdater.downloadUpdate()
-    })
+    dialog
+      .showMessageBox(win, {
+        type: 'info',
+        title: 'Update Available',
+        message: `A new version (${info.version}) is available. Do you want to download it now?`,
+        buttons: ['Download', 'Later']
+      })
+      .then((result) => {
+        if (result.response === 0) autoUpdater.downloadUpdate()
+      })
   })
 
   autoUpdater.on('update-downloaded', () => {
     const win = getMainWindow()
     if (!win || win.isDestroyed()) return
-    dialog.showMessageBox(win, {
-      type: 'info',
-      title: 'Update Ready',
-      message: 'Update downloaded. The app will restart to install the update.',
-      buttons: ['Restart Now', 'Later']
-    }).then((result) => {
-      if (result.response === 0) autoUpdater.quitAndInstall()
-    })
+    dialog
+      .showMessageBox(win, {
+        type: 'info',
+        title: 'Update Ready',
+        message: 'Update downloaded. The app will restart to install the update.',
+        buttons: ['Restart Now', 'Later']
+      })
+      .then((result) => {
+        if (result.response === 0) autoUpdater.quitAndInstall()
+      })
   })
 
   autoUpdater.on('download-progress', (progressObj) => {
@@ -76,7 +90,8 @@ export function setupAutoUpdaterEvents(getMainWindow: () => BrowserWindow | null
 
   autoUpdater.on('error', (err) => {
     console.error('Auto-updater error:', err)
-    if (err instanceof Error && (err.message.includes('404') || err.message.includes('latest.yml'))) return
+    if (err instanceof Error && (err.message.includes('404') || err.message.includes('latest.yml')))
+      return
     const win = getMainWindow()
     if (win && !win.isDestroyed()) {
       dialog.showMessageBox(win, {
@@ -96,22 +111,36 @@ export async function handleCheckForUpdates(): Promise<Record<string, unknown>> 
         if (result?.updateInfo) return { success: true, updateInfo: result.updateInfo }
         return { success: true, updateInfo: null, message: 'No updates available (Dev mode)' }
       } catch (err) {
-        return { success: true, updateInfo: null, message: `Dev mode: ${err instanceof Error ? err.message : 'Update check failed'}` }
+        return {
+          success: true,
+          updateInfo: null,
+          message: `Dev mode: ${err instanceof Error ? err.message : 'Update check failed'}`
+        }
       }
     }
 
     const result = await autoUpdater.checkForUpdates()
-    if (!result?.updateInfo) return { success: true, updateInfo: null, message: 'You are using the latest version' }
+    if (!result?.updateInfo)
+      return { success: true, updateInfo: null, message: 'You are using the latest version' }
     return { success: true, updateInfo: result.updateInfo }
   } catch (err) {
-    if (err instanceof Error && (err.message.includes('latest.yml') || err.message.includes('404'))) {
-      return { success: true, updateInfo: null, message: 'No releases found. Create a GitHub release to enable updates.' }
+    if (
+      err instanceof Error &&
+      (err.message.includes('latest.yml') || err.message.includes('404'))
+    ) {
+      return {
+        success: true,
+        updateInfo: null,
+        message: 'No releases found. Create a GitHub release to enable updates.'
+      }
     }
     return { success: false, error: 'Unable to check for updates. Please try again later.' }
   }
 }
 
-export async function handleCheckGithubVersion(currentVersion: string): Promise<Record<string, unknown>> {
+export async function handleCheckGithubVersion(
+  currentVersion: string
+): Promise<Record<string, unknown>> {
   try {
     const release = await fetchGitHubLatestRelease()
     const latestVersion = String(release.tag_name || release.name || '').replace(/^v/i, '')

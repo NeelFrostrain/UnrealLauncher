@@ -1,7 +1,10 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
 import { ElectronAPI } from '@electron-toolkit/preload'
 
 declare global {
-  // Shared data shapes — single source of truth
   interface ProjectData {
     name: string
     version: string
@@ -53,6 +56,32 @@ declare global {
     error?: string
   }
 
+  interface FabAsset {
+    name: string
+    folderPath: string
+    type: 'plugin' | 'content' | 'project' | 'unknown'
+    version: string
+    description: string
+    icon: string | null
+    thumbnailUrl: string | null
+    hasContent: boolean
+    compatibleApps: string[]
+    category: string
+    assetType: string
+    actionUrl?: string
+    tags?: string[]
+    isCodeProject?: boolean
+    filters?: string[]
+  }
+
+  interface MarketplacePlugin {
+    name: string
+    path: string
+    description: string
+    version: string
+    icon: string | null
+  }
+
   interface Window {
     electron: ElectronAPI
     electronAPI: {
@@ -61,14 +90,18 @@ declare global {
       launchEngine: (exePath: string) => Promise<{ success: boolean; error?: string }>
       selectEngineFolder: () => Promise<EngineSelectionResult | null>
       deleteEngine: (directoryPath: string) => Promise<boolean>
-      calculateEngineSize: (directoryPath: string) => Promise<{ success: boolean; size?: string; error?: string }>
+      calculateEngineSize: (
+        directoryPath: string
+      ) => Promise<{ success: boolean; size?: string; error?: string }>
       // Projects
       scanProjects: () => Promise<ProjectData[]>
       launchProject: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       selectProjectFolder: () => Promise<ProjectSelectionResult | null>
       deleteProject: (projectPath: string) => Promise<boolean>
-      calculateProjectSize: (projectPath: string) => Promise<{ success: boolean; size?: string; error?: string }>
-      loadImage: (imagePath: string) => Promise<string | null>
+      calculateProjectSize: (
+        projectPath: string
+      ) => Promise<{ success: boolean; size?: string; error?: string }>
+      calculateAllProjectSizes: () => Promise<void>
       // Filesystem
       openDirectory: (dirPath: string) => Promise<void>
       openExternal: (url: string) => Promise<{ success: boolean; error?: string }>
@@ -92,7 +125,62 @@ declare global {
         message?: string
         error?: string
       }>
-      onDownloadProgress: (callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void) => () => void
+      onDownloadProgress: (
+        callback: (progress: {
+          percent: number
+          bytesPerSecond: number
+          transferred: number
+          total: number
+        }) => void
+      ) => () => void
+      // Tracer / startup
+      getTracerStartup: () => Promise<boolean>
+      setTracerStartup: (enabled: boolean) => Promise<void>
+      isTracerRunning: () => Promise<boolean>
+      getTracerDataDir: () => Promise<string>
+      getTracerMerge: () => Promise<boolean>
+      setTracerMerge: (enabled: boolean) => Promise<void>
+      getRegistryEngines: () => Promise<boolean>
+      setRegistryEngines: (enabled: boolean) => Promise<void>
+      sendDiscordWebhook: (
+        webhookUrl: string,
+        payload: string
+      ) => Promise<{ ok: boolean; status: number }>
+      getNativeStatus: () => Promise<boolean>
+      clearAppData: () => Promise<void>
+      clearTracerData: () => Promise<void>
+      getMainSettings: () => Promise<any>
+      platform: string
+      saveMainSettings: (settings: any) => Promise<void>
+      selectFolder: () => Promise<string[] | null>
+      loadSavedProjects: () => Promise<ProjectData[]>
+      scanMarketplacePlugins: (engineDir: string) => Promise<MarketplacePlugin[]>
+      // Fab cache
+      fabGetDefaultPath: () => Promise<string>
+      fabSelectFolder: () => Promise<string | null>
+      fabScanFolder: (folderPath: string) => Promise<FabAsset[]>
+      fabSavePath: (folderPath: string) => Promise<void>
+      fabLoadPath: () => Promise<string>
+      // Project tools
+      projectReadLog: (
+        projectPath: string,
+        fromByte?: number
+      ) => Promise<{
+        logPath: string
+        content: string
+        sizeBytes: number
+        startByte: number
+      } | null>
+      projectGitStatus: (projectPath: string) => Promise<{
+        initialized: boolean
+        branch: string
+        hasUncommitted: boolean
+        ahead: number
+        behind: number
+        remoteUrl: string
+      }>
+      projectGitInit: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectLaunchGame: (projectPath: string) => Promise<{ success: boolean; error?: string }>
     }
   }
 }

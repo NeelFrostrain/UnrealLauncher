@@ -55,3 +55,10 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+/native/target
+/native/dist/*.node
+/tracer/target
+/resources/unreal_launcher_tracer.exe
+
+# App config (contains secrets — copy from src/config.example.ts)
+src/config.ts

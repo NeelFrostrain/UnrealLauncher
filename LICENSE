@@ -1,21 +1,65 @@
-MIT License
+Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
-Copyright (c) 2026 NeelFrostrain
+UNREAL LAUNCHER — PROPRIETARY SOURCE LICENSE
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This software and all associated source code, documentation, and
+related files (collectively, the "Software") are the exclusive property of
+NeelFrostrain.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+────────────────────────────────────────────────────────────────────────────────
+PERMITTED
+────────────────────────────────────────────────────────────────────────────────
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+  • You MAY download and run the compiled binary releases of the Software for
+    personal, non-commercial use only.
+
+  • You MAY view the source code for personal reference and learning purposes.
+
+────────────────────────────────────────────────────────────────────────────────
+PROHIBITED
+────────────────────────────────────────────────────────────────────────────────
+
+  • You MAY NOT copy, reproduce, or duplicate any portion of the source code,
+    in whole or in part, for any purpose.
+
+  • You MAY NOT modify, adapt, translate, or create derivative works based on
+    the source code.
+
+  • You MAY NOT redistribute, publish, sublicense, sell, rent, lease, or
+    otherwise transfer the Software or any portion of it to any third party.
+
+  • You MAY NOT use the source code, or any part of it, in your own projects,
+    products, or services — whether commercial or non-commercial.
+
+  • You MAY NOT claim ownership of, or authorship over, the Software or any
+    portion of its source code.
+
+  • You MAY NOT remove, alter, or obscure this license notice or any copyright
+    notices from any copy of the Software.
+
+  • You MAY NOT use the name "Unreal Launcher", "NeelFrostrain", or any
+    associated branding to endorse or promote products derived from or
+    inspired by this Software without prior written permission from the Author.
+
+────────────────────────────────────────────────────────────────────────────────
+CONTRIBUTIONS
+────────────────────────────────────────────────────────────────────────────────
+
+  Any contribution intentionally submitted to this project by any means
+  (pull request, patch, issue, or otherwise) shall be considered a transfer
+  of all intellectual property rights for that contribution to the Author,
+  without any compensation or obligation on the Author's part.
+
+────────────────────────────────────────────────────────────────────────────────
+DISCLAIMER
+────────────────────────────────────────────────────────────────────────────────
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS
+  FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHOR
+  BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE OF
+  OR INABILITY TO USE THE SOFTWARE.
+
+────────────────────────────────────────────────────────────────────────────────
+
+  For licensing inquiries or permission requests, contact: nfrostrain@gmail.com

@@ -1,41 +1,48 @@
 # Code of Conduct
 
-This project and everyone participating in it is governed by this Code of Conduct.
-By participating, you are expected to uphold this code. Please report unacceptable behavior to the project maintainers.
+This Code of Conduct applies to all spaces associated with **Unreal Launcher** — including GitHub Issues, Pull Requests, Discussions, Discord, and any other communication channel related to this project.
 
-## Our Pledge
+By participating you agree to follow these rules. Violations may result in removal from the project's spaces without notice.
 
-In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to make participation in our project a harassment-free experience for everyone.
-
-## Our Standards
-
-Examples of behavior that contributes to a positive environment for our community include:
-
-- Using welcoming and inclusive language
-- Being respectful of differing viewpoints and experiences
-- Gracefully accepting constructive criticism
-- Focusing on what is best for the community
-- Showing empathy towards other community members
-
-Examples of unacceptable behavior by participants include:
-
-- The use of sexualized language or imagery and unwelcome sexual attention or advances
-- Trolling, insulting/derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or electronic address, without explicit permission
-
-## Enforcement Responsibilities
-
-Project maintainers are responsible for clarifying and enforcing this code of conduct.
-
-## Reporting
-
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project maintainers at `example.com`.
+---
 
 ## Scope
 
-This Code of Conduct applies both within project spaces and in public spaces when an individual is representing the project.
+This project is **proprietary software** maintained solely by NeelFrostrain. Participation in this project's community spaces is a privilege, not a right. The maintainer reserves the right to remove any participant at any time for any reason.
 
-## Attribution
+---
 
-This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org/), version 2.1.
+## Expected Behavior
+
+- Be respectful and constructive in all interactions.
+- Stay on topic — keep discussions relevant to the project.
+- Accept that final decisions on the project belong to the maintainer.
+- Respect the proprietary nature of this project — do not encourage, assist, or attempt to circumvent the license.
+- Do not share, redistribute, or publish any portion of the source code obtained through participation in this project.
+
+---
+
+## Unacceptable Behavior
+
+The following will result in immediate removal:
+
+- Harassment, insults, or personal attacks of any kind.
+- Attempting to extract, copy, or redistribute proprietary source code.
+- Claiming ownership of any part of this project.
+- Submitting contributions with the intent to later claim IP rights.
+- Sharing private communications without consent.
+- Any behavior that violates the project's [LICENSE](LICENSE).
+
+---
+
+## Reporting
+
+Report violations to: **nfrostrain@gmail.com**
+
+Include a description of the incident and any relevant links or screenshots. All reports are handled at the maintainer's sole discretion.
+
+---
+
+## Enforcement
+
+The maintainer (NeelFrostrain) has final authority over all enforcement decisions. There is no appeals process.

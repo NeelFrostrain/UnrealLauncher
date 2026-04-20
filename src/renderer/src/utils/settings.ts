@@ -1,11 +1,23 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
 export interface AppSettings {
   autoCloseOnLaunch: boolean
+  tracerAutoStart: boolean
+  logMaxLines: number
+  animationsEnabled: boolean
+  showTitlebarButtons: boolean
 }
 
 const SETTINGS_KEY = 'unrealLauncherSettings'
 
 const defaultSettings: AppSettings = {
-  autoCloseOnLaunch: false
+  autoCloseOnLaunch: false,
+  tracerAutoStart: false,
+  logMaxLines: 2000,
+  animationsEnabled: true,
+  showTitlebarButtons: true
 }
 
 // In-memory cache — avoids re-parsing localStorage on every getSetting call
@@ -42,4 +54,6 @@ export const getSetting = <K extends keyof AppSettings>(key: K): AppSettings[K] 
 
 export const setSetting = <K extends keyof AppSettings>(key: K, value: AppSettings[K]): void => {
   saveSettings({ [key]: value })
+  // Notify same-window listeners
+  window.dispatchEvent(new CustomEvent('app-settings-changed', { detail: { key, value } }))
 }

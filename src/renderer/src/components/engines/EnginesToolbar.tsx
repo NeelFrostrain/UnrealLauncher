@@ -1,7 +1,9 @@
-import { motion } from 'framer-motion'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
 import type { FC } from 'react'
-import AddIcon from '@mui/icons-material/Add'
-import RefreshIcon from '@mui/icons-material/Refresh'
+import { Plus, RefreshCw, Zap } from 'lucide-react'
 
 interface EnginesToolbarProps {
   scanning: boolean
@@ -17,39 +19,64 @@ const EnginesToolbar: FC<EnginesToolbarProps> = ({
   onScan
 }) => {
   return (
-    <motion.div
-      className="flex items-center gap-2 px-2 py-1 border-b border-white/10"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
+    <div
+      className="flex items-center gap-3 px-4 py-3 border-b shrink-0"
+      style={{ borderColor: 'var(--color-border)' }}
     >
-      <div>
-        <h1 className="font-semibold text-xl">Engines</h1>
-        <p className="text-sm mt-px text-white/50">Installed Unreal Engine versions</p>
+      {/* Page identity */}
+      <div className="flex items-center gap-2.5">
+        <div
+          className="w-7 h-7 rounded-lg flex items-center justify-center"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)' }}
+        >
+          <Zap size={14} style={{ color: 'var(--color-accent)' }} />
+        </div>
+        <div>
+          <h1
+            className="text-sm font-semibold leading-none"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            Engines
+          </h1>
+          <p
+            className="text-[11px] mt-0.5 leading-none"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            Installed Unreal Engine versions
+          </p>
+        </div>
       </div>
 
       <div className="flex-1" />
-      <motion.button
-        onClick={onAddEngine}
-        whileHover={{ y: -1 }}
-        whileTap={{ scale: 0.98 }}
-        disabled={addingEngine}
-        className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        title="Add Engine"
-      >
-        <AddIcon sx={{ fontSize: 16 }} />
-      </motion.button>
-      <motion.button
-        onClick={onScan}
-        whileHover={{ y: -1 }}
-        whileTap={{ scale: 0.98 }}
-        disabled={scanning}
-        className="flex items-center gap-2 px-3 py-2 rounded-md bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-50"
-        title="Scan for engines"
-      >
-        <RefreshIcon sx={{ fontSize: 16 }} className={scanning ? 'animate-spin' : ''} />
-      </motion.button>
-    </motion.div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={onScan}
+          disabled={scanning}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          style={{
+            backgroundColor: 'var(--color-surface-card)',
+            color: 'var(--color-text-secondary)',
+            border: '1px solid var(--color-border)'
+          }}
+          title="Scan for engines"
+        >
+          <RefreshCw size={13} className={scanning ? 'animate-spin' : ''} />
+          {scanning ? 'Scanning…' : 'Scan'}
+        </button>
+        <button
+          onClick={onAddEngine}
+          disabled={addingEngine}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          style={{ backgroundColor: 'var(--color-accent)' }}
+          title="Add Engine"
+        >
+          <Plus size={13} />
+          Add Engine
+        </button>
+      </div>
+    </div>
   )
 }
 

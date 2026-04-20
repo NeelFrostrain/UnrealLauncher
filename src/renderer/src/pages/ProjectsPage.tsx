@@ -1,103 +1,211 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import PageWrapper from '../layout/PageWrapper'
 import ProjectCard from '../components/projects/ProjectCard'
 import ProjectCardGrid from '../components/projects/ProjectCardGrid'
+import { FolderOpen, Clock, Star } from 'lucide-react'
 import ProjectsToolbar from '../components/projects/ProjectsToolbar'
 import type { ViewMode } from '../components/projects/ProjectsToolbar'
 import type { Project, TabType } from '../types'
-import { useToast } from '../components/ui/ToastContext'
-import { getSetting } from '../utils/settings'
+import { useProjectFavorites } from '../hooks/useProjectFavorites'
+import { useProjectFilters } from '../hooks/useProjectFilters'
+import { useProjectActions } from '../hooks/useProjectActions'
+import { clearGitCache } from '../hooks/useGitStatus'
 
 const ProjectsPage = (): React.ReactElement => {
+  const location = useLocation()
   const [projects, setProjects] = useState<Project[]>([])
-  const [, setAllProjects] = useState<Project[]>([])
-  const [currentTab, setCurrentTab] = useState<TabType>('all')
+  const [loading, setLoading] = useState(false)
+  const [currentTab, setCurrentTab] = useState<TabType>(() => {
+    const path = location.pathname
+    if (path === '/projects/favorites') return 'favorites'
+    if (path === '/projects/recent') return 'recent'
+    return 'all'
+  })
   const [refreshing, setRefreshing] = useState(false)
+  const [backgroundScanning, setBackgroundScanning] = useState(false)
+  const [calculatingSizes, setCalculatingSizes] = useState(false)
   const [addingProject, setAddingProject] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     return (localStorage.getItem('projectsViewMode') as ViewMode) ?? 'list'
   })
-  const [favoritePaths, setFavoritePaths] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem('projectFavorites') || '[]') } catch { return [] }
-  })
-  const { addToast } = useToast()
+  const { favoritePaths, toggleFavoritePath: toggleFav } = useProjectFavorites()
+  const { filterForTab, switchTab: switchTabFn } = useProjectFilters()
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [displayStart, setDisplayStart] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const ITEMS_PER_BATCH = 50
 
   const allProjectsRef = useRef<Project[]>([])
 
-  const getFavoritePaths = (): string[] => favoritePaths
-
-  const saveFavoritePaths = (paths: string[]): void => {
-    setFavoritePaths(paths)
-    localStorage.setItem('projectFavorites', JSON.stringify(paths))
-  }
-
-  const filterForTab = (tab: TabType, source: Project[], favorites: string[]): Project[] => {
-    if (tab === 'recent') {
-      return source
-        .filter((p) => !!p.lastOpenedAt)
-        .sort((a, b) => new Date(b.lastOpenedAt!).getTime() - new Date(a.lastOpenedAt!).getTime())
-        .slice(0, 20)
-    }
-    if (tab === 'favorites') {
-      return source.filter((p) => p.projectPath && favorites.includes(p.projectPath))
-    }
-    return source
-  }
-
-  const toggleFavoritePath = (projectPath: string): void => {
-    const favorites = getFavoritePaths()
-    const updated = favorites.includes(projectPath)
-      ? favorites.filter((path) => path !== projectPath)
-      : [...favorites, projectPath]
-    saveFavoritePaths(updated)
-
-    if (currentTab === 'favorites') {
-      setProjects(filterForTab('favorites', allProjectsRef.current, updated))
-    }
-  }
-
-  const loadProjectsForTab = useCallback(async (tab: TabType): Promise<Project[]> => {
-    if (!window.electronAPI) return []
-    try {
-      const scannedProjects = await window.electronAPI.scanProjects()
-      allProjectsRef.current = scannedProjects
-      setAllProjects(scannedProjects)
-      const favs = JSON.parse(localStorage.getItem('projectFavorites') || '[]') as string[]
-      const filtered = filterForTab(tab, scannedProjects, favs)
-      setProjects(filtered)
-
-      for (const project of filtered) {
-        if (project.projectPath && project.size.startsWith('~')) {
-          window.electronAPI.calculateProjectSize(project.projectPath).then((result) => {
-            if (result.success && result.size) {
-              setProjects((prev) =>
-                prev.map((p) => p.projectPath === project.projectPath ? { ...p, size: result.size! } : p)
-              )
-            }
-          })
-        }
-      }
-      return filtered
-    } catch (err) {
-      console.error('Failed to load projects for tab:', tab, err)
-      return []
-    }
+  const normalizeProjectPath = useCallback((projectPath: string): string => {
+    return projectPath.replace(/\\/g, '/').toLowerCase()
   }, [])
 
-  // Load saved projects on mount
+  const dedupeProjectList = useCallback(
+    (source: Project[]): Project[] => {
+      const seen = new Set<string>()
+      return source.filter((project) => {
+        const rawPath = project.projectPath
+        if (!rawPath) return false
+        const key = normalizeProjectPath(rawPath)
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+    },
+    [normalizeProjectPath]
+  )
+
+  const handleListScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget
+    const scrollTop = container.scrollTop
+    const itemHeight = 90 + 8
+    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - 5)
+    setDisplayStart(startIndex)
+  }, [])
+
+  const loadSavedProjectsForTab = useCallback(
+    async (tab: TabType): Promise<Project[]> => {
+      if (!window.electronAPI) {
+        setLoading(false)
+        return []
+      }
+      try {
+        const savedProjects = await window.electronAPI.loadSavedProjects()
+        clearGitCache()
+        const dedupedProjects = dedupeProjectList(savedProjects)
+        allProjectsRef.current = dedupedProjects
+        const filtered = filterForTab(tab, dedupedProjects, favoritePaths)
+        setProjects(filtered)
+        return dedupedProjects
+      } catch (err) {
+        console.error('Failed to load saved projects for tab:', tab, err)
+        return []
+      } finally {
+        setLoading(false)
+      }
+    },
+    [dedupeProjectList, filterForTab, favoritePaths]
+  )
+
+  const scanProjectsInBackground = useCallback(
+    async (tab: TabType): Promise<void> => {
+      if (!window.electronAPI) return
+      setBackgroundScanning(true)
+      try {
+        const scannedProjects = await window.electronAPI.scanProjects()
+        clearGitCache()
+        const dedupedProjects = dedupeProjectList(scannedProjects)
+
+        const existingMap = new Map<string, Project>()
+        allProjectsRef.current.forEach((project) => {
+          if (project.projectPath) {
+            existingMap.set(normalizeProjectPath(project.projectPath), project)
+          }
+        })
+
+        const mergedProjects = [...allProjectsRef.current]
+        let addedCount = 0
+
+        for (const project of dedupedProjects) {
+          if (!project.projectPath) continue
+          const normalized = normalizeProjectPath(project.projectPath)
+          const existing = existingMap.get(normalized)
+          if (!existing) {
+            mergedProjects.push(project)
+            existingMap.set(normalized, project)
+            addedCount += 1
+          } else {
+            const updated = { ...existing, ...project }
+            const index = mergedProjects.findIndex(
+              (p) => p.projectPath && normalizeProjectPath(p.projectPath) === normalized
+            )
+            if (index !== -1) mergedProjects[index] = updated
+          }
+        }
+
+        const dedupedMerged = dedupeProjectList(mergedProjects)
+        allProjectsRef.current = dedupedMerged
+        setProjects(filterForTab(tab, dedupedMerged, favoritePaths))
+
+        if (addedCount > 0) {
+          console.info(`Background scan added ${addedCount} new project(s).`)
+        }
+      } catch (err) {
+        console.error('Background project scan failed:', err)
+      } finally {
+        setBackgroundScanning(false)
+      }
+    },
+    [dedupeProjectList, favoritePaths, filterForTab, normalizeProjectPath]
+  )
+
+  const loadProjectsForTab = useCallback(
+    async (tab: TabType): Promise<Project[]> => {
+      if (!window.electronAPI) {
+        setLoading(false)
+        return []
+      }
+      try {
+        const scannedProjects = await window.electronAPI.scanProjects()
+        clearGitCache()
+        const dedupedProjects = dedupeProjectList(scannedProjects)
+        allProjectsRef.current = dedupedProjects
+        const filtered = filterForTab(tab, dedupedProjects, favoritePaths)
+        setProjects(filtered)
+        return filtered
+      } catch (err) {
+        console.error('Failed to load projects for tab:', tab, err)
+        return []
+      } finally {
+        setLoading(false)
+      }
+    },
+    [dedupeProjectList, filterForTab, favoritePaths]
+  )
+
+  const { handleRefresh, handleLaunch, handleOpenDir, handleDelete, handleAddProject } =
+    useProjectActions({ currentTab, loadProjectsForTab })
+
   useEffect(() => {
-    loadProjectsForTab('all')
+    const path = location.pathname
+    let tab: TabType = 'all'
+    if (path === '/projects/favorites') tab = 'favorites'
+    else if (path === '/projects/recent') tab = 'recent'
+    setCurrentTab(tab)
+    if (allProjectsRef.current.length > 0) {
+      setProjects(filterForTab(tab, allProjectsRef.current, favoritePaths))
+    }
+  }, [location.pathname, favoritePaths, filterForTab])
+
+  const toggleFavoritePath = (projectPath: string): void => {
+    toggleFav(projectPath, (updated) => {
+      if (currentTab === 'favorites') {
+        setProjects(filterForTab('favorites', allProjectsRef.current, updated))
+      }
+    })
+  }
+
+  useEffect(() => {
+    const init = async (): Promise<void> => {
+      await loadSavedProjectsForTab('all')
+      await scanProjectsInBackground('all')
+    }
+    init()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Listen for size updates
   useEffect(() => {
     if (window.electronAPI) {
       const cleanup = window.electronAPI.onSizeCalculated((data) => {
         if (data.type === 'project') {
-          // Update current display
           setProjects((prev) =>
             prev.map((p) => (p.projectPath === data.path ? { ...p, size: data.size } : p))
           )
@@ -105,21 +213,11 @@ const ProjectsPage = (): React.ReactElement => {
       })
       return cleanup
     }
-    return () => {} // No-op cleanup if electronAPI is not available
+    return () => {}
   }, [])
 
   const switchTab = (tab: TabType): void => {
-    if (currentTab === tab) return
-    setCurrentTab(tab)
-    const favs = JSON.parse(localStorage.getItem('projectFavorites') || '[]') as string[]
-    setProjects(filterForTab(tab, allProjectsRef.current, favs))
-  }
-
-  const handleRefresh = async (): Promise<void> => {
-    setRefreshing(true)
-    setProjects([])
-    await loadProjectsForTab(currentTab)
-    setRefreshing(false)
+    switchTabFn(tab, currentTab, allProjectsRef.current, setCurrentTab, setProjects)
   }
 
   const toggleSearch = (): void => {
@@ -128,114 +226,6 @@ const ProjectsPage = (): React.ReactElement => {
       return !prev
     })
   }
-
-  const handleSearchQueryChange = (value: string): void => {
-    setSearchQuery(value)
-  }
-
-  const handleLaunch = async (projectPath: string): Promise<void> => {
-    if (window.electronAPI) {
-      const result = await window.electronAPI.launchProject(projectPath)
-      if (!result.success) {
-        addToast('Failed to launch project: ' + result.error, 'error')
-      } else {
-        // Check if auto-close on launch is enabled
-        if (getSetting('autoCloseOnLaunch')) {
-          // Close the app after successful launch
-          setTimeout(() => {
-            window.electronAPI?.windowClose()
-          }, 1000) // Small delay to ensure the launch process starts
-        }
-      }
-    }
-  }
-
-  const handleOpenDir = async (dirPath: string): Promise<void> => {
-    if (window.electronAPI) {
-      await window.electronAPI.openDirectory(dirPath)
-    }
-  }
-
-  const handleDelete = async (projectPath: string): Promise<void> => {
-    try {
-      if (window.electronAPI) {
-        const success = await window.electronAPI.deleteProject(projectPath)
-        if (!success) {
-          addToast('Failed to remove project from storage', 'error')
-          return
-        }
-      }
-      setProjects((prev) => prev.filter((p) => p.projectPath !== projectPath))
-      const favorites = getFavoritePaths()
-      if (favorites.includes(projectPath)) {
-        saveFavoritePaths(favorites.filter((path) => path !== projectPath))
-        if (currentTab === 'favorites') {
-          await loadProjectsForTab('favorites')
-        }
-      }
-      addToast('Project removed from list', 'success')
-    } catch (error) {
-      console.error('Error deleting project:', error)
-      addToast('Failed to remove project', 'error')
-    }
-  }
-
-  const handleAddProject = async (): Promise<void> => {
-    if (!window.electronAPI || addingProject) return
-
-    setAddingProject(true)
-
-    try {
-      // Add timeout to prevent hanging
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Folder selection timeout')), 30000) // 30 second timeout
-      })
-
-      const selectPromise = window.electronAPI.selectProjectFolder()
-      const result = await Promise.race([selectPromise, timeoutPromise])
-
-      if (!result) {
-        addToast('No folder was selected', 'info')
-        setAddingProject(false)
-        return
-      }
-
-      const added = result.addedProjects.length
-      const duplicates = result.duplicateProjects.length
-      // Separate batch-limit messages from real invalid ones
-      const batchMsg = result.invalidProjects.find((p) => p.reason.startsWith('Batch limit'))
-      const invalid = result.invalidProjects.filter((p) => !p.reason.startsWith('Batch limit')).length
-
-      if (added > 0) {
-        addToast(`Added ${added} new project${added === 1 ? '' : 's'}`, 'success')
-      }
-      if (duplicates > 0) {
-        addToast(`${duplicates} already exist${duplicates === 1 ? 's' : ''}`, 'warning')
-      }
-      if (invalid > 0) {
-        addToast(`${invalid} invalid project${invalid === 1 ? '' : 's'} skipped`, 'error')
-      }
-      if (batchMsg) {
-        addToast(`Batch limit: ${batchMsg.reason}`, 'warning')
-      }
-      if (added === 0 && duplicates === 0 && invalid === 0 && !batchMsg) {
-        addToast('No new projects were added', 'info')
-      }
-
-      await loadProjectsForTab(currentTab)
-    } catch (error) {
-      console.error('Error adding projects:', error)
-      addToast('Failed to add projects. Please try again.', 'error')
-    } finally {
-      setAddingProject(false)
-    }
-  }
-
-  const tabs: Array<{ id: TabType; label: string }> = [
-    { id: 'all', label: 'All Projects' },
-    { id: 'recent', label: 'Recent' },
-    { id: 'favorites', label: 'Favorites' }
-  ]
 
   const visibleProjects = useMemo(
     () =>
@@ -254,49 +244,86 @@ const ProjectsPage = (): React.ReactElement => {
   return (
     <PageWrapper>
       <ProjectsToolbar
-        tabs={tabs}
+        tabs={[
+          { id: 'all', label: 'All', icon: <FolderOpen size={11} /> },
+          { id: 'recent', label: 'Recent', icon: <Clock size={11} /> },
+          { id: 'favorites', label: 'Favorites', icon: <Star size={11} /> }
+        ]}
         currentTab={currentTab}
         searchOpen={searchOpen}
         searchQuery={searchQuery}
         refreshing={refreshing}
+        calculatingSizes={calculatingSizes}
         addingProject={addingProject}
         onTabClick={switchTab}
         onToggleSearch={toggleSearch}
-        onSearchChange={handleSearchQueryChange}
-        onAddProject={handleAddProject}
-        onRefresh={handleRefresh}
+        onSearchChange={(value) => setSearchQuery(value)}
+        onAddProject={() => handleAddProject({ addingProject, setAddingProject })}
+        onRefresh={() =>
+          handleRefresh({
+            setRefreshing,
+            setCalculatingSizes,
+            setProjects: (v) => setProjects(v as Project[])
+          })
+        }
+        backgroundScanning={backgroundScanning}
         viewMode={viewMode}
-        onViewChange={(mode) => { setViewMode(mode); localStorage.setItem('projectsViewMode', mode) }}
+        onViewChange={(mode) => {
+          setViewMode(mode)
+          localStorage.setItem('projectsViewMode', mode)
+        }}
       />
 
-      <div className={viewMode === 'grid'
-        ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto py-2 px-2 mt-1'
-        : 'flex flex-col gap-2 overflow-y-auto py-2 px-2 mt-1'
-      }>
-        {visibleProjects.length > 0 ? (
-          visibleProjects.map((data) => viewMode === 'grid' ? (
-            <ProjectCardGrid
-              key={data.projectPath || data.name}
-              {...data}
-              isFavorite={data.isFavorite}
-              onToggleFavorite={toggleFavoritePath}
-              onLaunch={handleLaunch}
-              onOpenDir={handleOpenDir}
-              onDelete={handleDelete}
+      <div className="flex-1 overflow-hidden mt-1">
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div
+              className="w-5 h-5 rounded-full border-2 animate-spin"
+              style={{
+                borderColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
+                borderTopColor: 'var(--color-accent)'
+              }}
             />
+          </div>
+        ) : visibleProjects.length > 0 ? (
+          viewMode === 'grid' ? (
+            <div
+              ref={gridRef}
+              className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto py-2 h-full content-start"
+            >
+              {visibleProjects.map((data) => (
+                <ProjectCardGrid
+                  key={data.projectPath || data.name}
+                  {...data}
+                  isFavorite={data.isFavorite}
+                  onToggleFavorite={toggleFavoritePath}
+                  onLaunch={handleLaunch}
+                  onOpenDir={handleOpenDir}
+                  onDelete={(path) => handleDelete(path, setProjects)}
+                />
+              ))}
+            </div>
           ) : (
-            <ProjectCard
-              key={data.projectPath || data.name}
-              {...data}
-              isFavorite={data.isFavorite}
-              onToggleFavorite={toggleFavoritePath}
-              onLaunch={handleLaunch}
-              onOpenDir={handleOpenDir}
-              onDelete={handleDelete}
-            />
-          ))
+            <div
+              ref={containerRef}
+              onScroll={handleListScroll}
+              className="flex flex-col gap-2 overflow-y-auto py-2 h-full"
+            >
+              {visibleProjects.slice(displayStart, displayStart + ITEMS_PER_BATCH).map((data) => (
+                <ProjectCard
+                  key={data.projectPath || data.name}
+                  {...data}
+                  isFavorite={data.isFavorite}
+                  onToggleFavorite={toggleFavoritePath}
+                  onLaunch={handleLaunch}
+                  onOpenDir={handleOpenDir}
+                  onDelete={(path) => handleDelete(path, setProjects)}
+                />
+              ))}
+            </div>
+          )
         ) : (
-          <div className="col-span-full flex flex-col items-center justify-center h-full text-center text-white/50">
+          <div className="flex flex-col items-center justify-center h-full text-center text-white/50">
             <p className="text-lg mb-2">
               {searchQuery.trim()
                 ? 'No projects match your search'

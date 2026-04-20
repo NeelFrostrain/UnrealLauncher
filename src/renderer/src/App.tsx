@@ -1,39 +1,36 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Proprietary and confidential. Unauthorized copying, modification,
+// distribution, or use of this source code is strictly prohibited.
+// See LICENSE in the project root for full license terms.
 import { lazy, Suspense } from 'react'
-import usePagesStore from './store/usePagesStore'
+import { Routes, Route, Navigate } from 'react-router-dom'
 
-// Lazy load pages for better performance
-const AboutPage = lazy(() => import('./pages/AboutPage'))
 const EnginesPage = lazy(() => import('./pages/EnginesPage'))
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 
-// Loading component
 const PageLoader = (): React.ReactNode => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="text-center">
-      {/* <div classNa me="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"></div> */}
-      <p className="text-white/70">Loading...</p>
-    </div>
+  <div className="flex items-center justify-center h-full">
+    <div
+      className="w-5 h-5 rounded-full border-2 animate-spin"
+      style={{
+        borderColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
+        borderTopColor: 'var(--color-accent)'
+      }}
+    />
   </div>
 )
 
 const App = (): React.ReactNode => {
-  const { currentPage } = usePagesStore()
-
   return (
     <Suspense fallback={<PageLoader />}>
-      {currentPage === 'Engines' && <EnginesPage />}
-      {currentPage === 'Projects' && <ProjectsPage />}
-      {currentPage === 'Settings' && <SettingsPage />}
-      {currentPage === 'About' && <AboutPage />}
-      {!['Engines', 'Projects', 'Settings', 'About'].includes(currentPage) && (
-        <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-slate-900 to-slate-800">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-white mb-4">Restart App</h1>
-            <p className="text-white/70">Please restart the application</p>
-          </div>
-        </div>
-      )}
+      <Routes>
+        <Route path="/engines" element={<EnginesPage />} />
+        <Route path="/projects/*" element={<ProjectsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/" element={<Navigate to="/engines" replace />} />
+        <Route path="*" element={<Navigate to="/engines" replace />} />
+      </Routes>
     </Suspense>
   )
 }
