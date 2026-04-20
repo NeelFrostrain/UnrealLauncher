@@ -37,7 +37,7 @@ import { SectionHeader, Card } from '../components/settings/SectionHelpers'
 
 const Hero = (): React.ReactElement => (
   <div
-    className="relative overflow-hidden px-6 py-8 text-center"
+    className="relative overflow-hidden px-6 py-8"
     style={{
       background:
         'linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 12%, transparent), color-mix(in srgb, var(--color-accent) 4%, var(--color-surface-elevated)))',
@@ -53,7 +53,8 @@ const Hero = (): React.ReactElement => (
       className="absolute -bottom-6 -left-6 w-32 h-32 rounded-full opacity-10 blur-3xl pointer-events-none"
       style={{ backgroundColor: 'var(--color-accent)' }}
     />
-    <div className="relative">
+    
+    <div className="relative text-center">
       <div className="flex items-center justify-center gap-2 mb-3">
         <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
           Unreal Launcher
@@ -411,17 +412,20 @@ const StackSection = (): React.ReactElement => (
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement => {
+  
   const content = (
-    <div className="space-y-6 pb-8 p-5">
-      <Hero />
-      <FeatureGrid />
-      <FeatureCounts />
-      <ArchitectureSection />
-      <IpcSection />
-      <DataStorageSection />
-      <StackSection />
-      <AboutFooter />
-    </div>
+    <>
+      <div className="space-y-6 pb-8 p-5">
+        <Hero />
+        <FeatureGrid />
+        <FeatureCounts />
+        <ArchitectureSection />
+        <IpcSection />
+        <DataStorageSection />
+        <StackSection />
+        <AboutFooter />
+      </div>
+    </>
   )
 
   if (modal) return content

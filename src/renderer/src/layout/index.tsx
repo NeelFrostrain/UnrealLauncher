@@ -23,7 +23,11 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
           <Sidebar />
           <div className="flex-1 min-h-0 flex flex-col">
             <Titlebar />
-            <div className="flex-1 min-h-0 p-3.5 pt-1">{children}</div>
+            <div className="flex-1 min-h-0 p-3.5 pt-1 flex flex-col">
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                {children}
+              </div>
+            </div>
           </div>
         </div>
       </div>
