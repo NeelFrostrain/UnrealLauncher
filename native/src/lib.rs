@@ -30,6 +30,9 @@ pub struct EngineEntry {
 
 /// Scan common Unreal Engine installation paths and return found engines.
 /// Returns only entries where the editor executable actually exists.
+/// Each path in base_paths is treated two ways:
+///   1. If it IS an engine root (contains Engine/Build/Build.version) → use directly
+///   2. Otherwise → scan its subdirectories for engine roots
 #[napi]
 pub fn scan_engines(extra_paths: Vec<String>) -> Vec<EngineEntry> {
   let mut base_paths = vec![];
@@ -47,7 +50,6 @@ pub fn scan_engines(extra_paths: Vec<String>) -> Vec<EngineEntry> {
   #[cfg(target_os = "linux")]
   {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
-    // Avoid glob patterns - fs::read_dir doesn't expand them
     base_paths.extend(vec![
       "/opt/Epic Games".to_string(),
       format!("{}/.local/share/UnrealEngine", home),
@@ -56,7 +58,7 @@ pub fn scan_engines(extra_paths: Vec<String>) -> Vec<EngineEntry> {
       "/opt/UnrealEngine".to_string(),
     ]);
 
-    // Scan common parent directories for UE_* or UnrealEngine* subdirectories
+    // Scan common parent directories for any engine subdirectories
     let parent_dirs = vec![
       "/opt".to_string(),
       format!("{}/.local/share", home),
@@ -65,9 +67,7 @@ pub fn scan_engines(extra_paths: Vec<String>) -> Vec<EngineEntry> {
     for parent in parent_dirs {
       if let Ok(entries) = fs::read_dir(&parent) {
         for entry in entries.flatten() {
-          let name = entry.file_name();
-          let name_str = name.to_string_lossy();
-          if name_str.starts_with("UE_") || name_str.starts_with("UnrealEngine") {
+          if entry.path().is_dir() {
             base_paths.push(entry.path().to_string_lossy().into_owned());
           }
         }
@@ -85,14 +85,12 @@ pub fn scan_engines(extra_paths: Vec<String>) -> Vec<EngineEntry> {
   {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
     base_paths.extend(vec![
-      "/Applications/Unreal Engine *".to_string(),
-      format!("{}/UE_*", home),
+      "/Applications".to_string(),
+      home.clone(),
     ]);
   }
 
   base_paths.extend(extra_paths);
-
-  let mut results: Vec<EngineEntry> = Vec::new();
 
   // Platform-specific binary directory and executable names
   let (bin_platform, exe_names) = {
@@ -106,54 +104,62 @@ pub fn scan_engines(extra_paths: Vec<String>) -> Vec<EngineEntry> {
     { ("Unknown", vec![]) }
   };
 
+  let mut results: Vec<EngineEntry> = Vec::new();
+  // Track seen paths to avoid duplicates
+  let mut seen = std::collections::HashSet::new();
+
   for base in &base_paths {
     let base_path = Path::new(base);
     if !base_path.exists() {
       continue;
     }
+
+    // Case 1: the path itself is an engine root
+    if is_engine_root(base_path) {
+      if let Some(exe) = find_editor_exe(base_path, bin_platform, &exe_names) {
+        let dir_str = base_path.to_string_lossy().into_owned();
+        if seen.insert(dir_str.clone()) {
+          let folder_name = base_path.file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .into_owned();
+          results.push(EngineEntry {
+            version: resolve_engine_version(base_path, &folder_name),
+            exe_path: exe.to_string_lossy().into_owned(),
+            directory_path: dir_str,
+          });
+        }
+      }
+      continue;
+    }
+
+    // Case 2: scan subdirectories of this path for engine roots
     let entries = match fs::read_dir(base_path) {
       Ok(e) => e,
       Err(_) => continue,
     };
     for entry in entries.flatten() {
       let engine_dir = entry.path();
-
-      // Accept any subdirectory that contains a valid Engine/Build/Build.version
       if !engine_dir.is_dir() {
         continue;
       }
-      let build_version_path = engine_dir
-        .join("Engine")
-        .join("Build")
-        .join("Build.version");
-      if !build_version_path.exists() {
+      if !is_engine_root(&engine_dir) {
         continue;
       }
-
-      let bin = engine_dir.join("Engine").join("Binaries").join(bin_platform);
-
-      // Try to find the executable
-      let exe = exe_names.iter().find_map(|exe_name| {
-        let candidate = bin.join(exe_name);
-        if candidate.exists() {
-          Some(candidate)
-        } else {
-          None
+      if let Some(exe) = find_editor_exe(&engine_dir, bin_platform, &exe_names) {
+        let dir_str = engine_dir.to_string_lossy().into_owned();
+        if seen.insert(dir_str.clone()) {
+          let folder_name = engine_dir.file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .into_owned();
+          results.push(EngineEntry {
+            version: resolve_engine_version(&engine_dir, &folder_name),
+            exe_path: exe.to_string_lossy().into_owned(),
+            directory_path: dir_str,
+          });
         }
-      });
-
-      let exe = match exe {
-        Some(path) => path,
-        None => continue,
-      };
-
-      let version = resolve_engine_version(&engine_dir, &name_str);
-
-      results.push(EngineEntry {
-        version,
-        exe_path: exe.to_string_lossy().into_owned(),
-        directory_path: engine_dir.to_string_lossy().into_owned(),
-      });
+      }
     }
   }
 
@@ -185,6 +191,20 @@ fn resolve_engine_version(engine_dir: &Path, folder_name: &str) -> String {
   }
   // Fall back to folder name as-is
   folder_name.to_string()
+}
+
+/// Check if a directory is itself a valid engine root (has Engine/Build/Build.version)
+fn is_engine_root(dir: &Path) -> bool {
+  dir.join("Engine").join("Build").join("Build.version").exists()
+}
+
+/// Try to find the editor executable in an engine root directory
+fn find_editor_exe(engine_dir: &Path, bin_platform: &str, exe_names: &[&str]) -> Option<std::path::PathBuf> {
+  let bin = engine_dir.join("Engine").join("Binaries").join(bin_platform);
+  exe_names.iter().find_map(|exe_name| {
+    let candidate = bin.join(exe_name);
+    if candidate.exists() { Some(candidate) } else { None }
+  })
 }
 
 // ── Project scanning ──────────────────────────────────────────────────────────

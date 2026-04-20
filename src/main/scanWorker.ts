@@ -104,33 +104,44 @@ function scanEnginePaths(): Array<{ version: string; exePath: string; directoryP
     }
   }
   const bases = getEngineInstallPaths()
-  const results: Array<{ version: string; exePath: string; directoryPath: string }> = []
   const binPlatform = process.platform === 'win32' ? 'Win64' :
                      process.platform === 'darwin' ? 'Mac' : 'Linux'
   const exeName = `UnrealEditor${getBinaryExtension()}`
   const ue4ExeName = `UE4Editor${getBinaryExtension()}`
 
+  const results: Array<{ version: string; exePath: string; directoryPath: string }> = []
+  const seen = new Set<string>()
+
+  const tryAddEngine = (enginePath: string): void => {
+    if (seen.has(enginePath)) return
+    const buildVersionPath = path.join(enginePath, 'Engine', 'Build', 'Build.version')
+    if (!fs.existsSync(buildVersionPath)) return
+    const bin = path.join(enginePath, 'Engine', 'Binaries', binPlatform)
+    let exe = path.join(bin, exeName)
+    if (!fs.existsSync(exe)) exe = path.join(bin, ue4ExeName)
+    if (!fs.existsSync(exe)) return
+    let version = path.basename(enginePath)
+    try {
+      const bv = JSON.parse(fs.readFileSync(buildVersionPath, 'utf8'))
+      if (bv.MajorVersion != null && bv.MinorVersion != null)
+        version = `${bv.MajorVersion}.${bv.MinorVersion}`
+      else if (typeof bv.BranchName === 'string') version = bv.BranchName
+    } catch { /* keep folder name */ }
+    seen.add(enginePath)
+    results.push({ version, exePath: exe, directoryPath: enginePath })
+  }
+
   for (const base of bases) {
     if (!fs.existsSync(base)) continue
+    // Case 1: the path itself is an engine root
+    if (fs.existsSync(path.join(base, 'Engine', 'Build', 'Build.version'))) {
+      tryAddEngine(base)
+      continue
+    }
+    // Case 2: scan subdirectories for engine roots
     try {
       for (const item of fs.readdirSync(base)) {
-        const enginePath = path.join(base, item)
-        // Validate by Build.version, not folder name
-        const buildVersionPath = path.join(enginePath, 'Engine', 'Build', 'Build.version')
-        if (!fs.existsSync(buildVersionPath)) continue
-        const bin = path.join(enginePath, 'Engine', 'Binaries', binPlatform)
-        let exe = path.join(bin, exeName)
-        if (!fs.existsSync(exe)) exe = path.join(bin, ue4ExeName)
-        if (!fs.existsSync(exe)) continue
-        // Read version from Build.version
-        let version = item
-        try {
-          const bv = JSON.parse(fs.readFileSync(buildVersionPath, 'utf8'))
-          if (bv.MajorVersion != null && bv.MinorVersion != null)
-            version = `${bv.MajorVersion}.${bv.MinorVersion}`
-          else if (typeof bv.BranchName === 'string') version = bv.BranchName
-        } catch { /* keep folder name */ }
-        results.push({ version, exePath: exe, directoryPath: enginePath })
+        tryAddEngine(path.join(base, item))
       }
     } catch {
       /* skip */

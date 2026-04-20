@@ -214,25 +214,36 @@ export function scanEnginePaths(extraPaths: string[] = []): ScannedEngine[] {
 
 function _scanEnginesJS(basePaths: string[]): ScannedEngine[] {
   const results: ScannedEngine[] = []
+  const seen = new Set<string>()
   const binPlatform =
     process.platform === 'win32' ? 'Win64' : process.platform === 'darwin' ? 'Mac' : 'Linux'
   const exeName = `UnrealEditor${getBinaryExtension()}`
   const ue4ExeName = `UE4Editor${getBinaryExtension()}`
 
+  const tryAddEngine = (enginePath: string): void => {
+    if (seen.has(enginePath)) return
+    const buildVersionPath = path.join(enginePath, 'Engine', 'Build', 'Build.version')
+    if (!fs.existsSync(buildVersionPath)) return
+    const binPath = path.join(enginePath, 'Engine', 'Binaries', binPlatform)
+    let exePath = path.join(binPath, exeName)
+    if (!fs.existsSync(exePath)) exePath = path.join(binPath, ue4ExeName)
+    if (!fs.existsSync(exePath)) return
+    seen.add(enginePath)
+    const version = _readBuildVersion(buildVersionPath) ?? path.basename(enginePath)
+    results.push({ version, exePath, directoryPath: enginePath })
+  }
+
   for (const basePath of basePaths) {
     if (!fs.existsSync(basePath)) continue
+    // Case 1: the path itself is an engine root
+    if (fs.existsSync(path.join(basePath, 'Engine', 'Build', 'Build.version'))) {
+      tryAddEngine(basePath)
+      continue
+    }
+    // Case 2: scan subdirectories for engine roots
     try {
       for (const item of fs.readdirSync(basePath)) {
-        const enginePath = path.join(basePath, item)
-        // Validate by presence of Build.version, not folder name
-        const buildVersionPath = path.join(enginePath, 'Engine', 'Build', 'Build.version')
-        if (!fs.existsSync(buildVersionPath)) continue
-        const binPath = path.join(enginePath, 'Engine', 'Binaries', binPlatform)
-        let exePath = path.join(binPath, exeName)
-        if (!fs.existsSync(exePath)) exePath = path.join(binPath, ue4ExeName)
-        if (!fs.existsSync(exePath)) continue
-        const version = _readBuildVersion(buildVersionPath) ?? item
-        results.push({ version, exePath, directoryPath: enginePath })
+        tryAddEngine(path.join(basePath, item))
       }
     } catch (err) {
       console.error('[scan] Error scanning engine path:', basePath, err)

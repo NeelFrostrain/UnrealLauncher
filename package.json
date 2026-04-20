@@ -32,7 +32,8 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win --publish=never",
     "build:mac": "npm run build && electron-builder --mac --publish=never",
-    "build:linux": "npm run build:tracer && npm run build:native:linux && electron-vite build && npm run copy:tracer:linux",
+    "build:linux": "npm run build:tracer && npm run build:native:linux && electron-vite build && npm run copy:tracer:linux && electron-builder --linux --publish=never",
+    "build:linux:unpack": "npm run build:tracer && npm run build:native:linux && electron-vite build && npm run copy:tracer:linux && electron-builder --dir",
     "build:all": "npm run build && electron-builder --win --mac --linux --publish=never",
     "clean": "rimraf out dist node_modules/.vite node_modules/.cache",
     "clean:build": "rimraf out dist"

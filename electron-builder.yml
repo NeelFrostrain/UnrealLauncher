@@ -15,13 +15,12 @@ files:
   - 'out/**'
   - 'native/dist/**'
   - 'resources/**'
-asar: false
+asar: true
 asarUnpack:
-  - resources/**
-  - native/dist/*.node
+  - 'resources/**'
+  - 'native/dist/*.node'
 forceCodeSigning: false
-artifactBuildStarted: null
-compression: maximum
+compression: normal
 
 win:
   executableName: unreallauncher
@@ -53,19 +52,27 @@ mac:
       arch: [x64, arm64]
 dmg:
   artifactName: ${name}-${version}.${ext}
-  background: build/background.png
   window:
     width: 540
     height: 380
 
 linux:
+  icon: build/icon.png
   target:
-    - AppImage
-    - deb
-  maintainer: electronjs.org
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  maintainer: NeelFrostrain
   category: Utility
   executableName: unreallauncher
+  desktop:
+    Name: Unreal Launcher
+    Comment: Manage your Unreal Engine installations and projects
+    Categories: Development;Utility;
 appImage:
+  artifactName: ${name}-${version}.${ext}
+deb:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 nodeGypRebuild: false

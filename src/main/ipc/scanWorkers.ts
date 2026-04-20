@@ -170,41 +170,49 @@ function scanEnginePaths() {
   }
   
   const results = [];
+  const seen = new Set();
+
+  function tryAddEngine(ep) {
+    if (seen.has(ep)) return;
+    const buildVersionPath = path.join(ep, 'Engine', 'Build', 'Build.version');
+    if (!fs.existsSync(buildVersionPath)) return;
+    const engineDir = path.join(ep, 'Engine');
+    if (!fs.existsSync(engineDir)) return;
+
+    const binPlatform = platform === 'win32' ? 'Win64' : platform === 'darwin' ? 'Mac' : 'Linux';
+    const bin = path.join(engineDir, 'Binaries', binPlatform);
+    if (!fs.existsSync(bin)) return;
+
+    const exeNames = platform === 'win32' ? ['UnrealEditor.exe', 'UE4Editor.exe'] : ['UnrealEditor', 'UE4Editor'];
+    let exe = null;
+    for (const exeName of exeNames) {
+      const candidate = path.join(bin, exeName);
+      if (fs.existsSync(candidate)) { exe = candidate; break; }
+    }
+    if (!exe) return;
+
+    let version = path.basename(ep);
+    try {
+      const bv = JSON.parse(fs.readFileSync(buildVersionPath, 'utf8'));
+      if (bv.MajorVersion != null && bv.MinorVersion != null) version = bv.MajorVersion + '.' + bv.MinorVersion;
+      else if (typeof bv.BranchName === 'string') version = bv.BranchName;
+    } catch {}
+
+    seen.add(ep);
+    results.push({ version, exePath: exe, directoryPath: ep });
+  }
+
   for (const base of bases) {
     if (!fs.existsSync(base)) continue;
+    // Case 1: the path itself is an engine root
+    if (fs.existsSync(path.join(base, 'Engine', 'Build', 'Build.version'))) {
+      tryAddEngine(base);
+      continue;
+    }
+    // Case 2: scan subdirectories for engine roots
     try {
       for (const item of fs.readdirSync(base)) {
-        const ep = path.join(base, item);
-        // Validate by Build.version, not folder name
-        const buildVersionPath = path.join(ep, 'Engine', 'Build', 'Build.version');
-        if (!fs.existsSync(buildVersionPath)) continue;
-        const engineDir = path.join(ep, 'Engine');
-        const sourceDir = path.join(engineDir, 'Source');
-        if (!fs.existsSync(engineDir) || !fs.existsSync(sourceDir)) continue;
-        
-        // Platform-specific binary directory
-        const binPlatform = platform === 'win32' ? 'Win64' : platform === 'darwin' ? 'Mac' : 'Linux';
-        const bin = path.join(engineDir, 'Binaries', binPlatform);
-        if (!fs.existsSync(bin)) continue;
-        
-        // Platform-specific executable names
-        const exeNames = platform === 'win32' ? ['UnrealEditor.exe', 'UE4Editor.exe'] : ['UnrealEditor', 'UE4Editor'];
-        let exe = null;
-        for (const exeName of exeNames) {
-          const candidate = path.join(bin, exeName);
-          if (fs.existsSync(candidate)) { exe = candidate; break; }
-        }
-        if (!exe) continue;
-
-        // Read version from Build.version
-        let version = item;
-        try {
-          const bv = JSON.parse(fs.readFileSync(buildVersionPath, 'utf8'));
-          if (bv.MajorVersion != null && bv.MinorVersion != null) version = bv.MajorVersion + '.' + bv.MinorVersion;
-          else if (typeof bv.BranchName === 'string') version = bv.BranchName;
-        } catch {}
-        
-        results.push({ version, exePath: exe, directoryPath: ep });
+        tryAddEngine(path.join(base, item));
       }
     } catch {}
   }
