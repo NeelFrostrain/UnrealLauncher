@@ -349,7 +349,9 @@ const layers = [
       'Detached background process',
       'Tracks engine & project usage',
       'Writes to Tracer/*.json',
-      'Windows registry Run key support'
+      ...(typeof window !== 'undefined' && window.electronAPI?.platform === 'win32'
+        ? ['Windows registry Run key support']
+        : [])
     ]
   }
 ]

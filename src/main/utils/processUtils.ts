@@ -13,16 +13,18 @@ import { execSync, spawn } from 'child_process'
 export function isProcessRunning(processName: string): boolean {
   try {
     if (process.platform === 'win32') {
-      // Use tasklist on Windows
-      execSync(`tasklist /FI "IMAGENAME eq ${processName}" /NH`, { stdio: 'ignore' })
-      return true
+      const output = execSync(
+        `tasklist /FI "IMAGENAME eq ${processName}" /FO CSV /NH`,
+        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+      )
+        .trim()
+
+      return output.length > 0 && !output.toLowerCase().includes('info: no tasks are running')
     } else {
-      // Use pgrep on Unix-like systems
       execSync(`pgrep -f "${processName}"`, { stdio: 'ignore' })
       return true
     }
-  } catch (error) {
-    // Process not found
+  } catch {
     return false
   }
 }
@@ -30,10 +32,18 @@ export function isProcessRunning(processName: string): boolean {
 export function killProcess(processName: string): void {
   try {
     if (process.platform === 'win32') {
-      // Use taskkill on Windows
+      const output = execSync(
+        `tasklist /FI "IMAGENAME eq ${processName}" /FO CSV /NH`,
+        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+      )
+        .trim()
+
+      if (output.length === 0 || output.toLowerCase().includes('info: no tasks are running')) {
+        return
+      }
+
       execSync(`taskkill /F /IM ${processName}`, { stdio: 'ignore' })
     } else {
-      // Use pkill on Unix-like systems
       execSync(`pkill -f "${processName}"`, { stdio: 'ignore' })
     }
   } catch (error) {

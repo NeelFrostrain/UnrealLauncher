@@ -32,15 +32,51 @@ pub struct EngineEntry {
 /// Returns only entries where the editor executable actually exists.
 #[napi]
 pub fn scan_engines(extra_paths: Vec<String>) -> Vec<EngineEntry> {
-  let mut base_paths = vec![
-    r"D:\Engine\UnrealEditors".to_string(),
-    r"C:\Program Files\Epic Games".to_string(),
-    r"C:\Program Files (x86)\Epic Games".to_string(),
-    r"D:\Unreal".to_string(),
-  ];
+  let mut base_paths = vec![];
+
+  // Add platform-specific default paths
+  #[cfg(target_os = "windows")]
+  {
+    base_paths.extend(vec![
+      r"D:\Engine\UnrealEditors".to_string(),
+      r"C:\Program Files\Epic Games".to_string(),
+      r"C:\Program Files (x86)\Epic Games".to_string(),
+      r"D:\Unreal".to_string(),
+    ]);
+  }
+  #[cfg(target_os = "linux")]
+  {
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    base_paths.extend(vec![
+      "/opt/Epic Games".to_string(),
+      format!("{}/.local/share/UnrealEngine", home),
+      "/usr/local/UnrealEngine*".to_string(),
+    ]);
+  }
+  #[cfg(target_os = "macos")]
+  {
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    base_paths.extend(vec![
+      "/Applications/Unreal Engine *".to_string(),
+      format!("{}/UE_*", home),
+    ]);
+  }
+
   base_paths.extend(extra_paths);
 
   let mut results: Vec<EngineEntry> = Vec::new();
+
+  // Platform-specific binary directory and executable names
+  let (bin_platform, exe_names) = {
+    #[cfg(target_os = "windows")]
+    { ("Win64", vec!["UnrealEditor.exe", "UE4Editor.exe"]) }
+    #[cfg(target_os = "linux")]
+    { ("Linux", vec!["UnrealEditor", "UE4Editor"]) }
+    #[cfg(target_os = "macos")]
+    { ("Mac", vec!["UnrealEditor", "UE4Editor"]) }
+    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+    { ("Unknown", vec![]) }
+  };
 
   for base in &base_paths {
     let base_path = Path::new(base);
@@ -58,15 +94,21 @@ pub fn scan_engines(extra_paths: Vec<String>) -> Vec<EngineEntry> {
         continue;
       }
       let engine_dir = entry.path();
-      let bin = engine_dir.join("Engine").join("Binaries").join("Win64");
-      let exe = {
-        let candidate = bin.join("UnrealEditor.exe");
+      let bin = engine_dir.join("Engine").join("Binaries").join(bin_platform);
+
+      // Try to find the executable
+      let exe = exe_names.iter().find_map(|exe_name| {
+        let candidate = bin.join(exe_name);
         if candidate.exists() {
-          candidate
+          Some(candidate)
         } else {
-          let fallback = bin.join("UE4Editor.exe");
-          if fallback.exists() { fallback } else { continue }
+          None
         }
+      });
+
+      let exe = match exe {
+        Some(path) => path,
+        None => continue,
       };
 
       let version = resolve_engine_version(&engine_dir, &name_str);

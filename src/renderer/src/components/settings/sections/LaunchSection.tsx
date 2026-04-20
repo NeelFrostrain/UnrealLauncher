@@ -19,6 +19,7 @@ const LaunchSection = ({ autoCloseOnLaunch, onToggle }: LaunchSectionProps): Rea
   const [showTitlebarButtons, setShowTitlebarButtons] = useState(() =>
     getSetting('showTitlebarButtons')
   )
+  const platform = window.electronAPI.platform
 
   useEffect(() => {
     window.electronAPI.getRegistryEngines().then(setRegistryEngines)
@@ -44,12 +45,14 @@ const LaunchSection = ({ autoCloseOnLaunch, onToggle }: LaunchSectionProps): Rea
         >
           <Toggle on={autoCloseOnLaunch} onChange={onToggle} />
         </SettingRow>
-        <SettingRow
-          label="Scan registry for engines"
-          description="Detect Unreal Engine installations registered in the Windows registry (HKLM\\SOFTWARE\\EpicGames)."
-        >
-          <Toggle on={registryEngines} onChange={handleRegistryToggle} />
-        </SettingRow>
+        {platform === 'win32' && (
+          <SettingRow
+            label="Scan registry for engines"
+            description="Detect Unreal Engine installations registered in the Windows registry (HKLM\\SOFTWARE\\EpicGames)."
+          >
+            <Toggle on={registryEngines} onChange={handleRegistryToggle} />
+          </SettingRow>
+        )}
         <SettingRow
           label="UI Animations"
           description="Enable transitions and motion effects. Disable to reduce CPU/GPU usage and improve performance."

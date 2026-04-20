@@ -11,6 +11,7 @@ import { setupAppLifecycle, getMainWindow } from './window'
 import { setupAutoUpdaterEvents } from './updater'
 import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
 import { loadMainSettings } from './store'
+import { getNative } from './utils/native'
 
 // ── Chromium memory optimizations ─────────────────────────────────────────────
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=192') // tighter V8 heap cap
@@ -94,6 +95,10 @@ if (!gotTheLock) {
       }
       return net.fetch(`file:///${filePath.replace(/\\/g, '/')}`)
     })
+
+    // ── Native module warmup ─────────────────────────────────────────────────
+    // Load the Rust native module once at startup instead of waiting for settings access.
+    getNative()
 
     // ── Tracer auto-start (Windows only) ─────────────────────────────────────
     // Logic:

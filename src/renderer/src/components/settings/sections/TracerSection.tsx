@@ -18,6 +18,7 @@ const TracerSection = (): React.ReactElement => {
   } = useTracerSettings()
 
   const [nativeLoaded, setNativeLoaded] = useState<boolean | null>(null)
+  const platform = window.electronAPI.platform
 
   useEffect(() => {
     window.electronAPI.getNativeStatus().then(setNativeLoaded)
@@ -33,7 +34,7 @@ const TracerSection = (): React.ReactElement => {
       <Card>
         <SettingRow
           label="Run tracer on startup"
-          description="Start the background tracer with Windows. Tracks engine and project usage."
+          description={`Start the background tracer with ${platform === 'win32' ? 'Windows' : platform === 'darwin' ? 'macOS' : 'your system'}. Tracks engine and project usage.`}
         >
           <Toggle on={tracerAutoStart} onChange={handleTracerAutoStartChange} color="green" />
         </SettingRow>

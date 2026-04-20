@@ -80,6 +80,7 @@ if (process.contextIsolated) {
       clearAppData: () => ipcRenderer.invoke('clear-app-data'),
       clearTracerData: () => ipcRenderer.invoke('clear-tracer-data'),
       getMainSettings: () => ipcRenderer.invoke('get-main-settings'),
+      platform: process.platform,
       saveMainSettings: (settings) => ipcRenderer.invoke('save-main-settings', settings),
       selectFolder: () => ipcRenderer.invoke('select-folder'),
       loadSavedProjects: () => ipcRenderer.invoke('load-saved-projects'),

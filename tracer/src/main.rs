@@ -181,7 +181,7 @@ struct ProcessInfo {
     cmd_line: String,
 }
 
-/// Query all running processes via wmic and return those whose executable
+/// Query all running processes and return those whose executable
 /// name matches one of the Unreal Editor names.
 fn find_editor_processes() -> Vec<ProcessInfo> {
     #[cfg(target_os = "windows")]
@@ -232,8 +232,61 @@ fn find_editor_processes() -> Vec<ProcessInfo> {
 
         results
     }
-    #[cfg(not(target_os = "windows"))]
-    { vec![] }
+    #[cfg(target_os = "linux")]
+    {
+        use std::fs;
+
+        let mut results = Vec::new();
+
+        // Read /proc directory to find running processes
+        if let Ok(entries) = fs::read_dir("/proc") {
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    // Check if this is a process directory (contains only digits)
+                    if let Some(name) = entry.file_name().to_str() {
+                        if let Ok(pid) = name.parse::<u32>() {
+                            // Try to read the command line
+                            if let Ok(cmdline) = fs::read_to_string(entry.path().join("cmdline")) {
+                                // Convert null bytes to spaces
+                                let cmdline = cmdline.replace('\0', " ");
+
+                                // Check if this is an Unreal Editor process
+                                if cmdline.contains("UnrealEditor") ||
+                                   cmdline.contains("UE4Editor") ||
+                                   cmdline.contains("UE5Editor") {
+                                    // Try to get the executable path from /proc/<pid>/exe
+                                    let exe_path = fs::read_link(entry.path().join("exe"))
+                                        .map(|p| p.to_string_lossy().to_string())
+                                        .unwrap_or_else(|_| String::new());
+
+                                    if !exe_path.is_empty() {
+                                        results.push(ProcessInfo {
+                                            pid,
+                                            exe_path,
+                                            cmd_line: cmdline,
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        results
+    }
+    #[cfg(target_os = "macos")]
+    {
+        // macOS implementation - could use sysctl or ps command
+        // For now, return empty vector
+        vec![]
+    }
+    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+    {
+        // Other platforms not supported
+        vec![]
+    }
 }
 
 /// Minimal CSV field splitter that handles quoted fields containing commas.

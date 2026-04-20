@@ -4,7 +4,7 @@
 // See LICENSE in the project root for full license terms.
 import { ipcMain, app, shell, dialog } from 'electron'
 import { clearAppData, clearTracerData, loadMainSettings, saveMainSettings } from '../store'
-import { getIsMaximized, handleWindowMinimize, handleWindowMaximize } from '../window'
+import { getIsMaximized, handleWindowMinimize, handleWindowMaximize, getMainWindow } from '../window'
 import { getNative } from '../utils/native'
 
 export function registerMiscHandlers(ipcMain_: typeof ipcMain): void {
@@ -136,7 +136,7 @@ export function registerMiscHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   ipcMain_.handle('select-folder', async (): Promise<string[] | null> => {
-    const win = (await import('../window')).getMainWindow()
+    const win = getMainWindow()
     if (!win) return null
     const result = await dialog.showOpenDialog(win, {
       title: 'Select Folder',

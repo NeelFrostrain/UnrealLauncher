@@ -52,11 +52,19 @@ function findLogTimestamp(p) {
 }
 
 const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
-const searchPaths = [
-  path.join(os.homedir(), 'Documents', 'Unreal Projects'),
-  'C:\\\\Users\\\\Public\\\\Documents\\\\Unreal Projects',
-  'D:\\\\Unreal\\\\Projects'
-];
+const searchPaths = [path.join(os.homedir(), 'Documents', 'Unreal Projects')];
+
+// Add platform-specific default paths
+const platform = os.platform();
+if (platform === 'win32') {
+  searchPaths.push('C:\\\\Users\\\\Public\\\\Documents\\\\Unreal Projects', 'D:\\\\Unreal\\\\Projects');
+} else if (platform === 'darwin') {
+  searchPaths.push(path.join(os.homedir(), 'Library', 'Application Support', 'Unreal Projects'));
+} else {
+  // Linux
+  searchPaths.push(path.join(os.homedir(), '.local', 'share', 'Unreal Projects'), '/opt/Unreal Projects');
+}
+
 if (Array.isArray(workerData.customScanPaths)) {
   for (const customPath of workerData.customScanPaths) {
     if (customPath && fs.existsSync(customPath)) {
@@ -112,7 +120,20 @@ try { native = require(workerData.nativePath); } catch {}
 
 function scanEnginePaths() {
   if (native) { try { return native.scanEngines([]); } catch {} }
-  const bases = ['D:\\\\Engine\\\\UnrealEditors','C:\\\\Program Files\\\\Epic Games','C:\\\\Program Files (x86)\\\\Epic Games','D:\\\\Unreal'];
+  // Fallback engine scanning when native module is not available
+  const bases = [];
+  const os = require('os');
+  const platform = os.platform();
+  
+  if (platform === 'win32') {
+    bases.push('D:\\\\Engine\\\\UnrealEditors','C:\\\\Program Files\\\\Epic Games','C:\\\\Program Files (x86)\\\\Epic Games','D:\\\\Unreal');
+  } else if (platform === 'darwin') {
+    bases.push('/Applications/Unreal Engine *', path.join(os.homedir(), 'UE_*'));
+  } else {
+    // Linux
+    bases.push('/opt/Epic Games', path.join(os.homedir(), '.local/share/UnrealEngine'), '/usr/local/UnrealEngine*');
+  }
+  
   const results = [];
   for (const base of bases) {
     if (!fs.existsSync(base)) continue;
@@ -120,10 +141,27 @@ function scanEnginePaths() {
       for (const item of fs.readdirSync(base)) {
         if (!item.startsWith('UE_')) continue;
         const ep = path.join(base, item);
-        const bin = path.join(ep, 'Engine', 'Binaries', 'Win64');
-        let exe = path.join(bin, 'UnrealEditor.exe');
-        if (!fs.existsSync(exe)) exe = path.join(bin, 'UE4Editor.exe');
-        if (!fs.existsSync(exe)) continue;
+        const engineDir = path.join(ep, 'Engine');
+        const sourceDir = path.join(engineDir, 'Source');
+        if (!fs.existsSync(engineDir) || !fs.existsSync(sourceDir)) continue;
+        
+        // Platform-specific binary directory
+        const binPlatform = platform === 'win32' ? 'Win64' : platform === 'darwin' ? 'Mac' : 'Linux';
+        const bin = path.join(engineDir, 'Binaries', binPlatform);
+        if (!fs.existsSync(bin)) continue;
+        
+        // Platform-specific executable names
+        const exeNames = platform === 'win32' ? ['UnrealEditor.exe', 'UE4Editor.exe'] : ['UnrealEditor', 'UE4Editor'];
+        let exe = null;
+        for (const exeName of exeNames) {
+          const candidate = path.join(bin, exeName);
+          if (fs.existsSync(candidate)) {
+            exe = candidate;
+            break;
+          }
+        }
+        if (!exe) continue;
+        
         results.push({ version: item.replace('UE_', ''), exePath: exe, directoryPath: ep });
       }
     } catch {}

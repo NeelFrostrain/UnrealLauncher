@@ -9,7 +9,12 @@ This guide covers the full build process for Unreal Launcher — including the R
 - **Node.js 18+** and **npm**
 - **Rust toolchain** — install from [rustup.rs](https://rustup.rs)
 - **`@napi-rs/cli`** — installed automatically via `npm install`
-- Windows: Visual Studio Build Tools (for native module compilation)
+
+### Platform-Specific Requirements
+
+- **Windows**: Visual Studio Build Tools (for native module compilation)
+- **Linux**: GCC and development libraries (usually pre-installed on most distros)
+- **macOS**: Xcode Command Line Tools
 
 ---
 
@@ -25,19 +30,22 @@ npm install
 
 ### Rust N-API module (filesystem ops)
 
-```powershell
-npm run build:native
+```bash
+npm run build:native      # Windows/macOS
+npm run build:native:linux # Linux
 ```
 
 Output: `native/dist/*.node`
 
 ### UE Tracer (background process)
 
-```powershell
+```bash
 npm run build:tracer
 ```
 
-Output: `tracer/target/release/unreal_launcher_tracer.exe`
+Output: 
+- Windows: `tracer/target/release/unreal_launcher_tracer.exe`
+- Linux/macOS: `tracer/target/release/unreal_launcher_tracer`
 
 ---
 

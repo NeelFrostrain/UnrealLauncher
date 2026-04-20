@@ -8,12 +8,26 @@
 npm run dev
 ```
 
-### Production Build (Portable)
+### Production Build
 
+#### Windows
 ```bash
 npm run build              # Builds all components
 npm run build:unpack      # Creates portable format only
-npm run build:win         # Attempts Windows installer (requires admin)
+npm run build:win         # Creates Windows installer (requires admin)
+```
+
+#### Linux
+```bash
+npm run build              # Builds all components
+npm run build:linux        # Creates Linux packages (AppImage, deb)
+./build-linux.sh           # Alternative build script
+```
+
+#### macOS
+```bash
+npm run build              # Builds all components
+npm run build:mac          # Creates macOS app bundle
 ```
 
 ### Individual Component Builds
@@ -25,13 +39,19 @@ npm run build:tracer      # Rebuild Tracer binary
 
 ## Build Outputs
 
-### Portable Build (`dist/win-unpacked/`)
+### Windows Portable (`dist/win-unpacked/`)
 
 - **Status**: ✓ Works without admin privileges
 - **Contents**: `unreallauncher.exe` with all dependencies
 - **Location**: `dist/win-unpacked/unreallauncher.exe`
 - **Size**: ~210 MB
 - **Use**: Can run directly or distribute as-is
+
+### Linux Packages
+
+- **AppImage**: `dist/*.AppImage` - Portable Linux application
+- **Debian**: `dist/*.deb` - Debian/Ubuntu package
+- **Portable**: `dist/linux-unpacked/` - Extracted application files
 
 ### Windows Installer (`dist/*.exe`)
 
