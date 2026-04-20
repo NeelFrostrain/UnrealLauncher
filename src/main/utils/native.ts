@@ -7,22 +7,32 @@ import fs from 'fs'
 import path from 'path'
 
 // ── Native module path ────────────────────────────────────────────────────────
-// Uses app.getAppPath() and process.resourcesPath so it resolves correctly in
-// both dev and packaged builds. Electron may place native artifacts under
-// resources/app or resources depending on packaging, so we try both locations.
+// Resolves correctly in dev, asar-packed, and asar-unpacked builds.
+// When asar is enabled, native .node files land in app.asar.unpacked/,
+// so we must look there first before falling back to the asar path.
 export function getNativeModulePath(): string {
+  const appPath = app.getAppPath()
+  const resourcesPath = process.resourcesPath
+
+  // Derive the asar.unpacked equivalent of the app path
+  const unpackedAppPath = appPath.replace('app.asar', 'app.asar.unpacked')
+
   const candidates = [
-    path.join(app.getAppPath(), 'native', 'dist', 'index'),
-    path.join(app.getAppPath(), '..', 'native', 'dist', 'index'),
-    path.join(process.resourcesPath, 'app', 'native', 'dist', 'index'),
-    path.join(process.resourcesPath, 'native', 'dist', 'index')
+    // asar.unpacked paths (packaged build with asar:true)
+    path.join(unpackedAppPath, 'native', 'dist', 'index'),
+    path.join(resourcesPath, 'app.asar.unpacked', 'native', 'dist', 'index'),
+    // plain paths (dev build or asar:false)
+    path.join(appPath, 'native', 'dist', 'index'),
+    path.join(appPath, '..', 'native', 'dist', 'index'),
+    path.join(resourcesPath, 'app', 'native', 'dist', 'index'),
+    path.join(resourcesPath, 'native', 'dist', 'index')
   ]
 
   const found = candidates.find(
     (candidate) =>
-      fs.existsSync(candidate) ||
+      fs.existsSync(`${candidate}.js`) ||
       fs.existsSync(`${candidate}.node`) ||
-      fs.existsSync(`${candidate}.js`)
+      fs.existsSync(candidate)
   )
 
   return found ?? candidates[0]

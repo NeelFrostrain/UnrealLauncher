@@ -18,7 +18,7 @@ files:
 asar: true
 asarUnpack:
   - 'resources/**'
-  - 'native/dist/*.node'
+  - 'native/dist/**'
 forceCodeSigning: false
 compression: normal
 
@@ -66,10 +66,8 @@ linux:
   maintainer: NeelFrostrain
   category: Utility
   executableName: unreallauncher
-  desktop:
-    Name: Unreal Launcher
-    Comment: Manage your Unreal Engine installations and projects
-    Categories: Development;Utility;
+  synopsis: Manage your Unreal Engine installations and projects
+  description: A launcher for managing Unreal Engine installations and projects on Linux.
 appImage:
   artifactName: ${name}-${version}.${ext}
 deb:
