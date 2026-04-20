@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - **Platform-aware UI elements** — Registry settings hidden on non-Windows platforms
 - **Auto project scan using folder mention settings** — Configurable custom directories for automatic project discovery
 - **Project scan path configuration** — New settings section for custom project scan directories
+- **Automatic update checking on app startup** — App now checks for updates automatically when launched
 - **Electron Updater Guide** — Comprehensive documentation for auto-update functionality
 - **Project Analysis Documentation** — Detailed project structure and architecture analysis
 
@@ -25,11 +26,11 @@ All notable changes to this project will be documented in this file.
 - **Engine scanning** — Platform-specific binary paths and executable names
 - **IPC handlers** — Enhanced with platform-aware path handling
 - **UI layout** — Improved responsive design and cross-platform compatibility
+- **Configuration system** — Migrated from hardcoded config to environment variables (.env)
 
 ### 📚 Documentation
 
-- Added `ELECTRON_UPDATER_GUIDE.md` with complete auto-update setup instructions
-- Added `PROJECT_ANALYSIS.md` with comprehensive project structure analysis
+- Added `.env.example` template for environment variable configuration
 - Updated `BUILD.md` and `BUILD_INSTRUCTIONS.md` with Linux build instructions
 - Enhanced `README.md` with improved documentation
 

@@ -2,16 +2,20 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
+import { config } from 'dotenv'
 import { app, protocol, net } from 'electron'
 import { execSync, spawn } from 'child_process'
 import type { ChildProcess } from 'child_process'
 import path from 'path'
 import fs from 'fs'
 import { setupAppLifecycle, getMainWindow } from './window'
-import { setupAutoUpdaterEvents } from './updater'
+import { setupAutoUpdaterEvents, checkForUpdatesOnStartup } from './updater'
 import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
 import { loadMainSettings } from './store'
 import { getNative } from './utils/native'
+
+// Load environment variables from .env file
+config()
 
 // ── Chromium memory optimizations ─────────────────────────────────────────────
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=192') // tighter V8 heap cap
@@ -160,4 +164,7 @@ if (!gotTheLock) {
   setupAutoUpdaterEvents(getMainWindow)
   registerIpcHandlers()
   setupAppLifecycle()
+
+  // Check for updates automatically on startup
+  checkForUpdatesOnStartup()
 }

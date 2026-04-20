@@ -246,7 +246,6 @@ function normalizeProjectPath(projectPath: string): string {
 }
 function runScanProjects(saved: Project[]): Project[] {
   const searchPaths = getProjectScanPaths()
-  ]
 
   const scannedByPath = new Map<string, Project>()
   for (const searchPath of searchPaths) {
