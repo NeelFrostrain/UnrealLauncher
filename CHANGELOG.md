@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - **Automatic update checking on app startup** — App now checks for updates automatically when launched
 - **Electron Updater Guide** — Comprehensive documentation for auto-update functionality
 - **Project Analysis Documentation** — Detailed project structure and architecture analysis
+- **Added Some More Details In Fab Tab** — Asset cards now show thumbnails; clicking an asset takes you directly to its Fab page
 
 ### 🔧 Changed
 
