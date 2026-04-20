@@ -116,12 +116,20 @@ pub fn scan_engines(extra_paths: Vec<String>) -> Vec<EngineEntry> {
       Err(_) => continue,
     };
     for entry in entries.flatten() {
-      let name = entry.file_name();
-      let name_str = name.to_string_lossy();
-      if !name_str.starts_with("UE_") {
+      let engine_dir = entry.path();
+
+      // Accept any subdirectory that contains a valid Engine/Build/Build.version
+      if !engine_dir.is_dir() {
         continue;
       }
-      let engine_dir = entry.path();
+      let build_version_path = engine_dir
+        .join("Engine")
+        .join("Build")
+        .join("Build.version");
+      if !build_version_path.exists() {
+        continue;
+      }
+
       let bin = engine_dir.join("Engine").join("Binaries").join(bin_platform);
 
       // Try to find the executable
@@ -175,8 +183,8 @@ fn resolve_engine_version(engine_dir: &Path, folder_name: &str) -> String {
       return v.to_string();
     }
   }
-  // Fall back to folder name strip
-  folder_name.trim_start_matches("UE_").to_string()
+  // Fall back to folder name as-is
+  folder_name.to_string()
 }
 
 // ── Project scanning ──────────────────────────────────────────────────────────

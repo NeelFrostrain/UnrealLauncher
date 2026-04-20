@@ -223,17 +223,32 @@ function _scanEnginesJS(basePaths: string[]): ScannedEngine[] {
     if (!fs.existsSync(basePath)) continue
     try {
       for (const item of fs.readdirSync(basePath)) {
-        if (!item.startsWith('UE_')) continue
         const enginePath = path.join(basePath, item)
+        // Validate by presence of Build.version, not folder name
+        const buildVersionPath = path.join(enginePath, 'Engine', 'Build', 'Build.version')
+        if (!fs.existsSync(buildVersionPath)) continue
         const binPath = path.join(enginePath, 'Engine', 'Binaries', binPlatform)
         let exePath = path.join(binPath, exeName)
         if (!fs.existsSync(exePath)) exePath = path.join(binPath, ue4ExeName)
         if (!fs.existsSync(exePath)) continue
-        results.push({ version: item.replace('UE_', ''), exePath, directoryPath: enginePath })
+        const version = _readBuildVersion(buildVersionPath) ?? item
+        results.push({ version, exePath, directoryPath: enginePath })
       }
     } catch (err) {
       console.error('[scan] Error scanning engine path:', basePath, err)
     }
   }
   return results
+}
+
+function _readBuildVersion(buildVersionPath: string): string | null {
+  try {
+    const bv = JSON.parse(fs.readFileSync(buildVersionPath, 'utf8'))
+    if (bv.MajorVersion != null && bv.MinorVersion != null)
+      return `${bv.MajorVersion}.${bv.MinorVersion}`
+    if (typeof bv.BranchName === 'string') return bv.BranchName
+  } catch {
+    /* fall through */
+  }
+  return null
 }

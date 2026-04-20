@@ -174,8 +174,10 @@ function scanEnginePaths() {
     if (!fs.existsSync(base)) continue;
     try {
       for (const item of fs.readdirSync(base)) {
-        if (!item.startsWith('UE_')) continue;
         const ep = path.join(base, item);
+        // Validate by Build.version, not folder name
+        const buildVersionPath = path.join(ep, 'Engine', 'Build', 'Build.version');
+        if (!fs.existsSync(buildVersionPath)) continue;
         const engineDir = path.join(ep, 'Engine');
         const sourceDir = path.join(engineDir, 'Source');
         if (!fs.existsSync(engineDir) || !fs.existsSync(sourceDir)) continue;
@@ -193,8 +195,16 @@ function scanEnginePaths() {
           if (fs.existsSync(candidate)) { exe = candidate; break; }
         }
         if (!exe) continue;
+
+        // Read version from Build.version
+        let version = item;
+        try {
+          const bv = JSON.parse(fs.readFileSync(buildVersionPath, 'utf8'));
+          if (bv.MajorVersion != null && bv.MinorVersion != null) version = bv.MajorVersion + '.' + bv.MinorVersion;
+          else if (typeof bv.BranchName === 'string') version = bv.BranchName;
+        } catch {}
         
-        results.push({ version: item.replace('UE_', ''), exePath: exe, directoryPath: ep });
+        results.push({ version, exePath: exe, directoryPath: ep });
       }
     } catch {}
   }

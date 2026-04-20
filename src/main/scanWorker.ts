@@ -10,7 +10,6 @@
 import { parentPort, workerData } from 'worker_threads'
 import fs from 'fs'
 import path from 'path'
-import os from 'os'
 import { getEngineInstallPaths, getProjectScanPaths, getBinaryExtension } from './utils/platformPaths'
 
 // ── Native module (same load pattern as utils.ts) ─────────────────────────────
@@ -115,13 +114,23 @@ function scanEnginePaths(): Array<{ version: string; exePath: string; directoryP
     if (!fs.existsSync(base)) continue
     try {
       for (const item of fs.readdirSync(base)) {
-        if (!item.startsWith('UE_')) continue
         const enginePath = path.join(base, item)
+        // Validate by Build.version, not folder name
+        const buildVersionPath = path.join(enginePath, 'Engine', 'Build', 'Build.version')
+        if (!fs.existsSync(buildVersionPath)) continue
         const bin = path.join(enginePath, 'Engine', 'Binaries', binPlatform)
         let exe = path.join(bin, exeName)
         if (!fs.existsSync(exe)) exe = path.join(bin, ue4ExeName)
         if (!fs.existsSync(exe)) continue
-        results.push({ version: item.replace('UE_', ''), exePath: exe, directoryPath: enginePath })
+        // Read version from Build.version
+        let version = item
+        try {
+          const bv = JSON.parse(fs.readFileSync(buildVersionPath, 'utf8'))
+          if (bv.MajorVersion != null && bv.MinorVersion != null)
+            version = `${bv.MajorVersion}.${bv.MinorVersion}`
+          else if (typeof bv.BranchName === 'string') version = bv.BranchName
+        } catch { /* keep folder name */ }
+        results.push({ version, exePath: exe, directoryPath: enginePath })
       }
     } catch {
       /* skip */

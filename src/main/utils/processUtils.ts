@@ -4,6 +4,7 @@
 // See LICENSE in the project root for full license terms.
 
 import { execSync, spawn } from 'child_process'
+import fs from 'fs'
 
 /**
  * Cross-platform process management utilities
@@ -51,13 +52,30 @@ export function killProcess(processName: string): void {
   }
 }
 
-export function openFileOrDirectory(path: string): void {
+export function openFileOrDirectory(filePath: string): void {
   if (process.platform === 'win32') {
-    spawn('cmd', ['/c', 'start', '""', path], { detached: true, stdio: 'ignore' })
+    spawn('cmd', ['/c', 'start', '""', filePath], { detached: true, stdio: 'ignore' }).unref()
   } else if (process.platform === 'darwin') {
-    spawn('open', [path], { detached: true, stdio: 'ignore' })
+    spawn('open', [filePath], { detached: true, stdio: 'ignore' }).unref()
   } else {
-    // Linux
-    spawn('xdg-open', [path], { detached: true, stdio: 'ignore' })
+    // Linux: executables must be spawned directly — xdg-open is for files/dirs
+    // and gets blocked by KIO/portal when given a binary.
+    let isExecutable = false
+    try {
+      fs.accessSync(filePath, fs.constants.X_OK)
+      isExecutable = true
+    } catch {
+      isExecutable = false
+    }
+
+    if (isExecutable) {
+      spawn(filePath, [], {
+        detached: true,
+        stdio: 'ignore',
+        env: { ...process.env }
+      }).unref()
+    } else {
+      spawn('xdg-open', [filePath], { detached: true, stdio: 'ignore' }).unref()
+    }
   }
 }

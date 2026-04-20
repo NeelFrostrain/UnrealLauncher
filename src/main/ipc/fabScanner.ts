@@ -4,7 +4,6 @@
 // See LICENSE in the project root for full license terms.
 import fs from 'fs'
 import path from 'path'
-import os from 'os'
 import { getFabCachePaths } from '../utils/platformPaths'
 
 export interface FabAsset {
