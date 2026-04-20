@@ -3,7 +3,16 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { ipcMain, app, shell, dialog } from 'electron'
-import { clearAppData, clearTracerData, loadMainSettings, saveMainSettings } from '../store'
+import {
+  clearAppData,
+  clearTracerData,
+  loadMainSettings,
+  saveMainSettings,
+  loadEngineScanPaths,
+  saveEngineScanPaths,
+  loadProjectScanPaths,
+  saveProjectScanPaths
+} from '../store'
 import { getIsMaximized, handleWindowMinimize, handleWindowMaximize, getMainWindow } from '../window'
 import { getNative } from '../utils/native'
 
@@ -143,5 +152,23 @@ export function registerMiscHandlers(ipcMain_: typeof ipcMain): void {
       properties: ['openDirectory']
     })
     return result.canceled ? null : result.filePaths
+  })
+
+  // ── Engine scan paths (Linux) ───────────────────────────────────────────────
+  ipcMain_.handle('get-engine-scan-paths', (): string[] => {
+    return loadEngineScanPaths()
+  })
+
+  ipcMain_.handle('save-engine-scan-paths', (_event, paths: string[]): void => {
+    saveEngineScanPaths(paths)
+  })
+
+  // ── Project scan paths ──────────────────────────────────────────────────────
+  ipcMain_.handle('get-project-scan-paths', (): string[] => {
+    return loadProjectScanPaths()
+  })
+
+  ipcMain_.handle('save-project-scan-paths', (_event, paths: string[]): void => {
+    saveProjectScanPaths(paths)
   })
 }

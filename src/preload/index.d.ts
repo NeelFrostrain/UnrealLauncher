@@ -181,6 +181,12 @@ declare global {
       }>
       projectGitInit: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       projectLaunchGame: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      // Engine scan paths (Linux)
+      getEngineScanPaths: () => Promise<string[]>
+      saveEngineScanPaths: (paths: string[]) => Promise<void>
+      // Project scan paths
+      getProjectScanPaths: () => Promise<string[]>
+      saveProjectScanPaths: (paths: string[]) => Promise<void>
     }
   }
 }

@@ -55,7 +55,6 @@ interface MainSettings {
   tracerMergeEnabled: boolean
   tracerStartupEnabled: boolean
   registryEnginesEnabled: boolean
-  projectScanPaths?: string[]
 }
 
 const defaultMainSettings: MainSettings = {
@@ -85,6 +84,60 @@ export function saveMainSettings(settings: Partial<MainSettings>): void {
       JSON.stringify({ ...current, ...settings }, null, 2),
       'utf8'
     )
+  } catch {
+    /* ignore */
+  }
+}
+
+// ── Project scan paths ────────────────────────────────────────────────────────
+
+function getProjectScanPathsPath(): string {
+  return path.join(getSaveDir(), 'project-scan-paths.json')
+}
+
+export function loadProjectScanPaths(): string[] {
+  try {
+    if (fs.existsSync(getProjectScanPathsPath())) {
+      const parsed = JSON.parse(fs.readFileSync(getProjectScanPathsPath(), 'utf8'))
+      return Array.isArray(parsed) ? parsed : []
+    }
+  } catch {
+    /* use default */
+  }
+  return []
+}
+
+export function saveProjectScanPaths(paths: string[]): void {
+  try {
+    ensureSaveDir()
+    fs.writeFileSync(getProjectScanPathsPath(), JSON.stringify(paths, null, 2), 'utf8')
+  } catch {
+    /* ignore */
+  }
+}
+
+// ── Engine scan paths (Linux) ─────────────────────────────────────────────────
+
+function getEngineScanPathsPath(): string {
+  return path.join(getSaveDir(), 'engine-scan-paths.json')
+}
+
+export function loadEngineScanPaths(): string[] {
+  try {
+    if (fs.existsSync(getEngineScanPathsPath())) {
+      const parsed = JSON.parse(fs.readFileSync(getEngineScanPathsPath(), 'utf8'))
+      return Array.isArray(parsed) ? parsed : []
+    }
+  } catch {
+    /* use default */
+  }
+  return []
+}
+
+export function saveEngineScanPaths(paths: string[]): void {
+  try {
+    ensureSaveDir()
+    fs.writeFileSync(getEngineScanPathsPath(), JSON.stringify(paths, null, 2), 'utf8')
   } catch {
     /* ignore */
   }

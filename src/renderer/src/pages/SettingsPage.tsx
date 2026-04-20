@@ -23,6 +23,7 @@ import TracerSection from '../components/settings/sections/TracerSection'
 import DataSection from '../components/settings/sections/DataSection'
 import UpdatesSection from '../components/settings/sections/UpdatesSection'
 import ProjectsSection from '../components/settings/sections/ProjectsSection'
+import EnginesSection from '../components/settings/sections/EnginesSection'
 
 const SettingsPage = (): React.ReactElement => {
   const {
@@ -106,6 +107,8 @@ const SettingsPage = (): React.ReactElement => {
           />
 
           <ProjectsSection />
+
+          {window.electronAPI.platform === 'linux' && <EnginesSection />}
 
           <TracerSection />
 

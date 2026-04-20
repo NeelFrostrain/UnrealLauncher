@@ -119,19 +119,54 @@ let native = null;
 try { native = require(workerData.nativePath); } catch {}
 
 function scanEnginePaths() {
-  if (native) { try { return native.scanEngines([]); } catch {} }
-  // Fallback engine scanning when native module is not available
-  const bases = [];
+  // Collect extra paths: user-configured paths + UE_ROOT env var (Linux only)
+  const extra = [];
+  if (Array.isArray(workerData.engineScanPaths)) {
+    for (const p of workerData.engineScanPaths) {
+      if (p && !extra.includes(p)) extra.push(p);
+    }
+  }
   const os = require('os');
   const platform = os.platform();
+  if (platform === 'linux') {
+    const ueRoot = process.env.UE_ROOT;
+    if (ueRoot && !extra.includes(ueRoot)) extra.push(ueRoot);
+  }
+
+  if (native) { try { return native.scanEngines(extra); } catch {} }
+
+  // Fallback engine scanning when native module is not available
+  const bases = [];
   
   if (platform === 'win32') {
     bases.push('D:\\\\Engine\\\\UnrealEditors','C:\\\\Program Files\\\\Epic Games','C:\\\\Program Files (x86)\\\\Epic Games','D:\\\\Unreal');
   } else if (platform === 'darwin') {
-    bases.push('/Applications/Unreal Engine *', path.join(os.homedir(), 'UE_*'));
+    bases.push('/Applications', path.join(os.homedir()));
   } else {
-    // Linux
-    bases.push('/opt/Epic Games', path.join(os.homedir(), '.local/share/UnrealEngine'), '/usr/local/UnrealEngine*');
+    // Linux - no glob patterns, scan parent dirs for UE_* subdirs
+    bases.push(
+      '/opt/Epic Games',
+      path.join(os.homedir(), '.local/share/UnrealEngine'),
+      path.join(os.homedir(), 'UnrealEngine'),
+      '/usr/local/UnrealEngine',
+      '/opt/UnrealEngine'
+    );
+    const parentDirs = ['/opt', path.join(os.homedir(), '.local/share'), os.homedir()];
+    for (const parent of parentDirs) {
+      if (!fs.existsSync(parent)) continue;
+      try {
+        for (const item of fs.readdirSync(parent)) {
+          if (item.startsWith('UE_') || item.startsWith('UnrealEngine')) {
+            bases.push(path.join(parent, item));
+          }
+        }
+      } catch {}
+    }
+  }
+
+  // Append user-configured and UE_ROOT paths
+  for (const p of extra) {
+    if (!bases.includes(p)) bases.push(p);
   }
   
   const results = [];
@@ -155,10 +190,7 @@ function scanEnginePaths() {
         let exe = null;
         for (const exeName of exeNames) {
           const candidate = path.join(bin, exeName);
-          if (fs.existsSync(candidate)) {
-            exe = candidate;
-            break;
-          }
+          if (fs.existsSync(candidate)) { exe = candidate; break; }
         }
         if (!exe) continue;
         

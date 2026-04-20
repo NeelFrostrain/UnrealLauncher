@@ -47,11 +47,39 @@ pub fn scan_engines(extra_paths: Vec<String>) -> Vec<EngineEntry> {
   #[cfg(target_os = "linux")]
   {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    // Avoid glob patterns - fs::read_dir doesn't expand them
     base_paths.extend(vec![
       "/opt/Epic Games".to_string(),
       format!("{}/.local/share/UnrealEngine", home),
-      "/usr/local/UnrealEngine*".to_string(),
+      format!("{}/UnrealEngine", home),
+      "/usr/local/UnrealEngine".to_string(),
+      "/opt/UnrealEngine".to_string(),
     ]);
+
+    // Scan common parent directories for UE_* or UnrealEngine* subdirectories
+    let parent_dirs = vec![
+      "/opt".to_string(),
+      format!("{}/.local/share", home),
+      home.clone(),
+    ];
+    for parent in parent_dirs {
+      if let Ok(entries) = fs::read_dir(&parent) {
+        for entry in entries.flatten() {
+          let name = entry.file_name();
+          let name_str = name.to_string_lossy();
+          if name_str.starts_with("UE_") || name_str.starts_with("UnrealEngine") {
+            base_paths.push(entry.path().to_string_lossy().into_owned());
+          }
+        }
+      }
+    }
+
+    // Check environment variables for custom UE installations
+    for version in &["UE_5_0", "UE_5_1", "UE_5_2", "UE_5_3", "UE_5_4", "UE_5_5"] {
+      if let Ok(path) = std::env::var(version) {
+        base_paths.push(path);
+      }
+    }
   }
   #[cfg(target_os = "macos")]
   {
@@ -324,7 +352,18 @@ pub fn validate_engine_folder(folder: String) -> EngineValidation {
   let root = Path::new(&folder);
   let engine_dir = root.join("Engine");
   let source_dir = engine_dir.join("Source");
-  let bin_path = engine_dir.join("Binaries").join("Win64");
+
+  // Platform-specific binary directory and executable names
+  #[cfg(target_os = "windows")]
+  let (bin_platform, exe_names): (&str, &[&str]) = ("Win64", &["UnrealEditor.exe", "UE4Editor.exe"]);
+  #[cfg(target_os = "linux")]
+  let (bin_platform, exe_names): (&str, &[&str]) = ("Linux", &["UnrealEditor", "UE4Editor"]);
+  #[cfg(target_os = "macos")]
+  let (bin_platform, exe_names): (&str, &[&str]) = ("Mac", &["UnrealEditor", "UE4Editor"]);
+  #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+  let (bin_platform, exe_names): (&str, &[&str]) = ("Unknown", &[]);
+
+  let bin_path = engine_dir.join("Binaries").join(bin_platform);
 
   if !engine_dir.exists() || !source_dir.exists() || !bin_path.exists() {
     return EngineValidation {
@@ -335,19 +374,19 @@ pub fn validate_engine_folder(folder: String) -> EngineValidation {
     };
   }
 
-  let exe = {
-    let c = bin_path.join("UnrealEditor.exe");
-    if c.exists() { c } else {
-      let f = bin_path.join("UE4Editor.exe");
-      if f.exists() { f } else {
-        return EngineValidation {
-          valid: false,
-          version: "Unknown".into(),
-          exe_path: String::new(),
-          reason: Some("No UnrealEditor executable was found in the selected engine folder.".into()),
-        };
-      }
-    }
+  let exe = exe_names.iter().find_map(|name| {
+    let candidate = bin_path.join(name);
+    if candidate.exists() { Some(candidate) } else { None }
+  });
+
+  let exe = match exe {
+    Some(p) => p,
+    None => return EngineValidation {
+      valid: false,
+      version: "Unknown".into(),
+      exe_path: String::new(),
+      reason: Some("No UnrealEditor executable was found in the selected engine folder.".into()),
+    },
   };
 
   let folder_name = root.file_name().unwrap_or_default().to_string_lossy().into_owned();

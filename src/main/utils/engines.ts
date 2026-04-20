@@ -199,14 +199,17 @@ export async function getInstalledEngines(): Promise<ScannedEngine[]> {
 
 export function scanEnginePaths(extraPaths: string[] = []): ScannedEngine[] {
   const native = getNative()
+  // Merge UE_ROOT env var into extra paths (Linux only)
+  const ueRoot = process.platform === 'linux' ? process.env.UE_ROOT : undefined
+  const allExtra = ueRoot ? [...extraPaths, ueRoot] : extraPaths
   if (native) {
     try {
-      return native.scanEngines([...getEngineInstallPaths(), ...extraPaths])
+      return native.scanEngines([...getEngineInstallPaths(), ...allExtra])
     } catch {
       /* fall through */
     }
   }
-  return _scanEnginesJS([...getEngineInstallPaths(), ...extraPaths])
+  return _scanEnginesJS([...getEngineInstallPaths(), ...allExtra])
 }
 
 function _scanEnginesJS(basePaths: string[]): ScannedEngine[] {

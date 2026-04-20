@@ -11,7 +11,7 @@ import {
   saveProjects,
   mergeTracerProjects,
   loadEngines,
-  loadMainSettings
+  loadProjectScanPaths
 } from '../store'
 import { findUprojectFiles, findProjectScreenshot, formatBytes, getFullFolderSize } from '../utils'
 import { openFileOrDirectory } from '../utils/processUtils'
@@ -43,22 +43,46 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('scan-projects', async (): Promise<Project[]> => {
     const raw = mergeTracerProjects(loadProjects())
     const saved = Array.isArray(raw) ? raw : []
-    const settings = loadMainSettings()
-    return new Promise((resolve, reject) => {
+
+    // Run the worker scan
+    const scanned = await new Promise<Project[]>((resolve, reject) => {
       const w = spawnWorker(PROJECT_SCAN_WORKER, {
         saved,
         nativePath: getNativeModulePath(),
-        customScanPaths: settings.projectScanPaths || []
+        customScanPaths: loadProjectScanPaths()
       })
-      w.once('message', resolve)
+      w.once('message', (msg) => resolve(msg as Project[]))
       w.once('error', reject)
       w.once('exit', (c: number) => {
         if (c !== 0) reject(new Error(`Worker exited ${c}`))
       })
-    }).then((valid: unknown) => {
-      saveProjects(valid as Project[])
-      return valid as Project[]
     })
+
+    // Merge: keep all saved projects, add any newly discovered ones
+    const savedPaths = new Set(saved.map((p) => p.projectPath?.toLowerCase()))
+    const newProjects = scanned.filter(
+      (p) => p.projectPath && !savedPaths.has(p.projectPath.toLowerCase())
+    )
+
+    // Update metadata (lastOpenedAt, thumbnail) for existing saved projects from scan
+    const merged = saved.map((s) => {
+      const fresh = scanned.find(
+        (p) => p.projectPath?.toLowerCase() === s.projectPath?.toLowerCase()
+      )
+      if (!fresh) return s
+      return {
+        ...s,
+        lastOpenedAt: fresh.lastOpenedAt ?? s.lastOpenedAt,
+        thumbnail: fresh.thumbnail ?? s.thumbnail
+      }
+    })
+
+    if (newProjects.length > 0) {
+      merged.push(...newProjects)
+    }
+
+    saveProjects(merged)
+    return merged
   })
 
   ipcMain_.handle('load-saved-projects', async (): Promise<Project[]> => {

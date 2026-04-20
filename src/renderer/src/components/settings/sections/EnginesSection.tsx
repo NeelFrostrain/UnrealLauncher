@@ -3,10 +3,10 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { useState, useEffect, useRef } from 'react'
-import { FolderOpen, Plus, X, AlertCircle } from 'lucide-react'
+import { Cpu, FolderOpen, Plus, X, AlertCircle, Info } from 'lucide-react'
 import { SectionHeader, Card, SettingRow } from '../SectionHelpers'
 
-const ProjectsSection = (): React.ReactElement => {
+const EnginesSection = (): React.ReactElement => {
   const [scanPaths, setScanPaths] = useState<string[]>([])
   const [error, setError] = useState<string>('')
   const errorTimerRef = useRef<number | null>(null)
@@ -14,7 +14,7 @@ const ProjectsSection = (): React.ReactElement => {
   useEffect(() => {
     const load = async (): Promise<void> => {
       if (window.electronAPI) {
-        const paths = await window.electronAPI.getProjectScanPaths()
+        const paths = await window.electronAPI.getEngineScanPaths()
         setScanPaths(paths)
       }
     }
@@ -41,20 +41,20 @@ const ProjectsSection = (): React.ReactElement => {
     if (result && result.length > 0) {
       const newPath = result[0]
       if (scanPaths.some((p) => normalizePath(p) === normalizePath(newPath))) {
-        setError('This folder is already added to the scan list.')
+        setError('This folder is already in the engine scan list.')
         clearErrorAfterDelay()
         return
       }
       const newPaths = [...scanPaths, newPath]
       setScanPaths(newPaths)
-      await window.electronAPI.saveProjectScanPaths(newPaths)
+      await window.electronAPI.saveEngineScanPaths(newPaths)
     }
   }
 
   const handleRemoveFolder = async (index: number): Promise<void> => {
     const newPaths = scanPaths.filter((_, i) => i !== index)
     setScanPaths(newPaths)
-    await window.electronAPI.saveProjectScanPaths(newPaths)
+    await window.electronAPI.saveEngineScanPaths(newPaths)
     setError('')
     if (errorTimerRef.current !== null) {
       window.clearTimeout(errorTimerRef.current)
@@ -65,16 +65,16 @@ const ProjectsSection = (): React.ReactElement => {
   return (
     <section>
       <SectionHeader
-        icon={<FolderOpen size={13} className="text-blue-300" />}
-        label="Projects"
-        accent="bg-blue-500/20"
+        icon={<Cpu size={13} className="text-orange-300" />}
+        label="Engines"
+        accent="bg-orange-500/20"
       />
       <Card>
         <SettingRow
-          label="Auto-scan folders"
-          description="Automatically scan these folders for new Unreal projects on the Projects tab. Add as many folders as you want."
+          label="Engine scan folders"
+          description="Add parent directories that contain UE_* engine installations. On Linux, UE can be installed anywhere — add the folder that contains your UE_* builds here. You can also use the UE_ROOT env var below as an alternative."
           className="items-start pt-5"
-          last
+          last={scanPaths.length === 0 && !error}
         >
           <div className="space-y-4 w-105 max-w-full">
             {scanPaths.length === 0 ? (
@@ -86,7 +86,8 @@ const ProjectsSection = (): React.ReactElement => {
                   color: 'var(--color-text-muted)'
                 }}
               >
-                No folders configured yet. Use Add Folder to select one or more folders to scan.
+                No extra folders configured. The scanner already checks common locations
+                automatically.
               </div>
             ) : (
               <div className="space-y-2">
@@ -100,7 +101,7 @@ const ProjectsSection = (): React.ReactElement => {
                     }}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <FolderOpen size={14} className="shrink-0 text-blue-300" />
+                      <FolderOpen size={14} className="shrink-0 text-orange-300" />
                       <span
                         className="text-xs font-mono truncate"
                         style={{ color: 'var(--color-text-primary)' }}
@@ -160,9 +161,27 @@ const ProjectsSection = (): React.ReactElement => {
             )}
           </div>
         </SettingRow>
+
+        <SettingRow
+          label="UE_ROOT environment variable"
+          description='As an alternative to the list above, set UE_ROOT=/path/to/engines in your shell (e.g. ~/.bashrc or ~/.profile). It should point to a directory containing UE_* engine folders and will be picked up automatically on next scan.'
+          last
+        >
+          <div
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono"
+            style={{
+              backgroundColor: 'var(--color-surface-card)',
+              border: '1px solid var(--color-border)',
+              color: 'var(--color-text-muted)'
+            }}
+          >
+            <Info size={12} className="shrink-0 text-orange-300" />
+            env var
+          </div>
+        </SettingRow>
       </Card>
     </section>
   )
 }
 
-export default ProjectsSection
+export default EnginesSection

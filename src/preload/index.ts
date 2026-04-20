@@ -97,7 +97,15 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-git-status', projectPath),
       projectGitInit: (projectPath: string) => ipcRenderer.invoke('project-git-init', projectPath),
       projectLaunchGame: (projectPath: string) =>
-        ipcRenderer.invoke('launch-project-game', projectPath)
+        ipcRenderer.invoke('launch-project-game', projectPath),
+      // Engine scan paths (Linux)
+      getEngineScanPaths: () => ipcRenderer.invoke('get-engine-scan-paths'),
+      saveEngineScanPaths: (paths: string[]) =>
+        ipcRenderer.invoke('save-engine-scan-paths', paths),
+      // Project scan paths
+      getProjectScanPaths: () => ipcRenderer.invoke('get-project-scan-paths'),
+      saveProjectScanPaths: (paths: string[]) =>
+        ipcRenderer.invoke('save-project-scan-paths', paths)
     })
   } catch (error) {
     console.error(error)

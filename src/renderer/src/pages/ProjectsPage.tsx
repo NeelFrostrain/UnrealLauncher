@@ -100,51 +100,20 @@ const ProjectsPage = (): React.ReactElement => {
       if (!window.electronAPI) return
       setBackgroundScanning(true)
       try {
+        // Main process loads saved first, scans for new ones, saves any found,
+        // and returns the full merged list — we just apply it to the UI.
         const scannedProjects = await window.electronAPI.scanProjects()
         clearGitCache()
         const dedupedProjects = dedupeProjectList(scannedProjects)
-
-        const existingMap = new Map<string, Project>()
-        allProjectsRef.current.forEach((project) => {
-          if (project.projectPath) {
-            existingMap.set(normalizeProjectPath(project.projectPath), project)
-          }
-        })
-
-        const mergedProjects = [...allProjectsRef.current]
-        let addedCount = 0
-
-        for (const project of dedupedProjects) {
-          if (!project.projectPath) continue
-          const normalized = normalizeProjectPath(project.projectPath)
-          const existing = existingMap.get(normalized)
-          if (!existing) {
-            mergedProjects.push(project)
-            existingMap.set(normalized, project)
-            addedCount += 1
-          } else {
-            const updated = { ...existing, ...project }
-            const index = mergedProjects.findIndex(
-              (p) => p.projectPath && normalizeProjectPath(p.projectPath) === normalized
-            )
-            if (index !== -1) mergedProjects[index] = updated
-          }
-        }
-
-        const dedupedMerged = dedupeProjectList(mergedProjects)
-        allProjectsRef.current = dedupedMerged
-        setProjects(filterForTab(tab, dedupedMerged, favoritePaths))
-
-        if (addedCount > 0) {
-          console.info(`Background scan added ${addedCount} new project(s).`)
-        }
+        allProjectsRef.current = dedupedProjects
+        setProjects(filterForTab(tab, dedupedProjects, favoritePaths))
       } catch (err) {
         console.error('Background project scan failed:', err)
       } finally {
         setBackgroundScanning(false)
       }
     },
-    [dedupeProjectList, favoritePaths, filterForTab, normalizeProjectPath]
+    [dedupeProjectList, favoritePaths, filterForTab]
   )
 
   const loadProjectsForTab = useCallback(

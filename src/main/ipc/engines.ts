@@ -5,8 +5,7 @@
 import { ipcMain, dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import { exec, spawn } from 'child_process'
-import { loadEngines, saveEngines, mergeTracerEngines, loadMainSettings } from '../store'
+import { loadEngines, saveEngines, mergeTracerEngines, loadMainSettings, loadEngineScanPaths } from '../store'
 import { openFileOrDirectory } from '../utils/processUtils'
 import {
   generateGradient,
@@ -34,9 +33,8 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
     const raw = mergeTracerEngines(loadEngines(), generateGradient)
     const saved = Array.isArray(raw) ? raw : []
 
-    const registryEngines = loadMainSettings().registryEnginesEnabled
-      ? await getInstalledEngines()
-      : []
+    const settings = loadMainSettings()
+    const registryEngines = settings.registryEnginesEnabled ? await getInstalledEngines() : []
     for (const re of registryEngines) {
       if (!saved.find((s) => s.directoryPath === re.directoryPath)) {
         saved.push({
@@ -50,8 +48,14 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
       }
     }
 
+    const engineScanPaths = loadEngineScanPaths()
+
     return new Promise((resolve, reject) => {
-      const w = spawnWorker(ENGINE_SCAN_WORKER, { saved, nativePath: getNativeModulePath() })
+      const w = spawnWorker(ENGINE_SCAN_WORKER, {
+        saved,
+        nativePath: getNativeModulePath(),
+        engineScanPaths
+      })
       w.once('message', resolve)
       w.once('error', reject)
       w.once('exit', (c: number) => {

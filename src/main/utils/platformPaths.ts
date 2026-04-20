@@ -50,12 +50,30 @@ export function getEngineInstallPaths(): string[] {
   } else if (process.platform === 'darwin') {
     return ['/Applications/Unreal Engine *', path.join(os.homedir(), 'UE_*')]
   } else {
-    // Linux
+    // Linux - avoid glob patterns since fs.existsSync/readdirSync don't expand them
     const paths: string[] = [
       '/opt/Epic Games',
       path.join(os.homedir(), '.local/share/UnrealEngine'),
-      '/usr/local/UnrealEngine*'
+      path.join(os.homedir(), 'UnrealEngine'),
+      '/usr/local/UnrealEngine',
+      '/opt/UnrealEngine'
     ]
+
+    // Scan common parent directories for any UE_* or UnrealEngine* subdirectories
+    const parentDirs = ['/opt', path.join(os.homedir(), '.local/share'), os.homedir()]
+    for (const parent of parentDirs) {
+      try {
+        if (fs.existsSync(parent)) {
+          for (const item of fs.readdirSync(parent)) {
+            if (item.startsWith('UE_') || item.startsWith('UnrealEngine')) {
+              paths.push(path.join(parent, item))
+            }
+          }
+        }
+      } catch {
+        /* skip unreadable dirs */
+      }
+    }
 
     // Check environment variables for UE installations
     const ueVersions = ['UE_5_0', 'UE_5_1', 'UE_5_2', 'UE_5_3', 'UE_5_4']
@@ -66,7 +84,14 @@ export function getEngineInstallPaths(): string[] {
       }
     })
 
-    return paths.filter(Boolean)
+    // UE_ROOT: a single directory that contains UE_* engine folders (or is one itself)
+    // Linux only
+    const ueRoot = process.env.UE_ROOT
+    if (ueRoot) {
+      paths.push(ueRoot)
+    }
+
+    return [...new Set(paths.filter(Boolean))]
   }
 }
 
