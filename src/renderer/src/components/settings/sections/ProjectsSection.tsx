@@ -48,7 +48,7 @@ const ProjectsSection = (): React.ReactElement => {
     if (result && result.length > 0) {
       const newPath = result[0]
       const normalizedNewPath = normalizePath(newPath)
-      const isDuplicate = scanPaths.some(path => normalizePath(path) === normalizedNewPath)
+      const isDuplicate = scanPaths.some((path) => normalizePath(path) === normalizedNewPath)
 
       if (isDuplicate) {
         setError('This folder is already added to the scan list.')
@@ -84,7 +84,7 @@ const ProjectsSection = (): React.ReactElement => {
         <SettingRow
           label="Auto-scan folders"
           description="Automatically scan these folders for new Unreal projects on the Projects tab. Add as many folders as you want."
-            className='items-start pt-5'
+          className="items-start pt-5"
         >
           <div className="space-y-4 w-105 max-w-full">
             {scanPaths.length === 0 ? (

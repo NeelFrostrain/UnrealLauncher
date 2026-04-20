@@ -7,6 +7,7 @@ import path from 'path'
 import fs from 'fs'
 import { exec, spawn } from 'child_process'
 import { loadEngines, saveEngines, mergeTracerEngines, loadMainSettings } from '../store'
+import { openFileOrDirectory } from '../utils/processUtils'
 import {
   generateGradient,
   validateEngineInstallation,
@@ -105,8 +106,7 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
 
   ipcMain_.handle('launch-engine', async (_event, exePath): Promise<Record<string, unknown>> => {
     try {
-      if (process.platform === 'win32') exec(`start "" "${exePath}"`)
-      else spawn(exePath, [], { detached: true, stdio: 'ignore' })
+      openFileOrDirectory(exePath)
       const engines = loadEngines()
       const engine = engines.find((e) => e.exePath === exePath)
       if (engine) {

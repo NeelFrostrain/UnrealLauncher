@@ -48,17 +48,20 @@ const ProjectsPage = (): React.ReactElement => {
     return projectPath.replace(/\\/g, '/').toLowerCase()
   }, [])
 
-  const dedupeProjectList = useCallback((source: Project[]): Project[] => {
-    const seen = new Set<string>()
-    return source.filter((project) => {
-      const rawPath = project.projectPath
-      if (!rawPath) return false
-      const key = normalizeProjectPath(rawPath)
-      if (seen.has(key)) return false
-      seen.add(key)
-      return true
-    })
-  }, [normalizeProjectPath])
+  const dedupeProjectList = useCallback(
+    (source: Project[]): Project[] => {
+      const seen = new Set<string>()
+      return source.filter((project) => {
+        const rawPath = project.projectPath
+        if (!rawPath) return false
+        const key = normalizeProjectPath(rawPath)
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+    },
+    [normalizeProjectPath]
+  )
 
   const handleListScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget
@@ -70,7 +73,10 @@ const ProjectsPage = (): React.ReactElement => {
 
   const loadSavedProjectsForTab = useCallback(
     async (tab: TabType): Promise<Project[]> => {
-      if (!window.electronAPI) { setLoading(false); return [] }
+      if (!window.electronAPI) {
+        setLoading(false)
+        return []
+      }
       try {
         const savedProjects = await window.electronAPI.loadSavedProjects()
         clearGitCache()
@@ -143,7 +149,10 @@ const ProjectsPage = (): React.ReactElement => {
 
   const loadProjectsForTab = useCallback(
     async (tab: TabType): Promise<Project[]> => {
-      if (!window.electronAPI) { setLoading(false); return [] }
+      if (!window.electronAPI) {
+        setLoading(false)
+        return []
+      }
       try {
         const scannedProjects = await window.electronAPI.scanProjects()
         clearGitCache()

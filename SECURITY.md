@@ -10,7 +10,7 @@
 Security fixes are applied to the **latest stable release only**. Older versions are not patched.
 
 | Version | Supported |
-|---------|-----------|
+| ------- | --------- |
 | 2.0.x   | ✅        |
 | 1.9.x   | ❌        |
 | < 1.9   | ❌        |

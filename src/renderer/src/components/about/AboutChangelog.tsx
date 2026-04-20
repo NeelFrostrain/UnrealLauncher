@@ -15,10 +15,13 @@ const v200commits = [
   { type: 'fix', msg: 'Git initialized menu item now disabled (not clickable) in list card' },
   { type: 'fix', msg: 'Discord webhook routed through main process to bypass CSP' },
   { type: 'fix', msg: 'fab-select-folder null window guard' },
-  { type: 'fix', msg: 'Unused imports cleared — Play in ProjectLogDialog, getSetting in useTracerSettings' },
+  {
+    type: 'fix',
+    msg: 'Unused imports cleared — Play in ProjectLogDialog, getSetting in useTracerSettings'
+  },
   { type: 'fix', msg: 'Prevent duplicate project entries when re-adding existing projects' },
   { type: 'fix', msg: 'Fix Rust native module path resolution in dev and packaged builds' },
-  { type: 'refactor', msg: 'Dashboard page removed — engines page is now the default route' },
+  { type: 'refactor', msg: 'Dashboard page removed — engines page is now the default route' }
 ]
 
 // v1.9_dev vs main — commits from git log main..HEAD
@@ -161,19 +164,8 @@ const VersionBlock = ({
 
 const AboutChangelog = (): React.ReactElement => (
   <div className="space-y-3">
-    <VersionBlock
-      version="2.0.1"
-      date="2026-04-11"
-      branch="main"
-      commits={v200commits}
-      isCurrent
-    />
-    <VersionBlock
-      version="1.9.0"
-      date="2026-04-09"
-      branch="v1.9_dev"
-      commits={v190commits}
-    />
+    <VersionBlock version="2.0.1" date="2026-04-11" branch="main" commits={v200commits} isCurrent />
+    <VersionBlock version="1.9.0" date="2026-04-09" branch="v1.9_dev" commits={v190commits} />
     <VersionBlock version="1.8.0" date="2026-04-05" branch="main" commits={v180commits} />
   </div>
 )

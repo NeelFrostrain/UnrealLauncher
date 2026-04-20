@@ -3,11 +3,13 @@
 ## Quick Build Commands
 
 ### Development Build
+
 ```bash
 npm run dev
 ```
 
 ### Production Build (Portable)
+
 ```bash
 npm run build              # Builds all components
 npm run build:unpack      # Creates portable format only
@@ -15,6 +17,7 @@ npm run build:win         # Attempts Windows installer (requires admin)
 ```
 
 ### Individual Component Builds
+
 ```bash
 npm run build:native      # Rebuild Rust native module
 npm run build:tracer      # Rebuild Tracer binary
@@ -23,6 +26,7 @@ npm run build:tracer      # Rebuild Tracer binary
 ## Build Outputs
 
 ### Portable Build (`dist/win-unpacked/`)
+
 - **Status**: ✓ Works without admin privileges
 - **Contents**: `unreallauncher.exe` with all dependencies
 - **Location**: `dist/win-unpacked/unreallauncher.exe`
@@ -30,6 +34,7 @@ npm run build:tracer      # Rebuild Tracer binary
 - **Use**: Can run directly or distribute as-is
 
 ### Windows Installer (`dist/*.exe`)
+
 - **Status**: Requires admin privileges due to code signing tools
 - **Note**: NSIS installer creation needs symbolic link support
 - **Workaround**: See "Building Installer as Admin" below
@@ -37,6 +42,7 @@ npm run build:tracer      # Rebuild Tracer binary
 ## Building Installer as Admin
 
 ### Option 1: Run Script as Admin
+
 ```powershell
 # Right-click PowerShell and select "Run as Administrator"
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
@@ -44,6 +50,7 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 ```
 
 ### Option 2: Manual Admin Build
+
 ```powershell
 # In Administrator PowerShell:
 cd "E:\Projects\UnrealLauncher"
@@ -51,7 +58,9 @@ npm run build:win
 ```
 
 ### Option 3: Pre-extract Signing Tools
+
 Before building, manually extract the 7z archives:
+
 ```powershell
 # Extract all cached signing tools without symlink creation
 $cacheDir = "$env:LOCALAPPDATA\electron-builder\Cache\winCodeSign"
@@ -66,16 +75,19 @@ Then run the normal build command.
 ## Troubleshooting
 
 ### "Cannot create symbolic link" Error
+
 - **Cause**: Code signing tools are being downloaded during build
 - **Fix**: Run terminal as Administrator
 - **Reason**: Darwin (macOS) files in the signing tools archive contain symlinks
 
 ### Native Module Not Loading
+
 - **Cause**: `native/dist/index.js` loader file is missing
 - **Fix**: Run `npm run build:native` first
 - **Check**: Look for `[native] Rust module loaded.` in console output
 
 ### Build Hangs or Takes Too Long
+
 - **Cause**: First-time Electron binary download (~137 MB)
 - **Workaround**: Allow sufficient time (3-5 minutes) or restart npm
 - **Fix**: Manually download from electron releases if needed
@@ -102,11 +114,13 @@ UnrealLauncher/
 ## Build Artifacts
 
 ### After `npm run build` and `npm run build:unpack`:
+
 - ✓ `dist/win-unpacked/unreallauncher.exe` (Portable)
 - ✓ `native/dist/index.win32-x64-msvc.node` (Native module)
 - ✓ `resources/unreal_launcher_tracer.exe` (Tracer tool)
 
 ### After admin build:
+
 - ✓ `dist/Unreal Launcher-2.0.1-setup.exe` (NSIS Installer)
 - ✓ All of the above
 

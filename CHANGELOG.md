@@ -25,7 +25,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🛠️ Fixed
 
-- Checks only directory path (which is guaranteed to be unique) For Preventing duplicate engines 
+- Checks only directory path (which is guaranteed to be unique) For Preventing duplicate engines
 
 ---
 

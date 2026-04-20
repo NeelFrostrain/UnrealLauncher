@@ -21,101 +21,101 @@
 
 ### Engine Management (7 features)
 
-| # | Feature | Description |
-|---|---------|-------------|
-| 1 | **Auto-Scan Engines** | Discovers UE4 & UE5 installations across common paths (`C:\Program Files\Epic Games`, `D:\Unreal`, etc.) |
-| 2 | **Registry Discovery** | Reads Windows registry to find Epic-installed engines automatically |
-| 3 | **Manual Engine Add** | Browse and validate any custom engine folder via file dialog |
-| 4 | **One-Click Launch** | Start any engine version instantly |
-| 5 | **Engine Size Calculation** | Background worker calculates full folder size without blocking the UI |
-| 6 | **Marketplace Plugin Browser** | Lists all installed marketplace plugins per engine version |
-| 7 | **Engine Deletion** | Remove engines from the list (does not delete files) |
+| #   | Feature                        | Description                                                                                              |
+| --- | ------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| 1   | **Auto-Scan Engines**          | Discovers UE4 & UE5 installations across common paths (`C:\Program Files\Epic Games`, `D:\Unreal`, etc.) |
+| 2   | **Registry Discovery**         | Reads Windows registry to find Epic-installed engines automatically                                      |
+| 3   | **Manual Engine Add**          | Browse and validate any custom engine folder via file dialog                                             |
+| 4   | **One-Click Launch**           | Start any engine version instantly                                                                       |
+| 5   | **Engine Size Calculation**    | Background worker calculates full folder size without blocking the UI                                    |
+| 6   | **Marketplace Plugin Browser** | Lists all installed marketplace plugins per engine version                                               |
+| 7   | **Engine Deletion**            | Remove engines from the list (does not delete files)                                                     |
 
 ---
 
 ### Project Management (12 features)
 
-| # | Feature | Description |
-|---|---------|-------------|
-| 1 | **Auto-Scan Projects** | Recursively finds all `.uproject` files across your drives |
-| 2 | **Batch Import** | Add up to 20 projects at once from a single folder selection |
-| 3 | **One-Click Launch** | Open any project in its matching engine editor |
-| 4 | **Game Mode Launch** | Launch project directly in `-game` mode |
-| 5 | **List & Grid View** | Toggle between flat list and thumbnail grid; preference is persisted |
-| 6 | **Favorites Tab** | Pin projects with a star; dedicated Favorites tab |
-| 7 | **Recent Tab** | Projects sorted by actual last-opened timestamp |
-| 8 | **Search / Filter** | Real-time name search across all projects |
-| 9 | **Project Size Calculation** | Per-project or batch background size calculation |
-| 10 | **Log Viewer** | Tail the latest `.log` file from `Saved/Logs/` directly in the app |
-| 11 | **Git Integration** | Detect git status (branch, remote URL), initialize a new repo with a UE-ready `.gitignore` |
-| 12 | **Open in Explorer** | Jump to any project folder in Windows Explorer |
+| #   | Feature                      | Description                                                                                |
+| --- | ---------------------------- | ------------------------------------------------------------------------------------------ |
+| 1   | **Auto-Scan Projects**       | Recursively finds all `.uproject` files across your drives                                 |
+| 2   | **Batch Import**             | Add up to 20 projects at once from a single folder selection                               |
+| 3   | **One-Click Launch**         | Open any project in its matching engine editor                                             |
+| 4   | **Game Mode Launch**         | Launch project directly in `-game` mode                                                    |
+| 5   | **List & Grid View**         | Toggle between flat list and thumbnail grid; preference is persisted                       |
+| 6   | **Favorites Tab**            | Pin projects with a star; dedicated Favorites tab                                          |
+| 7   | **Recent Tab**               | Projects sorted by actual last-opened timestamp                                            |
+| 8   | **Search / Filter**          | Real-time name search across all projects                                                  |
+| 9   | **Project Size Calculation** | Per-project or batch background size calculation                                           |
+| 10  | **Log Viewer**               | Tail the latest `.log` file from `Saved/Logs/` directly in the app                         |
+| 11  | **Git Integration**          | Detect git status (branch, remote URL), initialize a new repo with a UE-ready `.gitignore` |
+| 12  | **Open in Explorer**         | Jump to any project folder in Windows Explorer                                             |
 
 ---
 
 ### Fab Marketplace Browser (4 features)
 
-| # | Feature | Description |
-|---|---------|-------------|
-| 1 | **Auto-Detect Fab Cache** | Finds Epic/Fab vault cache in common `%APPDATA%` and `%LOCALAPPDATA%` paths |
-| 2 | **Custom Folder** | Point to any custom Fab download directory |
-| 3 | **Asset Scanning** | Reads manifests and `.uplugin`/`.uproject` files to extract name, version, description, icon, compatible UE versions |
-| 4 | **Asset Type Detection** | Classifies each asset as Plugin, Content Pack, or Project |
+| #   | Feature                   | Description                                                                                                          |
+| --- | ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Auto-Detect Fab Cache** | Finds Epic/Fab vault cache in common `%APPDATA%` and `%LOCALAPPDATA%` paths                                          |
+| 2   | **Custom Folder**         | Point to any custom Fab download directory                                                                           |
+| 3   | **Asset Scanning**        | Reads manifests and `.uplugin`/`.uproject` files to extract name, version, description, icon, compatible UE versions |
+| 4   | **Asset Type Detection**  | Classifies each asset as Plugin, Content Pack, or Project                                                            |
 
 ---
 
 ### UE Tracer (5 features)
 
-| # | Feature | Description |
-|---|---------|-------------|
-| 1 | **Background Tracking** | Rust executable (`unreal_launcher_tracer.exe`) runs silently and records engine/project usage |
-| 2 | **Data Merging** | Tracer data is merged with saved data on every scan, enriching `lastOpenedAt` timestamps |
-| 3 | **Windows Startup** | Optionally register tracer in the Windows registry `Run` key to auto-start with Windows |
-| 4 | **Process Detection** | Check if the tracer is currently running via tasklist |
-| 5 | **Data Directory Access** | View and manage the tracer data folder from Settings |
+| #   | Feature                   | Description                                                                                   |
+| --- | ------------------------- | --------------------------------------------------------------------------------------------- |
+| 1   | **Background Tracking**   | Rust executable (`unreal_launcher_tracer.exe`) runs silently and records engine/project usage |
+| 2   | **Data Merging**          | Tracer data is merged with saved data on every scan, enriching `lastOpenedAt` timestamps      |
+| 3   | **Windows Startup**       | Optionally register tracer in the Windows registry `Run` key to auto-start with Windows       |
+| 4   | **Process Detection**     | Check if the tracer is currently running via tasklist                                         |
+| 5   | **Data Directory Access** | View and manage the tracer data folder from Settings                                          |
 
 ---
 
 ### Appearance & Theming (7 features)
 
-| # | Feature | Description |
-|---|---------|-------------|
-| 1 | **Built-in Themes** | Dark, Darker, Midnight Blue, Warm Dark presets |
-| 2 | **Per-Token Color Overrides** | Override any individual color token in the theme |
-| 3 | **Saveable Profiles** | Save, rename, apply, and delete custom theme combinations |
-| 4 | **Font Customization** | Choose font family and font size for the entire UI |
-| 5 | **Border Radius Control** | Slider syncs border radius across all cards and UI elements |
-| 6 | **UI Scale** | Adjust the overall UI scale factor |
-| 7 | **Full Reset** | One-click reset all appearance customizations to defaults |
+| #   | Feature                       | Description                                                 |
+| --- | ----------------------------- | ----------------------------------------------------------- |
+| 1   | **Built-in Themes**           | Dark, Darker, Midnight Blue, Warm Dark presets              |
+| 2   | **Per-Token Color Overrides** | Override any individual color token in the theme            |
+| 3   | **Saveable Profiles**         | Save, rename, apply, and delete custom theme combinations   |
+| 4   | **Font Customization**        | Choose font family and font size for the entire UI          |
+| 5   | **Border Radius Control**     | Slider syncs border radius across all cards and UI elements |
+| 6   | **UI Scale**                  | Adjust the overall UI scale factor                          |
+| 7   | **Full Reset**                | One-click reset all appearance customizations to defaults   |
 
 ---
 
 ### System & UX (9 features)
 
-| # | Feature | Description |
-|---|---------|-------------|
-| 1 | **Auto-Updates** | GitHub Releases-based updates via `electron-updater` with download & install flow |
-| 2 | **Version Check** | Manual GitHub version check against latest release |
-| 3 | **Single Instance Lock** | Second launch focuses the existing window instead of opening a duplicate |
-| 4 | **Splash Screen** | Animated loading screen on startup |
-| 5 | **Resizable Sidebar** | Drag handle to resize or fully collapse the sidebar |
-| 6 | **Stacking Toasts** | Real-time feedback notifications — auto-dismiss after 4s, max 5 visible, colored accent bar |
-| 7 | **Error Boundary** | Recoverable crash screen instead of a blank white window |
-| 8 | **Auto-Close on Launch** | Optionally close the app automatically when launching an engine or project |
-| 9 | **Discord Feedback** | Send bug reports or feedback directly to Discord via webhook (with file attachments) |
+| #   | Feature                  | Description                                                                                 |
+| --- | ------------------------ | ------------------------------------------------------------------------------------------- |
+| 1   | **Auto-Updates**         | GitHub Releases-based updates via `electron-updater` with download & install flow           |
+| 2   | **Version Check**        | Manual GitHub version check against latest release                                          |
+| 3   | **Single Instance Lock** | Second launch focuses the existing window instead of opening a duplicate                    |
+| 4   | **Splash Screen**        | Animated loading screen on startup                                                          |
+| 5   | **Resizable Sidebar**    | Drag handle to resize or fully collapse the sidebar                                         |
+| 6   | **Stacking Toasts**      | Real-time feedback notifications — auto-dismiss after 4s, max 5 visible, colored accent bar |
+| 7   | **Error Boundary**       | Recoverable crash screen instead of a blank white window                                    |
+| 8   | **Auto-Close on Launch** | Optionally close the app automatically when launching an engine or project                  |
+| 9   | **Discord Feedback**     | Send bug reports or feedback directly to Discord via webhook (with file attachments)        |
 
 ---
 
 ## Feature Count Summary
 
-| Category | Features |
-|----------|----------|
-| Engine Management | 7 |
-| Project Management | 12 |
-| Fab Marketplace Browser | 4 |
-| UE Tracer | 5 |
-| Appearance & Theming | 7 |
-| System & UX | 9 |
-| **Total** | **44** |
+| Category                | Features |
+| ----------------------- | -------- |
+| Engine Management       | 7        |
+| Project Management      | 12       |
+| Fab Marketplace Browser | 4        |
+| UE Tracer               | 5        |
+| Appearance & Theming    | 7        |
+| System & UX             | 9        |
+| **Total**               | **44**   |
 
 ---
 
@@ -204,39 +204,43 @@ On each scan, tracer data is merged with saved data. Tracer provides `lastOpened
 ## Tech Stack
 
 ### Frontend
-| Library | Version | Purpose |
-|---------|---------|---------|
-| React | 19 | UI framework |
-| TypeScript | 5.9 | Type safety |
-| Tailwind CSS | 4 | Styling |
-| Zustand | 5 | State management (navigation) |
-| Framer Motion | 12 | Animations |
-| Lucide React | 1.8 | Icons |
-| React Router | 7 | Page routing |
-| React Window | 2 | Virtualized lists (large project sets) |
+
+| Library       | Version | Purpose                                |
+| ------------- | ------- | -------------------------------------- |
+| React         | 19      | UI framework                           |
+| TypeScript    | 5.9     | Type safety                            |
+| Tailwind CSS  | 4       | Styling                                |
+| Zustand       | 5       | State management (navigation)          |
+| Framer Motion | 12      | Animations                             |
+| Lucide React  | 1.8     | Icons                                  |
+| React Router  | 7       | Page routing                           |
+| React Window  | 2       | Virtualized lists (large project sets) |
 
 ### Backend (Main Process)
-| Library | Version | Purpose |
-|---------|---------|---------|
-| Electron | 39 | Desktop shell |
-| Node.js | 18+ | Runtime |
-| electron-updater | 6.8 | Auto-updates |
-| regedit | 5.1 | Windows registry access |
+
+| Library          | Version | Purpose                 |
+| ---------------- | ------- | ----------------------- |
+| Electron         | 39      | Desktop shell           |
+| Node.js          | 18+     | Runtime                 |
+| electron-updater | 6.8     | Auto-updates            |
+| regedit          | 5.1     | Windows registry access |
 
 ### Build Tools
-| Tool | Version | Purpose |
-|------|---------|---------|
-| Vite | 7 | Bundler |
-| electron-vite | 5 | Electron + Vite integration |
-| electron-builder | 26 | Packaging & distribution |
-| Prettier | 3 | Code formatting |
-| ESLint | 9 | Linting |
+
+| Tool             | Version | Purpose                     |
+| ---------------- | ------- | --------------------------- |
+| Vite             | 7       | Bundler                     |
+| electron-vite    | 5       | Electron + Vite integration |
+| electron-builder | 26      | Packaging & distribution    |
+| Prettier         | 3       | Code formatting             |
+| ESLint           | 9       | Linting                     |
 
 ### Native (Rust)
-| Crate | Purpose |
-|-------|---------|
+
+| Crate              | Purpose                    |
+| ------------------ | -------------------------- |
 | napi / napi-derive | N-API bindings for Node.js |
-| serde / serde_json | JSON serialization |
+| serde / serde_json | JSON serialization         |
 
 ---
 
@@ -245,76 +249,83 @@ On each scan, tracer data is merged with saved data. Tracer provides `lastOpened
 The main process exposes the following IPC channels to the renderer:
 
 ### Engines
-| Channel | Description |
-|---------|-------------|
-| `scan-engines` | Scan filesystem + registry + merge tracer data |
-| `select-engine-folder` | Open dialog, validate, add engine |
-| `launch-engine` | Spawn engine executable |
-| `delete-engine` | Remove from store |
-| `calculate-engine-size` | Background folder size |
-| `scan-marketplace-plugins` | List plugins in `Engine/Plugins/Marketplace` |
+
+| Channel                    | Description                                    |
+| -------------------------- | ---------------------------------------------- |
+| `scan-engines`             | Scan filesystem + registry + merge tracer data |
+| `select-engine-folder`     | Open dialog, validate, add engine              |
+| `launch-engine`            | Spawn engine executable                        |
+| `delete-engine`            | Remove from store                              |
+| `calculate-engine-size`    | Background folder size                         |
+| `scan-marketplace-plugins` | List plugins in `Engine/Plugins/Marketplace`   |
 
 ### Projects
-| Channel | Description |
-|---------|-------------|
-| `scan-projects` | Find `.uproject` files + merge tracer data |
-| `select-project-folder` | Open dialog, batch import (max 20) |
-| `launch-project` | Open in editor |
-| `launch-project-game` | Launch in `-game` mode |
-| `open-directory` | Open folder in Explorer |
-| `delete-project` | Remove from store |
-| `calculate-project-size` | Background folder size |
-| `calculate-all-project-sizes` | Batch size calculation with push events |
+
+| Channel                       | Description                                |
+| ----------------------------- | ------------------------------------------ |
+| `scan-projects`               | Find `.uproject` files + merge tracer data |
+| `select-project-folder`       | Open dialog, batch import (max 20)         |
+| `launch-project`              | Open in editor                             |
+| `launch-project-game`         | Launch in `-game` mode                     |
+| `open-directory`              | Open folder in Explorer                    |
+| `delete-project`              | Remove from store                          |
+| `calculate-project-size`      | Background folder size                     |
+| `calculate-all-project-sizes` | Batch size calculation with push events    |
 
 ### Project Tools
-| Channel | Description |
-|---------|-------------|
-| `project-read-log` | Tail latest `.log` file (64KB chunks) |
-| `project-git-status` | Read branch, remote URL from `.git/` |
-| `project-git-init` | `git init` + create UE `.gitignore` |
+
+| Channel              | Description                           |
+| -------------------- | ------------------------------------- |
+| `project-read-log`   | Tail latest `.log` file (64KB chunks) |
+| `project-git-status` | Read branch, remote URL from `.git/`  |
+| `project-git-init`   | `git init` + create UE `.gitignore`   |
 
 ### Fab Marketplace
-| Channel | Description |
-|---------|-------------|
-| `fab-get-default-path` | Find first existing Fab cache path |
-| `fab-select-folder` | Open dialog for custom Fab folder |
-| `fab-scan-folder` | Scan folder, extract asset metadata |
-| `fab-save-path` | Persist custom path to settings |
-| `fab-load-path` | Load saved Fab path |
+
+| Channel                | Description                         |
+| ---------------------- | ----------------------------------- |
+| `fab-get-default-path` | Find first existing Fab cache path  |
+| `fab-select-folder`    | Open dialog for custom Fab folder   |
+| `fab-scan-folder`      | Scan folder, extract asset metadata |
+| `fab-save-path`        | Persist custom path to settings     |
+| `fab-load-path`        | Load saved Fab path                 |
 
 ### Tracer
-| Channel | Description |
-|---------|-------------|
-| `tracer-get-startup` | Check Windows registry Run key |
-| `tracer-set-startup` | Enable/disable + registry sync + spawn |
-| `tracer-is-running` | Check via tasklist |
-| `tracer-get-data-dir` | Return tracer data directory |
-| `tracer-get-merge` | Get merge-on-scan setting |
-| `tracer-set-merge` | Set merge-on-scan setting |
-| `engines-get-registry` | Get registry scan setting |
-| `engines-set-registry` | Set registry scan setting |
+
+| Channel                | Description                            |
+| ---------------------- | -------------------------------------- |
+| `tracer-get-startup`   | Check Windows registry Run key         |
+| `tracer-set-startup`   | Enable/disable + registry sync + spawn |
+| `tracer-is-running`    | Check via tasklist                     |
+| `tracer-get-data-dir`  | Return tracer data directory           |
+| `tracer-get-merge`     | Get merge-on-scan setting              |
+| `tracer-set-merge`     | Set merge-on-scan setting              |
+| `engines-get-registry` | Get registry scan setting              |
+| `engines-set-registry` | Set registry scan setting              |
 
 ### Updates
-| Channel | Description |
-|---------|-------------|
-| `check-for-updates` | Trigger electron-updater check |
-| `download-update` | Download pending update |
-| `install-update` | Quit and install |
-| `get-app-version` | Return current version string |
+
+| Channel                | Description                           |
+| ---------------------- | ------------------------------------- |
+| `check-for-updates`    | Trigger electron-updater check        |
+| `download-update`      | Download pending update               |
+| `install-update`       | Quit and install                      |
+| `get-app-version`      | Return current version string         |
 | `check-github-version` | Compare against latest GitHub release |
 
 ### Misc
-| Channel | Description |
-|---------|-------------|
-| `window-minimize` | Minimize window |
-| `window-maximize` | Maximize / restore window |
-| `window-close` | Quit app |
-| `window-is-maximized` | Check window state |
-| `open-external` | Open HTTPS URL in browser |
+
+| Channel                | Description                          |
+| ---------------------- | ------------------------------------ |
+| `window-minimize`      | Minimize window                      |
+| `window-maximize`      | Maximize / restore window            |
+| `window-close`         | Quit app                             |
+| `window-is-maximized`  | Check window state                   |
+| `open-external`        | Open HTTPS URL in browser            |
 | `send-discord-webhook` | Proxy webhook with multipart support |
-| `get-native-status` | Check if Rust module loaded |
-| `clear-app-data` | Wipe engines, projects, settings |
-| `clear-tracer-data` | Wipe tracer data |
+| `get-native-status`    | Check if Rust module loaded          |
+| `clear-app-data`       | Wipe engines, projects, settings     |
+| `clear-tracer-data`    | Wipe tracer data                     |
 
 ---
 
@@ -443,32 +454,32 @@ See [BUILD.md](BUILD.md) for the full build guide including native modules and t
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start in development mode |
-| `npm run start` | Preview production build |
-| `npm run build` | Build for current platform |
-| `npm run build:win` | Windows installer |
-| `npm run build:mac` | macOS package |
-| `npm run build:linux` | Linux package |
+| Command                | Description                    |
+| ---------------------- | ------------------------------ |
+| `npm run dev`          | Start in development mode      |
+| `npm run start`        | Preview production build       |
+| `npm run build`        | Build for current platform     |
+| `npm run build:win`    | Windows installer              |
+| `npm run build:mac`    | macOS package                  |
+| `npm run build:linux`  | Linux package                  |
 | `npm run build:native` | Build Rust N-API native module |
-| `npm run build:tracer` | Build Rust tracer executable |
-| `npm run typecheck` | TypeScript type checking |
-| `npm run lint` | Run ESLint |
-| `npm run format` | Format with Prettier |
-| `npm run clean` | Remove build artifacts |
+| `npm run build:tracer` | Build Rust tracer executable   |
+| `npm run typecheck`    | TypeScript type checking       |
+| `npm run lint`         | Run ESLint                     |
+| `npm run format`       | Format with Prettier           |
+| `npm run clean`        | Remove build artifacts         |
 
 ---
 
 ## Distribution
 
-| Platform | Format | Architecture |
-|----------|--------|-------------|
-| Windows | NSIS installer `.exe` | x64 |
-| Windows | Unpacked `dir` | x64 |
-| macOS | `.dmg` | x64, arm64 |
-| Linux | AppImage | x64 |
-| Linux | `.deb` | x64 |
+| Platform | Format                | Architecture |
+| -------- | --------------------- | ------------ |
+| Windows  | NSIS installer `.exe` | x64          |
+| Windows  | Unpacked `dir`        | x64          |
+| macOS    | `.dmg`                | x64, arm64   |
+| Linux    | AppImage              | x64          |
+| Linux    | `.deb`                | x64          |
 
 Published to GitHub Releases at: [NeelFrostrain/UnrealLauncher](https://github.com/NeelFrostrain/UnrealLauncher/releases)
 

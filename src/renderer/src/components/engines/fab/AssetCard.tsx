@@ -47,7 +47,9 @@ export const AssetThumb = ({
   name: string
 }): React.ReactElement => {
   const [failed, setFailed] = useState(false)
-  const src = !failed ? (thumbnailUrl || (icon ? `local-asset:///${icon.replace(/\\/g, '/')}` : null)) : null
+  const src = !failed
+    ? thumbnailUrl || (icon ? `local-asset:///${icon.replace(/\\/g, '/')}` : null)
+    : null
 
   if (!thumbnailUrl && !icon) {
     console.log(`[AssetThumb] ${name}: No thumbnail or icon found`, { thumbnailUrl, icon })
@@ -211,9 +213,9 @@ export const AssetListCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
                 {tag}
               </span>
             ))}
-            {((asset.tags?.length || 0) + (asset.filters?.length || 0)) > 3 && (
+            {(asset.tags?.length || 0) + (asset.filters?.length || 0) > 3 && (
               <span className="text-[9px]" style={{ color: 'var(--color-text-muted)' }}>
-                +{((asset.tags?.length || 0) + (asset.filters?.length || 0)) - 3}
+                +{(asset.tags?.length || 0) + (asset.filters?.length || 0) - 3}
               </span>
             )}
           </div>
@@ -240,10 +242,17 @@ export const AssetListCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
             }}
             title="View on Fab"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15,3 21,3 21,9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15,3 21,3 21,9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
             </svg>
           </button>
         )}
@@ -323,10 +332,17 @@ export const AssetGridCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
               }}
               title="View on Fab"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                <polyline points="15,3 21,3 21,9"/>
-                <line x1="10" y1="14" x2="21" y2="3"/>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15,3 21,3 21,9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
             </button>
           )}
@@ -374,9 +390,9 @@ export const AssetGridCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
               {tag}
             </span>
           ))}
-          {((asset.tags?.length || 0) + (asset.filters?.length || 0)) > 3 && (
+          {(asset.tags?.length || 0) + (asset.filters?.length || 0) > 3 && (
             <span className="text-[9px]" style={{ color: 'var(--color-text-muted)' }}>
-              +{((asset.tags?.length || 0) + (asset.filters?.length || 0)) - 3}
+              +{(asset.tags?.length || 0) + (asset.filters?.length || 0) - 3}
             </span>
           )}
         </div>

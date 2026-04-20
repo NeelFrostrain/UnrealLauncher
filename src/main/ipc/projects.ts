@@ -6,8 +6,15 @@ import { ipcMain, dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { exec, spawn } from 'child_process'
-import { loadProjects, saveProjects, mergeTracerProjects, loadEngines, loadMainSettings } from '../store'
+import {
+  loadProjects,
+  saveProjects,
+  mergeTracerProjects,
+  loadEngines,
+  loadMainSettings
+} from '../store'
 import { findUprojectFiles, findProjectScreenshot, formatBytes, getFullFolderSize } from '../utils'
+import { openFileOrDirectory } from '../utils/processUtils'
 import { getNativeModulePath } from '../utils/native'
 import { getMainWindow } from '../window'
 import { spawnWorker } from './workers'
@@ -38,7 +45,11 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
     const saved = Array.isArray(raw) ? raw : []
     const settings = loadMainSettings()
     return new Promise((resolve, reject) => {
-      const w = spawnWorker(PROJECT_SCAN_WORKER, { saved, nativePath: getNativeModulePath(), customScanPaths: settings.projectScanPaths || [] })
+      const w = spawnWorker(PROJECT_SCAN_WORKER, {
+        saved,
+        nativePath: getNativeModulePath(),
+        customScanPaths: settings.projectScanPaths || []
+      })
       w.once('message', resolve)
       w.once('error', reject)
       w.once('exit', (c: number) => {
@@ -118,8 +129,7 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
         response.duplicateProjects.push({
           projectPath: projectDir,
           name: projectName,
-          reason:
-            existing.projectPath === projectDir ? 'Already added' : 'Duplicate project ID'
+          reason: existing.projectPath === projectDir ? 'Already added' : 'Duplicate project ID'
         })
         continue
       }
@@ -156,8 +166,7 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
       const uprojectPath = await locateUproject(projectPath)
       if (!uprojectPath) return { success: false, error: 'Project file not found' }
       try {
-        if (process.platform === 'win32') exec(`start "" "${uprojectPath}"`)
-        else spawn('open', [uprojectPath], { detached: true, stdio: 'ignore' })
+        openFileOrDirectory(uprojectPath)
         return { success: true }
       } catch (err) {
         return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
@@ -230,7 +239,7 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
   )
 
   ipcMain_.handle('open-directory', (_event, dirPath): void => {
-    spawn('explorer', [dirPath], { detached: true, stdio: 'ignore' })
+    openFileOrDirectory(dirPath)
   })
 
   ipcMain_.handle('delete-project', (_event, projectPath): boolean => {

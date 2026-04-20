@@ -79,7 +79,7 @@ export const SectionHeader = ({
   </div>
 )
 
-export const Card = ({ children }: { children: React.ReactNode; }): React.ReactElement => (
+export const Card = ({ children }: { children: React.ReactNode }): React.ReactElement => (
   <div
     className={`overflow-hidden`}
     style={{

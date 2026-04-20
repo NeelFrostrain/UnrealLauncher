@@ -5,6 +5,7 @@
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
+import { getFabCachePaths } from '../utils/platformPaths'
 
 export interface FabAsset {
   name: string
@@ -26,18 +27,7 @@ export interface FabAsset {
 }
 
 export function getDefaultFabPaths(): string[] {
-  const appdata = process.env.APPDATA || ''
-  const localappdata = process.env.LOCALAPPDATA || ''
-  const home = os.homedir()
-  return [
-    path.join(localappdata, 'EpicGamesLauncher', 'VaultCache'),
-    path.join(appdata, 'EpicGamesLauncher', 'VaultCache'),
-    path.join(localappdata, 'Fab', 'Cache'),
-    path.join(appdata, 'Fab', 'Cache'),
-    path.join(home, 'Documents', 'Fab'),
-    path.join('C:\\', 'Program Files', 'Epic Games', 'Fab'),
-    path.join('D:\\', 'Fab')
-  ]
+  return getFabCachePaths()
 }
 
 export function findFirstExisting(paths: string[]): string | null {
@@ -104,9 +94,11 @@ export function scanFabFolder(rootDir: string): FabAsset[] {
         category = cf['Vault.Filters'] || cf['Vault.Tags'] || ''
         assetType = cf['Vault.Type'] || ''
         actionUrl = cf['Vault.ActionURL'] || undefined
-        tags = cf['Vault.Tags'] ? cf['Vault.Tags'].split(',').map(s => s.trim()) : undefined
+        tags = cf['Vault.Tags'] ? cf['Vault.Tags'].split(',').map((s) => s.trim()) : undefined
         isCodeProject = cf['Vault.IsCodeProject'] === 'true'
-        filters = cf['Vault.Filters'] ? cf['Vault.Filters'].split(',').map(s => s.trim()) : undefined
+        filters = cf['Vault.Filters']
+          ? cf['Vault.Filters'].split(',').map((s) => s.trim())
+          : undefined
         const compat = cf['CompatibleApps'] || ''
         compatibleApps = compat ? compat.split(',').map((s) => s.trim()) : []
         if (assetType === 'Plugin' || isCodeProject) type = 'plugin'

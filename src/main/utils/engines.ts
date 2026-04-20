@@ -4,8 +4,17 @@
 // See LICENSE in the project root for full license terms.
 import fs from 'fs'
 import path from 'path'
-import regedit from 'regedit'
+// Conditional import for Windows only
+let regedit: any = null
+if (process.platform === 'win32') {
+  try {
+    regedit = require('regedit')
+  } catch (error) {
+    console.warn('regedit not available, registry engine discovery disabled')
+  }
+}
 import { getNative } from './native'
+import { getEngineInstallPaths, getBinaryExtension } from './platformPaths'
 import type { ScannedEngine } from './native'
 
 // ── Gradient generator ────────────────────────────────────────────────────────
@@ -78,7 +87,9 @@ export function validateEngineInstallation(folder: string): EngineValidationResu
 
 function _validateEngineJS(folder: string): EngineValidationResult {
   const engineDir = path.join(folder, 'Engine')
-  const binPath = path.join(engineDir, 'Binaries', 'Win64')
+  const binPlatform =
+    process.platform === 'win32' ? 'Win64' : process.platform === 'darwin' ? 'Mac' : 'Linux'
+  const binPath = path.join(engineDir, 'Binaries', binPlatform)
 
   if (
     !fs.existsSync(engineDir) ||
@@ -93,8 +104,13 @@ function _validateEngineJS(folder: string): EngineValidationResult {
     }
   }
 
-  let exePath = path.join(binPath, 'UnrealEditor.exe')
-  if (!fs.existsSync(exePath)) exePath = path.join(binPath, 'UE4Editor.exe')
+  const exeName = `UnrealEditor${getBinaryExtension()}`
+  let exePath = path.join(binPath, exeName)
+  if (!fs.existsSync(exePath)) {
+    // Try UE4Editor for older versions
+    const ue4ExeName = `UE4Editor${getBinaryExtension()}`
+    exePath = path.join(binPath, ue4ExeName)
+  }
   if (!fs.existsSync(exePath)) {
     return {
       valid: false,
@@ -132,18 +148,16 @@ function _validateEngineJS(folder: string): EngineValidationResult {
 
 export type { ScannedEngine }
 
-const ENGINE_SCAN_PATHS = [
-  'D:\\Engine\\UnrealEditors',
-  'C:\\Program Files\\Epic Games',
-  'C:\\Program Files (x86)\\Epic Games',
-  'D:\\Unreal'
-]
-
-// ── Registry-based engine discovery ──────────────────────────────────────────
+// ── Registry-based engine discovery (Windows only) ──────────────────────────────────────────
 
 const REGISTRY_KEY = 'HKLM\\SOFTWARE\\EpicGames\\Unreal Engine'
 
 export async function getInstalledEngines(): Promise<ScannedEngine[]> {
+  // Only available on Windows with regedit
+  if (process.platform !== 'win32' || !regedit) {
+    return []
+  }
+
   try {
     const list = await regedit.promisified.list([REGISTRY_KEY])
     const entry = list[REGISTRY_KEY]
@@ -158,9 +172,16 @@ export async function getInstalledEngines(): Promise<ScannedEngine[]> {
           const installedDir = values?.['InstalledDirectory']?.value as string | undefined
           if (!installedDir) return null
 
-          const binPath = path.join(installedDir, 'Engine', 'Binaries', 'Win64')
-          let exePath = path.join(binPath, 'UnrealEditor.exe')
-          if (!fs.existsSync(exePath)) exePath = path.join(binPath, 'UE4Editor.exe')
+          const binPlatform =
+            process.platform === 'win32' ? 'Win64' : process.platform === 'darwin' ? 'Mac' : 'Linux'
+          const binPath = path.join(installedDir, 'Engine', 'Binaries', binPlatform)
+          const exeName = `UnrealEditor${getBinaryExtension()}`
+          let exePath = path.join(binPath, exeName)
+          if (!fs.existsSync(exePath)) {
+            // Try UE4Editor for older versions
+            const ue4ExeName = `UE4Editor${getBinaryExtension()}`
+            exePath = path.join(binPath, ue4ExeName)
+          }
           if (!fs.existsSync(exePath)) return null
 
           return { version, exePath, directoryPath: installedDir } satisfies ScannedEngine
@@ -180,25 +201,30 @@ export function scanEnginePaths(extraPaths: string[] = []): ScannedEngine[] {
   const native = getNative()
   if (native) {
     try {
-      return native.scanEngines(extraPaths)
+      return native.scanEngines([...getEngineInstallPaths(), ...extraPaths])
     } catch {
       /* fall through */
     }
   }
-  return _scanEnginesJS([...ENGINE_SCAN_PATHS, ...extraPaths])
+  return _scanEnginesJS([...getEngineInstallPaths(), ...extraPaths])
 }
 
 function _scanEnginesJS(basePaths: string[]): ScannedEngine[] {
   const results: ScannedEngine[] = []
+  const binPlatform =
+    process.platform === 'win32' ? 'Win64' : process.platform === 'darwin' ? 'Mac' : 'Linux'
+  const exeName = `UnrealEditor${getBinaryExtension()}`
+  const ue4ExeName = `UE4Editor${getBinaryExtension()}`
+
   for (const basePath of basePaths) {
     if (!fs.existsSync(basePath)) continue
     try {
       for (const item of fs.readdirSync(basePath)) {
         if (!item.startsWith('UE_')) continue
         const enginePath = path.join(basePath, item)
-        const binPath = path.join(enginePath, 'Engine', 'Binaries', 'Win64')
-        let exePath = path.join(binPath, 'UnrealEditor.exe')
-        if (!fs.existsSync(exePath)) exePath = path.join(binPath, 'UE4Editor.exe')
+        const binPath = path.join(enginePath, 'Engine', 'Binaries', binPlatform)
+        let exePath = path.join(binPath, exeName)
+        if (!fs.existsSync(exePath)) exePath = path.join(binPath, ue4ExeName)
         if (!fs.existsSync(exePath)) continue
         results.push({ version: item.replace('UE_', ''), exePath, directoryPath: enginePath })
       }

@@ -7,84 +7,120 @@ import path from 'path'
 import fs from 'fs'
 import { execSync, spawn } from 'child_process'
 import { saveMainSettings, loadMainSettings } from '../store'
+import { getTracerDataDir, getTracerBinaryName } from '../utils/platformPaths'
+import { isProcessRunning, killProcess } from '../utils/processUtils'
 
 export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
   // In production: resources/ sits inside app and dev uses the project root.
-  const tracerExe = path.join(app.getAppPath(), 'resources', 'unreal_launcher_tracer.exe')
+  const tracerBinaryName = getTracerBinaryName()
+  const tracerExe = path.join(app.getAppPath(), 'resources', tracerBinaryName)
 
   const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
   const TRACER_KEY_NAME = 'Unreal Launcher Tracer'
 
   ipcMain_.handle('tracer-get-startup', (): boolean => {
-    if (process.platform !== 'win32') return false
-    try {
-      const out = execSync(`reg query "${RUN_KEY}" /v "${TRACER_KEY_NAME}" 2>nul`, {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe']
-      })
-      return out.includes(TRACER_KEY_NAME)
-    } catch {
+    if (process.platform === 'win32') {
+      try {
+        const out = execSync(`reg query "${RUN_KEY}" /v "${TRACER_KEY_NAME}" 2>nul`, {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'pipe']
+        })
+        return out.includes(TRACER_KEY_NAME)
+      } catch {
+        return false
+      }
+    } else if (process.platform === 'linux') {
+      // Check systemd user service
+      try {
+        execSync('systemctl --user is-enabled unreal-launcher-tracer.service', { stdio: 'ignore' })
+        return true
+      } catch {
+        return false
+      }
+    } else {
+      // macOS - could implement launchd check here
       return false
     }
   })
 
   ipcMain_.handle('tracer-set-startup', async (_event, enabled: boolean): Promise<void> => {
-    if (process.platform !== 'win32') return
-
     saveMainSettings({ tracerStartupEnabled: enabled })
 
-    try {
-      if (enabled) {
-        if (!fs.existsSync(tracerExe)) return
+    if (process.platform === 'win32') {
+      try {
+        if (enabled) {
+          if (!fs.existsSync(tracerExe)) return
 
-        execSync(
-          `reg add "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /t REG_SZ /d "\\"${tracerExe}\\"" /f`,
-          { stdio: 'pipe' }
-        )
+          execSync(
+            `reg add "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /t REG_SZ /d "\\"${tracerExe}\\"" /f`,
+            { stdio: 'pipe' }
+          )
 
-        const running = execSync(
-          'tasklist /FI "IMAGENAME eq unreal_launcher_tracer.exe" /NH /FO CSV',
-          { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-        )
-          .toLowerCase()
-          .includes('unreal_launcher_tracer.exe')
+          if (!isProcessRunning(tracerBinaryName)) {
+            spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
+          }
+        } else {
+          try {
+            execSync(`reg delete "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /f`, { stdio: 'pipe' })
+          } catch {
+            /* key didn't exist */
+          }
 
-        if (!running) {
-          spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
+          killProcess(tracerBinaryName)
         }
-      } else {
-        try {
-          execSync(`reg delete "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /f`, { stdio: 'pipe' })
-        } catch {
-          /* key didn't exist */
-        }
-
-        try {
-          execSync('taskkill /F /IM unreal_launcher_tracer.exe', { stdio: 'pipe' })
-        } catch {
-          /* not running — fine */
-        }
+      } catch {
+        /* ignore */
       }
-    } catch {
-      /* ignore */
+    } else if (process.platform === 'linux') {
+      try {
+        if (enabled) {
+          if (!fs.existsSync(tracerExe)) return
+
+          // Create systemd service file
+          const systemdDir = path.join(require('os').homedir(), '.config', 'systemd', 'user')
+          await fs.promises.mkdir(systemdDir, { recursive: true })
+
+          const serviceContent = `[Unit]
+Description=Unreal Launcher Tracer
+After=network.target
+
+[Service]
+ExecStart=${tracerExe}
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+`
+          const servicePath = path.join(systemdDir, 'unreal-launcher-tracer.service')
+          await fs.promises.writeFile(servicePath, serviceContent)
+
+          execSync('systemctl --user daemon-reload')
+          execSync('systemctl --user enable unreal-launcher-tracer.service')
+
+          if (!isProcessRunning(tracerBinaryName)) {
+            spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
+          }
+        } else {
+          execSync('systemctl --user disable unreal-launcher-tracer.service')
+          execSync('systemctl --user stop unreal-launcher-tracer.service')
+          killProcess(tracerBinaryName)
+        }
+      } catch (error) {
+        console.warn('Failed to configure Linux startup service:', error)
+      }
+    } else {
+      // macOS - could implement launchd here
+      console.warn('Startup configuration not implemented for macOS')
     }
   })
 
   ipcMain_.handle('tracer-is-running', (): boolean => {
-    try {
-      const out = execSync('tasklist /FI "IMAGENAME eq unreal_launcher_tracer.exe" /NH /FO CSV', {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe']
-      })
-      return out.toLowerCase().includes('unreal_launcher_tracer.exe')
-    } catch {
-      return false
-    }
+    return isProcessRunning(tracerBinaryName)
   })
 
   ipcMain_.handle('tracer-get-data-dir', (): string => {
-    const appdata = process.env.APPDATA || ''
-    return path.join(appdata, 'Unreal Launcher', 'Tracer')
+    return getTracerDataDir()
   })
 
   ipcMain_.handle('tracer-get-merge', (): boolean => {

@@ -41,7 +41,10 @@ const EnginesPage = (): React.ReactElement => {
 
   useEffect(() => {
     const load = async (): Promise<void> => {
-      if (!window.electronAPI) { setLoading(false); return }
+      if (!window.electronAPI) {
+        setLoading(false)
+        return
+      }
       try {
         setEngines(await window.electronAPI.scanEngines())
       } catch (err) {

@@ -11,6 +11,7 @@ import { parentPort, workerData } from 'worker_threads'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
+import { getEngineInstallPaths, getProjectScanPaths, getBinaryExtension } from './utils/platformPaths'
 
 // ── Native module (same load pattern as utils.ts) ─────────────────────────────
 interface NativeModule {
@@ -103,22 +104,22 @@ function scanEnginePaths(): Array<{ version: string; exePath: string; directoryP
       /* fall through */
     }
   }
-  const bases = [
-    'D:\\Engine\\UnrealEditors',
-    'C:\\Program Files\\Epic Games',
-    'C:\\Program Files (x86)\\Epic Games',
-    'D:\\Unreal'
-  ]
+  const bases = getEngineInstallPaths()
   const results: Array<{ version: string; exePath: string; directoryPath: string }> = []
+  const binPlatform = process.platform === 'win32' ? 'Win64' :
+                     process.platform === 'darwin' ? 'Mac' : 'Linux'
+  const exeName = `UnrealEditor${getBinaryExtension()}`
+  const ue4ExeName = `UE4Editor${getBinaryExtension()}`
+
   for (const base of bases) {
     if (!fs.existsSync(base)) continue
     try {
       for (const item of fs.readdirSync(base)) {
         if (!item.startsWith('UE_')) continue
         const enginePath = path.join(base, item)
-        const bin = path.join(enginePath, 'Engine', 'Binaries', 'Win64')
-        let exe = path.join(bin, 'UnrealEditor.exe')
-        if (!fs.existsSync(exe)) exe = path.join(bin, 'UE4Editor.exe')
+        const bin = path.join(enginePath, 'Engine', 'Binaries', binPlatform)
+        let exe = path.join(bin, exeName)
+        if (!fs.existsSync(exe)) exe = path.join(bin, ue4ExeName)
         if (!fs.existsSync(exe)) continue
         results.push({ version: item.replace('UE_', ''), exePath: exe, directoryPath: enginePath })
       }
@@ -244,10 +245,7 @@ function normalizeProjectPath(projectPath: string): string {
   return path.normalize(projectPath).toLowerCase()
 }
 function runScanProjects(saved: Project[]): Project[] {
-  const searchPaths = [
-    path.join(os.homedir(), 'Documents', 'Unreal Projects'),
-    'C:\\Users\\Public\\Documents\\Unreal Projects',
-    'D:\\Unreal\\Projects'
+  const searchPaths = getProjectScanPaths()
   ]
 
   const scannedByPath = new Map<string, Project>()

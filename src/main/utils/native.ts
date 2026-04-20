@@ -18,10 +18,11 @@ export function getNativeModulePath(): string {
     path.join(process.resourcesPath, 'native', 'dist', 'index')
   ]
 
-  const found = candidates.find((candidate) =>
-    fs.existsSync(candidate) ||
-    fs.existsSync(`${candidate}.node`) ||
-    fs.existsSync(`${candidate}.js`)
+  const found = candidates.find(
+    (candidate) =>
+      fs.existsSync(candidate) ||
+      fs.existsSync(`${candidate}.node`) ||
+      fs.existsSync(`${candidate}.js`)
   )
 
   return found ?? candidates[0]
