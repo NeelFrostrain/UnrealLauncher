@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.2] - 2026-04-26 — `v2.1.2`
+
+### ⚡ Performance
+
+- **App startup speed** — Rewrote `index.ts` startup sequence for faster perceived launch time:
+  - Splash screen is created as the very first thing inside `app.whenReady()`, before any other work
+  - All heavy work (native module warmup, tracer startup, update check) deferred via `setImmediate` and `setTimeout` so they never block window creation
+  - Replaced all `execSync` calls (registry read, tasklist check) with async `spawn`-based equivalents — main thread is never blocked during startup
+  - Removed duplicate `app.whenReady()` chain between `index.ts` and `setupAppLifecycle()` — eliminates an extra promise hop
+  - Update check deferred to 8 seconds after ready — no network activity during startup
+- **Renderer startup speed**:
+  - `applyRadius()` and `applyScale()` now run synchronously before React mounts (in `main.tsx`) instead of in a `useEffect` — eliminates layout shift on first paint
+  - Removed the 400ms fade-in animation on `LayoutWrapper` — app appears instantly instead of fading in
+  - Removed artificial 1000ms splash delay — main window shows on actual `ready-to-show` event
+  - Removed `paintWhenInitiallyHidden: false` which was preventing `ready-to-show` from firing and causing the app to get stuck on the splash screen
+- **Vite build config**:
+  - Added `externalizeDepsPlugin()` for main and preload — Node built-ins stay external and aren't bundled unnecessarily
+  - Reduced terser `passes` from 2 to 1 — halves build time with negligible size difference
+- **Window creation**:
+  - `backgroundColor` set to `#121214` matching `--color-surface` — prevents white flash before React paints
+  - `setupAppLifecycle()` no longer wraps in a second `app.whenReady()` — called directly from inside the existing `whenReady` handler
+
+### 🛠️ Fixed
+
+- **App stuck on splash screen** — `paintWhenInitiallyHidden: false` suppressed the `ready-to-show` event, causing the splash to never close. Removed the option
+- **Project launch spinner freezing** — The launching overlay animation was freezing because:
+  1. `backdrop-blur-sm` on the overlay caused a GPU compositor stall — removed
+  2. Tailwind `animate-spin` runs on the main JS thread and freezes when IPC fires — replaced with a named `@keyframes launcher-spin` animation using `willChange: transform` to promote to compositor thread
+  3. IPC call was firing before the browser had a chance to paint the overlay — now uses `MessageChannel.postMessage` to defer the IPC to a separate task after the paint is flushed to the compositor
+  4. `autoCloseOnLaunch` was closing the window after 1 second, before the spinner finished — close delay increased to 2 seconds
+- **Project launch overlay minimum duration** — Overlay now stays visible for at least 1.5 seconds so it feels intentional rather than flashing briefly
+- **`handleLaunch` blocking renderer** — Changed from `async/await` to fire-and-forget `.then()` so the IPC round-trip never blocks the renderer event loop
+
+---
+
 ## [2.1.1] - 2026-04-20 — `v2.1.1`
 
 ### 🛠️ Fixed
