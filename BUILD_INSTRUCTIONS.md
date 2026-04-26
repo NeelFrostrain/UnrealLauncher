@@ -11,6 +11,7 @@ npm run dev
 ### Production Build
 
 #### Windows
+
 ```bash
 npm run build              # Builds all components
 npm run build:unpack      # Creates portable format only
@@ -18,6 +19,7 @@ npm run build:win         # Creates Windows installer (requires admin)
 ```
 
 #### Linux
+
 ```bash
 npm run build              # Builds all components
 npm run build:linux        # Creates Linux packages (AppImage, deb)
@@ -25,6 +27,7 @@ npm run build:linux        # Creates Linux packages (AppImage, deb)
 ```
 
 #### macOS
+
 ```bash
 npm run build              # Builds all components
 npm run build:mac          # Creates macOS app bundle

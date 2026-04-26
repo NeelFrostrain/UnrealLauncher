@@ -7,9 +7,7 @@ import { Sidebar, Titlebar } from '../components'
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => {
   return (
-    <div
-      className="w-screen h-screen bg-black text-white p-px overflow-hidden select-none"
-    >
+    <div className="w-screen h-screen bg-black text-white p-px overflow-hidden select-none">
       <div
         id="app-scale-root"
         className="w-full h-full flex flex-col"

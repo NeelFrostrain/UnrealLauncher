@@ -11,8 +11,20 @@ export default defineConfig({
       rollupOptions: {
         // Ensure all Node built-ins stay external — not bundled
         external: [
-          'electron', 'path', 'fs', 'os', 'child_process', 'worker_threads',
-          'crypto', 'http', 'https', 'net', 'stream', 'util', 'events', 'url'
+          'electron',
+          'path',
+          'fs',
+          'os',
+          'child_process',
+          'worker_threads',
+          'crypto',
+          'http',
+          'https',
+          'net',
+          'stream',
+          'util',
+          'events',
+          'url'
         ]
       }
     }
@@ -42,7 +54,7 @@ export default defineConfig({
         compress: {
           drop_console: true,
           drop_debugger: true,
-          passes: 1  // one pass is sufficient; 2 passes doubles build time for <1% gain
+          passes: 1 // one pass is sufficient; 2 passes doubles build time for <1% gain
         }
       },
       sourcemap: false,

@@ -164,7 +164,7 @@ const EnginesSection = (): React.ReactElement => {
 
         <SettingRow
           label="UE_ROOT environment variable"
-          description='As an alternative to the list above, set UE_ROOT=/path/to/engines in your shell (e.g. ~/.bashrc or ~/.profile). It should point to a directory containing UE_* engine folders and will be picked up automatically on next scan.'
+          description="As an alternative to the list above, set UE_ROOT=/path/to/engines in your shell (e.g. ~/.bashrc or ~/.profile). It should point to a directory containing UE_* engine folders and will be picked up automatically on next scan."
           last
         >
           <div

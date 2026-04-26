@@ -10,7 +10,11 @@
 import { parentPort, workerData } from 'worker_threads'
 import fs from 'fs'
 import path from 'path'
-import { getEngineInstallPaths, getProjectScanPaths, getBinaryExtension } from './utils/platformPaths'
+import {
+  getEngineInstallPaths,
+  getProjectScanPaths,
+  getBinaryExtension
+} from './utils/platformPaths'
 
 // ── Native module (same load pattern as utils.ts) ─────────────────────────────
 interface NativeModule {
@@ -104,8 +108,8 @@ function scanEnginePaths(): Array<{ version: string; exePath: string; directoryP
     }
   }
   const bases = getEngineInstallPaths()
-  const binPlatform = process.platform === 'win32' ? 'Win64' :
-                     process.platform === 'darwin' ? 'Mac' : 'Linux'
+  const binPlatform =
+    process.platform === 'win32' ? 'Win64' : process.platform === 'darwin' ? 'Mac' : 'Linux'
   const exeName = `UnrealEditor${getBinaryExtension()}`
   const ue4ExeName = `UE4Editor${getBinaryExtension()}`
 
@@ -126,7 +130,9 @@ function scanEnginePaths(): Array<{ version: string; exePath: string; directoryP
       if (bv.MajorVersion != null && bv.MinorVersion != null)
         version = `${bv.MajorVersion}.${bv.MinorVersion}`
       else if (typeof bv.BranchName === 'string') version = bv.BranchName
-    } catch { /* keep folder name */ }
+    } catch {
+      /* keep folder name */
+    }
     seen.add(enginePath)
     results.push({ version, exePath: exe, directoryPath: enginePath })
   }
@@ -287,7 +293,9 @@ function runScanProjects(saved: Project[]): Project[] {
         } catch {
           /* keep Unknown */
         }
-        const existing = saved.find((p) => p.projectPath && normalizeProjectPath(p.projectPath) === projectKey)
+        const existing = saved.find(
+          (p) => p.projectPath && normalizeProjectPath(p.projectPath) === projectKey
+        )
         scannedByPath.set(projectKey, {
           name: projectName,
           version,
@@ -308,7 +316,9 @@ function runScanProjects(saved: Project[]): Project[] {
   for (const s of scannedByPath.values()) {
     const normalized = normalizeProjectPath(s.projectPath)
     if (mergedKeys.has(normalized)) continue
-    const existing = saved.find((p) => p.projectPath && normalizeProjectPath(p.projectPath) === normalized)
+    const existing = saved.find(
+      (p) => p.projectPath && normalizeProjectPath(p.projectPath) === normalized
+    )
     if (existing?.size && !existing.size.startsWith('~')) s.size = existing.size
     mergedKeys.add(normalized)
     merged.push(s)

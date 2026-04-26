@@ -53,7 +53,11 @@ if (!gotTheLock) {
   // ── before-quit cleanup ─────────────────────────────────────────────────────
   app.on('before-quit', () => {
     for (const cp of childProcesses) {
-      try { cp.kill() } catch { /* already dead */ }
+      try {
+        cp.kill()
+      } catch {
+        /* already dead */
+      }
     }
     childProcesses.length = 0
     cleanupWorkers()
@@ -88,13 +92,23 @@ if (!gotTheLock) {
     setupAppLifecycle()
 
     // 5. Warm up native Rust module off the critical path
-    setImmediate(() => { try { getNative() } catch { /* ignore */ } })
+    setImmediate(() => {
+      try {
+        getNative()
+      } catch {
+        /* ignore */
+      }
+    })
 
     // 6. Tracer startup — fully async, never blocks main thread
-    setImmediate(() => { startTracerAsync().catch(() => {}) })
+    setImmediate(() => {
+      startTracerAsync().catch(() => {})
+    })
 
     // 7. Defer update check until well after the window is visible
-    setTimeout(() => { checkForUpdatesOnStartup().catch(() => {}) }, 8000)
+    setTimeout(() => {
+      checkForUpdatesOnStartup().catch(() => {})
+    }, 8000)
   })
 
   // ── Tracer startup — async, no execSync ────────────────────────────────────
@@ -107,7 +121,9 @@ if (!gotTheLock) {
     let tracerStartupEnabled = false
     try {
       tracerStartupEnabled = loadMainSettings().tracerStartupEnabled
-    } catch { return }
+    } catch {
+      return
+    }
 
     const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
     const KEY_NAME = 'Unreal Launcher Tracer'
@@ -118,11 +134,9 @@ if (!gotTheLock) {
     }
 
     // Update registry key asynchronously
-    spawn(
-      'reg',
-      ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
-      { stdio: 'ignore' }
-    )
+    spawn('reg', ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'], {
+      stdio: 'ignore'
+    })
 
     // Check if tracer is already running — async via spawn instead of execSync
     await new Promise<void>((resolve) => {
@@ -132,7 +146,9 @@ if (!gotTheLock) {
         { stdio: ['ignore', 'pipe', 'ignore'] }
       )
       let output = ''
-      check.stdout?.on('data', (d: Buffer) => { output += d.toString() })
+      check.stdout?.on('data', (d: Buffer) => {
+        output += d.toString()
+      })
       check.once('close', () => {
         if (!output.toLowerCase().includes('unreal_launcher_tracer.exe')) {
           spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()

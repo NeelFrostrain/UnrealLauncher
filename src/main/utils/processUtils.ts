@@ -8,20 +8,19 @@ import fs from 'fs'
 
 /**
  * Cross-platform process management utilities
- * Replaces Windows-specific tasklist/taskkill commands
  */
 
 export function isProcessRunning(processName: string): boolean {
   try {
     if (process.platform === 'win32') {
-      const output = execSync(
-        `tasklist /FI "IMAGENAME eq ${processName}" /FO CSV /NH`,
-        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-      )
-        .trim()
-
+      const output = execSync(`tasklist /FI "IMAGENAME eq ${processName}" /FO CSV /NH`, {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe']
+      }).trim()
       return output.length > 0 && !output.toLowerCase().includes('info: no tasks are running')
     } else {
+      // On Linux, /proc/comm truncates names to 15 chars, so pgrep -x won't match
+      // long binary names. Use pgrep -f to match against the full command line.
       execSync(`pgrep -f "${processName}"`, { stdio: 'ignore' })
       return true
     }
@@ -31,24 +30,21 @@ export function isProcessRunning(processName: string): boolean {
 }
 
 export function killProcess(processName: string): void {
-  try {
-    if (process.platform === 'win32') {
-      const output = execSync(
-        `tasklist /FI "IMAGENAME eq ${processName}" /FO CSV /NH`,
-        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-      )
-        .trim()
-
-      if (output.length === 0 || output.toLowerCase().includes('info: no tasks are running')) {
-        return
-      }
-
+  if (process.platform === 'win32') {
+    try {
+      const output = execSync(`tasklist /FI "IMAGENAME eq ${processName}" /FO CSV /NH`, {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe']
+      }).trim()
+      if (output.length === 0 || output.toLowerCase().includes('info: no tasks are running')) return
       execSync(`taskkill /F /IM ${processName}`, { stdio: 'ignore' })
-    } else {
-      execSync(`pkill -f "${processName}"`, { stdio: 'ignore' })
+    } catch (error) {
+      console.warn(`Failed to kill process ${processName}:`, error)
     }
-  } catch (error) {
-    console.warn(`Failed to kill process ${processName}:`, error)
+  } else {
+    // pkill -f matches the full command line path — works for long binary names
+    // that get truncated in /proc/comm. Exit code 1 = no match, not an error.
+    try { execSync(`pkill -f "${processName}"`, { stdio: 'ignore' }) } catch { /* not found */ }
   }
 }
 
@@ -58,8 +54,7 @@ export function openFileOrDirectory(filePath: string): void {
   } else if (process.platform === 'darwin') {
     spawn('open', [filePath], { detached: true, stdio: 'ignore' }).unref()
   } else {
-    // Linux: executables must be spawned directly — xdg-open is for files/dirs
-    // and gets blocked by KIO/portal when given a binary.
+    // Linux: executables must be spawned directly — xdg-open is blocked by KIO for binaries
     let isExecutable = false
     try {
       fs.accessSync(filePath, fs.constants.X_OK)

@@ -5,7 +5,13 @@
 import { ipcMain, dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import { loadEngines, saveEngines, mergeTracerEngines, loadMainSettings, loadEngineScanPaths } from '../store'
+import {
+  loadEngines,
+  saveEngines,
+  mergeTracerEngines,
+  loadMainSettings,
+  loadEngineScanPaths
+} from '../store'
 import { openFileOrDirectory } from '../utils/processUtils'
 import {
   generateGradient,

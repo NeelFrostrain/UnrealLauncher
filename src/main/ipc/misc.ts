@@ -13,7 +13,12 @@ import {
   loadProjectScanPaths,
   saveProjectScanPaths
 } from '../store'
-import { getIsMaximized, handleWindowMinimize, handleWindowMaximize, getMainWindow } from '../window'
+import {
+  getIsMaximized,
+  handleWindowMinimize,
+  handleWindowMaximize,
+  getMainWindow
+} from '../window'
 import { getNative } from '../utils/native'
 
 export function registerMiscHandlers(ipcMain_: typeof ipcMain): void {

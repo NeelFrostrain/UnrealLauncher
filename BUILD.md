@@ -43,7 +43,8 @@ Output: `native/dist/*.node`
 npm run build:tracer
 ```
 
-Output: 
+Output:
+
 - Windows: `tracer/target/release/unreal_launcher_tracer.exe`
 - Linux/macOS: `tracer/target/release/unreal_launcher_tracer`
 

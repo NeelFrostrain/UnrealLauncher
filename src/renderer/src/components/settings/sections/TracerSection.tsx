@@ -72,7 +72,11 @@ const TracerSection = (): React.ReactElement => {
                   className="text-[11px]"
                   style={{ color: nativeLoaded ? '#60a5fa' : 'var(--color-text-muted)' }}
                 >
-                  Rust module {nativeLoaded ? 'loaded' : 'unavailable'}
+                  {nativeLoaded
+                    ? 'Rust module loaded'
+                    : platform === 'linux'
+                      ? 'JS fallback active'
+                      : 'Rust module unavailable'}
                 </span>
               </div>
             )}
