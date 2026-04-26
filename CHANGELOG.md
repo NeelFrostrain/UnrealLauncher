@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [2.1.2] - 2026-04-26 — `v2.1.2`
 
+### 🛠️ Fixed
+
+- **Tracer not stopping on Linux toggle-off** — `killProcess` was wrapping `pkill` in a `try/catch` that silently swallowed the "no process found" exit code (1), making it appear to fail. Removed the outer try/catch — `pkill` exit code 1 is not an error. Also separated the systemctl calls from the `killProcess` call so a missing systemd user session no longer prevents the process from being killed
+- **`pgrep -x` failing for long binary names on Linux** — Linux truncates process names to 15 characters in `/proc/comm`, so `pgrep -x "unreal_launcher_tracer"` (22 chars) never matched. Switched to `pgrep -f` which matches against the full command line path instead
+- **Tracer status not updating after toggle** — Status poll delay after toggle increased from 1.5s to 2.5s to give the OS enough time to actually kill the process before `isTracerRunning` is called
+- **"Rust module unavailable" shown on Linux** — The native `.node` file for Linux isn't bundled in the Windows build (requires `npm run build:native:linux` on Linux). The status now shows "JS fallback active" on Linux instead of "Rust module unavailable" to clarify that everything still works via the JS implementation
+- **Tracer `tracer-get-startup` always returning false on Linux** — Was querying `systemctl --user is-enabled` which fails if the systemd user session isn't available. Now reads directly from `settings.json` via `loadMainSettings().tracerStartupEnabled` which is always accurate
+
 ### ⚡ Performance
 
 - **App startup speed** — Rewrote `index.ts` startup sequence for faster perceived launch time:
