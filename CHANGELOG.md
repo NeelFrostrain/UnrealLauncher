@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] - Linux Support
+
+### ✨ Added
+
+- **Linux support** — Full Linux compatibility with platform-specific adaptations:
+  - Disabled hardware acceleration on Linux to prevent GPU errors in VMs
+  - Native Rust module builds for Linux (x64)
+  - System section in settings showing version, platform, and native module status
+  - Sandbox fix for Electron on Linux (added `--no-sandbox` flag to dev script)
+
+### 🛠️ Fixed
+
+- **Tracer disabled on Linux** — Session tracer feature is now Windows-only. Linux shows no tracer UI or background processes
+- **Process detection on Linux** — Fixed `pgrep`/`pkill` patterns to avoid false matches with electron process
+- **Native module loading** — Proper fallback to JS implementation when Rust module unavailable
+- **Build warnings** — Suppressed unused `split_csv_line` function warning in tracer
+
+### 🎨 UI/UX
+
+- **System info section** — New compact badge-style system section at top of settings showing:
+  - App version
+  - Platform (Windows/Linux/macOS)
+  - Native module status (Rust loaded / JS fallback)
+  - Tracer status (Windows only)
+- **Theme-aware badges** — System badges use theme colors and respect `--radius` variable
+- **Responsive layout** — Compact horizontal badge layout instead of grid to save vertical space
+
+---
+
 ## [2.1.2] - 2026-04-26 — `v2.1.2`
 
 ### 🛠️ Fixed

@@ -29,96 +29,45 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
       } catch {
         return false
       }
-    } else if (process.platform === 'linux') {
-      // Check saved setting — more reliable than querying systemd
-      // (systemd user session may not be available on all distros)
-      return loadMainSettings().tracerStartupEnabled ?? false
-    } else {
-      return false
     }
+    return false
   })
 
   ipcMain_.handle('tracer-set-startup', async (_event, enabled: boolean): Promise<void> => {
     saveMainSettings({ tracerStartupEnabled: enabled })
 
-    if (process.platform === 'win32') {
-      try {
-        if (enabled) {
-          if (!fs.existsSync(tracerExe)) return
+    // Tracer only supported on Windows
+    if (process.platform !== 'win32') return
 
-          execSync(
-            `reg add "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /t REG_SZ /d "\\"${tracerExe}\\"" /f`,
-            { stdio: 'pipe' }
-          )
-
-          if (!isProcessRunning(tracerBinaryName)) {
-            spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
-          }
-        } else {
-          try {
-            execSync(`reg delete "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /f`, { stdio: 'pipe' })
-          } catch {
-            /* key didn't exist */
-          }
-
-          killProcess(tracerBinaryName)
-        }
-      } catch {
-        /* ignore */
-      }
-    } else if (process.platform === 'linux') {
+    try {
       if (enabled) {
         if (!fs.existsSync(tracerExe)) return
 
-        // Create systemd user service for startup (best-effort — not all distros have systemd user sessions)
-        try {
-          const systemdDir = path.join(require('os').homedir(), '.config', 'systemd', 'user')
-          await fs.promises.mkdir(systemdDir, { recursive: true })
+        execSync(
+          `reg add "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /t REG_SZ /d "\\"${tracerExe}\\"" /f`,
+          { stdio: 'pipe' }
+        )
 
-          const serviceContent = `[Unit]
-Description=Unreal Launcher Tracer
-After=network.target
-
-[Service]
-ExecStart=${tracerExe}
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=default.target
-`
-          const servicePath = path.join(systemdDir, 'unreal-launcher-tracer.service')
-          await fs.promises.writeFile(servicePath, serviceContent)
-          execSync('systemctl --user daemon-reload', { stdio: 'ignore' })
-          execSync('systemctl --user enable unreal-launcher-tracer.service', { stdio: 'ignore' })
-        } catch {
-          /* systemd user session not available — startup-on-boot won't work but manual start still will */
-        }
-
-        // Start the tracer process directly if not already running
         if (!isProcessRunning(tracerBinaryName)) {
           spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
         }
       } else {
-        // Stop systemd service if it exists (best-effort)
         try {
-          execSync('systemctl --user stop unreal-launcher-tracer.service', { stdio: 'ignore' })
-          execSync('systemctl --user disable unreal-launcher-tracer.service', { stdio: 'ignore' })
+          execSync(`reg delete "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /f`, { stdio: 'pipe' })
         } catch {
-          /* service may not exist — that's fine */
+          /* key didn't exist */
         }
 
-        // Always kill the process directly — this works whether it was started
-        // via systemd, via spawn in index.ts, or manually
         killProcess(tracerBinaryName)
       }
-    } else {
-      // macOS - could implement launchd here
-      console.warn('Startup configuration not implemented for macOS')
+    } catch {
+      /* ignore */
     }
   })
 
   ipcMain_.handle('tracer-is-running', (): boolean => {
+    // Tracer only supported on Windows
+    if (process.platform !== 'win32') return false
     return isProcessRunning(tracerBinaryName)
   })
 
