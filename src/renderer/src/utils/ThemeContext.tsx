@@ -17,11 +17,7 @@ import {
   loadActiveProfileId,
   saveActiveProfileId,
   createProfile,
-  resolveTokens,
-  loadPersistedRadius,
-  applyRadius,
-  loadPersistedScale,
-  applyScale
+  resolveTokens
 } from './theme'
 
 interface ThemeContextType {
@@ -55,12 +51,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }): React.Reac
   )
   const [profiles, setProfiles] = useState<CustomProfile[]>(() => loadCustomProfiles())
   const [activeProfileId, setActiveProfileId] = useState<string | null>(() => loadActiveProfileId())
-
-  // Apply radius on mount
-  useEffect(() => {
-    applyRadius(loadPersistedRadius())
-    applyScale(loadPersistedScale())
-  }, [])
 
   // Apply CSS variables whenever active theme/overrides/profile changes
   useEffect(() => {

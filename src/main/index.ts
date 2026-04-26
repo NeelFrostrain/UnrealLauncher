@@ -4,21 +4,21 @@
 // See LICENSE in the project root for full license terms.
 import { config } from 'dotenv'
 import { app, protocol, net } from 'electron'
-import { execSync, spawn } from 'child_process'
+import { spawn } from 'child_process'
 import type { ChildProcess } from 'child_process'
 import path from 'path'
 import fs from 'fs'
-import { setupAppLifecycle, getMainWindow } from './window'
+import { setupAppLifecycle, createWindow, getMainWindow } from './window'
 import { setupAutoUpdaterEvents, checkForUpdatesOnStartup } from './updater'
 import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
 import { loadMainSettings } from './store'
 import { getNative } from './utils/native'
 
-// Load environment variables from .env file
+// Load .env as the very first thing
 config()
 
-// ── Chromium memory optimizations ─────────────────────────────────────────────
-app.commandLine.appendSwitch('js-flags', '--max-old-space-size=192') // tighter V8 heap cap
+// ── Chromium flags — must be set before app is ready ─────────────────────────
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=192')
 app.commandLine.appendSwitch('disable-http-cache')
 app.commandLine.appendSwitch('disable-background-networking')
 app.commandLine.appendSwitch('renderer-process-limit', '1')
@@ -34,38 +34,32 @@ app.commandLine.appendSwitch('no-first-run')
 app.commandLine.appendSwitch('disable-background-timer-throttling')
 app.commandLine.appendSwitch('disable-renderer-backgrounding')
 
-// ── Child process registry ────────────────────────────────────────────────────
-// Any spawned child processes that need cleanup on quit are stored here.
-const childProcesses: ChildProcess[] = []
-export function trackChildProcess(cp: ChildProcess): void {
-  childProcesses.push(cp)
-  cp.once('exit', () => {
-    const i = childProcesses.indexOf(cp)
-    if (i !== -1) childProcesses.splice(i, 1)
-  })
-}
-
-// ── Custom protocol: local-asset:// ──────────────────────────────────────────
+// ── Register custom protocol scheme before app is ready ──────────────────────
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'local-asset',
-    privileges: {
-      secure: true,
-      supportFetchAPI: true,
-      bypassCSP: true,
-      stream: true
-    }
+    privileges: { secure: true, supportFetchAPI: true, bypassCSP: true, stream: true }
   }
 ])
 
 // ── Single instance lock ──────────────────────────────────────────────────────
-// If a second instance launches, quit it immediately and focus the first.
 const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock) {
-  // This IS the second instance — quit right away, no window created
   app.quit()
 } else {
-  // Primary instance — focus/restore the window if a second one tried to open
+  // ── Child process registry ──────────────────────────────────────────────────
+  const childProcesses: ChildProcess[] = []
+
+  // ── before-quit cleanup ─────────────────────────────────────────────────────
+  app.on('before-quit', () => {
+    for (const cp of childProcesses) {
+      try { cp.kill() } catch { /* already dead */ }
+    }
+    childProcesses.length = 0
+    cleanupWorkers()
+  })
+
+  // ── Second instance → focus existing window ─────────────────────────────────
   app.on('second-instance', () => {
     const win = getMainWindow()
     if (win) {
@@ -74,97 +68,77 @@ if (!gotTheLock) {
     }
   })
 
-  // ── before-quit: clean up all child processes and workers ─────────────────
-  app.on('before-quit', () => {
-    // Kill any tracked child processes (e.g. tracer spawned by this instance)
-    for (const cp of childProcesses) {
-      try {
-        cp.kill()
-      } catch {
-        /* already dead */
-      }
-    }
-    childProcesses.length = 0
-
-    // Terminate any in-flight worker threads
-    cleanupWorkers()
-  })
-
+  // ── Main startup sequence ───────────────────────────────────────────────────
   app.whenReady().then(() => {
-    // ── local-asset:// protocol handler ──────────────────────────────────────
+    // 1. Register local-asset:// protocol handler
     protocol.handle('local-asset', (request) => {
       let filePath = decodeURIComponent(new URL(request.url).pathname)
-      if (process.platform === 'win32' && filePath.startsWith('/')) {
-        filePath = filePath.slice(1)
-      }
+      if (process.platform === 'win32' && filePath.startsWith('/')) filePath = filePath.slice(1)
       return net.fetch(`file:///${filePath.replace(/\\/g, '/')}`)
     })
 
-    // ── Native module warmup ─────────────────────────────────────────────────
-    // Load the Rust native module once at startup instead of waiting for settings access.
-    getNative()
+    // 2. Register IPC handlers — synchronous, no I/O
+    registerIpcHandlers()
 
-    // ── Tracer auto-start (Windows only) ─────────────────────────────────────
-    // Logic:
-    //   1. Read tracerStartupEnabled from settings.json (fast, no registry query)
-    //   2. If disabled → do nothing
-    //   3. If enabled → check if tracer is already running (tasklist)
-    //   4. Only spawn if NOT already running
-    //   5. Keep the registry Run key in sync with the setting
+    // 3. Wire up auto-updater events — synchronous, just event listeners
+    setupAutoUpdaterEvents(getMainWindow)
+
+    // 4. Create window immediately — splash shows before anything else loads
+    createWindow()
+    setupAppLifecycle()
+
+    // 5. Warm up native Rust module off the critical path
+    setImmediate(() => { try { getNative() } catch { /* ignore */ } })
+
+    // 6. Tracer startup — fully async, never blocks main thread
+    setImmediate(() => { startTracerAsync().catch(() => {}) })
+
+    // 7. Defer update check until well after the window is visible
+    setTimeout(() => { checkForUpdatesOnStartup().catch(() => {}) }, 8000)
+  })
+
+  // ── Tracer startup — async, no execSync ────────────────────────────────────
+  async function startTracerAsync(): Promise<void> {
     if (process.platform !== 'win32') return
 
     const tracerExe = path.join(app.getAppPath(), 'resources', 'unreal_launcher_tracer.exe')
     if (!fs.existsSync(tracerExe)) return
 
-    const { tracerStartupEnabled } = loadMainSettings()
+    let tracerStartupEnabled = false
+    try {
+      tracerStartupEnabled = loadMainSettings().tracerStartupEnabled
+    } catch { return }
 
     const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
     const KEY_NAME = 'Unreal Launcher Tracer'
 
     if (!tracerStartupEnabled) {
-      // Ensure registry key is also removed if setting is off
-      try {
-        execSync(`reg delete "${RUN_KEY}" /v "${KEY_NAME}" /f 2>nul`, { stdio: 'pipe' })
-      } catch {
-        /* key didn't exist — fine */
-      }
+      spawn('reg', ['delete', RUN_KEY, '/v', KEY_NAME, '/f'], { stdio: 'ignore' })
       return
     }
 
-    // Setting is ON — keep registry entry up to date with current exe path
-    try {
-      execSync(`reg add "${RUN_KEY}" /v "${KEY_NAME}" /t REG_SZ /d "\\"${tracerExe}\\"" /f`, {
-        stdio: 'pipe'
+    // Update registry key asynchronously
+    spawn(
+      'reg',
+      ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
+      { stdio: 'ignore' }
+    )
+
+    // Check if tracer is already running — async via spawn instead of execSync
+    await new Promise<void>((resolve) => {
+      const check = spawn(
+        'tasklist',
+        ['/FI', 'IMAGENAME eq unreal_launcher_tracer.exe', '/NH', '/FO', 'CSV'],
+        { stdio: ['ignore', 'pipe', 'ignore'] }
+      )
+      let output = ''
+      check.stdout?.on('data', (d: Buffer) => { output += d.toString() })
+      check.once('close', () => {
+        if (!output.toLowerCase().includes('unreal_launcher_tracer.exe')) {
+          spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
+        }
+        resolve()
       })
-    } catch {
-      /* ignore registry errors */
-    }
-
-    // Check if tracer is already running before spawning
-    const alreadyRunning = (() => {
-      try {
-        return execSync('tasklist /FI "IMAGENAME eq unreal_launcher_tracer.exe" /NH /FO CSV', {
-          encoding: 'utf8',
-          stdio: ['pipe', 'pipe', 'pipe']
-        })
-          .toLowerCase()
-          .includes('unreal_launcher_tracer.exe')
-      } catch {
-        return false
-      }
-    })()
-
-    if (!alreadyRunning) {
-      // Tracer is detached + unref'd — it outlives the launcher intentionally.
-      // NOT tracked in childProcesses since we don't want to kill it on quit.
-      spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
-    }
-  })
-
-  setupAutoUpdaterEvents(getMainWindow)
-  registerIpcHandlers()
-  setupAppLifecycle()
-
-  // Check for updates automatically on startup
-  checkForUpdatesOnStartup()
+    })
+  }
 }

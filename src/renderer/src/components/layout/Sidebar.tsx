@@ -37,9 +37,9 @@ const NAV_ITEMS: SidebarCardData[] = [
 // ── Expanded card ─────────────────────────────────────────────────────────────
 
 const ExpandedCard: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item, isActive }) => (
-  <Link to={item.path}>
+  <Link to={item.path} draggable="false">
     <div
-      className={`w-full relative h-28 rounded-md border-2 overflow-hidden transition-all duration-200 cursor-pointer`}
+      className={`w-full relative h-28 rounded-md border-2 overflow-hidden transition-all select-none duration-200 cursor-pointer`}
       style={{
         borderColor: isActive ? 'var(--color-accent)' : 'transparent',
         boxShadow: isActive

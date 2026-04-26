@@ -6,7 +6,6 @@ import { app, BrowserWindow, screen } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { optimizer } from '@electron-toolkit/utils'
-import { autoUpdater } from './updater'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -190,17 +189,17 @@ export function createWindow(): void {
       contextIsolation: true,
       preload: path.join(__dirname, '../preload/index.js'),
       sandbox: false,
-      backgroundThrottling: true, // throttle timers/animations when minimized
-      spellcheck: false, // no spell check needed in a launcher
-      enableWebSQL: false, // unused, saves memory
-      v8CacheOptions: 'bypassHeatCheck', // faster JS startup via V8 code cache
-      webSecurity: false // allow loading external images from FAB
+      backgroundThrottling: true,
+      spellcheck: false,
+      enableWebSQL: false,
+      v8CacheOptions: 'bypassHeatCheck',
+      webSecurity: false
     },
     icon: path.join(__dirname, '../../resources/icon.png'),
     frame: false,
     transparent: false,
     titleBarStyle: 'hidden',
-    backgroundColor: '#121212',
+    backgroundColor: '#121214', // matches --color-surface, prevents white flash
     resizable: true,
     minimizable: true,
     maximizable: true,
@@ -209,16 +208,13 @@ export function createWindow(): void {
   })
 
   mainWindow.once('ready-to-show', () => {
-    // Wait a bit more to ensure React app is fully loaded
-    setTimeout(() => {
-      if (mainWindow) {
-        mainWindow.show()
-        if (splashWindow) {
-          splashWindow.close()
-          splashWindow = null
-        }
+    if (mainWindow) {
+      mainWindow.show()
+      if (splashWindow && !splashWindow.isDestroyed()) {
+        splashWindow.close()
+        splashWindow = null
       }
-    }, 1000) // 1s
+    }
   })
 
   mainWindow.on('closed', () => {
@@ -276,26 +272,6 @@ export function handleWindowMaximize(): void {
 }
 
 export function setupAppLifecycle(): void {
-  app.whenReady().then(() => {
-    createWindow()
-
-    if (process.env.NODE_ENV === 'production') {
-      setTimeout(() => autoUpdater.checkForUpdates(), 3000)
-    }
-
-    app.on('browser-window-created', (_, window) => {
-      optimizer.watchWindowShortcuts(window)
-    })
-
-    // Periodically free unused memory when the window is not focused
-    setInterval(() => {
-      if (mainWindow && !mainWindow.isFocused()) {
-        app.commandLine.appendSwitch('js-flags', '--expose-gc')
-        mainWindow.webContents.executeJavaScript('if(typeof gc==="function")gc()').catch(() => {})
-      }
-    }, 30_000)
-  })
-
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()
   })
@@ -303,4 +279,15 @@ export function setupAppLifecycle(): void {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+  app.on('browser-window-created', (_, window) => {
+    optimizer.watchWindowShortcuts(window)
+  })
+
+  // Periodically free unused memory when the window is not focused
+  setInterval(() => {
+    if (mainWindow && !mainWindow.isFocused()) {
+      mainWindow.webContents.executeJavaScript('if(typeof gc==="function")gc()').catch(() => {})
+    }
+  }, 30_000)
 }

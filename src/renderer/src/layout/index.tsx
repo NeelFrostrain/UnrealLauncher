@@ -2,17 +2,13 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { motion } from 'framer-motion'
 import React from 'react'
 import { Sidebar, Titlebar } from '../components'
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => {
   return (
-    <motion.div
+    <div
       className="w-screen h-screen bg-black text-white p-px overflow-hidden select-none"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
     >
       <div
         id="app-scale-root"
@@ -29,7 +25,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 

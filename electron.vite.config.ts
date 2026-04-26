@@ -1,15 +1,25 @@
 import { resolve } from 'path'
-import { defineConfig } from 'electron-vite'
+import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   main: {
+    plugins: [externalizeDepsPlugin()], // keeps Node built-ins out of the bundle
     build: {
-      minify: true // minify main process too
+      minify: true,
+      rollupOptions: {
+        // Ensure all Node built-ins stay external — not bundled
+        external: [
+          'electron', 'path', 'fs', 'os', 'child_process', 'worker_threads',
+          'crypto', 'http', 'https', 'net', 'stream', 'util', 'events', 'url'
+        ]
+      }
     }
   },
-  preload: {},
+  preload: {
+    plugins: [externalizeDepsPlugin()]
+  },
   renderer: {
     resolve: {
       alias: {
@@ -30,9 +40,9 @@ export default defineConfig({
       minify: 'terser',
       terserOptions: {
         compress: {
-          drop_console: true, // strip console.log in production
+          drop_console: true,
           drop_debugger: true,
-          passes: 2 // two compression passes
+          passes: 1  // one pass is sufficient; 2 passes doubles build time for <1% gain
         }
       },
       sourcemap: false,
