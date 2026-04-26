@@ -30,15 +30,10 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
         return false
       }
     } else if (process.platform === 'linux') {
-      // Check systemd user service
-      try {
-        execSync('systemctl --user is-enabled unreal-launcher-tracer.service', { stdio: 'ignore' })
-        return true
-      } catch {
-        return false
-      }
+      // Check saved setting — more reliable than querying systemd
+      // (systemd user session may not be available on all distros)
+      return loadMainSettings().tracerStartupEnabled ?? false
     } else {
-      // macOS - could implement launchd check here
       return false
     }
   })
@@ -72,11 +67,11 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
         /* ignore */
       }
     } else if (process.platform === 'linux') {
-      try {
-        if (enabled) {
-          if (!fs.existsSync(tracerExe)) return
+      if (enabled) {
+        if (!fs.existsSync(tracerExe)) return
 
-          // Create systemd service file
+        // Create systemd user service for startup (best-effort — not all distros have systemd user sessions)
+        try {
           const systemdDir = path.join(require('os').homedir(), '.config', 'systemd', 'user')
           await fs.promises.mkdir(systemdDir, { recursive: true })
 
@@ -94,20 +89,28 @@ WantedBy=default.target
 `
           const servicePath = path.join(systemdDir, 'unreal-launcher-tracer.service')
           await fs.promises.writeFile(servicePath, serviceContent)
-
-          execSync('systemctl --user daemon-reload')
-          execSync('systemctl --user enable unreal-launcher-tracer.service')
-
-          if (!isProcessRunning(tracerBinaryName)) {
-            spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
-          }
-        } else {
-          execSync('systemctl --user disable unreal-launcher-tracer.service')
-          execSync('systemctl --user stop unreal-launcher-tracer.service')
-          killProcess(tracerBinaryName)
+          execSync('systemctl --user daemon-reload', { stdio: 'ignore' })
+          execSync('systemctl --user enable unreal-launcher-tracer.service', { stdio: 'ignore' })
+        } catch {
+          /* systemd user session not available — startup-on-boot won't work but manual start still will */
         }
-      } catch (error) {
-        console.warn('Failed to configure Linux startup service:', error)
+
+        // Start the tracer process directly if not already running
+        if (!isProcessRunning(tracerBinaryName)) {
+          spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
+        }
+      } else {
+        // Stop systemd service if it exists (best-effort)
+        try {
+          execSync('systemctl --user stop unreal-launcher-tracer.service', { stdio: 'ignore' })
+          execSync('systemctl --user disable unreal-launcher-tracer.service', { stdio: 'ignore' })
+        } catch {
+          /* service may not exist — that's fine */
+        }
+
+        // Always kill the process directly — this works whether it was started
+        // via systemd, via spawn in index.ts, or manually
+        killProcess(tracerBinaryName)
       }
     } else {
       // macOS - could implement launchd here
