@@ -40,8 +40,11 @@ export function useTracerSettings(): UseTracerSettingsReturn {
     setTracerAutoStart(next)
     setSetting('tracerAutoStart', next)
     await window.electronAPI.setTracerStartup(next)
-    // Give the OS time to actually kill/start the process before polling
-    setTimeout(async () => setTracerRunning(await window.electronAPI.isTracerRunning()), 2500)
+    // Poll a few times after toggling to reflect the actual process state
+    const delays = [500, 1500, 3000]
+    for (const delay of delays) {
+      setTimeout(async () => setTracerRunning(await window.electronAPI.isTracerRunning()), delay)
+    }
   }
 
   const handleTracerMergeChange = async (): Promise<void> => {

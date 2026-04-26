@@ -290,6 +290,7 @@ fn find_editor_processes() -> Vec<ProcessInfo> {
 }
 
 /// Minimal CSV field splitter that handles quoted fields containing commas.
+#[allow(dead_code)]
 fn split_csv_line(line: &str) -> Vec<String> {
     let mut fields = Vec::new();
     let mut current = String::new();

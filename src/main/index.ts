@@ -113,6 +113,7 @@ if (!gotTheLock) {
 
   // ── Tracer startup — async, no execSync ────────────────────────────────────
   async function startTracerAsync(): Promise<void> {
+    // Tracer only supported on Windows
     if (process.platform !== 'win32') return
 
     const tracerExe = path.join(app.getAppPath(), 'resources', 'unreal_launcher_tracer.exe')
@@ -124,14 +125,10 @@ if (!gotTheLock) {
     } catch {
       return
     }
+    if (!tracerStartupEnabled) return
 
     const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
     const KEY_NAME = 'Unreal Launcher Tracer'
-
-    if (!tracerStartupEnabled) {
-      spawn('reg', ['delete', RUN_KEY, '/v', KEY_NAME, '/f'], { stdio: 'ignore' })
-      return
-    }
 
     // Update registry key asynchronously
     spawn('reg', ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'], {

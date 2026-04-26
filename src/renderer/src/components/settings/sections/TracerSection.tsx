@@ -7,7 +7,7 @@ import { Activity, FolderOpen, Cpu } from 'lucide-react'
 import { SectionHeader, Card, SettingRow, Toggle } from '../SectionHelpers'
 import { useTracerSettings } from '../../../hooks/useTracerSettings'
 
-const TracerSection = (): React.ReactElement => {
+const TracerSection = (): React.ReactElement | null => {
   const {
     tracerAutoStart,
     tracerRunning,
@@ -23,6 +23,11 @@ const TracerSection = (): React.ReactElement => {
   useEffect(() => {
     window.electronAPI.getNativeStatus().then(setNativeLoaded)
   }, [])
+
+  // Tracer not supported on Linux
+  if (platform === 'linux') {
+    return null
+  }
 
   return (
     <section>

@@ -151,6 +151,8 @@ declare global {
       clearTracerData: () => Promise<void>
       getMainSettings: () => Promise<any>
       platform: string
+      appVersion: string
+      electronVersion: string
       saveMainSettings: (settings: any) => Promise<void>
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>

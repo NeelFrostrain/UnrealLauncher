@@ -24,6 +24,7 @@ import DataSection from '../components/settings/sections/DataSection'
 import UpdatesSection from '../components/settings/sections/UpdatesSection'
 import ProjectsSection from '../components/settings/sections/ProjectsSection'
 import EnginesSection from '../components/settings/sections/EnginesSection'
+import SystemSection from '../components/settings/sections/SystemSection'
 
 const SettingsPage = (): React.ReactElement => {
   const {
@@ -97,6 +98,8 @@ const SettingsPage = (): React.ReactElement => {
         </div> */}
 
         <div className="px-6 py-5 space-y-7">
+          <SystemSection />
+
           <LaunchSection
             autoCloseOnLaunch={autoCloseOnLaunch}
             onToggle={() => {

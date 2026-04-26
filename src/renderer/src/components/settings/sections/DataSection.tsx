@@ -42,7 +42,6 @@ const DataSection = (): React.ReactElement => {
         accent="bg-red-500/20"
       />
       <Card>
-        {/* Log lines threshold */}
         <SettingRow
           label="Log viewer lines"
           description="Maximum lines kept in memory when viewing project logs. Lower = less RAM."
