@@ -19,9 +19,11 @@ export function isProcessRunning(processName: string): boolean {
       }).trim()
       return output.length > 0 && !output.toLowerCase().includes('info: no tasks are running')
     } else {
-      // On Linux, /proc/comm truncates names to 15 chars, so pgrep -x won't match
-      // long binary names. Use pgrep -f to match against the full command line.
-      execSync(`pgrep -f "${processName}"`, { stdio: 'ignore' })
+      // pgrep -f matches the full command line. To avoid false positives where the
+      // electron process matches (its bundle contains the binary name as a string),
+      // we anchor the pattern to only match processes where the binary IS the executable
+      // (i.e., the path ends with the binary name, not just contains it).
+      execSync(`pgrep -f "/${processName}$"`, { stdio: 'ignore' })
       return true
     }
   } catch {
@@ -42,9 +44,9 @@ export function killProcess(processName: string): void {
       console.warn(`Failed to kill process ${processName}:`, error)
     }
   } else {
-    // pkill -f matches the full command line path — works for long binary names
-    // that get truncated in /proc/comm. Exit code 1 = no match, not an error.
-    try { execSync(`pkill -f "${processName}"`, { stdio: 'ignore' }) } catch { /* not found */ }
+    // pkill -f with end-anchor to avoid matching the electron process itself
+    // (which contains the binary name as a string in its JS bundle path).
+    try { execSync(`pkill -f "/${processName}$"`, { stdio: 'ignore' }) } catch { /* not found */ }
   }
 }
 
