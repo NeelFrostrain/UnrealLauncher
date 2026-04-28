@@ -1,4 +1,4 @@
-# 🚀 Unreal Launcher
+# Unreal Launcher
 
 > A lightweight Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
 
