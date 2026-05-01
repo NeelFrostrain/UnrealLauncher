@@ -318,11 +318,16 @@ fn parse_uplugin(plugin_dir: &Path, uplugin_path: &Path, category_hint: &str) ->
     } else if let Some(v) = json.get("Version").and_then(|v| v.as_u64()) {
       version = v.to_string();
     }
-    // Use Category from .uplugin if present and non-empty
-    if let Some(v) = json.get("Category").and_then(|v| v.as_str()) {
-      let trimmed = v.trim();
-      if !trimmed.is_empty() {
-        category = trimmed.to_string();
+    // Use Category from .uplugin if present and non-empty.
+    // Exception: if the category_hint is "Marketplace", keep it — marketplace
+    // plugins should always appear under the Marketplace category regardless
+    // of what their .uplugin Category field says.
+    if category_hint != "Marketplace" {
+      if let Some(v) = json.get("Category").and_then(|v| v.as_str()) {
+        let trimmed = v.trim();
+        if !trimmed.is_empty() {
+          category = trimmed.to_string();
+        }
       }
     }
     is_beta = json.get("IsBetaVersion").and_then(|v| v.as_bool()).unwrap_or(false);

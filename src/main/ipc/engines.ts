@@ -218,7 +218,7 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
           name = meta.FriendlyName || meta.Name || name
           description = meta.Description || ''
           version = meta.VersionName || String(meta.Version || '')
-          if (meta.Category && typeof meta.Category === 'string' && meta.Category.trim()) {
+          if (meta.Category && typeof meta.Category === 'string' && meta.Category.trim() && category !== 'Marketplace') {
             category = meta.Category.trim()
           }
           isBeta = !!meta.IsBetaVersion
