@@ -100,6 +100,34 @@ if (process.contextIsolated) {
       projectGitInit: (projectPath: string) => ipcRenderer.invoke('project-git-init', projectPath),
       projectLaunchGame: (projectPath: string) =>
         ipcRenderer.invoke('launch-project-game', projectPath),
+      projectOpenUproject: (projectPath: string) =>
+        ipcRenderer.invoke('project-open-uproject', projectPath),
+      projectOpenDefaultConfig: (projectPath: string) =>
+        ipcRenderer.invoke('project-open-default-config', projectPath),
+      projectOpenSubfolder: (projectPath: string, subfolder: string) =>
+        ipcRenderer.invoke('project-open-subfolder', projectPath, subfolder),
+      projectGenerateFiles: (projectPath: string) =>
+        ipcRenderer.invoke('project-generate-files', projectPath),
+      projectCleanIntermediate: (projectPath: string) =>
+        ipcRenderer.invoke('project-clean-intermediate', projectPath),
+      projectOpenRemote: (remoteUrl: string) =>
+        ipcRenderer.invoke('project-open-remote', remoteUrl),
+      projectGitReinit: (projectPath: string) =>
+        ipcRenderer.invoke('project-git-reinit', projectPath),
+      projectGitWriteGitignore: (projectPath: string) =>
+        ipcRenderer.invoke('project-git-write-gitignore', projectPath),
+      projectGitInitLfs: (projectPath: string) =>
+        ipcRenderer.invoke('project-git-init-lfs', projectPath),
+      projectGitHasChanges: (projectPath: string) =>
+        ipcRenderer.invoke('project-git-has-changes', projectPath),
+      projectGitCommit: (projectPath: string, message: string) =>
+        ipcRenderer.invoke('project-git-commit', projectPath, message),
+      projectGitBranches: (projectPath: string) =>
+        ipcRenderer.invoke('project-git-branches', projectPath),
+      projectGitSwitchBranch: (projectPath: string, branch: string, create: boolean) =>
+        ipcRenderer.invoke('project-git-switch-branch', projectPath, branch, create),
+      projectGitFileStatus: (projectPath: string) =>
+        ipcRenderer.invoke('project-git-file-status', projectPath),
       // Engine scan paths (Linux)
       getEngineScanPaths: () => ipcRenderer.invoke('get-engine-scan-paths'),
       saveEngineScanPaths: (paths: string[]) => ipcRenderer.invoke('save-engine-scan-paths', paths),

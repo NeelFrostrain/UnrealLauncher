@@ -185,8 +185,22 @@ declare global {
         behind: number
         remoteUrl: string
       }>
-      projectGitInit: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectGitInit: (projectPath: string) => Promise<{ success: boolean; lfsAvailable: boolean; error?: string }>
       projectLaunchGame: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectOpenUproject: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectOpenDefaultConfig: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectOpenSubfolder: (projectPath: string, subfolder: string) => Promise<{ success: boolean; error?: string }>
+      projectGenerateFiles: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectCleanIntermediate: (projectPath: string) => Promise<{ success: boolean; cleaned: string[]; error?: string }>
+      projectOpenRemote: (remoteUrl: string) => Promise<{ success: boolean; error?: string }>
+      projectGitReinit: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectGitWriteGitignore: (projectPath: string) => Promise<{ success: boolean; existed: boolean; error?: string }>
+      projectGitInitLfs: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectGitHasChanges: (projectPath: string) => Promise<{ hasChanges: boolean; summary: string; error?: string }>
+      projectGitCommit: (projectPath: string, message: string) => Promise<{ success: boolean; error?: string }>
+      projectGitBranches: (projectPath: string) => Promise<{ branches: string[]; current: string; error?: string }>
+      projectGitSwitchBranch: (projectPath: string, branch: string, create: boolean) => Promise<{ success: boolean; error?: string }>
+      projectGitFileStatus: (projectPath: string) => Promise<{ hasGitignore: boolean; hasGitattributes: boolean }>
       // Engine scan paths (Linux)
       getEngineScanPaths: () => Promise<string[]>
       saveEngineScanPaths: (paths: string[]) => Promise<void>

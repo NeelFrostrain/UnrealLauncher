@@ -10,7 +10,7 @@
  * never write stale results into the cache after clearGitCache() is called.
  */
 
-type GitStatus = { initialized: boolean; branch: string }
+type GitStatus = { initialized: boolean; branch: string; remoteUrl: string }
 
 const cache = new Map<string, GitStatus>()
 const pending = new Map<string, Promise<GitStatus>>()
@@ -27,21 +27,21 @@ export async function getGitStatus(projectPath: string): Promise<GitStatus> {
     .then((s): GitStatus => {
       // Discard result if a new scan started while this request was in-flight
       if (generation === capturedGen) {
-        const result: GitStatus = { initialized: s.initialized, branch: s.branch }
+        const result: GitStatus = { initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' }
         cache.set(projectPath, result)
         pending.delete(projectPath)
         return result
       }
       pending.delete(projectPath)
-      return { initialized: s.initialized, branch: s.branch }
+      return { initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' }
     })
     .catch((): GitStatus => {
       if (generation === capturedGen) {
-        const fallback: GitStatus = { initialized: false, branch: '' }
+        const fallback: GitStatus = { initialized: false, branch: '', remoteUrl: '' }
         cache.set(projectPath, fallback)
       }
       pending.delete(projectPath)
-      return { initialized: false, branch: '' }
+      return { initialized: false, branch: '', remoteUrl: '' }
     })
 
   pending.set(projectPath, p)

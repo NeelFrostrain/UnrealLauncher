@@ -11,6 +11,7 @@ import { formatVersion, formatDate, showErrorToast } from './projectUtils'
 import ProjectContextMenu from './ProjectContextMenu'
 import ProjectLogDialog from './ProjectLogDialog'
 import { getGitStatus } from '../../hooks/useGitStatus'
+import { useToast } from '../ui/ToastContext'
 
 const ProjectCardGrid = memo(
   ({
@@ -39,10 +40,12 @@ const ProjectCardGrid = memo(
     const [hovered, setHovered] = useState(false)
     const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null)
     const [showLogs, setShowLogs] = useState(false)
-    const [git, setGit] = useState<{ initialized: boolean; branch: string }>({
+    const [git, setGit] = useState<{ initialized: boolean; branch: string; remoteUrl: string }>({
       initialized: false,
-      branch: ''
+      branch: '',
+      remoteUrl: ''
     })
+    const { addToast } = useToast()
 
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
     // Append scanEpoch as cache-buster so Chromium re-fetches the image after a refresh
@@ -51,7 +54,7 @@ const ProjectCardGrid = memo(
       : resolveAsset(undefined)
 
     useEffect(() => {
-      if (projectPath) getGitStatus(projectPath).then((s) => setGit(s))
+      if (projectPath) getGitStatus(projectPath).then((s) => setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' }))
     }, [projectPath, scanEpoch])
 
     const handleClick = useCallback(async (): Promise<void> => {
@@ -72,8 +75,17 @@ const ProjectCardGrid = memo(
     const handleGitInit = useCallback(async (): Promise<void> => {
       if (!projectPath) return
       const r = await window.electronAPI.projectGitInit(projectPath)
-      if (r.success) setGit({ initialized: true, branch: 'main' })
-    }, [projectPath])
+      if (r.success) {
+        setGit({ initialized: true, branch: 'main', remoteUrl: '' })
+        if (!r.lfsAvailable) {
+          addToast('Git repo initialized. Git LFS not found — install it to track large assets.', 'warning')
+        } else {
+          addToast('Git repo initialized with LFS and .gitattributes', 'success')
+        }
+      } else {
+        addToast(r.error ?? 'Failed to initialize git repo', 'error')
+      }
+    }, [projectPath, addToast])
 
     const handleLaunchGame = useCallback(async (): Promise<void> => {
       if (!projectPath) return
@@ -223,9 +235,11 @@ const ProjectCardGrid = memo(
             y={ctxMenu.y}
             name={name}
             projectPath={projectPath ?? ''}
+            projectVersion={version}
             isFavorite={isFavorite}
             gitInitialized={git.initialized}
             gitBranch={git.branch}
+            gitRemoteUrl={git.remoteUrl}
             onLaunch={handleClick}
             onLaunchGame={handleLaunchGame}
             onFavorite={() => projectPath && onToggleFavorite(projectPath)}

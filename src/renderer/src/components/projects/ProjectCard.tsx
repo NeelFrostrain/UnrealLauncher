@@ -23,6 +23,7 @@ import DropdownPortal from '../ui/DropdownPortal'
 import { formatVersion, formatDate, showErrorToast } from './projectUtils'
 import ProjectLogDialog from './ProjectLogDialog'
 import { getGitStatus } from '../../hooks/useGitStatus'
+import { useToast } from '../ui/ToastContext'
 
 // ── MenuItem — defined outside the card so it is never recreated ─────────────
 
@@ -87,11 +88,13 @@ const ProjectCard = memo(
     const [launching, setLaunching] = useState(false)
     const [menuOpen, setMenuOpen] = useState(false)
     const [showLogs, setShowLogs] = useState(false)
-    const [git, setGit] = useState<{ initialized: boolean; branch: string }>({
+    const [git, setGit] = useState<{ initialized: boolean; branch: string; remoteUrl: string }>({
       initialized: false,
-      branch: ''
+      branch: '',
+      remoteUrl: ''
     })
     const menuBtnRef = useRef<HTMLButtonElement>(null)
+    const { addToast } = useToast()
 
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
     // Append scanEpoch as cache-buster so Chromium re-fetches the image after a refresh
@@ -101,7 +104,7 @@ const ProjectCard = memo(
 
     // Re-fetch git status whenever the project path changes or a new scan completes
     useEffect(() => {
-      if (projectPath) getGitStatus(projectPath).then((s) => setGit(s))
+      if (projectPath) getGitStatus(projectPath).then((s) => setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' }))
     }, [projectPath, scanEpoch])
 
     const closeMenu = useCallback(() => setMenuOpen(false), [])
@@ -130,8 +133,17 @@ const ProjectCard = memo(
     const handleGitInit = useCallback(async (): Promise<void> => {
       if (!projectPath) return
       const r = await window.electronAPI.projectGitInit(projectPath)
-      if (r.success) setGit({ initialized: true, branch: 'main' })
-    }, [projectPath])
+      if (r.success) {
+        setGit({ initialized: true, branch: 'main', remoteUrl: '' })
+        if (!r.lfsAvailable) {
+          addToast('Git repo initialized. Git LFS not found — install it to track large assets.', 'warning')
+        } else {
+          addToast('Git repo initialized with LFS and .gitattributes', 'success')
+        }
+      } else {
+        addToast(r.error ?? 'Failed to initialize git repo', 'error')
+      }
+    }, [projectPath, addToast])
 
     const dateLabel = lastOpenedAt ? formatDate(lastOpenedAt) : createdAt
     const dateType = lastOpenedAt ? 'Opened' : 'Created'
