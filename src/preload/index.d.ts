@@ -196,10 +196,10 @@ declare global {
       projectGitReinit: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       projectGitWriteGitignore: (projectPath: string) => Promise<{ success: boolean; existed: boolean; error?: string }>
       projectGitInitLfs: (projectPath: string) => Promise<{ success: boolean; error?: string }>
-      projectGitHasChanges: (projectPath: string) => Promise<{ hasChanges: boolean; summary: string; error?: string }>
+      projectGitHasChanges: (projectPath: string) => Promise<{ hasChanges: boolean; summary: string; fileList: Array<{ status: string; file: string }>; error?: string }>
       projectGitCommit: (projectPath: string, message: string) => Promise<{ success: boolean; error?: string }>
       projectGitBranches: (projectPath: string) => Promise<{ branches: string[]; current: string; error?: string }>
-      projectGitSwitchBranch: (projectPath: string, branch: string, create: boolean) => Promise<{ success: boolean; error?: string }>
+      projectGitSwitchBranch: (projectPath: string, branch: string, create: boolean, strategy?: 'normal' | 'stash' | 'force') => Promise<{ success: boolean; hasUncommitted?: boolean; error?: string }>
       projectGitFileStatus: (projectPath: string) => Promise<{ hasGitignore: boolean; hasGitattributes: boolean }>
       // Engine scan paths (Linux)
       getEngineScanPaths: () => Promise<string[]>

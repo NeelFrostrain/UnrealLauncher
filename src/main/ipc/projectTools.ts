@@ -537,39 +537,37 @@ export function registerProjectToolHandlers(ipcMain_: typeof ipcMain): void {
         const { execSync } = await import('child_process')
         execSync('git lfs install', { cwd: projectPath, stdio: 'pipe' })
 
-        // Write .gitattributes if missing
+        // Always write/overwrite .gitattributes with the full UE LFS template
         const gitattributes = path.join(projectPath, '.gitattributes')
-        if (!fs.existsSync(gitattributes)) {
-          fs.writeFileSync(
-            gitattributes,
-            [
-              '# UE file types',
-              '*.uasset filter=lfs diff=lfs merge=lfs -text',
-              '*.umap filter=lfs diff=lfs merge=lfs -text',
-              '',
-              '# Raw Content types',
-              '*.fbx filter=lfs diff=lfs merge=lfs -text',
-              '*.3ds filter=lfs diff=lfs merge=lfs -text',
-              '*.psd filter=lfs diff=lfs merge=lfs -text',
-              '*.png filter=lfs diff=lfs merge=lfs -text',
-              '*.mp3 filter=lfs diff=lfs merge=lfs -text',
-              '*.wav filter=lfs diff=lfs merge=lfs -text',
-              '*.xcf filter=lfs diff=lfs merge=lfs -text',
-              '*.jpg filter=lfs diff=lfs merge=lfs -text',
-              '*.uexp filter=lfs diff=lfs merge=lfs -text',
-              '*.bank filter=lfs diff=lfs merge=lfs -text',
-              '*.tmp filter=lfs diff=lfs merge=lfs -text',
-              '*.vox filter=lfs diff=lfs merge=lfs -text',
-              '',
-              '# Libraries and executables',
-              '*.a filter=lfs diff=lfs merge=lfs -text',
-              '*.lib filter=lfs diff=lfs merge=lfs -text',
-              '*.exe filter=lfs diff=lfs merge=lfs -text',
-              '*.zip filter=lfs diff=lfs merge=lfs -text'
-            ].join('\n'),
-            'utf8'
-          )
-        }
+        fs.writeFileSync(
+          gitattributes,
+          [
+            '# UE file types',
+            '*.uasset filter=lfs diff=lfs merge=lfs -text',
+            '*.umap filter=lfs diff=lfs merge=lfs -text',
+            '',
+            '# Raw Content types',
+            '*.fbx filter=lfs diff=lfs merge=lfs -text',
+            '*.3ds filter=lfs diff=lfs merge=lfs -text',
+            '*.psd filter=lfs diff=lfs merge=lfs -text',
+            '*.png filter=lfs diff=lfs merge=lfs -text',
+            '*.mp3 filter=lfs diff=lfs merge=lfs -text',
+            '*.wav filter=lfs diff=lfs merge=lfs -text',
+            '*.xcf filter=lfs diff=lfs merge=lfs -text',
+            '*.jpg filter=lfs diff=lfs merge=lfs -text',
+            '*.uexp filter=lfs diff=lfs merge=lfs -text',
+            '*.bank filter=lfs diff=lfs merge=lfs -text',
+            '*.tmp filter=lfs diff=lfs merge=lfs -text',
+            '*.vox filter=lfs diff=lfs merge=lfs -text',
+            '',
+            '# Libraries and executables',
+            '*.a filter=lfs diff=lfs merge=lfs -text',
+            '*.lib filter=lfs diff=lfs merge=lfs -text',
+            '*.exe filter=lfs diff=lfs merge=lfs -text',
+            '*.zip filter=lfs diff=lfs merge=lfs -text'
+          ].join('\n'),
+          'utf8'
+        )
         return { success: true }
       } catch (err) {
         return { success: false, error: err instanceof Error ? err.message : 'Git LFS not installed. Install it from git-lfs.com' }
@@ -580,17 +578,27 @@ export function registerProjectToolHandlers(ipcMain_: typeof ipcMain): void {
   // ── Check for uncommitted changes ────────────────────────────────────────────
   ipcMain_.handle(
     'project-git-has-changes',
-    async (_event, projectPath: string): Promise<{ hasChanges: boolean; summary: string; error?: string }> => {
+    async (_event, projectPath: string): Promise<{
+      hasChanges: boolean
+      summary: string
+      fileList: Array<{ status: string; file: string }>
+      error?: string
+    }> => {
       try {
         const { execSync } = await import('child_process')
         const status = execSync('git status --porcelain', { cwd: projectPath, stdio: 'pipe' }).toString().trim()
         const lines = status ? status.split('\n').filter(Boolean) : []
+        const fileList = lines.map((line) => ({
+          status: line.slice(0, 2).trim() || '?',
+          file: line.slice(3).trim()
+        }))
         return {
           hasChanges: lines.length > 0,
-          summary: lines.length > 0 ? `${lines.length} file${lines.length !== 1 ? 's' : ''} changed` : 'No changes'
+          summary: lines.length > 0 ? `${lines.length} file${lines.length !== 1 ? 's' : ''} changed` : 'No changes',
+          fileList
         }
       } catch (err) {
-        return { hasChanges: false, summary: '', error: err instanceof Error ? err.message : 'Unknown error' }
+        return { hasChanges: false, summary: '', fileList: [], error: err instanceof Error ? err.message : 'Unknown error' }
       }
     }
   )
@@ -642,15 +650,47 @@ export function registerProjectToolHandlers(ipcMain_: typeof ipcMain): void {
   // ── Switch / create branch ───────────────────────────────────────────────────
   ipcMain_.handle(
     'project-git-switch-branch',
-    async (_event, projectPath: string, branch: string, create: boolean): Promise<{ success: boolean; error?: string }> => {
+    async (_event, projectPath: string, branch: string, create: boolean, strategy: 'normal' | 'stash' | 'force' = 'normal'): Promise<{ success: boolean; error?: string; hasUncommitted?: boolean }> => {
       try {
         const { execSync } = await import('child_process')
+
         if (create) {
           execSync(`git checkout -b "${branch}"`, { cwd: projectPath, stdio: 'pipe' })
-        } else {
-          execSync(`git checkout "${branch}"`, { cwd: projectPath, stdio: 'pipe' })
+          return { success: true }
         }
-        return { success: true }
+
+        if (strategy === 'stash') {
+          // Stash changes, switch, then pop
+          execSync('git stash', { cwd: projectPath, stdio: 'pipe' })
+          try {
+            execSync(`git checkout "${branch}"`, { cwd: projectPath, stdio: 'pipe' })
+            execSync('git stash pop', { cwd: projectPath, stdio: 'pipe' })
+          } catch (switchErr) {
+            // If switch fails, restore stash
+            try { execSync('git stash pop', { cwd: projectPath, stdio: 'pipe' }) } catch { /* ignore */ }
+            throw switchErr
+          }
+          return { success: true }
+        }
+
+        if (strategy === 'force') {
+          // Discard all local changes and switch
+          execSync('git checkout -- .', { cwd: projectPath, stdio: 'pipe' })
+          execSync(`git checkout "${branch}"`, { cwd: projectPath, stdio: 'pipe' })
+          return { success: true }
+        }
+
+        // Normal switch — if it fails due to uncommitted changes, signal that back
+        try {
+          execSync(`git checkout "${branch}"`, { cwd: projectPath, stdio: 'pipe' })
+          return { success: true }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          if (msg.includes('overwritten by checkout') || msg.includes('local changes')) {
+            return { success: false, hasUncommitted: true, error: 'You have uncommitted changes that would be overwritten.' }
+          }
+          throw err
+        }
       } catch (err) {
         return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
       }

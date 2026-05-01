@@ -10,6 +10,8 @@ import { resolveAsset } from '../../utils/resolveAsset'
 import { formatVersion, formatDate, showErrorToast } from './projectUtils'
 import ProjectContextMenu from './ProjectContextMenu'
 import ProjectLogDialog from './ProjectLogDialog'
+import GitCommitDialog from './GitCommitDialog'
+import GitBranchDialog from './GitBranchDialog'
 import { getGitStatus } from '../../hooks/useGitStatus'
 import { useToast } from '../ui/ToastContext'
 
@@ -40,6 +42,8 @@ const ProjectCardGrid = memo(
     const [hovered, setHovered] = useState(false)
     const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null)
     const [showLogs, setShowLogs] = useState(false)
+    const [showCommitDialog, setShowCommitDialog] = useState(false)
+    const [showBranchDialog, setShowBranchDialog] = useState(false)
     const [git, setGit] = useState<{ initialized: boolean; branch: string; remoteUrl: string }>({
       initialized: false,
       branch: '',
@@ -247,6 +251,8 @@ const ProjectCardGrid = memo(
             onDelete={() => projectPath && onDelete(projectPath)}
             onViewLogs={() => setShowLogs(true)}
             onGitInit={handleGitInit}
+            onOpenCommitDialog={() => setShowCommitDialog(true)}
+            onOpenBranchDialog={() => setShowBranchDialog(true)}
             onClose={() => setCtxMenu(null)}
           />
         )}
@@ -256,6 +262,23 @@ const ProjectCardGrid = memo(
             projectName={name}
             projectPath={projectPath}
             onClose={() => setShowLogs(false)}
+          />
+        )}
+
+        {showCommitDialog && projectPath && (
+          <GitCommitDialog
+            projectName={name}
+            projectPath={projectPath}
+            onClose={() => setShowCommitDialog(false)}
+          />
+        )}
+
+        {showBranchDialog && projectPath && (
+          <GitBranchDialog
+            projectName={name}
+            projectPath={projectPath}
+            currentBranch={git.branch}
+            onClose={() => setShowBranchDialog(false)}
           />
         )}
       </>
