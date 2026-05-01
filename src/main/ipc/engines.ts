@@ -19,19 +19,23 @@ import {
   formatBytes,
   getFullFolderSize
 } from '../utils'
-import { getNativeModulePath } from '../utils/native'
+import { getNative, getNativeModulePath } from '../utils/native'
 import { getInstalledEngines } from '../utils/engines'
 import { getMainWindow } from '../window'
 import { spawnWorker } from './workers'
 import { ENGINE_SCAN_WORKER } from './scanWorkers'
 import type { Engine, EngineSelectionResult } from '../types'
 
-interface MarketplacePlugin {
+interface EnginePlugin {
   name: string
   path: string
   description: string
   version: string
+  category: string
+  isBeta: boolean
+  isExperimental: boolean
   icon: string | null
+  createdBy: string
 }
 
 export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
@@ -160,36 +164,87 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
     }
   )
 
-  ipcMain_.handle('scan-marketplace-plugins', (_event, engineDir: string): MarketplacePlugin[] => {
-    const marketplacePath = path.join(engineDir, 'Engine', 'Plugins', 'Marketplace')
-    if (!fs.existsSync(marketplacePath)) return []
-    try {
-      return fs
-        .readdirSync(marketplacePath, { withFileTypes: true })
-        .filter((d) => d.isDirectory())
-        .map((d) => {
-          const pluginDir = path.join(marketplacePath, d.name)
-          let name = d.name,
-            description = '',
-            version = '',
-            icon: string | null = null
-          try {
-            const upluginFile = fs.readdirSync(pluginDir).find((f) => f.endsWith('.uplugin'))
-            if (upluginFile) {
-              const meta = JSON.parse(fs.readFileSync(path.join(pluginDir, upluginFile), 'utf8'))
-              name = meta.FriendlyName || meta.Name || d.name
-              description = meta.Description || ''
-              version = meta.VersionName || String(meta.Version || '')
-            }
-          } catch {
-            /* keep folder name */
-          }
-          const iconPath = path.join(pluginDir, 'Resources', 'Icon128.png')
-          if (fs.existsSync(iconPath)) icon = iconPath
-          return { name, path: pluginDir, description, version, icon }
-        })
-    } catch {
-      return []
+  ipcMain_.handle('scan-engine-plugins', (_event, engineDir: string): EnginePlugin[] => {
+    // Try native Rust module first (fast, parallel I/O)
+    const native = getNative()
+    if (native?.scanEnginePlugins) {
+      try {
+        const result = native.scanEnginePlugins(engineDir)
+        return result.map((p) => ({
+          name: p.name,
+          path: p.path,
+          description: p.description,
+          version: p.version,
+          category: p.category,
+          isBeta: p.isBeta,
+          isExperimental: p.isExperimental,
+          icon: p.icon ?? null,
+          createdBy: p.createdBy
+        }))
+      } catch {
+        /* fall through to JS implementation */
+      }
     }
+
+    // JS fallback — same logic as the Rust implementation
+    const pluginsRoot = path.join(engineDir, 'Engine', 'Plugins')
+    if (!fs.existsSync(pluginsRoot)) return []
+
+    const results: EnginePlugin[] = []
+
+    function scanDir(dir: string, categoryHint: string, depth: number): void {
+      if (depth > 3) return
+      let entries: fs.Dirent[]
+      try {
+        entries = fs.readdirSync(dir, { withFileTypes: true })
+      } catch {
+        return
+      }
+
+      const upluginFile = entries.find((e) => e.isFile() && e.name.endsWith('.uplugin'))
+      if (upluginFile) {
+        const upluginPath = path.join(dir, upluginFile.name)
+        let name = path.basename(dir)
+        let description = ''
+        let version = ''
+        let category = categoryHint
+        let isBeta = false
+        let isExperimental = false
+        let icon: string | null = null
+        let createdBy = ''
+
+        try {
+          const meta = JSON.parse(fs.readFileSync(upluginPath, 'utf8'))
+          name = meta.FriendlyName || meta.Name || name
+          description = meta.Description || ''
+          version = meta.VersionName || String(meta.Version || '')
+          if (meta.Category && typeof meta.Category === 'string' && meta.Category.trim()) {
+            category = meta.Category.trim()
+          }
+          isBeta = !!meta.IsBetaVersion
+          isExperimental = !!meta.IsExperimentalVersion
+          createdBy = meta.CreatedBy || ''
+        } catch { /* keep defaults */ }
+
+        const iconPath = path.join(dir, 'Resources', 'Icon128.png')
+        if (fs.existsSync(iconPath)) icon = iconPath
+
+        results.push({ name, path: dir, description, version, category, isBeta, isExperimental, icon, createdBy })
+        return
+      }
+
+      for (const entry of entries) {
+        if (!entry.isDirectory()) continue
+        const childCategory = depth === 0 ? entry.name : categoryHint
+        scanDir(path.join(dir, entry.name), childCategory, depth + 1)
+      }
+    }
+
+    scanDir(pluginsRoot, 'Other', 0)
+    results.sort((a, b) => {
+      const cat = a.category.localeCompare(b.category)
+      return cat !== 0 ? cat : a.name.localeCompare(b.name)
+    })
+    return results
   })
 }

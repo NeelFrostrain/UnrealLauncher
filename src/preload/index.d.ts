@@ -74,12 +74,16 @@ declare global {
     filters?: string[]
   }
 
-  interface MarketplacePlugin {
+  interface EnginePlugin {
     name: string
     path: string
     description: string
     version: string
+    category: string
+    isBeta: boolean
+    isExperimental: boolean
     icon: string | null
+    createdBy: string
   }
 
   interface Window {
@@ -156,7 +160,7 @@ declare global {
       saveMainSettings: (settings: any) => Promise<void>
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>
-      scanMarketplacePlugins: (engineDir: string) => Promise<MarketplacePlugin[]>
+      scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
       // Fab cache
       fabGetDefaultPath: () => Promise<string>
       fabSelectFolder: () => Promise<string | null>

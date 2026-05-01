@@ -86,8 +86,8 @@ if (process.contextIsolated) {
       saveMainSettings: (settings) => ipcRenderer.invoke('save-main-settings', settings),
       selectFolder: () => ipcRenderer.invoke('select-folder'),
       loadSavedProjects: () => ipcRenderer.invoke('load-saved-projects'),
-      scanMarketplacePlugins: (engineDir: string) =>
-        ipcRenderer.invoke('scan-marketplace-plugins', engineDir),
+      scanEnginePlugins: (engineDir: string) =>
+        ipcRenderer.invoke('scan-engine-plugins', engineDir),
       fabGetDefaultPath: () => ipcRenderer.invoke('fab-get-default-path'),
       fabSelectFolder: () => ipcRenderer.invoke('fab-select-folder'),
       fabScanFolder: (folderPath: string) => ipcRenderer.invoke('fab-scan-folder', folderPath),

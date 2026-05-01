@@ -207,7 +207,153 @@ fn find_editor_exe(engine_dir: &Path, bin_platform: &str, exe_names: &[&str]) ->
   })
 }
 
-// ── Project scanning ──────────────────────────────────────────────────────────
+// ── Plugin scanning ───────────────────────────────────────────────────────────
+
+#[napi(object)]
+pub struct EnginePlugin {
+  pub name: String,
+  pub path: String,
+  pub description: String,
+  pub version: String,
+  pub category: String,
+  pub is_beta: bool,
+  pub is_experimental: bool,
+  pub icon: Option<String>,
+  pub created_by: String,
+}
+
+/// Recursively scan Engine/Plugins under `engine_dir` and return all plugins
+/// with metadata read from their .uplugin files.
+/// Category is taken from the .uplugin `Category` field; falls back to the
+/// top-level subfolder name (e.g. "Animation", "AI", "Editor").
+#[napi]
+pub fn scan_engine_plugins(engine_dir: String) -> Vec<EnginePlugin> {
+  let plugins_root = Path::new(&engine_dir).join("Engine").join("Plugins");
+  if !plugins_root.exists() {
+    return vec![];
+  }
+
+  let mut results: Vec<EnginePlugin> = Vec::new();
+  scan_plugins_dir(&plugins_root, "", 0, &mut results);
+
+  // Sort: category asc, then name asc
+  results.sort_by(|a, b| {
+    a.category.cmp(&b.category).then_with(|| a.name.cmp(&b.name))
+  });
+
+  results
+}
+
+fn scan_plugins_dir(dir: &Path, category_hint: &str, depth: u32, out: &mut Vec<EnginePlugin>) {
+  if depth > 3 {
+    return;
+  }
+
+  let entries = match fs::read_dir(dir) {
+    Ok(e) => e,
+    Err(_) => return,
+  };
+
+  // Collect entries so we can check for a .uplugin in this directory first
+  let mut subdirs: Vec<std::path::PathBuf> = Vec::new();
+  let mut uplugin_path: Option<std::path::PathBuf> = None;
+
+  for entry in entries.flatten() {
+    let path = entry.path();
+    let name = entry.file_name();
+    let name_str = name.to_string_lossy();
+
+    if path.is_file() && name_str.ends_with(".uplugin") {
+      uplugin_path = Some(path);
+    } else if path.is_dir() {
+      subdirs.push(path);
+    }
+  }
+
+  if let Some(uplugin) = uplugin_path {
+    // This directory IS a plugin — parse it and stop recursing
+    if let Some(plugin) = parse_uplugin(dir, &uplugin, category_hint) {
+      out.push(plugin);
+    }
+    return;
+  }
+
+  // Not a plugin directory — recurse into subdirectories
+  for subdir in subdirs {
+    let child_name = subdir
+      .file_name()
+      .unwrap_or_default()
+      .to_string_lossy()
+      .into_owned();
+    // At depth 0 (direct children of Plugins/), use the folder name as category hint
+    let child_category = if depth == 0 { child_name } else { category_hint.to_string() };
+    scan_plugins_dir(&subdir, &child_category, depth + 1, out);
+  }
+}
+
+fn parse_uplugin(plugin_dir: &Path, uplugin_path: &Path, category_hint: &str) -> Option<EnginePlugin> {
+  let folder_name = plugin_dir
+    .file_name()
+    .unwrap_or_default()
+    .to_string_lossy()
+    .into_owned();
+
+  let mut name = folder_name.clone();
+  let mut description = String::new();
+  let mut version = String::new();
+  let mut category = category_hint.to_string();
+  let mut is_beta = false;
+  let mut is_experimental = false;
+  let mut created_by = String::new();
+
+  if let Some(json) = read_json_string(uplugin_path) {
+    if let Some(v) = json.get("FriendlyName").or_else(|| json.get("Name")).and_then(|v| v.as_str()) {
+      if !v.is_empty() { name = v.to_string(); }
+    }
+    if let Some(v) = json.get("Description").and_then(|v| v.as_str()) {
+      description = v.to_string();
+    }
+    if let Some(v) = json.get("VersionName").and_then(|v| v.as_str()) {
+      version = v.to_string();
+    } else if let Some(v) = json.get("Version").and_then(|v| v.as_u64()) {
+      version = v.to_string();
+    }
+    // Use Category from .uplugin if present and non-empty
+    if let Some(v) = json.get("Category").and_then(|v| v.as_str()) {
+      let trimmed = v.trim();
+      if !trimmed.is_empty() {
+        category = trimmed.to_string();
+      }
+    }
+    is_beta = json.get("IsBetaVersion").and_then(|v| v.as_bool()).unwrap_or(false);
+    is_experimental = json.get("IsExperimentalVersion").and_then(|v| v.as_bool()).unwrap_or(false);
+    if let Some(v) = json.get("CreatedBy").and_then(|v| v.as_str()) {
+      created_by = v.to_string();
+    }
+  }
+
+  // Check for icon
+  let icon_path = plugin_dir.join("Resources").join("Icon128.png");
+  let icon = if icon_path.exists() {
+    Some(icon_path.to_string_lossy().into_owned())
+  } else {
+    None
+  };
+
+  Some(EnginePlugin {
+    name,
+    path: plugin_dir.to_string_lossy().into_owned(),
+    description,
+    version,
+    category,
+    is_beta,
+    is_experimental,
+    icon,
+    created_by,
+  })
+}
+
+
 
 #[napi(object)]
 pub struct ProjectEntry {
