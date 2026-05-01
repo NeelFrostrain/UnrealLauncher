@@ -5,7 +5,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import { useRef, useState, useCallback, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import type { PageType } from '../../types'
 import { Zap, Package, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
 import Engine_BG from '@renderer/assets/Engines_BG.webp'
@@ -23,68 +23,89 @@ const COLLAPSED_WIDTH = 52
 
 interface SidebarCardData {
   title: PageType
-  path: string
+  /** Base path used for active-state detection */
+  basePath: string
   imageSrc: string
   icon: ReactNode
 }
 
 const NAV_ITEMS: SidebarCardData[] = [
-  { title: 'Engines', path: '/engines', imageSrc: Engine_BG, icon: <Zap size={16} /> },
-  { title: 'Projects', path: '/projects', imageSrc: Projects_BG, icon: <Package size={16} /> },
-  { title: 'Settings', path: '/settings', imageSrc: Settings_BG, icon: <Settings size={16} /> }
+  { title: 'Engines', basePath: '/engines', imageSrc: Engine_BG, icon: <Zap size={16} /> },
+  { title: 'Projects', basePath: '/projects', imageSrc: Projects_BG, icon: <Package size={16} /> },
+  { title: 'Settings', basePath: '/settings', imageSrc: Settings_BG, icon: <Settings size={16} /> }
 ]
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * Returns the last visited sub-path for a given base path, falling back to
+ * the base path itself if nothing was saved or the saved path doesn't match.
+ */
+function getLastPath(basePath: string): string {
+  const saved = localStorage.getItem('lastVisitedPath') ?? ''
+  if (saved.startsWith(basePath)) return saved
+  return basePath
+}
 
 // ── Expanded card ─────────────────────────────────────────────────────────────
 
-const ExpandedCard: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item, isActive }) => (
-  <Link to={item.path} draggable="false">
+const ExpandedCard: FC<{ item: SidebarCardData; isActive: boolean; onClick: () => void }> = ({
+  item,
+  isActive,
+  onClick
+}) => (
+  <div
+    onClick={onClick}
+    className={`w-full relative h-28 rounded-md border-2 overflow-hidden transition-all select-none duration-200 cursor-pointer`}
+    style={{
+      borderColor: isActive ? 'var(--color-accent)' : 'transparent',
+      boxShadow: isActive
+        ? '0 4px 20px color-mix(in srgb, var(--color-accent) 20%, transparent)'
+        : undefined
+    }}
+  >
+    <img
+      src={item.imageSrc}
+      alt={item.title}
+      className={`w-full h-full object-cover transition-all duration-200`}
+    />
     <div
-      className={`w-full relative h-28 rounded-md border-2 overflow-hidden transition-all select-none duration-200 cursor-pointer`}
-      style={{
-        borderColor: isActive ? 'var(--color-accent)' : 'transparent',
-        boxShadow: isActive
-          ? '0 4px 20px color-mix(in srgb, var(--color-accent) 20%, transparent)'
-          : undefined
-      }}
-    >
-      <img
-        src={item.imageSrc}
-        alt={item.title}
-        className={`w-full h-full object-cover transition-all duration-200`}
-      />
-      <div
-        className={`absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent z-10 transition-opacity duration-200 ${isActive ? 'opacity-90' : 'opacity-80 hover:opacity-90'}`}
-      />
-      <div className="absolute bottom-1 left-2 text-white text-sm font-semibold p-1 flex items-center gap-1.5 uppercase z-20">
-        {item.icon}
-        {item.title}
-      </div>
+      className={`absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent z-10 transition-opacity duration-200 ${isActive ? 'opacity-90' : 'opacity-80 hover:opacity-90'}`}
+    />
+    <div className="absolute bottom-1 left-2 text-white text-sm font-semibold p-1 flex items-center gap-1.5 uppercase z-20">
+      {item.icon}
+      {item.title}
     </div>
-  </Link>
+  </div>
 )
 
 // ── Collapsed icon button ─────────────────────────────────────────────────────
 
-const CollapsedItem: FC<{ item: SidebarCardData; isActive: boolean }> = ({ item, isActive }) => (
-  <Link to={item.path} title={item.title}>
-    <motion.div
-      whileHover={{ scale: 1.08 }}
-      whileTap={{ scale: 0.92 }}
-      className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer"
-      style={{
-        backgroundColor: isActive ? 'var(--color-accent)' : undefined,
-        color: isActive ? 'white' : 'var(--color-text-muted)'
-      }}
-    >
-      {item.icon}
-    </motion.div>
-  </Link>
+const CollapsedItem: FC<{ item: SidebarCardData; isActive: boolean; onClick: () => void }> = ({
+  item,
+  isActive,
+  onClick
+}) => (
+  <motion.div
+    onClick={onClick}
+    title={item.title}
+    whileHover={{ scale: 1.08 }}
+    whileTap={{ scale: 0.92 }}
+    className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer"
+    style={{
+      backgroundColor: isActive ? 'var(--color-accent)' : undefined,
+      color: isActive ? 'white' : 'var(--color-text-muted)'
+    }}
+  >
+    {item.icon}
+  </motion.div>
 )
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 const Sidebar = (): React.ReactElement => {
   const location = useLocation()
+  const navigate = useNavigate()
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('sidebarCollapsed') === 'true'
@@ -158,6 +179,12 @@ const Sidebar = (): React.ReactElement => {
     })
   }
 
+  const handleNavClick = (item: SidebarCardData): void => {
+    // If already on this section, navigate to the last visited sub-path
+    // If coming from a different section, also restore the last sub-path
+    navigate(getLastPath(item.basePath))
+  }
+
   const currentWidth = collapsed ? COLLAPSED_WIDTH : width
 
   return (
@@ -181,9 +208,10 @@ const Sidebar = (): React.ReactElement => {
             >
               {NAV_ITEMS.map((item) => (
                 <CollapsedItem
-                  key={item.path}
+                  key={item.basePath}
                   item={item}
-                  isActive={location.pathname.startsWith(item.path)}
+                  isActive={location.pathname.startsWith(item.basePath)}
+                  onClick={() => handleNavClick(item)}
                 />
               ))}
             </motion.div>
@@ -199,9 +227,10 @@ const Sidebar = (): React.ReactElement => {
             >
               {NAV_ITEMS.map((item) => (
                 <ExpandedCard
-                  key={item.path}
+                  key={item.basePath}
                   item={item}
-                  isActive={location.pathname.startsWith(item.path)}
+                  isActive={location.pathname.startsWith(item.basePath)}
+                  onClick={() => handleNavClick(item)}
                 />
               ))}
             </motion.div>

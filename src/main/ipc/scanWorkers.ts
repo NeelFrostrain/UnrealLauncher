@@ -97,8 +97,37 @@ for (const s of scanned) {
   merged.push(s);
 }
 for (const p of saved) {
-  if (!merged.find(m => m.projectPath === p.projectPath))
-    merged.push({ ...p, lastOpenedAt: findLogTimestamp(p.projectPath) || p.lastOpenedAt });
+  if (!merged.find(m => m.projectPath === p.projectPath)) {
+    // Project not found in scan paths — re-read disk metadata directly
+    let freshVersion = p.version;
+    let freshName = p.name;
+    let freshThumbnail = p.thumbnail;
+    let freshCreatedAt = p.createdAt;
+    try {
+      const files = fs.readdirSync(p.projectPath);
+      const uprojectFile = files.find(f => f.endsWith('.uproject'));
+      if (uprojectFile) {
+        const uprojectPath = path.join(p.projectPath, uprojectFile);
+        freshName = path.basename(uprojectFile, '.uproject') || freshName;
+        try {
+          const m = fs.readFileSync(uprojectPath, 'utf8').match(/"EngineAssociation":\\s*"([^"]+)"/);
+          if (m) freshVersion = m[1];
+        } catch {}
+        try {
+          freshCreatedAt = fs.statSync(p.projectPath).birthtime.toISOString().split('T')[0];
+        } catch {}
+      }
+    } catch {}
+    freshThumbnail = findScreenshot(p.projectPath);
+    merged.push({
+      ...p,
+      name: freshName,
+      version: freshVersion,
+      createdAt: freshCreatedAt,
+      thumbnail: freshThumbnail,
+      lastOpenedAt: findLogTimestamp(p.projectPath) || p.lastOpenedAt
+    });
+  }
 }
 parentPort.postMessage(merged.filter((p) => {
   if (!p.projectPath) return false;

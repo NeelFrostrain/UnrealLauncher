@@ -51,7 +51,7 @@ export function useProjectFilters(): UseProjectFiltersReturn {
 
       if (tab === 'favorites') navigate('/projects/favorites')
       else if (tab === 'recent') navigate('/projects/recent')
-      else navigate('/projects/all')
+      else navigate('/projects')
     },
     [navigate, filterForTab]
   )

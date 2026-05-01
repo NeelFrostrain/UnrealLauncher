@@ -22,19 +22,20 @@ const ProjectCardGrid = memo(
     thumbnail,
     projectPath,
     isFavorite,
+    scanEpoch,
     onToggleFavorite,
     onLaunch,
     onOpenDir,
     onDelete
   }: Project & {
     isFavorite: boolean
+    scanEpoch?: number
     onToggleFavorite: (p: string) => void
     onLaunch: (p: string) => void
     onOpenDir: (p: string) => void
     onDelete: (p: string) => void
   }) => {
     const [launching, setLaunching] = useState(false)
-    const [currentSize, setCurrentSize] = useState(size)
     const [hovered, setHovered] = useState(false)
     const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null)
     const [showLogs, setShowLogs] = useState(false)
@@ -44,16 +45,14 @@ const ProjectCardGrid = memo(
     })
 
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
+    // Append scanEpoch as cache-buster so Chromium re-fetches the image after a refresh
     const imageSrc = thumbnail
-      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}`
+      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}?t=${scanEpoch ?? 0}`
       : resolveAsset(undefined)
 
     useEffect(() => {
-      setCurrentSize(size)
-    }, [size])
-    useEffect(() => {
       if (projectPath) getGitStatus(projectPath).then((s) => setGit(s))
-    }, [projectPath])
+    }, [projectPath, scanEpoch])
 
     const handleClick = useCallback(async (): Promise<void> => {
       if (!projectPath || launching) return
@@ -85,7 +84,7 @@ const ProjectCardGrid = memo(
       } finally {
         setLaunching(false)
       }
-    }, [projectPath, showErrorToast])
+    }, [projectPath])
 
     const dateLabel = lastOpenedAt ? formatDate(lastOpenedAt) : createdAt
     const dateType = lastOpenedAt ? 'Opened' : 'Created'
@@ -212,7 +211,7 @@ const ProjectCardGrid = memo(
               </div>
               <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.55)' }}>
                 <Database size={10} />
-                <span className="text-[10px] font-mono">{currentSize}</span>
+                <span className="text-[10px] font-mono">{size}</span>
               </div>
             </div>
           </div>

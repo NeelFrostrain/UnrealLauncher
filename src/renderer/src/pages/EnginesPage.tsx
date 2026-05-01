@@ -3,6 +3,7 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import type { EngineCardProps } from '../types'
 import PageWrapper from '@renderer/layout/PageWrapper'
 import EngineCard from '@renderer/components/engines/EngineCard'
@@ -14,11 +15,28 @@ import { Plus, RefreshCw, Zap, ShoppingBag, ChevronDown, Check, Store } from 'lu
 
 type EngineTab = 'engines' | 'plugins' | 'fab'
 
+const TAB_PATHS: Record<EngineTab, string> = {
+  engines: '/engines',
+  plugins: '/engines/plugins',
+  fab: '/engines/fab'
+}
+
+const PATH_TO_TAB: Record<string, EngineTab> = {
+  engines: 'engines',
+  plugins: 'plugins',
+  fab: 'fab'
+}
+
 const EnginesPage = (): React.ReactElement => {
+  const { tab: tabParam } = useParams<{ tab?: string }>()
+  const navigate = useNavigate()
+
   const [engines, setEngines] = useState<EngineCardProps[]>([])
   const [loading, setLoading] = useState(true)
   const [displayStart, setDisplayStart] = useState(0)
-  const [activeTab, setActiveTab] = useState<EngineTab>('engines')
+  const [activeTab, setActiveTab] = useState<EngineTab>(() => {
+    return PATH_TO_TAB[tabParam ?? ''] ?? 'engines'
+  })
   const [selectedEngine, setSelectedEngine] = useState<EngineCardProps | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownAnchorRef = useRef<HTMLButtonElement>(null)
@@ -38,6 +56,20 @@ const EnginesPage = (): React.ReactElement => {
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     setDisplayStart(Math.max(0, Math.floor(e.currentTarget.scrollTop / 128) - 5))
   }, [])
+
+  // Sync tab state when URL param changes (e.g. browser back/forward)
+  useEffect(() => {
+    const resolved = PATH_TO_TAB[tabParam ?? ''] ?? 'engines'
+    setActiveTab(resolved)
+  }, [tabParam])
+
+  const switchTab = (tab: EngineTab): void => {
+    setActiveTab(tab)
+    navigate(TAB_PATHS[tab], { replace: true })
+    if (tab === 'plugins' && !selectedEngine && engines.length > 0) {
+      setSelectedEngine(engines[0])
+    }
+  }
 
   useEffect(() => {
     const load = async (): Promise<void> => {
@@ -91,11 +123,7 @@ const EnginesPage = (): React.ReactElement => {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id)
-                if (tab.id === 'plugins' && !selectedEngine && engines.length > 0)
-                  setSelectedEngine(engines[0])
-              }}
+              onClick={() => switchTab(tab.id)}
               className="flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer"
               style={{
                 color:

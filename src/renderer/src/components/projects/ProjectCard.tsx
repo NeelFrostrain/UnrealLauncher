@@ -2,7 +2,7 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { useEffect, useState, useRef, memo } from 'react'
+import { useEffect, useState, useRef, useCallback, memo } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../../types'
 import {
@@ -24,6 +24,43 @@ import { formatVersion, formatDate, showErrorToast } from './projectUtils'
 import ProjectLogDialog from './ProjectLogDialog'
 import { getGitStatus } from '../../hooks/useGitStatus'
 
+// ── MenuItem — defined outside the card so it is never recreated ─────────────
+
+interface MenuItemProps {
+  icon: React.ReactNode
+  label: string
+  onClick: () => void
+  danger?: boolean
+  disabled?: boolean
+  onClose: () => void
+}
+
+const MenuItem = ({ icon, label, onClick, danger = false, disabled = false, onClose }: MenuItemProps): React.ReactElement => (
+  <button
+    onClick={() => {
+      if (!disabled) {
+        onClick()
+        onClose()
+      }
+    }}
+    disabled={disabled}
+    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default"
+    style={{ color: danger ? '#f87171' : 'var(--color-text-secondary)' }}
+    onMouseEnter={(e) => {
+      if (!disabled)
+        e.currentTarget.style.backgroundColor = danger
+          ? 'color-mix(in srgb, #f87171 8%, transparent)'
+          : 'var(--color-surface-card)'
+    }}
+    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+  >
+    {icon}
+    {label}
+  </button>
+)
+
+// ── Card ──────────────────────────────────────────────────────────────────────
+
 const ProjectCard = memo(
   ({
     createdAt,
@@ -34,19 +71,20 @@ const ProjectCard = memo(
     thumbnail,
     projectPath,
     isFavorite,
+    scanEpoch,
     onToggleFavorite,
     onLaunch,
     onOpenDir,
     onDelete
   }: Project & {
     isFavorite: boolean
+    scanEpoch?: number
     onToggleFavorite: (p: string) => void
     onLaunch: (p: string) => void
     onOpenDir: (p: string) => void
     onDelete: (p: string) => void
   }) => {
     const [launching, setLaunching] = useState(false)
-    const [currentSize, setCurrentSize] = useState(size)
     const [menuOpen, setMenuOpen] = useState(false)
     const [showLogs, setShowLogs] = useState(false)
     const [git, setGit] = useState<{ initialized: boolean; branch: string }>({
@@ -56,16 +94,19 @@ const ProjectCard = memo(
     const menuBtnRef = useRef<HTMLButtonElement>(null)
 
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
-    const imageSrc = thumbnail ? `local-asset:///${thumbnail.replace(/\\/g, '/')}` : null
+    // Append scanEpoch as cache-buster so Chromium re-fetches the image after a refresh
+    const imageSrc = thumbnail
+      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}?t=${scanEpoch ?? 0}`
+      : null
 
-    useEffect(() => {
-      setCurrentSize(size)
-    }, [size])
+    // Re-fetch git status whenever the project path changes or a new scan completes
     useEffect(() => {
       if (projectPath) getGitStatus(projectPath).then((s) => setGit(s))
-    }, [projectPath])
+    }, [projectPath, scanEpoch])
 
-    const handleLaunch = async (): Promise<void> => {
+    const closeMenu = useCallback(() => setMenuOpen(false), [])
+
+    const handleLaunch = useCallback(async (): Promise<void> => {
       if (!projectPath) return
       setLaunching(true)
       try {
@@ -73,9 +114,9 @@ const ProjectCard = memo(
       } finally {
         setLaunching(false)
       }
-    }
+    }, [projectPath, onLaunch])
 
-    const handleLaunchGame = async (): Promise<void> => {
+    const handleLaunchGame = useCallback(async (): Promise<void> => {
       if (!projectPath) return
       setLaunching(true)
       try {
@@ -84,52 +125,16 @@ const ProjectCard = memo(
       } finally {
         setLaunching(false)
       }
-    }
+    }, [projectPath])
 
-    const handleGitInit = async (): Promise<void> => {
+    const handleGitInit = useCallback(async (): Promise<void> => {
       if (!projectPath) return
       const r = await window.electronAPI.projectGitInit(projectPath)
       if (r.success) setGit({ initialized: true, branch: 'main' })
-    }
+    }, [projectPath])
 
     const dateLabel = lastOpenedAt ? formatDate(lastOpenedAt) : createdAt
     const dateType = lastOpenedAt ? 'Opened' : 'Created'
-
-    const MenuItem = ({
-      icon,
-      label,
-      onClick,
-      danger = false,
-      disabled = false
-    }: {
-      icon: React.ReactNode
-      label: string
-      onClick: () => void
-      danger?: boolean
-      disabled?: boolean
-    }): React.ReactElement => (
-      <button
-        onClick={() => {
-          if (!disabled) {
-            onClick()
-            setMenuOpen(false)
-          }
-        }}
-        disabled={disabled}
-        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default"
-        style={{ color: danger ? '#f87171' : 'var(--color-text-secondary)' }}
-        onMouseEnter={(e) => {
-          if (!disabled)
-            e.currentTarget.style.backgroundColor = danger
-              ? 'color-mix(in srgb, #f87171 8%, transparent)'
-              : 'var(--color-surface-card)'
-        }}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-      >
-        {icon}
-        {label}
-      </button>
-    )
 
     return (
       <>
@@ -200,21 +205,13 @@ const ProjectCard = memo(
                 )}
               </div>
               <div className="flex items-center gap-4">
-                <div
-                  className="flex items-center gap-1"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
+                <div className="flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
                   <Clock size={11} />
-                  <span className="text-[10px]">
-                    {dateType} {dateLabel}
-                  </span>
+                  <span className="text-[10px]">{dateType} {dateLabel}</span>
                 </div>
-                <div
-                  className="flex items-center gap-1"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
+                <div className="flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
                   <Database size={11} />
-                  <span className="text-[10px] font-mono">{currentSize}</span>
+                  <span className="text-[10px] font-mono">{size}</span>
                 </div>
               </div>
             </div>
@@ -279,7 +276,7 @@ const ProjectCard = memo(
                 <DropdownPortal
                   open={menuOpen}
                   anchorRef={menuBtnRef}
-                  onClose={() => setMenuOpen(false)}
+                  onClose={closeMenu}
                 >
                   <MenuItem
                     icon={
@@ -291,25 +288,26 @@ const ProjectCard = memo(
                     }
                     label={isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
                     onClick={() => projectPath && onToggleFavorite(projectPath)}
+                    onClose={closeMenu}
                   />
                   <MenuItem
                     icon={<FolderOpen size={14} style={{ color: 'var(--color-text-muted)' }} />}
                     label="Open in Explorer"
                     onClick={() => projectPath && onOpenDir(projectPath)}
+                    onClose={closeMenu}
                   />
                   <MenuItem
                     icon={<Copy size={14} style={{ color: 'var(--color-text-muted)' }} />}
                     label="Copy Path"
                     onClick={() => navigator.clipboard.writeText(projectPath ?? '')}
+                    onClose={closeMenu}
                   />
-                  <div
-                    className="h-px mx-2 my-1"
-                    style={{ backgroundColor: 'var(--color-border)' }}
-                  />
+                  <div className="h-px mx-2 my-1" style={{ backgroundColor: 'var(--color-border)' }} />
                   <MenuItem
                     icon={<ScrollText size={14} style={{ color: 'var(--color-accent)' }} />}
                     label="View Logs"
                     onClick={() => setShowLogs(true)}
+                    onClose={closeMenu}
                   />
                   {git.initialized ? (
                     <MenuItem
@@ -317,23 +315,23 @@ const ProjectCard = memo(
                       label={`Git: ${git.branch}`}
                       onClick={() => {}}
                       disabled
+                      onClose={closeMenu}
                     />
                   ) : (
                     <MenuItem
                       icon={<GitMerge size={14} style={{ color: '#a78bfa' }} />}
                       label="Initialize Git Repo"
                       onClick={handleGitInit}
+                      onClose={closeMenu}
                     />
                   )}
-                  <div
-                    className="h-px mx-2 my-1"
-                    style={{ backgroundColor: 'var(--color-border)' }}
-                  />
+                  <div className="h-px mx-2 my-1" style={{ backgroundColor: 'var(--color-border)' }} />
                   <MenuItem
                     icon={<Trash2 size={14} />}
                     label="Remove from List"
                     onClick={() => projectPath && onDelete(projectPath)}
                     danger
+                    onClose={closeMenu}
                   />
                 </DropdownPortal>
               </div>

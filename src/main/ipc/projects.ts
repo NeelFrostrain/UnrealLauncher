@@ -58,13 +58,15 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
       })
     })
 
-    // Merge: keep all saved projects, add any newly discovered ones
+    // Merge: keep all saved projects, add any newly discovered ones.
+    // For existing projects, refresh all fields that can change on disk —
+    // version (EngineAssociation in .uproject), name, thumbnail, timestamps.
+    // Preserve fields that only the app manages: size (calculated), projectId.
     const savedPaths = new Set(saved.map((p) => p.projectPath?.toLowerCase()))
     const newProjects = scanned.filter(
       (p) => p.projectPath && !savedPaths.has(p.projectPath.toLowerCase())
     )
 
-    // Update metadata (lastOpenedAt, thumbnail) for existing saved projects from scan
     const merged = saved.map((s) => {
       const fresh = scanned.find(
         (p) => p.projectPath?.toLowerCase() === s.projectPath?.toLowerCase()
@@ -72,6 +74,10 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
       if (!fresh) return s
       return {
         ...s,
+        // Fields read fresh from disk on every scan
+        name: fresh.name ?? s.name,
+        version: fresh.version ?? s.version,
+        createdAt: fresh.createdAt ?? s.createdAt,
         lastOpenedAt: fresh.lastOpenedAt ?? s.lastOpenedAt,
         thumbnail: fresh.thumbnail ?? s.thumbnail
       }

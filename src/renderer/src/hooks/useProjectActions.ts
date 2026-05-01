@@ -17,7 +17,6 @@ export interface UseProjectActionsReturn {
   handleRefresh: (opts: {
     setRefreshing: (v: boolean) => void
     setCalculatingSizes: (v: boolean) => void
-    setProjects: (v: []) => void
   }) => Promise<void>
   handleLaunch: (projectPath: string) => Promise<void>
   handleOpenDir: (dirPath: string) => Promise<void>
@@ -41,12 +40,10 @@ export function useProjectActions({
   const handleRefresh = useCallback(
     async ({
       setRefreshing,
-      setCalculatingSizes,
-      setProjects
+      setCalculatingSizes
     }: {
       setRefreshing: (v: boolean) => void
       setCalculatingSizes: (v: boolean) => void
-      setProjects: (v: []) => void
     }): Promise<void> => {
       setRefreshing(true)
       setCalculatingSizes(true)

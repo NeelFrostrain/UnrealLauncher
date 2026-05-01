@@ -26,7 +26,6 @@ import {
   Package,
   ChevronDown,
   ChevronRight,
-  Rocket,
   Search,
   Settings,
   FolderTree

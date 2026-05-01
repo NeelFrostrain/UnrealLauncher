@@ -16,6 +16,26 @@ import { useProjectFilters } from '../hooks/useProjectFilters'
 import { useProjectActions } from '../hooks/useProjectActions'
 import { clearGitCache } from '../hooks/useGitStatus'
 
+// ── Pure helpers — module-level so they are never recreated ──────────────────
+
+function normalizeProjectPath(projectPath: string): string {
+  return projectPath.replace(/\\/g, '/').toLowerCase()
+}
+
+function dedupeProjectList(source: Project[]): Project[] {
+  const seen = new Set<string>()
+  return source.filter((project) => {
+    const rawPath = project.projectPath
+    if (!rawPath) return false
+    const key = normalizeProjectPath(rawPath)
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 const ProjectsPage = (): React.ReactElement => {
   const location = useLocation()
   const [projects, setProjects] = useState<Project[]>([])
@@ -30,178 +50,170 @@ const ProjectsPage = (): React.ReactElement => {
   const [backgroundScanning, setBackgroundScanning] = useState(false)
   const [calculatingSizes, setCalculatingSizes] = useState(false)
   const [addingProject, setAddingProject] = useState(false)
+  // Incremented after every scan so cards re-fetch git status and bust thumbnail cache
+  const [scanEpoch, setScanEpoch] = useState(0)
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     return (localStorage.getItem('projectsViewMode') as ViewMode) ?? 'list'
   })
+
   const { favoritePaths, toggleFavoritePath: toggleFav } = useProjectFavorites()
   const { filterForTab, switchTab: switchTabFn } = useProjectFilters()
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [displayStart, setDisplayStart] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
-  const gridRef = useRef<HTMLDivElement>(null)
   const ITEMS_PER_BATCH = 50
 
   const allProjectsRef = useRef<Project[]>([])
 
-  const normalizeProjectPath = useCallback((projectPath: string): string => {
-    return projectPath.replace(/\\/g, '/').toLowerCase()
-  }, [])
-
-  const dedupeProjectList = useCallback(
-    (source: Project[]): Project[] => {
-      const seen = new Set<string>()
-      return source.filter((project) => {
-        const rawPath = project.projectPath
-        if (!rawPath) return false
-        const key = normalizeProjectPath(rawPath)
-        if (seen.has(key)) return false
-        seen.add(key)
-        return true
-      })
-    },
-    [normalizeProjectPath]
-  )
+  // Ref so async callbacks always read the latest tab without stale closure issues
+  const currentTabRef = useRef<TabType>(currentTab)
+  useEffect(() => {
+    currentTabRef.current = currentTab
+  }, [currentTab])
 
   const handleListScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const container = e.currentTarget
-    const scrollTop = container.scrollTop
-    const itemHeight = 90 + 8
-    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - 5)
-    setDisplayStart(startIndex)
+    const scrollTop = e.currentTarget.scrollTop
+    setDisplayStart(Math.max(0, Math.floor(scrollTop / 98) - 5))
   }, [])
 
-  const loadSavedProjectsForTab = useCallback(
-    async (tab: TabType): Promise<Project[]> => {
-      if (!window.electronAPI) {
-        setLoading(false)
-        return []
-      }
+  // ── Single unified data loader ─────────────────────────────────────────────
+  // `source` controls whether we call loadSavedProjects (fast, no scan) or
+  // scanProjects (full scan). Both paths share identical post-processing.
+  const loadProjects = useCallback(
+    async (source: 'saved' | 'scan'): Promise<Project[]> => {
+      if (!window.electronAPI) return []
+      if (source === 'saved') setLoading(true)
+      else setBackgroundScanning(true)
       try {
-        const savedProjects = await window.electronAPI.loadSavedProjects()
+        const raw =
+          source === 'saved'
+            ? await window.electronAPI.loadSavedProjects()
+            : await window.electronAPI.scanProjects()
         clearGitCache()
-        const dedupedProjects = dedupeProjectList(savedProjects)
-        allProjectsRef.current = dedupedProjects
-        const filtered = filterForTab(tab, dedupedProjects, favoritePaths)
-        setProjects(filtered)
-        return dedupedProjects
+        const deduped = dedupeProjectList(raw)
+        allProjectsRef.current = deduped
+        setProjects(filterForTab(currentTabRef.current, deduped, favoritePaths))
+        setScanEpoch((e) => e + 1)
+        return deduped
       } catch (err) {
-        console.error('Failed to load saved projects for tab:', tab, err)
+        console.error(`loadProjects(${source}) failed:`, err)
         return []
       } finally {
-        setLoading(false)
+        if (source === 'saved') setLoading(false)
+        else setBackgroundScanning(false)
       }
     },
-    [dedupeProjectList, filterForTab, favoritePaths]
+    [filterForTab, favoritePaths]
   )
 
-  const scanProjectsInBackground = useCallback(
-    async (tab: TabType): Promise<void> => {
-      if (!window.electronAPI) return
-      setBackgroundScanning(true)
-      try {
-        // Main process loads saved first, scans for new ones, saves any found,
-        // and returns the full merged list — we just apply it to the UI.
-        const scannedProjects = await window.electronAPI.scanProjects()
-        clearGitCache()
-        const dedupedProjects = dedupeProjectList(scannedProjects)
-        allProjectsRef.current = dedupedProjects
-        setProjects(filterForTab(tab, dedupedProjects, favoritePaths))
-      } catch (err) {
-        console.error('Background project scan failed:', err)
-      } finally {
-        setBackgroundScanning(false)
-      }
-    },
-    [dedupeProjectList, favoritePaths, filterForTab]
-  )
+  // Thin wrappers kept for call-site compatibility
+  const loadSavedProjects = useCallback(() => loadProjects('saved'), [loadProjects])
+  const scanProjects = useCallback(() => loadProjects('scan'), [loadProjects])
 
+  // loadProjectsForTab is what useProjectActions calls — always does a full scan
   const loadProjectsForTab = useCallback(
     async (tab: TabType): Promise<Project[]> => {
-      if (!window.electronAPI) {
-        setLoading(false)
-        return []
-      }
+      if (!window.electronAPI) return []
       try {
-        const scannedProjects = await window.electronAPI.scanProjects()
+        const raw = await window.electronAPI.scanProjects()
         clearGitCache()
-        const dedupedProjects = dedupeProjectList(scannedProjects)
-        allProjectsRef.current = dedupedProjects
-        const filtered = filterForTab(tab, dedupedProjects, favoritePaths)
+        const deduped = dedupeProjectList(raw)
+        allProjectsRef.current = deduped
+        const filtered = filterForTab(tab, deduped, favoritePaths)
         setProjects(filtered)
+        setScanEpoch((e) => e + 1)
         return filtered
       } catch (err) {
-        console.error('Failed to load projects for tab:', tab, err)
+        console.error('loadProjectsForTab failed:', err)
         return []
-      } finally {
-        setLoading(false)
       }
     },
-    [dedupeProjectList, filterForTab, favoritePaths]
+    [filterForTab, favoritePaths]
   )
 
   const { handleRefresh, handleLaunch, handleOpenDir, handleDelete, handleAddProject } =
     useProjectActions({ currentTab, loadProjectsForTab })
 
+  // ── Sync tab state with URL ────────────────────────────────────────────────
   useEffect(() => {
     const path = location.pathname
-    let tab: TabType = 'all'
-    if (path === '/projects/favorites') tab = 'favorites'
-    else if (path === '/projects/recent') tab = 'recent'
+    const tab: TabType =
+      path === '/projects/favorites' ? 'favorites' : path === '/projects/recent' ? 'recent' : 'all'
     setCurrentTab(tab)
+    currentTabRef.current = tab
     if (allProjectsRef.current.length > 0) {
       setProjects(filterForTab(tab, allProjectsRef.current, favoritePaths))
     }
   }, [location.pathname, favoritePaths, filterForTab])
 
-  const toggleFavoritePath = (projectPath: string): void => {
-    toggleFav(projectPath, (updated) => {
-      if (currentTab === 'favorites') {
-        setProjects(filterForTab('favorites', allProjectsRef.current, updated))
-      }
-    })
-  }
-
+  // ── Initial load: fast saved data first, then background scan ─────────────
   useEffect(() => {
-    const init = async (): Promise<void> => {
-      await loadSavedProjectsForTab('all')
-      await scanProjectsInBackground('all')
-    }
-    init()
+    loadSavedProjects().then(() => scanProjects())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // ── Live size updates pushed from main process ─────────────────────────────
   useEffect(() => {
-    if (window.electronAPI) {
-      const cleanup = window.electronAPI.onSizeCalculated((data) => {
-        if (data.type === 'project') {
-          setProjects((prev) =>
-            prev.map((p) => (p.projectPath === data.path ? { ...p, size: data.size } : p))
-          )
-        }
-      })
-      return cleanup
-    }
-    return () => {}
+    if (!window.electronAPI) return
+    return window.electronAPI.onSizeCalculated((data) => {
+      if (data.type === 'project') {
+        setProjects((prev) =>
+          prev.map((p) => (p.projectPath === data.path ? { ...p, size: data.size } : p))
+        )
+      }
+    })
   }, [])
 
-  const switchTab = (tab: TabType): void => {
-    switchTabFn(tab, currentTab, allProjectsRef.current, setCurrentTab, setProjects)
-  }
+  const switchTab = useCallback(
+    (tab: TabType): void => {
+      switchTabFn(tab, currentTab, allProjectsRef.current, setCurrentTab, setProjects)
+    },
+    [switchTabFn, currentTab]
+  )
 
-  const toggleSearch = (): void => {
+  const toggleFavoritePath = useCallback(
+    (projectPath: string): void => {
+      toggleFav(projectPath, (updated) => {
+        if (currentTab === 'favorites') {
+          setProjects(filterForTab('favorites', allProjectsRef.current, updated))
+        }
+      })
+    },
+    [toggleFav, currentTab, filterForTab]
+  )
+
+  const toggleSearch = useCallback((): void => {
     setSearchOpen((prev) => {
       if (prev) setSearchQuery('')
       return !prev
     })
-  }
+  }, [])
+
+  const handleViewChange = useCallback((mode: ViewMode): void => {
+    setViewMode(mode)
+    localStorage.setItem('projectsViewMode', mode)
+  }, [])
+
+  const handleDeleteCard = useCallback(
+    (path: string) => handleDelete(path, setProjects),
+    [handleDelete]
+  )
+
+  const handleAddProjectClick = useCallback(
+    () => handleAddProject({ addingProject, setAddingProject }),
+    [handleAddProject, addingProject]
+  )
+
+  const handleRefreshClick = useCallback(
+    () => handleRefresh({ setRefreshing, setCalculatingSizes }),
+    [handleRefresh]
+  )
 
   const visibleProjects = useMemo(
     () =>
       (searchQuery.trim()
-        ? projects.filter((project) =>
-            project.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
-          )
+        ? projects.filter((p) => p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
         : projects
       ).map((project) => ({
         ...project,
@@ -226,21 +238,12 @@ const ProjectsPage = (): React.ReactElement => {
         addingProject={addingProject}
         onTabClick={switchTab}
         onToggleSearch={toggleSearch}
-        onSearchChange={(value) => setSearchQuery(value)}
-        onAddProject={() => handleAddProject({ addingProject, setAddingProject })}
-        onRefresh={() =>
-          handleRefresh({
-            setRefreshing,
-            setCalculatingSizes,
-            setProjects: (v) => setProjects(v as Project[])
-          })
-        }
+        onSearchChange={setSearchQuery}
+        onAddProject={handleAddProjectClick}
+        onRefresh={handleRefreshClick}
         backgroundScanning={backgroundScanning}
         viewMode={viewMode}
-        onViewChange={(mode) => {
-          setViewMode(mode)
-          localStorage.setItem('projectsViewMode', mode)
-        }}
+        onViewChange={handleViewChange}
       />
 
       <div className="flex-1 overflow-hidden mt-1">
@@ -256,19 +259,17 @@ const ProjectsPage = (): React.ReactElement => {
           </div>
         ) : visibleProjects.length > 0 ? (
           viewMode === 'grid' ? (
-            <div
-              ref={gridRef}
-              className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto py-2 h-full content-start"
-            >
+            <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto py-2 h-full content-start">
               {visibleProjects.map((data) => (
                 <ProjectCardGrid
                   key={data.projectPath || data.name}
                   {...data}
                   isFavorite={data.isFavorite}
+                  scanEpoch={scanEpoch}
                   onToggleFavorite={toggleFavoritePath}
                   onLaunch={handleLaunch}
                   onOpenDir={handleOpenDir}
-                  onDelete={(path) => handleDelete(path, setProjects)}
+                  onDelete={handleDeleteCard}
                 />
               ))}
             </div>
@@ -283,10 +284,11 @@ const ProjectsPage = (): React.ReactElement => {
                   key={data.projectPath || data.name}
                   {...data}
                   isFavorite={data.isFavorite}
+                  scanEpoch={scanEpoch}
                   onToggleFavorite={toggleFavoritePath}
                   onLaunch={handleLaunch}
                   onOpenDir={handleOpenDir}
-                  onDelete={(path) => handleDelete(path, setProjects)}
+                  onDelete={handleDeleteCard}
                 />
               ))}
             </div>
