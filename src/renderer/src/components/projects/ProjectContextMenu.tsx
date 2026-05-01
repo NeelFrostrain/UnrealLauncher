@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Play, Gamepad2, Star, FolderOpen, Copy, GitBranch, GitMerge, Globe,
   FileCode2, Settings2, ScrollText, Trash2, AlertTriangle, Wrench,
-  ChevronRight, GitCommit, RefreshCw, FileText, Database, Terminal, ExternalLink
+  ChevronRight, GitCommit, FileText, Database, Terminal, ExternalLink
 } from 'lucide-react'
 import { useToast } from '../ui/ToastContext'
 
@@ -131,14 +131,14 @@ function useSubPos(
 
 // ── Organize submenu ──────────────────────────────────────────────────────────
 const OrganizeSubMenu = ({
-  projectPath, isFavorite, gitInitialized,
+  projectPath, gitInitialized,
   anchorRef, parentLeft, parentWidth,
-  onFavorite, onOpenDir, onClose, onMouseEnter, onMouseLeave
+  onOpenDir, onClose, onMouseEnter, onMouseLeave
 }: {
-  projectPath: string; isFavorite: boolean; gitInitialized: boolean
+  projectPath: string; gitInitialized: boolean
   anchorRef: React.RefObject<HTMLButtonElement | null>
   parentLeft: number; parentWidth: number
-  onFavorite: () => void; onOpenDir: () => void
+  onOpenDir: () => void
   onClose: () => void; onMouseEnter?: () => void; onMouseLeave?: () => void
 }): React.ReactElement => {
   const subRef = useRef<HTMLDivElement>(null)
@@ -147,18 +147,12 @@ const OrganizeSubMenu = ({
 
   return createPortal(
     <motion.div ref={subRef} data-menu-panel className="fixed z-10000 select-none"
-      style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 210 }}
+      style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 230 }}
       onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}
       initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -6 }}
       transition={{ duration: 0.1 }}>
       <div className="py-1">
-        <Item
-          icon={<Star size={11} fill={isFavorite ? '#facc15' : 'none'} style={{ color: isFavorite ? '#facc15' : 'var(--color-text-muted)' }} />}
-          label={isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
-          sub={isFavorite ? 'Remove from pinned list' : 'Pin to Favorites tab'}
-          onClick={onFavorite} onClose={onClose} />
-        <Sep />
-        <Item icon={<FolderOpen size={11} style={{ color: 'var(--color-text-muted)' }} />}
+        <Item icon={<FolderOpen size={11} style={{ color: '#f59e0b' }} />}
           label="Open Folder" sub="Open in file explorer"
           onClick={onOpenDir} onClose={onClose} />
         <Item icon={<Terminal size={11} style={{ color: '#a78bfa' }} />}
@@ -174,7 +168,7 @@ const OrganizeSubMenu = ({
             })} onClose={onClose} />
         )}
         <Sep />
-        <Item icon={<Copy size={11} style={{ color: 'var(--color-text-muted)' }} />}
+        <Item icon={<Copy size={11} style={{ color: '#94a3b8' }} />}
           label="Copy Path" sub={projectPath.split(/[\\/]/).slice(-2).join('/')}
           onClick={() => navigator.clipboard.writeText(projectPath)} onClose={onClose} />
       </div>
@@ -209,7 +203,7 @@ const ProjectToolsSubMenu = ({
 
   return createPortal(
     <motion.div ref={subRef} data-menu-panel className="fixed z-10000 select-none"
-      style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 220 }}
+      style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 230 }}
       onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}
       initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -6 }}
       transition={{ duration: 0.1 }}>
@@ -234,7 +228,7 @@ const ProjectToolsSubMenu = ({
   )
 }
 
-// ── Git submenu ───────────────────────────────────────────────────────────────
+// ── Git Tools submenu ─────────────────────────────────────────────────────────
 const GitSubMenu = ({
   projectPath, gitInitialized, gitBranch, gitRemoteUrl,
   anchorRef, parentLeft, parentWidth, onGitInit, onOpenCommit, onOpenBranch, onClose, onMouseEnter, onMouseLeave
@@ -270,32 +264,37 @@ const GitSubMenu = ({
     else addToast(r.error ?? 'Failed to write .gitignore', 'error')
   }, [projectPath, addToast])
 
-  const handleReinit = useCallback(async () => {
-    const r = await window.electronAPI.projectGitReinit(projectPath)
-    if (r.success) addToast('Git repo reinitialized', 'success')
-    else addToast(r.error ?? 'Reinit failed', 'error')
-    onClose()
-  }, [projectPath, addToast, onClose])
-
   return createPortal(
     <motion.div ref={subRef} data-menu-panel className="fixed z-10000 select-none"
-      style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 240 }}
+      style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 250 }}
       onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}
       initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -6 }}
       transition={{ duration: 0.1 }}>
       <div className="py-1">
-        <Cat label="Repository" />
-        {!gitInitialized ? (
+        {/* Repo init — only show when not yet initialized */}
+        {!gitInitialized && (
           <Item icon={<GitMerge size={11} style={{ color: '#a78bfa' }} />}
             label="Initialize Repo" sub="git init + LFS + .gitignore"
             onClick={onGitInit} onClose={onClose} />
-        ) : (
-          <Item icon={<RefreshCw size={11} style={{ color: '#94a3b8' }} />}
-            label="Reinitialize Repo" sub="Re-run git init"
-            onClick={handleReinit} noClose onClose={onClose} />
+        )}
+        {gitInitialized && (
+          /* Repo status info row — not clickable */
+          <div className="flex items-center gap-2 px-2.5 py-1.5 mx-1">
+            <span className="shrink-0 w-3.5 flex items-center justify-center">
+              <GitBranch size={11} style={{ color: '#34d399' }} />
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-[11px] leading-tight" style={{ color: 'var(--color-text-secondary)' }}>
+                Git Initialized
+              </span>
+              <span className="block text-[9px] leading-tight mt-0.5 font-mono" style={{ color: '#34d399' }}>
+                {gitBranch}
+              </span>
+            </span>
+          </div>
         )}
         <Sep />
-        <Cat label="Config Files" />
+        {/* Config files */}
         <Item icon={<FileText size={11} style={{ color: '#60a5fa' }} />}
           label={hasGitignore ? 'Reset .gitignore' : 'Add .gitignore'}
           sub="UE template — ignores Binaries, Saved, etc."
@@ -307,23 +306,18 @@ const GitSubMenu = ({
         {gitInitialized && (
           <>
             <Sep />
-            <Cat label="Changes" />
+            {/* Commit */}
             <Item icon={<GitCommit size={11} style={{ color: '#f59e0b' }} />}
               label="Commit Changes" sub="Stage all and commit"
               onClick={onOpenCommit} onClose={onClose} />
-            <Sep />
-            <Cat label="Branch" />
-            <div className="px-2.5 py-1 flex items-center gap-1.5">
-              <GitBranch size={10} style={{ color: '#34d399' }} />
-              <span className="text-[10px] font-mono" style={{ color: '#34d399' }}>{gitBranch}</span>
-            </div>
-            <Item icon={<GitBranch size={11} style={{ color: 'var(--color-text-muted)' }} />}
-              label="Switch / New Branch" sub="Checkout or create a branch"
+            {/* Branch */}
+            <Item icon={<GitBranch size={11} style={{ color: '#34d399' }} />}
+              label="Switch / New Branch" sub={`Current: ${gitBranch}`}
               onClick={onOpenBranch} onClose={onClose} />
+            {/* Remote */}
             {gitRemoteUrl && (
               <>
                 <Sep />
-                <Cat label="Remote" />
                 <Item icon={<Globe size={11} style={{ color: '#60a5fa' }} />}
                   label="Open Remote" sub={gitRemoteUrl.replace(/^git@([^:]+):/, 'https://$1/').replace(/\.git$/, '')}
                   onClick={() => window.electronAPI.projectOpenRemote(gitRemoteUrl)} onClose={onClose} />
@@ -444,7 +438,7 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
           <SubTrigger
             triggerRef={organizeTriggerRef}
             icon={<FolderOpen size={11} style={{ color: activeSub === 'organize' ? '#f59e0b' : 'var(--color-text-muted)' }} />}
-            label="Open / Copy"
+            label="Quick Access"
             isOpen={activeSub === 'organize'}
             onOpen={() => openSub('organize')}
             onLeave={closeSub} />
@@ -459,18 +453,18 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
           {/* Tools */}
           <Cat label="Tools" />
           <SubTrigger
+            triggerRef={gitTriggerRef}
+            icon={<GitMerge size={11} style={{ color: activeSub === 'git' ? '#a78bfa' : 'var(--color-text-muted)' }} />}
+            label="Git Tools"
+            isOpen={activeSub === 'git'}
+            onOpen={() => openSub('git')}
+            onLeave={closeSub} />
+          <SubTrigger
             triggerRef={toolsTriggerRef}
             icon={<Wrench size={11} style={{ color: activeSub === 'tools' ? 'var(--color-accent)' : 'var(--color-text-muted)' }} />}
             label="Project Tools"
             isOpen={activeSub === 'tools'}
             onOpen={() => openSub('tools')}
-            onLeave={closeSub} />
-          <SubTrigger
-            triggerRef={gitTriggerRef}
-            icon={<GitMerge size={11} style={{ color: activeSub === 'git' ? '#a78bfa' : 'var(--color-text-muted)' }} />}
-            label="Git"
-            isOpen={activeSub === 'git'}
-            onOpen={() => openSub('git')}
             onLeave={closeSub} />
 
           <Sep />
@@ -485,11 +479,9 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
         {activeSub === 'organize' && (
           <OrganizeSubMenu
             projectPath={p.projectPath}
-            isFavorite={p.isFavorite}
             gitInitialized={p.gitInitialized}
             anchorRef={organizeTriggerRef}
             parentLeft={pos.left} parentWidth={pos.width}
-            onFavorite={p.onFavorite}
             onOpenDir={p.onOpenDir}
             onClose={p.onClose}
             onMouseEnter={keepSub} onMouseLeave={closeSub} />
