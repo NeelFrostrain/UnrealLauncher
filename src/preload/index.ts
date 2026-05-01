@@ -128,6 +128,10 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-git-switch-branch', projectPath, branch, create, strategy ?? 'normal'),
       projectGitFileStatus: (projectPath: string) =>
         ipcRenderer.invoke('project-git-file-status', projectPath),
+      projectOpenTerminal: (projectPath: string) =>
+        ipcRenderer.invoke('project-open-terminal', projectPath),
+      projectOpenGithub: (projectPath: string) =>
+        ipcRenderer.invoke('project-open-github', projectPath),
       // Engine scan paths (Linux)
       getEngineScanPaths: () => ipcRenderer.invoke('get-engine-scan-paths'),
       saveEngineScanPaths: (paths: string[]) => ipcRenderer.invoke('save-engine-scan-paths', paths),

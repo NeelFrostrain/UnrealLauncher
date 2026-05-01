@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Play, Gamepad2, Star, FolderOpen, Copy, GitBranch, GitMerge, Globe,
   FileCode2, Settings2, ScrollText, Trash2, AlertTriangle, Wrench,
-  ChevronRight, GitCommit, RefreshCw, FileText, Database
+  ChevronRight, GitCommit, RefreshCw, FileText, Database, Terminal, ExternalLink
 } from 'lucide-react'
 import { useToast } from '../ui/ToastContext'
 
@@ -28,9 +28,18 @@ const MENU_STYLE: React.CSSProperties = {
   boxShadow: '0 8px 32px rgba(0,0,0,0.55)'
 }
 
-const Item = ({ icon, label, hint, onClick, danger = false, disabled = false,
-  noClose = false, onHoverIn, onHoverOut, onClose }: {
-  icon: React.ReactNode; label: string; hint?: string; onClick?: () => void
+const IS_WIN = window.electronAPI?.platform === 'win32'
+const IS_MAC = window.electronAPI?.platform === 'darwin'
+const HAS_GITHUB_DESKTOP = IS_WIN || IS_MAC
+
+// ── Item — compact single-line row ────────────────────────────────────────────
+const Item = ({
+  icon, label, sub, onClick, danger = false, disabled = false,
+  noClose = false, onHoverIn, onHoverOut, onClose
+}: {
+  icon: React.ReactNode; label: string
+  sub?: string          // description shown below label
+  onClick?: () => void
   danger?: boolean; disabled?: boolean; noClose?: boolean
   onHoverIn?: () => void; onHoverOut?: () => void; onClose: () => void
 }): React.ReactElement => (
@@ -38,16 +47,29 @@ const Item = ({ icon, label, hint, onClick, danger = false, disabled = false,
     onClick={() => { if (!disabled && onClick) { onClick(); if (!noClose) onClose() } }}
     disabled={disabled}
     onMouseEnter={(e) => {
-      if (!disabled) e.currentTarget.style.backgroundColor = danger ? 'rgba(248,113,113,0.1)' : 'var(--color-surface-card)'
+      if (!disabled) e.currentTarget.style.backgroundColor = danger ? 'rgba(248,113,113,0.08)' : 'var(--color-surface-card)'
       onHoverIn?.()
     }}
     onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; onHoverOut?.() }}
-    className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default rounded-sm"
-    style={{ color: danger ? '#f87171' : 'var(--color-text-secondary)', width: 'calc(100% - 8px)', margin: '0 4px' }}
+    className="flex items-center gap-2 px-2.5 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default rounded-sm"
+    style={{
+      color: danger ? '#f87171' : 'var(--color-text-secondary)',
+      width: 'calc(100% - 8px)',
+      margin: '0 4px',
+      paddingTop: sub ? '5px' : '4px',
+      paddingBottom: sub ? '5px' : '4px'
+    }}
   >
-    <span className="shrink-0 w-3.5 flex items-center justify-center">{icon}</span>
-    <span className="flex-1 text-left whitespace-nowrap">{label}</span>
-    {hint && <span className="text-[9px] font-mono shrink-0 ml-2" style={{ color: 'var(--color-text-muted)' }}>{hint}</span>}
+    <span className="shrink-0 w-3.5 flex items-center justify-center self-start mt-px">{icon}</span>
+    <span className="flex-1 text-left min-w-0">
+      <span className="block text-[11px] leading-tight whitespace-nowrap">{label}</span>
+      {sub && (
+        <span className="block text-[9px] leading-tight mt-0.5 whitespace-nowrap"
+          style={{ color: danger ? 'rgba(248,113,113,0.6)' : 'var(--color-text-muted)' }}>
+          {sub}
+        </span>
+      )}
+    </span>
   </button>
 )
 
@@ -56,15 +78,34 @@ const Sep = (): React.ReactElement => (
 )
 
 const Cat = ({ label }: { label: string }): React.ReactElement => (
-  <p className="px-2.5 pt-2 pb-0.5 text-[9px] font-semibold uppercase tracking-widest select-none"
-    style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}>{label}</p>
+  <p className="px-2.5 pt-1.5 pb-0.5 text-[9px] font-semibold uppercase tracking-widest select-none"
+    style={{ color: 'var(--color-text-muted)', opacity: 0.5 }}>{label}</p>
 )
 
+// ── Submenu trigger row ───────────────────────────────────────────────────────
+const SubTrigger = ({ triggerRef, icon, label, isOpen, onOpen, onLeave }: {
+  triggerRef: React.RefObject<HTMLButtonElement | null>
+  icon: React.ReactNode; label: string; isOpen: boolean
+  onOpen: () => void; onLeave: () => void
+}): React.ReactElement => (
+  <button ref={triggerRef} onMouseEnter={onOpen} onMouseLeave={onLeave}
+    className="flex items-center gap-2 px-2.5 py-1 text-[11px] cursor-pointer transition-colors rounded-sm"
+    style={{
+      color: isOpen ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+      backgroundColor: isOpen ? 'var(--color-surface-card)' : 'transparent',
+      width: 'calc(100% - 8px)', margin: '0 4px'
+    }}>
+    <span className="shrink-0 w-3.5 flex items-center justify-center">{icon}</span>
+    <span className="flex-1 text-left whitespace-nowrap">{label}</span>
+    <ChevronRight size={10} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+  </button>
+)
+
+// ── Submenu position hook ─────────────────────────────────────────────────────
 function useSubPos(
   anchorRef: React.RefObject<HTMLButtonElement | null>,
   subRef: React.RefObject<HTMLDivElement | null>,
-  parentLeft: number,
-  parentWidth: number
+  parentLeft: number, parentWidth: number
 ): { top: number; left: number } {
   const [pos, setPos] = useState({ top: -9999, left: -9999 })
   const recalc = useCallback(() => {
@@ -88,17 +129,69 @@ function useSubPos(
   return pos
 }
 
+// ── Organize submenu ──────────────────────────────────────────────────────────
+const OrganizeSubMenu = ({
+  projectPath, isFavorite, gitInitialized,
+  anchorRef, parentLeft, parentWidth,
+  onFavorite, onOpenDir, onClose, onMouseEnter, onMouseLeave
+}: {
+  projectPath: string; isFavorite: boolean; gitInitialized: boolean
+  anchorRef: React.RefObject<HTMLButtonElement | null>
+  parentLeft: number; parentWidth: number
+  onFavorite: () => void; onOpenDir: () => void
+  onClose: () => void; onMouseEnter?: () => void; onMouseLeave?: () => void
+}): React.ReactElement => {
+  const subRef = useRef<HTMLDivElement>(null)
+  const pos = useSubPos(anchorRef, subRef, parentLeft, parentWidth)
+  const { addToast } = useToast()
+
+  return createPortal(
+    <motion.div ref={subRef} data-menu-panel className="fixed z-10000 select-none"
+      style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 210 }}
+      onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}
+      initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -6 }}
+      transition={{ duration: 0.1 }}>
+      <div className="py-1">
+        <Item
+          icon={<Star size={11} fill={isFavorite ? '#facc15' : 'none'} style={{ color: isFavorite ? '#facc15' : 'var(--color-text-muted)' }} />}
+          label={isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+          sub={isFavorite ? 'Remove from pinned list' : 'Pin to Favorites tab'}
+          onClick={onFavorite} onClose={onClose} />
+        <Sep />
+        <Item icon={<FolderOpen size={11} style={{ color: 'var(--color-text-muted)' }} />}
+          label="Open Folder" sub="Open in file explorer"
+          onClick={onOpenDir} onClose={onClose} />
+        <Item icon={<Terminal size={11} style={{ color: '#a78bfa' }} />}
+          label="Open in Terminal" sub="Open project folder in terminal"
+          onClick={() => window.electronAPI.projectOpenTerminal(projectPath).then(r => {
+            if (!r.success) addToast(r.error ?? 'Could not open terminal', 'error')
+          })} onClose={onClose} />
+        {gitInitialized && HAS_GITHUB_DESKTOP && (
+          <Item icon={<ExternalLink size={11} style={{ color: '#60a5fa' }} />}
+            label="Open in GitHub Desktop" sub="View repo in GitHub Desktop app"
+            onClick={() => window.electronAPI.projectOpenGithub(projectPath).then(r => {
+              if (!r.success) addToast(r.error ?? 'GitHub Desktop not found', 'error')
+            })} onClose={onClose} />
+        )}
+        <Sep />
+        <Item icon={<Copy size={11} style={{ color: 'var(--color-text-muted)' }} />}
+          label="Copy Path" sub={projectPath.split(/[\\/]/).slice(-2).join('/')}
+          onClick={() => navigator.clipboard.writeText(projectPath)} onClose={onClose} />
+      </div>
+    </motion.div>,
+    document.body
+  )
+}
+
+// ── Project Tools submenu ─────────────────────────────────────────────────────
 const ProjectToolsSubMenu = ({
   projectPath, anchorRef, parentLeft, parentWidth, onViewLogs, onClose, onMouseEnter, onMouseLeave
 }: {
   projectPath: string
   anchorRef: React.RefObject<HTMLButtonElement | null>
-  parentLeft: number
-  parentWidth: number
-  onViewLogs: () => void
-  onClose: () => void
-  onMouseEnter?: () => void
-  onMouseLeave?: () => void
+  parentLeft: number; parentWidth: number
+  onViewLogs: () => void; onClose: () => void
+  onMouseEnter?: () => void; onMouseLeave?: () => void
 }): React.ReactElement => {
   const subRef = useRef<HTMLDivElement>(null)
   const pos = useSubPos(anchorRef, subRef, parentLeft, parentWidth)
@@ -116,21 +209,24 @@ const ProjectToolsSubMenu = ({
 
   return createPortal(
     <motion.div ref={subRef} data-menu-panel className="fixed z-10000 select-none"
-      style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 210 }}
+      style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 220 }}
       onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}
       initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -6 }}
       transition={{ duration: 0.1 }}>
       <div className="py-1">
-        <Item icon={<Settings2 size={11} style={{ color: '#94a3b8' }} />} label="Edit Default Config" hint="DefaultEngine.ini"
+        <Item icon={<Settings2 size={11} style={{ color: '#94a3b8' }} />}
+          label="Edit Default Config" sub="DefaultEngine.ini"
           onClick={() => window.electronAPI.projectOpenDefaultConfig(projectPath)} onClose={onClose} />
-        <Item icon={<FileCode2 size={11} style={{ color: 'var(--color-accent)' }} />} label="Edit .uproject File"
+        <Item icon={<FileCode2 size={11} style={{ color: 'var(--color-accent)' }} />}
+          label="Edit .uproject File" sub="Open project descriptor"
           onClick={() => window.electronAPI.projectOpenUproject(projectPath)} onClose={onClose} />
-        <Item icon={<ScrollText size={11} style={{ color: '#f59e0b' }} />} label="View Logs"
+        <Item icon={<ScrollText size={11} style={{ color: '#f59e0b' }} />}
+          label="View Logs" sub="Tail latest Saved/Logs file"
           onClick={onViewLogs} onClose={onClose} />
         <Sep />
         <Item icon={<Trash2 size={11} style={{ color: '#f87171' }} />}
           label={cleaning ? 'Cleaning...' : 'Clean Project'}
-          hint={cleaning ? undefined : 'Intermediate, Build...'}
+          sub={cleaning ? 'Removing generated files...' : 'Intermediate, Binaries, Build, Saved'}
           onClick={handleClean} disabled={cleaning} danger noClose onClose={onClose} />
       </div>
     </motion.div>,
@@ -138,23 +234,16 @@ const ProjectToolsSubMenu = ({
   )
 }
 
+// ── Git submenu ───────────────────────────────────────────────────────────────
 const GitSubMenu = ({
   projectPath, gitInitialized, gitBranch, gitRemoteUrl,
   anchorRef, parentLeft, parentWidth, onGitInit, onOpenCommit, onOpenBranch, onClose, onMouseEnter, onMouseLeave
 }: {
-  projectPath: string
-  gitInitialized: boolean
-  gitBranch: string
-  gitRemoteUrl: string
+  projectPath: string; gitInitialized: boolean; gitBranch: string; gitRemoteUrl: string
   anchorRef: React.RefObject<HTMLButtonElement | null>
-  parentLeft: number
-  parentWidth: number
-  onGitInit: () => void
-  onOpenCommit: () => void
-  onOpenBranch: () => void
-  onClose: () => void
-  onMouseEnter?: () => void
-  onMouseLeave?: () => void
+  parentLeft: number; parentWidth: number
+  onGitInit: () => void; onOpenCommit: () => void; onOpenBranch: () => void
+  onClose: () => void; onMouseEnter?: () => void; onMouseLeave?: () => void
 }): React.ReactElement => {
   const subRef = useRef<HTMLDivElement>(null)
   const pos = useSubPos(anchorRef, subRef, parentLeft, parentWidth)
@@ -172,17 +261,13 @@ const GitSubMenu = ({
   const handleInitLfs = useCallback(async () => {
     const r = await window.electronAPI.projectGitInitLfs(projectPath)
     if (r.success) { addToast('Git LFS initialized', 'success'); setHasGitattributes(true) }
-    else addToast(r.error ?? 'LFS init failed - install git-lfs first', 'error')
+    else addToast(r.error ?? 'LFS init failed — install git-lfs first', 'error')
   }, [projectPath, addToast])
 
   const handleWriteGitignore = useCallback(async () => {
     const r = await window.electronAPI.projectGitWriteGitignore(projectPath)
-    if (r.success) {
-      addToast(r.existed ? '.gitignore reset to UE template' : '.gitignore created', 'success')
-      setHasGitignore(true)
-    } else {
-      addToast(r.error ?? 'Failed to write .gitignore', 'error')
-    }
+    if (r.success) { addToast(r.existed ? '.gitignore reset' : '.gitignore created', 'success'); setHasGitignore(true) }
+    else addToast(r.error ?? 'Failed to write .gitignore', 'error')
   }, [projectPath, addToast])
 
   const handleReinit = useCallback(async () => {
@@ -194,7 +279,7 @@ const GitSubMenu = ({
 
   return createPortal(
     <motion.div ref={subRef} data-menu-panel className="fixed z-10000 select-none"
-      style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 230 }}
+      style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 240 }}
       onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}
       initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -6 }}
       transition={{ duration: 0.1 }}>
@@ -202,41 +287,48 @@ const GitSubMenu = ({
         <Cat label="Repository" />
         {!gitInitialized ? (
           <Item icon={<GitMerge size={11} style={{ color: '#a78bfa' }} />}
-            label="Initialize Repo" hint="+ LFS + .gitignore"
+            label="Initialize Repo" sub="git init + LFS + .gitignore"
             onClick={onGitInit} onClose={onClose} />
         ) : (
           <Item icon={<RefreshCw size={11} style={{ color: '#94a3b8' }} />}
-            label="Reinitialize Repo" onClick={handleReinit} noClose onClose={onClose} />
+            label="Reinitialize Repo" sub="Re-run git init"
+            onClick={handleReinit} noClose onClose={onClose} />
         )}
         <Sep />
         <Cat label="Config Files" />
         <Item icon={<FileText size={11} style={{ color: '#60a5fa' }} />}
-          label={hasGitignore ? 'Reset .gitignore' : 'Add .gitignore'} hint="UE template"
+          label={hasGitignore ? 'Reset .gitignore' : 'Add .gitignore'}
+          sub="UE template — ignores Binaries, Saved, etc."
           onClick={handleWriteGitignore} noClose onClose={onClose} />
         <Item icon={<Database size={11} style={{ color: '#34d399' }} />}
-          label={hasGitattributes ? 'Reinit Git LFS' : 'Init Git LFS'} hint=".gitattributes"
+          label={hasGitattributes ? 'Reinit Git LFS' : 'Init Git LFS'}
+          sub="Track .uasset, .umap, textures with LFS"
           onClick={handleInitLfs} noClose onClose={onClose} />
         {gitInitialized && (
           <>
             <Sep />
             <Cat label="Changes" />
             <Item icon={<GitCommit size={11} style={{ color: '#f59e0b' }} />}
-              label="Commit Changes..." onClick={onOpenCommit} onClose={onClose} />
+              label="Commit Changes" sub="Stage all and commit"
+              onClick={onOpenCommit} onClose={onClose} />
             <Sep />
             <Cat label="Branch" />
-            <div className="px-2.5 py-1 text-[10px] flex items-center gap-1.5" style={{ color: '#34d399' }}>
-              <GitBranch size={10} />
-              <span className="font-mono">{gitBranch}</span>
+            <div className="px-2.5 py-1 flex items-center gap-1.5">
+              <GitBranch size={10} style={{ color: '#34d399' }} />
+              <span className="text-[10px] font-mono" style={{ color: '#34d399' }}>{gitBranch}</span>
             </div>
             <Item icon={<GitBranch size={11} style={{ color: 'var(--color-text-muted)' }} />}
-              label="Switch / New Branch..." onClick={onOpenBranch} onClose={onClose} />
+              label="Switch / New Branch" sub="Checkout or create a branch"
+              onClick={onOpenBranch} onClose={onClose} />
             {gitRemoteUrl && (
               <>
                 <Sep />
                 <Cat label="Remote" />
-                <Item icon={<Globe size={11} style={{ color: '#60a5fa' }} />} label="Open Remote"
+                <Item icon={<Globe size={11} style={{ color: '#60a5fa' }} />}
+                  label="Open Remote" sub={gitRemoteUrl.replace(/^git@([^:]+):/, 'https://$1/').replace(/\.git$/, '')}
                   onClick={() => window.electronAPI.projectOpenRemote(gitRemoteUrl)} onClose={onClose} />
-                <Item icon={<Copy size={11} style={{ color: 'var(--color-text-muted)' }} />} label="Copy Remote URL"
+                <Item icon={<Copy size={11} style={{ color: 'var(--color-text-muted)' }} />}
+                  label="Copy Remote URL" sub="Copy to clipboard"
                   onClick={() => navigator.clipboard.writeText(gitRemoteUrl)} onClose={onClose} />
               </>
             )}
@@ -248,35 +340,16 @@ const GitSubMenu = ({
   )
 }
 
-const SubTrigger = ({ triggerRef, icon, label, isOpen, onOpen, onLeave }: {
-  triggerRef: React.RefObject<HTMLButtonElement | null>
-  icon: React.ReactNode
-  label: string
-  isOpen: boolean
-  onOpen: () => void
-  onLeave: () => void
-}): React.ReactElement => (
-  <button ref={triggerRef} onMouseEnter={onOpen} onMouseLeave={onLeave}
-    className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] cursor-pointer transition-colors rounded-sm"
-    style={{
-      color: isOpen ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-      backgroundColor: isOpen ? 'var(--color-surface-card)' : 'transparent',
-      width: 'calc(100% - 8px)',
-      margin: '0 4px'
-    }}>
-    <span className="shrink-0 w-3.5 flex items-center justify-center">{icon}</span>
-    <span className="flex-1 text-left whitespace-nowrap">{label}</span>
-    <ChevronRight size={10} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
-  </button>
-)
-
+// ── Main menu ─────────────────────────────────────────────────────────────────
 export default function ProjectContextMenu(p: ProjectContextMenuProps): React.ReactElement {
   const ref = useRef<HTMLDivElement>(null)
+  const organizeTriggerRef = useRef<HTMLButtonElement>(null)
   const toolsTriggerRef = useRef<HTMLButtonElement>(null)
   const gitTriggerRef = useRef<HTMLButtonElement>(null)
   const [pos, setPos] = useState({ top: p.y, left: p.x, width: 220 })
-  const [activeSub, setActiveSub] = useState<'tools' | 'git' | null>(null)
+  const [activeSub, setActiveSub] = useState<'organize' | 'tools' | 'git' | null>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { addToast } = useToast()
 
   useEffect(() => {
     if (ref.current) {
@@ -295,7 +368,6 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
         const target = e.target as Element | null
         if (!target) return
         if (target.closest('[data-menu-panel]')) return
-        if (target.closest('[data-dialog]')) return
         p.onClose()
       }
       document.addEventListener('pointerdown', handler)
@@ -304,31 +376,26 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
     return () => clearTimeout(t)
   }, [p.onClose])
 
-  const openSub = useCallback((sub: 'tools' | 'git') => {
+  const openSub = useCallback((sub: 'organize' | 'tools' | 'git') => {
     if (closeTimer.current) clearTimeout(closeTimer.current)
     setActiveSub(sub)
   }, [])
-
   const closeSub = useCallback(() => {
     closeTimer.current = setTimeout(() => setActiveSub(null), 120)
   }, [])
-
   const keepSub = useCallback(() => {
     if (closeTimer.current) clearTimeout(closeTimer.current)
   }, [])
 
   const handleOpenCommit = useCallback(() => {
-    setActiveSub(null)
-    p.onClose()
-    // Small delay so the menu fully unmounts before the dialog mounts
-    setTimeout(() => p.onOpenCommitDialog(), 50)
+    setActiveSub(null); p.onClose(); p.onOpenCommitDialog()
+  }, [p])
+  const handleOpenBranch = useCallback(() => {
+    setActiveSub(null); p.onClose(); p.onOpenBranchDialog()
   }, [p])
 
-  const handleOpenBranch = useCallback(() => {
-    setActiveSub(null)
-    p.onClose()
-    setTimeout(() => p.onOpenBranchDialog(), 50)
-  }, [p])
+  // Suppress unused warning
+  void addToast
 
   return createPortal(
     <>
@@ -338,9 +405,10 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.1 }}>
 
+        {/* Header */}
         <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
           <p className="text-xs font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>{p.name}</p>
-          <div className="flex items-center gap-1.5 mt-0.5">
+          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             <span className="text-[9px] font-mono px-1 py-px"
               style={{
                 borderRadius: 'calc(var(--radius) * 0.4)',
@@ -360,34 +428,72 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
         </div>
 
         <div className="py-1">
-          <Cat label="Open" />
-          <Item icon={<Play size={11} style={{ color: 'var(--color-accent)' }} />} label="Open in Editor" onClick={p.onLaunch} onClose={p.onClose} />
-          <Item icon={<Gamepad2 size={11} style={{ color: '#4ade80' }} />} label="Launch as Game" onClick={p.onLaunchGame} onClose={p.onClose} />
+          {/* Launch */}
+          <Cat label="Launch" />
+          <Item icon={<Play size={11} style={{ color: 'var(--color-accent)' }} />}
+            label="Open in Editor" sub="Launch Unreal Editor"
+            onClick={p.onLaunch} onClose={p.onClose} />
+          <Item icon={<Gamepad2 size={11} style={{ color: '#4ade80' }} />}
+            label="Launch as Game" sub="Run in -game mode"
+            onClick={p.onLaunchGame} onClose={p.onClose} />
+
           <Sep />
+
+          {/* Organize — submenu trigger */}
           <Cat label="Organize" />
+          <SubTrigger
+            triggerRef={organizeTriggerRef}
+            icon={<FolderOpen size={11} style={{ color: activeSub === 'organize' ? '#f59e0b' : 'var(--color-text-muted)' }} />}
+            label="Open / Copy"
+            isOpen={activeSub === 'organize'}
+            onOpen={() => openSub('organize')}
+            onLeave={closeSub} />
           <Item
             icon={<Star size={11} fill={p.isFavorite ? '#facc15' : 'none'} style={{ color: p.isFavorite ? '#facc15' : 'var(--color-text-muted)' }} />}
             label={p.isFavorite ? 'Remove Favorite' : 'Add to Favorites'}
+            sub={p.isFavorite ? 'Unpin from Favorites tab' : 'Pin to Favorites tab'}
             onClick={p.onFavorite} onClose={p.onClose} />
-          <Item icon={<FolderOpen size={11} style={{ color: 'var(--color-text-muted)' }} />} label="Open Folder" onClick={p.onOpenDir} onClose={p.onClose} />
-          <Item icon={<Copy size={11} style={{ color: 'var(--color-text-muted)' }} />} label="Copy Path"
-            onClick={() => navigator.clipboard.writeText(p.projectPath)} onClose={p.onClose} />
+
           <Sep />
+
+          {/* Tools */}
           <Cat label="Tools" />
           <SubTrigger
             triggerRef={toolsTriggerRef}
             icon={<Wrench size={11} style={{ color: activeSub === 'tools' ? 'var(--color-accent)' : 'var(--color-text-muted)' }} />}
-            label="Project Tools" isOpen={activeSub === 'tools'} onOpen={() => openSub('tools')} onLeave={closeSub} />
+            label="Project Tools"
+            isOpen={activeSub === 'tools'}
+            onOpen={() => openSub('tools')}
+            onLeave={closeSub} />
           <SubTrigger
             triggerRef={gitTriggerRef}
             icon={<GitMerge size={11} style={{ color: activeSub === 'git' ? '#a78bfa' : 'var(--color-text-muted)' }} />}
-            label="Git" isOpen={activeSub === 'git'} onOpen={() => openSub('git')} onLeave={closeSub} />
+            label="Git"
+            isOpen={activeSub === 'git'}
+            onOpen={() => openSub('git')}
+            onLeave={closeSub} />
+
           <Sep />
-          <Item icon={<AlertTriangle size={11} />} label="Remove from List" onClick={p.onDelete} danger onClose={p.onClose} />
+
+          <Item icon={<AlertTriangle size={11} />}
+            label="Remove from List" sub="Does not delete files"
+            onClick={p.onDelete} danger onClose={p.onClose} />
         </div>
       </motion.div>
 
       <AnimatePresence>
+        {activeSub === 'organize' && (
+          <OrganizeSubMenu
+            projectPath={p.projectPath}
+            isFavorite={p.isFavorite}
+            gitInitialized={p.gitInitialized}
+            anchorRef={organizeTriggerRef}
+            parentLeft={pos.left} parentWidth={pos.width}
+            onFavorite={p.onFavorite}
+            onOpenDir={p.onOpenDir}
+            onClose={p.onClose}
+            onMouseEnter={keepSub} onMouseLeave={closeSub} />
+        )}
         {activeSub === 'tools' && (
           <ProjectToolsSubMenu
             projectPath={p.projectPath} anchorRef={toolsTriggerRef}

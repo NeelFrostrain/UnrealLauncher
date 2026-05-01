@@ -54,3 +54,9 @@ export function clearGitCache(): void {
   cache.clear()
   pending.clear()
 }
+
+/** Clear the cache for a single project path — use after branch switch or git init */
+export function clearGitCacheForPath(projectPath: string): void {
+  cache.delete(projectPath)
+  pending.delete(projectPath)
+}

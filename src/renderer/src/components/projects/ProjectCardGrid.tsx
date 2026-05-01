@@ -12,7 +12,7 @@ import ProjectContextMenu from './ProjectContextMenu'
 import ProjectLogDialog from './ProjectLogDialog'
 import GitCommitDialog from './GitCommitDialog'
 import GitBranchDialog from './GitBranchDialog'
-import { getGitStatus } from '../../hooks/useGitStatus'
+import { getGitStatus, clearGitCacheForPath } from '../../hooks/useGitStatus'
 import { useToast } from '../ui/ToastContext'
 
 const ProjectCardGrid = memo(
@@ -80,6 +80,7 @@ const ProjectCardGrid = memo(
       if (!projectPath) return
       const r = await window.electronAPI.projectGitInit(projectPath)
       if (r.success) {
+        clearGitCacheForPath(projectPath)
         setGit({ initialized: true, branch: 'main', remoteUrl: '' })
         if (!r.lfsAvailable) {
           addToast('Git repo initialized. Git LFS not found — install it to track large assets.', 'warning')
@@ -90,6 +91,15 @@ const ProjectCardGrid = memo(
         addToast(r.error ?? 'Failed to initialize git repo', 'error')
       }
     }, [projectPath, addToast])
+
+    const handleBranchChanged = useCallback((newBranch: string): void => {
+      if (!projectPath) return
+      setGit((prev) => ({ ...prev, branch: newBranch }))
+      clearGitCacheForPath(projectPath)
+      getGitStatus(projectPath).then((s) =>
+        setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' })
+      )
+    }, [projectPath])
 
     const handleLaunchGame = useCallback(async (): Promise<void> => {
       if (!projectPath) return
@@ -278,6 +288,7 @@ const ProjectCardGrid = memo(
             projectName={name}
             projectPath={projectPath}
             currentBranch={git.branch}
+            onBranchChanged={handleBranchChanged}
             onClose={() => setShowBranchDialog(false)}
           />
         )}

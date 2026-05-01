@@ -201,6 +201,8 @@ declare global {
       projectGitBranches: (projectPath: string) => Promise<{ branches: string[]; current: string; error?: string }>
       projectGitSwitchBranch: (projectPath: string, branch: string, create: boolean, strategy?: 'normal' | 'stash' | 'force') => Promise<{ success: boolean; hasUncommitted?: boolean; error?: string }>
       projectGitFileStatus: (projectPath: string) => Promise<{ hasGitignore: boolean; hasGitattributes: boolean }>
+      projectOpenTerminal: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectOpenGithub: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       // Engine scan paths (Linux)
       getEngineScanPaths: () => Promise<string[]>
       saveEngineScanPaths: (paths: string[]) => Promise<void>

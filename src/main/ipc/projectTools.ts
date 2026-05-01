@@ -696,6 +696,103 @@ export function registerProjectToolHandlers(ipcMain_: typeof ipcMain): void {
       }
     }
   )
+  // ── Open in terminal ─────────────────────────────────────────────────────────
+  ipcMain_.handle(
+    'project-open-terminal',
+    async (_event, projectPath: string): Promise<{ success: boolean; error?: string }> => {
+      if (!fs.existsSync(projectPath)) return { success: false, error: 'Project folder not found' }
+
+      if (process.platform === 'win32') {
+        try {
+          const { execSync } = await import('child_process')
+          // Check if Windows Terminal is available
+          let wtAvailable = false
+          try {
+            execSync('where wt', { stdio: 'pipe' })
+            wtAvailable = true
+          } catch { /* not installed */ }
+
+          if (wtAvailable) {
+            spawn('wt', ['-d', projectPath], { detached: true, stdio: 'ignore' }).unref()
+          } else {
+            // Fall back to cmd — use /c start "" cmd /K to open a new window
+            spawn('cmd', ['/c', 'start', '""', 'cmd', '/K', `cd /d "${projectPath}"`], {
+              detached: true, stdio: 'ignore', shell: true
+            }).unref()
+          }
+          return { success: true }
+        } catch (err) {
+          return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+        }
+      }
+
+      if (process.platform === 'darwin') {
+        try {
+          spawn('open', ['-a', 'Terminal', projectPath], { detached: true, stdio: 'ignore' }).unref()
+          return { success: true }
+        } catch (err) {
+          return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+        }
+      }
+
+      // Linux
+      const linuxTerminals: [string, string[]][] = [
+        ['gnome-terminal', ['--working-directory', projectPath]],
+        ['konsole', ['--workdir', projectPath]],
+        ['xfce4-terminal', ['--working-directory', projectPath]],
+        ['xterm', []]
+      ]
+      for (const [term, args] of linuxTerminals) {
+        try {
+          const child = spawn(term, args, { detached: true, stdio: 'ignore', cwd: projectPath })
+          child.on('error', () => {})
+          child.unref()
+          return { success: true }
+        } catch { /* try next */ }
+      }
+      return { success: false, error: 'No terminal emulator found' }
+    }
+  )
+
+  // ── Open in GitHub Desktop ────────────────────────────────────────────────────
+  ipcMain_.handle(
+    'project-open-github',
+    async (_event, projectPath: string): Promise<{ success: boolean; error?: string }> => {
+      // GitHub Desktop on Windows: launch the exe directly with the repo path
+      // It registers at %LOCALAPPDATA%\GitHubDesktop\GitHubDesktop.exe
+      if (process.platform === 'win32') {
+        const localAppData = process.env.LOCALAPPDATA ?? ''
+        const candidates = [
+          path.join(localAppData, 'GitHubDesktop', 'GitHubDesktop.exe'),
+          path.join(localAppData, 'Programs', 'GitHub Desktop', 'GitHubDesktop.exe'),
+          'C:\\Program Files\\GitHub Desktop\\GitHubDesktop.exe'
+        ]
+        const exe = candidates.find((c) => fs.existsSync(c))
+        if (exe) {
+          try {
+            spawn(exe, [projectPath], { detached: true, stdio: 'ignore' }).unref()
+            return { success: true }
+          } catch (err) {
+            return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+          }
+        }
+        return { success: false, error: 'GitHub Desktop not found. Install it from desktop.github.com' }
+      }
+
+      // macOS / Linux — use the github protocol
+      const encoded = encodeURIComponent(projectPath)
+      const url = process.platform === 'darwin'
+        ? `github-mac://openRepo?path=${encoded}`
+        : `x-github-client://openRepo?path=${encoded}`
+      try {
+        await shell.openExternal(url)
+        return { success: true }
+      } catch {
+        return { success: false, error: 'GitHub Desktop not found. Install it from desktop.github.com' }
+      }
+    }
+  )
+
   ipcMain_.handle(
     'project-open-remote',
     async (_event, remoteUrl: string): Promise<{ success: boolean; error?: string }> => {

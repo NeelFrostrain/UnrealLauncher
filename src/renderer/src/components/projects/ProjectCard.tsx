@@ -22,7 +22,7 @@ import {
 import DropdownPortal from '../ui/DropdownPortal'
 import { formatVersion, formatDate, showErrorToast } from './projectUtils'
 import ProjectLogDialog from './ProjectLogDialog'
-import { getGitStatus } from '../../hooks/useGitStatus'
+import { getGitStatus, clearGitCacheForPath } from '../../hooks/useGitStatus'
 import { useToast } from '../ui/ToastContext'
 
 // ── MenuItem — defined outside the card so it is never recreated ─────────────
@@ -134,6 +134,7 @@ const ProjectCard = memo(
       if (!projectPath) return
       const r = await window.electronAPI.projectGitInit(projectPath)
       if (r.success) {
+        clearGitCacheForPath(projectPath)
         setGit({ initialized: true, branch: 'main', remoteUrl: '' })
         if (!r.lfsAvailable) {
           addToast('Git repo initialized. Git LFS not found — install it to track large assets.', 'warning')
