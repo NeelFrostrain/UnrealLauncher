@@ -78,7 +78,13 @@ const DataSection = (): React.ReactElement => {
           <button
             onClick={handleClearAppData}
             disabled={clearing === 'app'}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 hover:bg-red-500/18 text-red-400 border border-red-500/20 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            style={{
+              borderRadius: 'var(--radius)',
+              backgroundColor: 'rgba(248,113,113,0.1)',
+              color: '#f87171',
+              border: '1px solid rgba(248,113,113,0.2)'
+            }}
           >
             <Trash2 size={12} />
             {clearing === 'app' ? 'Clearing…' : 'Reset All App Data'}
@@ -93,7 +99,13 @@ const DataSection = (): React.ReactElement => {
           <button
             onClick={handleClearTracerData}
             disabled={clearing === 'tracer'}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 hover:bg-red-500/18 text-red-400 border border-red-500/20 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            style={{
+              borderRadius: 'var(--radius)',
+              backgroundColor: 'rgba(248,113,113,0.1)',
+              color: '#f87171',
+              border: '1px solid rgba(248,113,113,0.2)'
+            }}
           >
             <Trash2 size={12} />
             {clearing === 'tracer' ? 'Clearing…' : 'Clear'}

@@ -22,7 +22,12 @@ const ThemePresets = ({
         Theme Presets
       </p>
       {hasOverrides && (
-        <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/25">
+        <span className="text-[10px] px-2 py-0.5 rounded-full"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)',
+            color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
+            border: '1px solid color-mix(in srgb, var(--color-accent) 25%, transparent)'
+          }}>
           Custom active
         </span>
       )}

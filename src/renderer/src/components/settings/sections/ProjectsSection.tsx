@@ -67,15 +67,16 @@ const ProjectsSection = (): React.ReactElement => {
       <Card>
         <SettingRow
           label="Auto-scan folders"
-          description="Automatically scan these folders for new Unreal projects on the Projects tab. Add as many folders as you want."
+          description="Automatically scan these folders for new Unreal projects on the Projects tab."
           className="items-start pt-5"
           last
         >
-          <div className="space-y-4 w-105 max-w-full">
+          <div className="space-y-3 w-full max-w-sm">
             {scanPaths.length === 0 ? (
               <div
-                className="rounded-xl border border-dashed px-4 py-4 text-xs"
+                className="border border-dashed px-4 py-4 text-xs"
                 style={{
+                  borderRadius: 'var(--radius)',
                   borderColor: 'var(--color-border)',
                   backgroundColor: 'var(--color-surface-card)',
                   color: 'var(--color-text-muted)'
@@ -88,28 +89,27 @@ const ProjectsSection = (): React.ReactElement => {
                 {scanPaths.map((p, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between gap-3 rounded-xl px-3 py-2"
+                    className="flex items-center justify-between gap-3 px-3 py-2"
                     style={{
+                      borderRadius: 'var(--radius)',
                       backgroundColor: 'var(--color-surface-card)',
                       border: '1px solid var(--color-border)'
                     }}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <FolderOpen size={14} className="shrink-0 text-blue-300" />
-                      <span
-                        className="text-xs font-mono truncate"
-                        style={{ color: 'var(--color-text-primary)' }}
-                      >
+                      <FolderOpen size={14} className="shrink-0" style={{ color: 'var(--color-accent)' }} />
+                      <span className="text-xs font-mono truncate" style={{ color: 'var(--color-text-primary)' }}>
                         {p}
                       </span>
                     </div>
                     <button
                       onClick={() => handleRemoveFolder(index)}
-                      className="flex items-center justify-center w-8 h-8 rounded-lg transition-all cursor-pointer"
+                      className="flex items-center justify-center w-8 h-8 transition-all cursor-pointer shrink-0"
                       style={{
+                        borderRadius: 'var(--radius)',
                         backgroundColor: 'var(--color-surface-elevated)',
                         border: '1px solid var(--color-border)',
-                        color: 'var(--color-danger)'
+                        color: '#f87171'
                       }}
                       title="Remove folder"
                     >
@@ -123,8 +123,9 @@ const ProjectsSection = (): React.ReactElement => {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={handleAddFolder}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold transition-all cursor-pointer"
                 style={{
+                  borderRadius: 'var(--radius)',
                   backgroundColor: 'var(--color-surface-elevated)',
                   border: '1px solid var(--color-border)',
                   color: 'var(--color-accent)'
@@ -135,21 +136,22 @@ const ProjectsSection = (): React.ReactElement => {
               </button>
               {scanPaths.length > 0 && (
                 <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                  {scanPaths.length} configured {scanPaths.length === 1 ? 'folder' : 'folders'}
+                  {scanPaths.length} {scanPaths.length === 1 ? 'folder' : 'folders'}
                 </span>
               )}
             </div>
 
             {error && (
               <div
-                className="flex items-center gap-2 rounded-lg px-3 py-2"
+                className="flex items-center gap-2 px-3 py-2"
                 style={{
-                  backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                  border: '1px solid rgba(220, 38, 38, 0.25)',
-                  color: 'var(--color-danger)'
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'rgba(248,113,113,0.1)',
+                  border: '1px solid rgba(248,113,113,0.2)',
+                  color: '#f87171'
                 }}
               >
-                <AlertCircle size={16} className="shrink-0" />
+                <AlertCircle size={14} className="shrink-0" />
                 <span className="text-xs">{error}</span>
               </div>
             )}
