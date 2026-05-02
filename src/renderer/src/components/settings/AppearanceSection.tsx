@@ -4,7 +4,6 @@
 // See LICENSE in the project root for full license terms.
 import { type RefObject } from 'react'
 import { type ThemeToken } from '../../utils/theme'
-import { Card } from './SectionHelpers'
 import SavedProfilesSection from './SavedProfilesSection'
 import ThemePresets from './appearance/ThemePresets'
 import FontControls from './appearance/FontControls'
@@ -39,6 +38,38 @@ export interface AppearanceSectionProps {
   handleFinishEdit: () => void
 }
 
+// ── Shared card wrapper ───────────────────────────────────────────────────────
+
+const Group = ({
+  title,
+  children
+}: {
+  title: string
+  children: React.ReactNode
+}): React.ReactElement => (
+  <div
+    className="overflow-hidden"
+    style={{
+      backgroundColor: 'var(--color-surface-elevated)',
+      border: '1px solid var(--color-border)',
+      borderRadius: 'var(--radius)'
+    }}
+  >
+    <div
+      className="px-4 py-2.5"
+      style={{ borderBottom: '1px solid var(--color-border)' }}
+    >
+      <p className="text-[10px] font-semibold uppercase tracking-widest select-none"
+        style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}>
+        {title}
+      </p>
+    </div>
+    {children}
+  </div>
+)
+
+// ── Main section ──────────────────────────────────────────────────────────────
+
 const AppearanceSection = ({
   activeThemeId,
   customOverrides,
@@ -69,19 +100,19 @@ const AppearanceSection = ({
   const hasOverrides = Object.keys(customOverrides).length > 0
 
   return (
-    <section>
-      <Card>
+    <div className="space-y-4">
+
+      {/* ── Theme ── */}
+      <Group title="Theme">
         <ThemePresets
           activeThemeId={activeThemeId}
           hasOverrides={hasOverrides}
           setTheme={setTheme}
         />
-        <FontControls
-          activeThemeId={activeThemeId}
-          customOverrides={customOverrides}
-          setOverride={setOverride}
-        />
-        <RadiusControl radius={radius} setRadius={setRadius} scale={scale} setScale={setScale} />
+      </Group>
+
+      {/* ── Colors ── */}
+      <Group title="Colors">
         <ColorOverrides
           activeThemeId={activeThemeId}
           customOverrides={customOverrides}
@@ -89,6 +120,24 @@ const AppearanceSection = ({
           setOverride={setOverride}
           resetOverrides={resetOverrides}
         />
+      </Group>
+
+      {/* ── Typography ── */}
+      <Group title="Typography">
+        <FontControls
+          activeThemeId={activeThemeId}
+          customOverrides={customOverrides}
+          setOverride={setOverride}
+        />
+      </Group>
+
+      {/* ── Layout ── */}
+      <Group title="Layout">
+        <RadiusControl radius={radius} setRadius={setRadius} scale={scale} setScale={setScale} />
+      </Group>
+
+      {/* ── Profiles ── */}
+      <Group title="Saved Profiles">
         <SavedProfilesSection
           profiles={profiles}
           activeProfileId={activeProfileId}
@@ -106,8 +155,9 @@ const AppearanceSection = ({
           applyProfile={applyProfile}
           deleteProfile={deleteProfile}
         />
-      </Card>
-    </section>
+      </Group>
+
+    </div>
   )
 }
 
