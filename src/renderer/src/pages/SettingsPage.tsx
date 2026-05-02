@@ -223,43 +223,34 @@ const SettingsPage = (): React.ReactElement => {
   return (
     <PageWrapper>
       <div className="flex flex-col h-full min-h-0">
-        {/* ── Top tab bar ── */}
+        {/* ── Top tab bar — matches Engines/Projects toolbar style ── */}
         <div
-          className="shrink-0 px-4 pt-3 pb-0 overflow-hidden"
-          style={{ borderBottom: '1px solid var(--color-border)' }}
+          className="flex items-center justify-center gap-3 py-3 shrink-0 border-b"
+          style={{ borderColor: 'var(--color-border)' }}
         >
-          <div className="flex justify-center items-center gap-1 overflow-hidden">
+          <div
+            className="flex flex-1 items-center gap-0.5 px-1 py-1 rounded-lg"
+            style={{
+              backgroundColor: 'var(--color-surface-card)',
+              border: '1px solid var(--color-border)'
+            }}
+          >
             {visibleNav.map((item) => {
               const active = activeSection === item.id
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveSection(item.id)}
-                  className="flex flex-1 justify-center items-center gap-2 px-3 py-2 text-xs font-medium cursor-pointer whitespace-nowrap shrink-0 transition-colors"
+                  className="flex flex-1 justify-center items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer"
                   style={{
                     color: active ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-                    borderBottom: active ? `2px solid ${item.accent}` : '2px solid transparent',
-                    backgroundColor: 'transparent',
-                    marginBottom: -1
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!active) e.currentTarget.style.color = 'var(--color-text-secondary)'
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!active) e.currentTarget.style.color = 'var(--color-text-muted)'
+                    backgroundColor: active
+                      ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
+                      : 'transparent',
+                    boxShadow: active ? '0 1px 3px rgba(0,0,0,0.3)' : 'none'
                   }}
                 >
-                  <span
-                    className="w-5 h-5 flex items-center justify-center shrink-0"
-                    style={{
-                      borderRadius: 'calc(var(--radius) * 0.5)',
-                      backgroundColor: active
-                        ? `color-mix(in srgb, ${item.accent} 18%, transparent)`
-                        : 'transparent',
-                      color: active ? item.accent : 'var(--color-text-muted)',
-                      transition: 'all 120ms ease'
-                    }}
-                  >
+                  <span style={{ color: active ? item.accent : 'var(--color-text-muted)' }}>
                     {item.icon}
                   </span>
                   {item.label}
@@ -271,7 +262,7 @@ const SettingsPage = (): React.ReactElement => {
 
         {/* ── Content ── */}
         <div className="flex-1 overflow-y-auto min-h-0">
-          <div className="px-6 py-5">{renderSection()}</div>
+          <div className="py-5">{renderSection()}</div>
         </div>
       </div>
 
