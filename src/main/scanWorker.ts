@@ -340,14 +340,22 @@ function runScanProjects(saved: Project[]): Project[] {
           const uprojectPath = path.join(p.projectPath, uprojectFile)
           freshName = path.basename(uprojectFile, '.uproject') || freshName
           try {
-            const match = fs.readFileSync(uprojectPath, 'utf8').match(/"EngineAssociation":\s*"([^"]+)"/)
+            const match = fs
+              .readFileSync(uprojectPath, 'utf8')
+              .match(/"EngineAssociation":\s*"([^"]+)"/)
             if (match) freshVersion = match[1]
-          } catch { /* keep saved */ }
+          } catch {
+            /* keep saved */
+          }
           try {
             freshCreatedAt = fs.statSync(p.projectPath).birthtime.toISOString().split('T')[0]
-          } catch { /* keep saved */ }
+          } catch {
+            /* keep saved */
+          }
         }
-      } catch { /* keep saved */ }
+      } catch {
+        /* keep saved */
+      }
       freshThumbnail = findProjectScreenshot(p.projectPath)
       merged.push({
         ...p,

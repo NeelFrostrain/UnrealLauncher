@@ -124,8 +124,19 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-git-commit', projectPath, message),
       projectGitBranches: (projectPath: string) =>
         ipcRenderer.invoke('project-git-branches', projectPath),
-      projectGitSwitchBranch: (projectPath: string, branch: string, create: boolean, strategy?: string) =>
-        ipcRenderer.invoke('project-git-switch-branch', projectPath, branch, create, strategy ?? 'normal'),
+      projectGitSwitchBranch: (
+        projectPath: string,
+        branch: string,
+        create: boolean,
+        strategy?: string
+      ) =>
+        ipcRenderer.invoke(
+          'project-git-switch-branch',
+          projectPath,
+          branch,
+          create,
+          strategy ?? 'normal'
+        ),
       projectGitFileStatus: (projectPath: string) =>
         ipcRenderer.invoke('project-git-file-status', projectPath),
       projectOpenTerminal: (projectPath: string) =>

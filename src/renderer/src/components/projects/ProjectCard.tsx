@@ -36,7 +36,14 @@ interface MenuItemProps {
   onClose: () => void
 }
 
-const MenuItem = ({ icon, label, onClick, danger = false, disabled = false, onClose }: MenuItemProps): React.ReactElement => (
+const MenuItem = ({
+  icon,
+  label,
+  onClick,
+  danger = false,
+  disabled = false,
+  onClose
+}: MenuItemProps): React.ReactElement => (
   <button
     onClick={() => {
       if (!disabled) {
@@ -104,7 +111,10 @@ const ProjectCard = memo(
 
     // Re-fetch git status whenever the project path changes or a new scan completes
     useEffect(() => {
-      if (projectPath) getGitStatus(projectPath).then((s) => setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' }))
+      if (projectPath)
+        getGitStatus(projectPath).then((s) =>
+          setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' })
+        )
     }, [projectPath, scanEpoch])
 
     const closeMenu = useCallback(() => setMenuOpen(false), [])
@@ -137,7 +147,10 @@ const ProjectCard = memo(
         clearGitCacheForPath(projectPath)
         setGit({ initialized: true, branch: 'main', remoteUrl: '' })
         if (!r.lfsAvailable) {
-          addToast('Git repo initialized. Git LFS not found — install it to track large assets.', 'warning')
+          addToast(
+            'Git repo initialized. Git LFS not found — install it to track large assets.',
+            'warning'
+          )
         } else {
           addToast('Git repo initialized with LFS and .gitattributes', 'success')
         }
@@ -218,11 +231,19 @@ const ProjectCard = memo(
                 )}
               </div>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
+                <div
+                  className="flex items-center gap-1"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   <Clock size={11} />
-                  <span className="text-[10px]">{dateType} {dateLabel}</span>
+                  <span className="text-[10px]">
+                    {dateType} {dateLabel}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
+                <div
+                  className="flex items-center gap-1"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   <Database size={11} />
                   <span className="text-[10px] font-mono">{size}</span>
                 </div>
@@ -286,11 +307,7 @@ const ProjectCard = memo(
                   <MoreVertical size={16} />
                 </motion.button>
 
-                <DropdownPortal
-                  open={menuOpen}
-                  anchorRef={menuBtnRef}
-                  onClose={closeMenu}
-                >
+                <DropdownPortal open={menuOpen} anchorRef={menuBtnRef} onClose={closeMenu}>
                   <MenuItem
                     icon={
                       <Star
@@ -315,7 +332,10 @@ const ProjectCard = memo(
                     onClick={() => navigator.clipboard.writeText(projectPath ?? '')}
                     onClose={closeMenu}
                   />
-                  <div className="h-px mx-2 my-1" style={{ backgroundColor: 'var(--color-border)' }} />
+                  <div
+                    className="h-px mx-2 my-1"
+                    style={{ backgroundColor: 'var(--color-border)' }}
+                  />
                   <MenuItem
                     icon={<ScrollText size={14} style={{ color: 'var(--color-accent)' }} />}
                     label="View Logs"
@@ -338,7 +358,10 @@ const ProjectCard = memo(
                       onClose={closeMenu}
                     />
                   )}
-                  <div className="h-px mx-2 my-1" style={{ backgroundColor: 'var(--color-border)' }} />
+                  <div
+                    className="h-px mx-2 my-1"
+                    style={{ backgroundColor: 'var(--color-border)' }}
+                  />
                   <MenuItem
                     icon={<Trash2 size={14} />}
                     label="Remove from List"

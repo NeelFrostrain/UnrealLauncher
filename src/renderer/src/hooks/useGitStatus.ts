@@ -27,7 +27,11 @@ export async function getGitStatus(projectPath: string): Promise<GitStatus> {
     .then((s): GitStatus => {
       // Discard result if a new scan started while this request was in-flight
       if (generation === capturedGen) {
-        const result: GitStatus = { initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' }
+        const result: GitStatus = {
+          initialized: s.initialized,
+          branch: s.branch,
+          remoteUrl: s.remoteUrl ?? ''
+        }
         cache.set(projectPath, result)
         pending.delete(projectPath)
         return result

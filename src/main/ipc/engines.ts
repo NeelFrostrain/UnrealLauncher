@@ -218,18 +218,35 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
           name = meta.FriendlyName || meta.Name || name
           description = meta.Description || ''
           version = meta.VersionName || String(meta.Version || '')
-          if (meta.Category && typeof meta.Category === 'string' && meta.Category.trim() && category !== 'Marketplace') {
+          if (
+            meta.Category &&
+            typeof meta.Category === 'string' &&
+            meta.Category.trim() &&
+            category !== 'Marketplace'
+          ) {
             category = meta.Category.trim()
           }
           isBeta = !!meta.IsBetaVersion
           isExperimental = !!meta.IsExperimentalVersion
           createdBy = meta.CreatedBy || ''
-        } catch { /* keep defaults */ }
+        } catch {
+          /* keep defaults */
+        }
 
         const iconPath = path.join(dir, 'Resources', 'Icon128.png')
         if (fs.existsSync(iconPath)) icon = iconPath
 
-        results.push({ name, path: dir, description, version, category, isBeta, isExperimental, icon, createdBy })
+        results.push({
+          name,
+          path: dir,
+          description,
+          version,
+          category,
+          isBeta,
+          isExperimental,
+          icon,
+          createdBy
+        })
         return
       }
 

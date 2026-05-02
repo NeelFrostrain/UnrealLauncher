@@ -3,8 +3,7 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { useEffect, useState } from 'react'
-import { Zap } from 'lucide-react'
-import { SectionHeader, Card, SettingRow, Toggle } from '../SectionHelpers'
+import { Card, SettingRow, Toggle } from '../SectionHelpers'
 import { useAnimations } from '../../../utils/AnimationContext'
 import { getSetting, setSetting } from '../../../utils/settings'
 
@@ -33,11 +32,6 @@ const LaunchSection = ({ autoCloseOnLaunch, onToggle }: LaunchSectionProps): Rea
 
   return (
     <section>
-      <SectionHeader
-        icon={<Zap size={13} className="text-yellow-300" />}
-        label="Launch"
-        accent="bg-yellow-500/20"
-      />
       <Card>
         <SettingRow
           label="Auto-close on launch"

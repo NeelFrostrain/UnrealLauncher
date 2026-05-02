@@ -4,7 +4,7 @@
 // See LICENSE in the project root for full license terms.
 import { useState, useEffect, useRef } from 'react'
 import { FolderOpen, Plus, X, AlertCircle } from 'lucide-react'
-import { SectionHeader, Card, SettingRow } from '../SectionHelpers'
+import { Card, SettingRow } from '../SectionHelpers'
 
 const ProjectsSection = (): React.ReactElement => {
   const [scanPaths, setScanPaths] = useState<string[]>([])
@@ -64,11 +64,6 @@ const ProjectsSection = (): React.ReactElement => {
 
   return (
     <section>
-      <SectionHeader
-        icon={<FolderOpen size={13} className="text-blue-300" />}
-        label="Projects"
-        accent="bg-blue-500/20"
-      />
       <Card>
         <SettingRow
           label="Auto-scan folders"

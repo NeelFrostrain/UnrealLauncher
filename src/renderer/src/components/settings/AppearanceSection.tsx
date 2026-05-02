@@ -3,9 +3,8 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { type RefObject } from 'react'
-import { Check } from 'lucide-react'
 import { type ThemeToken } from '../../utils/theme'
-import { Card, SectionHeader } from './SectionHelpers'
+import { Card } from './SectionHelpers'
 import SavedProfilesSection from './SavedProfilesSection'
 import ThemePresets from './appearance/ThemePresets'
 import FontControls from './appearance/FontControls'
@@ -71,11 +70,6 @@ const AppearanceSection = ({
 
   return (
     <section>
-      <SectionHeader
-        icon={<Check size={13} className="text-purple-300" />}
-        label="Appearance"
-        accent="bg-purple-500/20"
-      />
       <Card>
         <ThemePresets
           activeThemeId={activeThemeId}

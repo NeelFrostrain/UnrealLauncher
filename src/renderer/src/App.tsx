@@ -24,7 +24,15 @@ const PageLoader = (): React.ReactNode => (
 // ── Resolve the last visited full path (page + tab) from localStorage ─────────
 function getInitialPath(): string {
   const saved = localStorage.getItem('lastVisitedPath')
-  const valid = ['/engines', '/engines/plugins', '/engines/fab', '/projects', '/projects/recent', '/projects/favorites', '/settings']
+  const valid = [
+    '/engines',
+    '/engines/plugins',
+    '/engines/fab',
+    '/projects',
+    '/projects/recent',
+    '/projects/favorites',
+    '/settings'
+  ]
   if (saved && valid.includes(saved)) return saved
   return '/engines'
 }

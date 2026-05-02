@@ -3,8 +3,8 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { useState } from 'react'
-import { Database, Trash2 } from 'lucide-react'
-import { SectionHeader, Card, SettingRow } from '../SectionHelpers'
+import { Trash2 } from 'lucide-react'
+import { Card, SettingRow } from '../SectionHelpers'
 import { getSetting, setSetting } from '../../../utils/settings'
 
 const LOG_PRESETS = [500, 1000, 2000, 5000, 10000]
@@ -36,11 +36,6 @@ const DataSection = (): React.ReactElement => {
 
   return (
     <section>
-      <SectionHeader
-        icon={<Database size={13} className="text-red-300" />}
-        label="Data"
-        accent="bg-red-500/20"
-      />
       <Card>
         <SettingRow
           label="Log viewer lines"

@@ -28,10 +28,19 @@ const STATUS_COLOR: Record<string, string> = {
   C: '#60a5fa'
 }
 const STATUS_LABEL: Record<string, string> = {
-  M: 'M', A: 'A', '?': 'U', D: 'D', R: 'R', C: 'C'
+  M: 'M',
+  A: 'A',
+  '?': 'U',
+  D: 'D',
+  R: 'R',
+  C: 'C'
 }
 
-export default function GitCommitDialog({ projectName, projectPath, onClose }: Props): React.ReactElement {
+export default function GitCommitDialog({
+  projectName,
+  projectPath,
+  onClose
+}: Props): React.ReactElement {
   const { addToast } = useToast()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -53,10 +62,14 @@ export default function GitCommitDialog({ projectName, projectPath, onClose }: P
     if (r.hasChanges) setTimeout(() => inputRef.current?.focus(), 60)
   }, [projectPath])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   useEffect(() => {
-    const h = (e: KeyboardEvent): void => { if (e.key === 'Escape') onClose() }
+    const h = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') onClose()
+    }
     document.addEventListener('keydown', h)
     return () => document.removeEventListener('keydown', h)
   }, [onClose])
@@ -80,7 +93,9 @@ export default function GitCommitDialog({ projectName, projectPath, onClose }: P
       style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
     >
       <motion.div
         className="flex flex-col w-full max-w-lg"
@@ -97,14 +112,18 @@ export default function GitCommitDialog({ projectName, projectPath, onClose }: P
         transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3 shrink-0"
-          style={{ borderBottom: '1px solid var(--color-border)' }}>
-          <div className="w-7 h-7 flex items-center justify-center shrink-0"
+        <div
+          className="flex items-center gap-3 px-4 py-3 shrink-0"
+          style={{ borderBottom: '1px solid var(--color-border)' }}
+        >
+          <div
+            className="w-7 h-7 flex items-center justify-center shrink-0"
             style={{
               borderRadius: 'calc(var(--radius) * 0.6)',
               backgroundColor: 'color-mix(in srgb, #f59e0b 15%, transparent)',
               border: '1px solid color-mix(in srgb, #f59e0b 25%, transparent)'
-            }}>
+            }}
+          >
             <GitCommit size={14} style={{ color: '#f59e0b' }} />
           </div>
           <div className="flex-1 min-w-0">
@@ -115,28 +134,38 @@ export default function GitCommitDialog({ projectName, projectPath, onClose }: P
               {projectName}
             </p>
           </div>
-          <button onClick={onClose} className="p-1.5 cursor-pointer transition-colors"
+          <button
+            onClick={onClose}
+            className="p-1.5 cursor-pointer transition-colors"
             style={{
               borderRadius: 'calc(var(--radius) * 0.5)',
               color: 'var(--color-text-muted)',
               backgroundColor: 'var(--color-surface-card)',
               border: '1px solid var(--color-border)'
-            }}>
+            }}
+          >
             <X size={14} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3" style={{ minHeight: 0 }}>
+        <div
+          className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3"
+          style={{ minHeight: 0 }}
+        >
           {loading ? (
-            <div className="flex items-center justify-center py-10 gap-2"
-              style={{ color: 'var(--color-text-muted)' }}>
+            <div
+              className="flex items-center justify-center py-10 gap-2"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               <RefreshCw size={14} className="animate-spin" />
               <span className="text-xs">Checking for changes…</span>
             </div>
           ) : !hasChanges ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-3"
-              style={{ color: 'var(--color-text-muted)' }}>
+            <div
+              className="flex flex-col items-center justify-center py-10 gap-3"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               <CheckCircle2 size={32} style={{ color: '#34d399', opacity: 0.7 }} />
               <div className="text-center">
                 <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
@@ -150,23 +179,36 @@ export default function GitCommitDialog({ projectName, projectPath, onClose }: P
               {/* File list */}
               {files.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest mb-1.5"
-                    style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}>
+                  <p
+                    className="text-[10px] font-semibold uppercase tracking-widest mb-1.5"
+                    style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
+                  >
                     {summary}
                   </p>
-                  <div className="rounded overflow-hidden" style={{ border: '1px solid var(--color-border)' }}>
+                  <div
+                    className="rounded overflow-hidden"
+                    style={{ border: '1px solid var(--color-border)' }}
+                  >
                     <div className="overflow-y-auto" style={{ maxHeight: 160 }}>
                       {files.map((f, i) => (
-                        <div key={i}
+                        <div
+                          key={i}
                           className="flex items-center gap-2.5 px-3 py-1.5 text-[11px] font-mono"
                           style={{
-                            backgroundColor: i % 2 === 0 ? 'var(--color-surface-card)' : 'transparent'
-                          }}>
-                          <span className="shrink-0 font-bold text-[10px] w-3 text-center"
-                            style={{ color: STATUS_COLOR[f.status] ?? 'var(--color-text-muted)' }}>
+                            backgroundColor:
+                              i % 2 === 0 ? 'var(--color-surface-card)' : 'transparent'
+                          }}
+                        >
+                          <span
+                            className="shrink-0 font-bold text-[10px] w-3 text-center"
+                            style={{ color: STATUS_COLOR[f.status] ?? 'var(--color-text-muted)' }}
+                          >
                             {STATUS_LABEL[f.status] ?? f.status}
                           </span>
-                          <span className="truncate" style={{ color: 'var(--color-text-secondary)' }}>
+                          <span
+                            className="truncate"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                          >
                             {f.file}
                           </span>
                         </div>
@@ -178,8 +220,10 @@ export default function GitCommitDialog({ projectName, projectPath, onClose }: P
 
               {/* Commit message */}
               <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5"
-                  style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}>
+                <label
+                  className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5"
+                  style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
+                >
                   Commit Message
                 </label>
                 <input
@@ -188,7 +232,9 @@ export default function GitCommitDialog({ projectName, projectPath, onClose }: P
                   placeholder="Describe your changes…"
                   value={commitMsg}
                   onChange={(e) => setCommitMsg(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleCommit() }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCommit()
+                  }}
                   className="w-full text-sm px-3 py-2 rounded outline-none transition-colors"
                   style={{
                     backgroundColor: 'var(--color-surface-card)',
@@ -198,7 +244,10 @@ export default function GitCommitDialog({ projectName, projectPath, onClose }: P
                   onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--color-accent)')}
                   onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--color-border)')}
                 />
-                <p className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)', opacity: 0.5 }}>
+                <p
+                  className="text-[10px] mt-1"
+                  style={{ color: 'var(--color-text-muted)', opacity: 0.5 }}
+                >
                   Press Enter to commit
                 </p>
               </div>
@@ -207,15 +256,20 @@ export default function GitCommitDialog({ projectName, projectPath, onClose }: P
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-4 py-3 shrink-0"
-          style={{ borderTop: '1px solid var(--color-border)' }}>
-          <button onClick={onClose} className="px-4 py-1.5 text-xs cursor-pointer transition-colors"
+        <div
+          className="flex items-center justify-end gap-2 px-4 py-3 shrink-0"
+          style={{ borderTop: '1px solid var(--color-border)' }}
+        >
+          <button
+            onClick={onClose}
+            className="px-4 py-1.5 text-xs cursor-pointer transition-colors"
             style={{
               borderRadius: 'var(--radius)',
               backgroundColor: 'var(--color-surface-card)',
               color: 'var(--color-text-secondary)',
               border: '1px solid var(--color-border)'
-            }}>
+            }}
+          >
             {hasChanges ? 'Cancel' : 'Close'}
           </button>
           {!loading && hasChanges && (
@@ -223,11 +277,21 @@ export default function GitCommitDialog({ projectName, projectPath, onClose }: P
               onClick={handleCommit}
               disabled={!commitMsg.trim() || committing}
               className="flex items-center gap-2 px-4 py-1.5 text-xs font-semibold cursor-pointer disabled:opacity-40 transition-opacity"
-              style={{ borderRadius: 'var(--radius)', backgroundColor: 'var(--color-accent)', color: 'white' }}>
-              {committing
-                ? <><RefreshCw size={12} className="animate-spin" /> Committing…</>
-                : <><GitCommit size={12} /> Commit All</>
-              }
+              style={{
+                borderRadius: 'var(--radius)',
+                backgroundColor: 'var(--color-accent)',
+                color: 'white'
+              }}
+            >
+              {committing ? (
+                <>
+                  <RefreshCw size={12} className="animate-spin" /> Committing…
+                </>
+              ) : (
+                <>
+                  <GitCommit size={12} /> Commit All
+                </>
+              )}
             </button>
           )}
         </div>

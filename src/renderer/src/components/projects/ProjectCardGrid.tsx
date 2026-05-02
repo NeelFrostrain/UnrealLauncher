@@ -58,7 +58,10 @@ const ProjectCardGrid = memo(
       : resolveAsset(undefined)
 
     useEffect(() => {
-      if (projectPath) getGitStatus(projectPath).then((s) => setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' }))
+      if (projectPath)
+        getGitStatus(projectPath).then((s) =>
+          setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' })
+        )
     }, [projectPath, scanEpoch])
 
     const handleClick = useCallback(async (): Promise<void> => {
@@ -83,7 +86,10 @@ const ProjectCardGrid = memo(
         clearGitCacheForPath(projectPath)
         setGit({ initialized: true, branch: 'main', remoteUrl: '' })
         if (!r.lfsAvailable) {
-          addToast('Git repo initialized. Git LFS not found — install it to track large assets.', 'warning')
+          addToast(
+            'Git repo initialized. Git LFS not found — install it to track large assets.',
+            'warning'
+          )
         } else {
           addToast('Git repo initialized with LFS and .gitattributes', 'success')
         }
@@ -92,14 +98,17 @@ const ProjectCardGrid = memo(
       }
     }, [projectPath, addToast])
 
-    const handleBranchChanged = useCallback((newBranch: string): void => {
-      if (!projectPath) return
-      setGit((prev) => ({ ...prev, branch: newBranch }))
-      clearGitCacheForPath(projectPath)
-      getGitStatus(projectPath).then((s) =>
-        setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' })
-      )
-    }, [projectPath])
+    const handleBranchChanged = useCallback(
+      (newBranch: string): void => {
+        if (!projectPath) return
+        setGit((prev) => ({ ...prev, branch: newBranch }))
+        clearGitCacheForPath(projectPath)
+        getGitStatus(projectPath).then((s) =>
+          setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' })
+        )
+      },
+      [projectPath]
+    )
 
     const handleLaunchGame = useCallback(async (): Promise<void> => {
       if (!projectPath) return

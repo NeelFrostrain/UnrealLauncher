@@ -3,8 +3,8 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { useState, useEffect, useRef } from 'react'
-import { Cpu, FolderOpen, Plus, X, AlertCircle, Info } from 'lucide-react'
-import { SectionHeader, Card, SettingRow } from '../SectionHelpers'
+import { FolderOpen, Plus, X, AlertCircle, Info } from 'lucide-react'
+import { Card, SettingRow } from '../SectionHelpers'
 
 const EnginesSection = (): React.ReactElement => {
   const [scanPaths, setScanPaths] = useState<string[]>([])
@@ -64,11 +64,6 @@ const EnginesSection = (): React.ReactElement => {
 
   return (
     <section>
-      <SectionHeader
-        icon={<Cpu size={13} className="text-orange-300" />}
-        label="Engines"
-        accent="bg-orange-500/20"
-      />
       <Card>
         <SettingRow
           label="Engine scan folders"

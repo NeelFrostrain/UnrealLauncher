@@ -22,7 +22,6 @@ All notable changes to this project will be documented in this file.
 - **Theme-aware badges** — System badges use theme colors and respect `--radius` variable
 - **Responsive layout** — Compact horizontal badge layout instead of grid to save vertical space
 
-
 ### 🛠️ Fixed
 
 - **Tracer not stopping on Linux toggle-off** — `killProcess` was wrapping `pkill` in a `try/catch` that silently swallowed the "no process found" exit code (1), making it appear to fail. Removed the outer try/catch — `pkill` exit code 1 is not an error. Also separated the systemctl calls from the `killProcess` call so a missing systemd user session no longer prevents the process from being killed
