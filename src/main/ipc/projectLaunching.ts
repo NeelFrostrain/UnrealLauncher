@@ -6,7 +6,6 @@ import path from 'path'
 import fs from 'fs'
 import { spawn } from 'child_process'
 import { loadEngines } from '../store'
-import { openFileOrDirectory } from '../utils/processUtils'
 
 /**
  * Locates the .uproject file in a project directory
@@ -80,8 +79,29 @@ export async function handleLaunchProject(
     return { success: false, error: 'Project file not found' }
   }
 
+  const engineAssociation = await getEngineAssociation(uprojectPath)
+  const editorExe = findEditorExecutable(engineAssociation)
+
+  if (!editorExe) {
+    return {
+      success: false,
+      error: `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab first.`
+    }
+  }
+
+  // Verify the executable exists
   try {
-    openFileOrDirectory(uprojectPath)
+    await fs.promises.access(editorExe)
+  } catch {
+    return {
+      success: false,
+      error: `Engine executable not found at "${editorExe}". Re-add the engine in the Engines tab.`
+    }
+  }
+
+  try {
+    // Spawn the editor directly — avoids xdg-open opening .uproject in a text editor on Linux
+    spawn(editorExe, [uprojectPath], { detached: true, stdio: 'ignore' }).unref()
     return { success: true }
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
