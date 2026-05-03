@@ -11,12 +11,15 @@ import { AboutArchitecture } from '../components/about/AboutArchitecture'
 import { AboutIpcModules } from '../components/about/AboutIpcModules'
 import { AboutDataStorage } from '../components/about/AboutDataStorage'
 import { AboutTechStack } from '../components/about/AboutTechStack'
+import { useAppVersion } from '../hooks/useAppVersion'
 
 const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement => {
+  const appVersion = useAppVersion()
+
   const content = (
     <>
       <div className="space-y-6 pb-8 p-5">
-        <AboutHero />
+        <AboutHero version={appVersion} />
         <AboutFeatureGrid />
         <AboutFeatureCounts />
         <AboutArchitecture />

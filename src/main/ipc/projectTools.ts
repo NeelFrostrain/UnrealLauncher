@@ -12,7 +12,9 @@ import {
 } from './projectGit'
 import {
   handleProjectOpenDefaultConfig, handleProjectOpenUproject,
-  handleProjectOpenSubfolder, handleProjectGenerateFiles, handleProjectCleanIntermediate
+  handleProjectOpenSubfolder, handleProjectGenerateFiles, handleProjectCleanIntermediate,
+  handleProjectReadTextFile, handleProjectWriteTextFile,
+  handleProjectResolveConfigPath, handleProjectResolveUprojectPath
 } from './projectFiles'
 import {
   handleProjectOpenTerminal, handleProjectOpenGithub, handleProjectOpenRemote
@@ -36,6 +38,10 @@ export function registerProjectToolHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('project-open-subfolder', (_e, p: string, sub: string) => handleProjectOpenSubfolder(p, sub))
   ipcMain_.handle('project-generate-files', (_e, p: string) => handleProjectGenerateFiles(p))
   ipcMain_.handle('project-clean-intermediate', (_e, p: string) => handleProjectCleanIntermediate(p))
+  ipcMain_.handle('project-read-text-file', (_e, filePath: string) => handleProjectReadTextFile(filePath))
+  ipcMain_.handle('project-write-text-file', (_e, filePath: string, content: string) => handleProjectWriteTextFile(filePath, content))
+  ipcMain_.handle('project-resolve-config-path', (_e, p: string) => handleProjectResolveConfigPath(p))
+  ipcMain_.handle('project-resolve-uproject-path', (_e, p: string) => handleProjectResolveUprojectPath(p))
   ipcMain_.handle('project-open-terminal', (_e, p: string) => handleProjectOpenTerminal(p))
   ipcMain_.handle('project-open-github', (_e, p: string) => handleProjectOpenGithub(p))
   ipcMain_.handle('project-open-remote', async (_e, remoteUrl: string) => {

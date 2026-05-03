@@ -2,20 +2,20 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export function SystemInfoGrid(): React.ReactElement {
   const platform = window.electronAPI.platform
   const [nativeLoaded, setNativeLoaded] = useState<boolean | null>(null)
-  const [appVersion, setAppVersion] = useState('')
+  const [appVersion, setAppVersion] = useState("")
   const [tracerRunning, setTracerRunning] = useState<boolean | null>(null)
   const [electronVersion] = useState(() => window.electronAPI.electronVersion || '')
 
-  useState(() => {
+  useEffect(() => {
     window.electronAPI.getNativeStatus().then(setNativeLoaded)
-    window.electronAPI.getAppVersion().then(setAppVersion)
+    window.electronAPI.getAppVersion().then((v) => { if (v) setAppVersion(v) })
     if (platform === 'win32') window.electronAPI.isTracerRunning().then(setTracerRunning)
-  })
+  }, [])
 
   const PLATFORM_LABEL: Record<string, string> = {
     win32: 'Windows',

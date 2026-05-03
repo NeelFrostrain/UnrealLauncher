@@ -143,6 +143,14 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-open-terminal', projectPath),
       projectOpenGithub: (projectPath: string) =>
         ipcRenderer.invoke('project-open-github', projectPath),
+      projectReadTextFile: (filePath: string) =>
+        ipcRenderer.invoke('project-read-text-file', filePath),
+      projectWriteTextFile: (filePath: string, content: string) =>
+        ipcRenderer.invoke('project-write-text-file', filePath, content),
+      projectResolveConfigPath: (projectPath: string) =>
+        ipcRenderer.invoke('project-resolve-config-path', projectPath),
+      projectResolveUprojectPath: (projectPath: string) =>
+        ipcRenderer.invoke('project-resolve-uproject-path', projectPath),
       // Engine scan paths (Linux)
       getEngineScanPaths: () => ipcRenderer.invoke('get-engine-scan-paths'),
       saveEngineScanPaths: (paths: string[]) => ipcRenderer.invoke('save-engine-scan-paths', paths),

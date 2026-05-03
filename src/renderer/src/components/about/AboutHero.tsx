@@ -3,7 +3,7 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 
-export const AboutHero = (): React.ReactElement => (
+export const AboutHero = ({ version }: { version: string }): React.ReactElement => (
   <div
     className="relative overflow-hidden px-6 py-8"
     style={{
@@ -40,7 +40,7 @@ export const AboutHero = (): React.ReactElement => (
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2">
         {[
-          { label: 'Version', value: '2.1.2' },
+          { label: 'Version', value: `v${version}` },
           { label: 'Features', value: '44' },
           { label: 'IPC Channels', value: '30+' },
           { label: 'License', value: 'Proprietary' }

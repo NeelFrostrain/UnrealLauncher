@@ -12,19 +12,23 @@ import { useContextMenuPosition } from './useContextMenuPosition'
 
 export const ProjectToolsSubMenu = ({
   projectPath,
+  projectName,
   anchorRef,
   parentLeft,
   parentWidth,
   onViewLogs,
+  onOpenFileEditor,
   onClose,
   onMouseEnter,
   onMouseLeave
 }: {
   projectPath: string
+  projectName: string
   anchorRef: React.RefObject<HTMLButtonElement | null>
   parentLeft: number
   parentWidth: number
   onViewLogs: () => void
+  onOpenFileEditor: (mode: 'config' | 'uproject') => void
   onClose: () => void
   onMouseEnter?: () => void
   onMouseLeave?: () => void
@@ -44,6 +48,12 @@ export const ProjectToolsSubMenu = ({
     onClose()
   }, [projectPath, addToast, onClose])
 
+  // Open editor via parent callback — state lives in projectCardDialogs, survives menu close
+  const handleOpenEditor = useCallback((mode: 'config' | 'uproject') => {
+    onOpenFileEditor(mode)
+    onClose()
+  }, [onOpenFileEditor, onClose])
+
   return createPortal(
     <motion.div
       ref={subRef}
@@ -62,14 +72,14 @@ export const ProjectToolsSubMenu = ({
           icon={<Settings2 size={11} style={{ color: '#94a3b8' }} />}
           label="Edit Default Config"
           sub="DefaultEngine.ini"
-          onClick={() => window.electronAPI.projectOpenDefaultConfig(projectPath)}
+          onClick={() => handleOpenEditor('config')}
           onClose={onClose}
         />
         <MenuItem
           icon={<FileCode2 size={11} style={{ color: 'var(--color-accent)' }} />}
           label="Edit .uproject File"
           sub="Open project descriptor"
-          onClick={() => window.electronAPI.projectOpenUproject(projectPath)}
+          onClick={() => handleOpenEditor('uproject')}
           onClose={onClose}
         />
         <MenuItem

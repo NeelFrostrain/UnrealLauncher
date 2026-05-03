@@ -38,6 +38,7 @@ export interface ProjectContextMenuProps {
   onClose: () => void
   onOpenCommitDialog: () => void
   onOpenBranchDialog: () => void
+  onOpenFileEditor: (mode: 'config' | 'uproject') => void
 }
 
 export default function ProjectContextMenu(p: ProjectContextMenuProps): React.ReactElement {
@@ -268,10 +269,12 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
         {activeSub === 'tools' && (
           <ProjectToolsSubMenu
             projectPath={p.projectPath}
+            projectName={p.name}
             anchorRef={toolsTriggerRef}
             parentLeft={pos.left}
             parentWidth={pos.width}
             onViewLogs={p.onViewLogs}
+            onOpenFileEditor={p.onOpenFileEditor}
             onClose={p.onClose}
             onMouseEnter={keepSub}
             onMouseLeave={closeSub}

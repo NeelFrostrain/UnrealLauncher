@@ -3,6 +3,7 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { useState, useEffect } from 'react'
+import { APP_VERSION } from '../utils/appVersion'
 
 type UpdateStatus =
   | 'idle'
@@ -58,7 +59,7 @@ export function useUpdateCheck(): UseUpdateCheckReturn {
     setUpdateMessage('Checking for updates...')
 
     const result = await window.electronAPI.checkForUpdates()
-    const currentVersion = appVersion || '2.0.1'
+    const currentVersion = appVersion || APP_VERSION
 
     if (result.success && result.updateInfo) {
       const latestVersion = String(result.updateInfo.version || '').replace(/^v/i, '')

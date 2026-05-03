@@ -2,11 +2,12 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import React from 'react'
+import { useState } from 'react'
 import ProjectContextMenu from '../ProjectContextMenu'
 import ProjectLogDialog from '../ProjectLogDialog'
 import GitCommitDialog from '../GitCommitDialog'
 import GitBranchDialog from '../GitBranchDialog'
+import ProjectFileEditorDialog from '../ProjectFileEditorDialog'
 
 interface ProjectCardDialogsProps {
   ctxMenu: { x: number; y: number } | null
@@ -37,7 +38,8 @@ interface ProjectCardDialogsProps {
 }
 
 /**
- * Renders all dialogs and context menus for the project card
+ * Renders all dialogs and context menus for the project card.
+ * File editor state lives here so it survives context menu unmount.
  */
 export function ProjectCardDialogs({
   ctxMenu,
@@ -66,6 +68,9 @@ export function ProjectCardDialogs({
   onCloseCommitDialog,
   onCloseBranchDialog
 }: ProjectCardDialogsProps) {
+  // File editor state lives here — survives context menu close
+  const [fileEditorMode, setFileEditorMode] = useState<'config' | 'uproject' | null>(null)
+
   return (
     <>
       {ctxMenu && projectPath && (
@@ -88,6 +93,7 @@ export function ProjectCardDialogs({
           onGitInit={onGitInit}
           onOpenCommitDialog={onOpenCommitDialog}
           onOpenBranchDialog={onOpenBranchDialog}
+          onOpenFileEditor={setFileEditorMode}
           onClose={onCloseCtxMenu}
         />
       )}
@@ -115,6 +121,16 @@ export function ProjectCardDialogs({
           currentBranch={gitBranch}
           onBranchChanged={onBranchChanged}
           onClose={onCloseBranchDialog}
+        />
+      )}
+
+      {/* File editor — rendered here so it survives context menu unmount */}
+      {fileEditorMode && projectPath && (
+        <ProjectFileEditorDialog
+          mode={fileEditorMode}
+          projectPath={projectPath}
+          projectName={projectName ?? ''}
+          onClose={() => setFileEditorMode(null)}
         />
       )}
     </>

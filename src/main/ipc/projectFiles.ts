@@ -93,3 +93,64 @@ export async function handleProjectCleanIntermediate(
   } catch { /* skip */ }
   return { success: true, cleaned }
 }
+
+/**
+ * Reads a text file and returns its content.
+ * Used by the in-app file editor dialog.
+ */
+export function handleProjectReadTextFile(
+  filePath: string
+): { success: boolean; content: string; error?: string } {
+  try {
+    if (!fs.existsSync(filePath))
+      return { success: false, content: '', error: 'File not found' }
+    const content = fs.readFileSync(filePath, 'utf8')
+    return { success: true, content }
+  } catch (err) {
+    return { success: false, content: '', error: err instanceof Error ? err.message : 'Unknown error' }
+  }
+}
+
+/**
+ * Writes text content to a file.
+ * Used by the in-app file editor dialog.
+ */
+export function handleProjectWriteTextFile(
+  filePath: string,
+  content: string
+): { success: boolean; error?: string } {
+  try {
+    const dir = path.dirname(filePath)
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(filePath, content, 'utf8')
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  }
+}
+
+/**
+ * Resolves the DefaultEngine.ini path (or first available config) for a project.
+ */
+export function handleProjectResolveConfigPath(
+  projectPath: string
+): { success: boolean; filePath: string; error?: string } {
+  const candidates = ['DefaultEngine.ini', 'DefaultGame.ini', 'DefaultInput.ini']
+  for (const file of candidates) {
+    const full = path.join(projectPath, 'Config', file)
+    if (fs.existsSync(full)) return { success: true, filePath: full }
+  }
+  // Return the DefaultEngine.ini path even if it doesn't exist yet — editor will create it
+  return { success: true, filePath: path.join(projectPath, 'Config', 'DefaultEngine.ini') }
+}
+
+/**
+ * Resolves the .uproject file path for a project.
+ */
+export function handleProjectResolveUprojectPath(
+  projectPath: string
+): { success: boolean; filePath: string; error?: string } {
+  const uproject = findUprojectFile(projectPath)
+  if (!uproject) return { success: false, filePath: '', error: 'No .uproject file found' }
+  return { success: true, filePath: uproject }
+}
