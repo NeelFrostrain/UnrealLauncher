@@ -2,70 +2,14 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { useEffect, useState, useRef, useCallback, memo } from 'react'
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../../types'
-import {
-  Play,
-  FolderOpen,
-  Trash2,
-  Star,
-  Clock,
-  Database,
-  MoreVertical,
-  Gamepad2,
-  ScrollText,
-  Copy,
-  GitMerge,
-  GitBranch
-} from 'lucide-react'
-import DropdownPortal from '../ui/DropdownPortal'
-import { formatVersion, formatDate, showErrorToast } from './projectUtils'
-import ProjectLogDialog from './ProjectLogDialog'
-import { getGitStatus, clearGitCacheForPath } from '../../hooks/useGitStatus'
-import { useToast } from '../ui/ToastContext'
-
-// ── MenuItem — defined outside the card so it is never recreated ─────────────
-
-interface MenuItemProps {
-  icon: React.ReactNode
-  label: string
-  onClick: () => void
-  danger?: boolean
-  disabled?: boolean
-  onClose: () => void
-}
-
-const MenuItem = ({
-  icon,
-  label,
-  onClick,
-  danger = false,
-  disabled = false,
-  onClose
-}: MenuItemProps): React.ReactElement => (
-  <button
-    onClick={() => {
-      if (!disabled) {
-        onClick()
-        onClose()
-      }
-    }}
-    disabled={disabled}
-    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default"
-    style={{ color: danger ? '#f87171' : 'var(--color-text-secondary)' }}
-    onMouseEnter={(e) => {
-      if (!disabled)
-        e.currentTarget.style.backgroundColor = danger
-          ? 'color-mix(in srgb, #f87171 8%, transparent)'
-          : 'var(--color-surface-card)'
-    }}
-    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-  >
-    {icon}
-    {label}
-  </button>
-)
+import { Play, Gamepad2, MoreVertical, Clock, Database, GitBranch } from 'lucide-react'
+import { formatVersion, formatDate } from './projectUtils'
+import { useProjectCardState } from './card/projectCardState'
+import { useProjectCardHandlers } from './card/projectCardHandlers'
+import { ProjectCardDialogs } from './card/projectCardDialogs'
 
 // ── Card ──────────────────────────────────────────────────────────────────────
 
@@ -92,73 +36,21 @@ const ProjectCard = memo(
     onOpenDir: (p: string) => void
     onDelete: (p: string) => void
   }) => {
-    const [launching, setLaunching] = useState(false)
-    const [menuOpen, setMenuOpen] = useState(false)
-    const [showLogs, setShowLogs] = useState(false)
-    const [git, setGit] = useState<{ initialized: boolean; branch: string; remoteUrl: string }>({
-      initialized: false,
-      branch: '',
-      remoteUrl: ''
-    })
-    const menuBtnRef = useRef<HTMLButtonElement>(null)
-    const { addToast } = useToast()
+    const state = useProjectCardState(projectPath, scanEpoch)
+    const handlers = useProjectCardHandlers(
+      projectPath,
+      onLaunch,
+      state.setLaunching,
+      state.setCtxMenu,
+      state.setGit,
+      state.setShowCommitDialog,
+      state.setShowBranchDialog
+    )
 
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
-    // Append scanEpoch as cache-buster so Chromium re-fetches the image after a refresh
     const imageSrc = thumbnail
       ? `local-asset:///${thumbnail.replace(/\\/g, '/')}?t=${scanEpoch ?? 0}`
       : null
-
-    // Re-fetch git status whenever the project path changes or a new scan completes
-    useEffect(() => {
-      if (projectPath)
-        getGitStatus(projectPath).then((s) =>
-          setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' })
-        )
-    }, [projectPath, scanEpoch])
-
-    const closeMenu = useCallback(() => setMenuOpen(false), [])
-
-    const handleLaunch = useCallback(async (): Promise<void> => {
-      if (!projectPath) return
-      setLaunching(true)
-      try {
-        await onLaunch(projectPath)
-      } finally {
-        setLaunching(false)
-      }
-    }, [projectPath, onLaunch])
-
-    const handleLaunchGame = useCallback(async (): Promise<void> => {
-      if (!projectPath) return
-      setLaunching(true)
-      try {
-        const result = await window.electronAPI.projectLaunchGame(projectPath)
-        if (!result.success) showErrorToast(result.error ?? 'Failed to launch as game')
-      } finally {
-        setLaunching(false)
-      }
-    }, [projectPath])
-
-    const handleGitInit = useCallback(async (): Promise<void> => {
-      if (!projectPath) return
-      const r = await window.electronAPI.projectGitInit(projectPath)
-      if (r.success) {
-        clearGitCacheForPath(projectPath)
-        setGit({ initialized: true, branch: 'main', remoteUrl: '' })
-        if (!r.lfsAvailable) {
-          addToast(
-            'Git repo initialized. Git LFS not found — install it to track large assets.',
-            'warning'
-          )
-        } else {
-          addToast('Git repo initialized with LFS and .gitattributes', 'success')
-        }
-      } else {
-        addToast(r.error ?? 'Failed to initialize git repo', 'error')
-      }
-    }, [projectPath, addToast])
-
     const dateLabel = lastOpenedAt ? formatDate(lastOpenedAt) : createdAt
     const dateType = lastOpenedAt ? 'Opened' : 'Created'
 
@@ -174,8 +66,9 @@ const ProjectCard = memo(
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
+          onContextMenu={handlers.handleContextMenu}
         >
-          <div className="flex items-center gap-3 px-3 py-2.5 min-h-18">
+          <div className="flex items-center gap-3 px-3 py-2.5">
             {/* Thumbnail */}
             <div
               className="w-16 h-16 shrink-0 overflow-hidden flex items-center justify-center"
@@ -215,7 +108,7 @@ const ProjectCard = memo(
                 >
                   UE {formatVersion(version)}
                 </span>
-                {git.initialized && (
+                {state.git.initialized && (
                   <span
                     className="flex items-center gap-1 text-[9px] font-mono px-1.5 py-px shrink-0"
                     style={{
@@ -226,24 +119,16 @@ const ProjectCard = memo(
                     }}
                   >
                     <GitBranch size={9} />
-                    {git.branch}
+                    {state.git.branch}
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-4">
-                <div
-                  className="flex items-center gap-1"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
+                <div className="flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
                   <Clock size={11} />
-                  <span className="text-[10px]">
-                    {dateType} {dateLabel}
-                  </span>
+                  <span className="text-[10px]">{dateType} {dateLabel}</span>
                 </div>
-                <div
-                  className="flex items-center gap-1"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
+                <div className="flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
                   <Database size={11} />
                   <span className="text-[10px] font-mono">{size}</span>
                 </div>
@@ -258,7 +143,7 @@ const ProjectCard = memo(
               <motion.button
                 whileHover={{ scale: 1.06 }}
                 whileTap={{ scale: 0.94 }}
-                onClick={handleLaunchGame}
+                onClick={handlers.handleLaunchGame}
                 className="flex items-center p-1.5 cursor-pointer"
                 style={{
                   borderRadius: 'var(--radius)',
@@ -274,114 +159,74 @@ const ProjectCard = memo(
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={handleLaunch}
-                disabled={launching}
+                onClick={handlers.handleClick}
+                disabled={state.launching}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold cursor-pointer disabled:opacity-60"
                 style={{
                   borderRadius: 'var(--radius)',
                   backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-text-primary)',
-                  boxShadow: launching
+                  boxShadow: state.launching
                     ? 'none'
                     : '0 2px 8px color-mix(in srgb, var(--color-accent) 30%, transparent)'
                 }}
               >
-                <Play size={13} className={launching ? 'animate-pulse' : ''} />
-                {launching ? 'Launching…' : 'Launch'}
+                <Play size={13} className={state.launching ? 'animate-pulse' : ''} />
+                {state.launching ? 'Launching…' : 'Launch'}
               </motion.button>
 
-              <div className="relative">
-                <motion.button
-                  ref={menuBtnRef}
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.92 }}
-                  onClick={() => setMenuOpen((v) => !v)}
-                  className="flex p-1.5 cursor-pointer"
-                  style={{
-                    borderRadius: 'var(--radius)',
-                    backgroundColor: 'var(--color-surface-elevated)',
-                    border: '1px solid var(--color-border)',
-                    color: 'var(--color-text-muted)'
-                  }}
-                >
-                  <MoreVertical size={16} />
-                </motion.button>
-
-                <DropdownPortal open={menuOpen} anchorRef={menuBtnRef} onClose={closeMenu}>
-                  <MenuItem
-                    icon={
-                      <Star
-                        size={14}
-                        fill={isFavorite ? '#facc15' : 'none'}
-                        style={{ color: isFavorite ? '#facc15' : 'var(--color-text-muted)' }}
-                      />
-                    }
-                    label={isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
-                    onClick={() => projectPath && onToggleFavorite(projectPath)}
-                    onClose={closeMenu}
-                  />
-                  <MenuItem
-                    icon={<FolderOpen size={14} style={{ color: 'var(--color-text-muted)' }} />}
-                    label="Open in Explorer"
-                    onClick={() => projectPath && onOpenDir(projectPath)}
-                    onClose={closeMenu}
-                  />
-                  <MenuItem
-                    icon={<Copy size={14} style={{ color: 'var(--color-text-muted)' }} />}
-                    label="Copy Path"
-                    onClick={() => navigator.clipboard.writeText(projectPath ?? '')}
-                    onClose={closeMenu}
-                  />
-                  <div
-                    className="h-px mx-2 my-1"
-                    style={{ backgroundColor: 'var(--color-border)' }}
-                  />
-                  <MenuItem
-                    icon={<ScrollText size={14} style={{ color: 'var(--color-accent)' }} />}
-                    label="View Logs"
-                    onClick={() => setShowLogs(true)}
-                    onClose={closeMenu}
-                  />
-                  {git.initialized ? (
-                    <MenuItem
-                      icon={<GitBranch size={14} style={{ color: '#34d399' }} />}
-                      label={`Git: ${git.branch}`}
-                      onClick={() => {}}
-                      disabled
-                      onClose={closeMenu}
-                    />
-                  ) : (
-                    <MenuItem
-                      icon={<GitMerge size={14} style={{ color: '#a78bfa' }} />}
-                      label="Initialize Git Repo"
-                      onClick={handleGitInit}
-                      onClose={closeMenu}
-                    />
-                  )}
-                  <div
-                    className="h-px mx-2 my-1"
-                    style={{ backgroundColor: 'var(--color-border)' }}
-                  />
-                  <MenuItem
-                    icon={<Trash2 size={14} />}
-                    label="Remove from List"
-                    onClick={() => projectPath && onDelete(projectPath)}
-                    danger
-                    onClose={closeMenu}
-                  />
-                </DropdownPortal>
-              </div>
+              {/* ⋮ button — opens the same context menu as right-click */}
+              <motion.button
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  state.setCtxMenu({ x: rect.left, y: rect.bottom + 4 })
+                }}
+                className="flex p-1.5 cursor-pointer"
+                style={{
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'var(--color-surface-elevated)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-muted)'
+                }}
+                title="More options"
+              >
+                <MoreVertical size={16} />
+              </motion.button>
             </div>
           </div>
         </motion.div>
 
-        {showLogs && projectPath && (
-          <ProjectLogDialog
-            projectName={name}
-            projectPath={projectPath}
-            onClose={() => setShowLogs(false)}
-          />
-        )}
+        {/* Same full dialog set as the grid card */}
+        <ProjectCardDialogs
+          ctxMenu={state.ctxMenu}
+          showLogs={state.showLogs}
+          showCommitDialog={state.showCommitDialog}
+          showBranchDialog={state.showBranchDialog}
+          projectPath={projectPath}
+          projectName={name}
+          projectVersion={version}
+          isFavorite={isFavorite}
+          gitInitialized={state.git.initialized}
+          gitBranch={state.git.branch}
+          gitRemoteUrl={state.git.remoteUrl}
+          onLaunch={handlers.handleClick}
+          onLaunchGame={handlers.handleLaunchGame}
+          onFavorite={() => projectPath && onToggleFavorite(projectPath)}
+          onOpenDir={() => projectPath && onOpenDir(projectPath)}
+          onDelete={() => projectPath && onDelete(projectPath)}
+          onViewLogs={() => state.setShowLogs(true)}
+          onGitInit={handlers.handleGitInit}
+          onOpenCommitDialog={() => state.setShowCommitDialog(true)}
+          onOpenBranchDialog={() => state.setShowBranchDialog(true)}
+          onBranchChanged={state.handleBranchChanged}
+          onCloseCtxMenu={() => state.setCtxMenu(null)}
+          onCloseLogs={() => state.setShowLogs(false)}
+          onCloseCommitDialog={() => state.setShowCommitDialog(false)}
+          onCloseBranchDialog={() => state.setShowBranchDialog(false)}
+        />
       </>
     )
   }

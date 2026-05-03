@@ -69,10 +69,10 @@ export const MenuItem = ({
       {icon}
     </span>
     <span className="flex-1 text-left min-w-0">
-      <span className="block text-[11px] leading-tight whitespace-nowrap">{label}</span>
+      <span className="block text-[11px] leading-tight truncate">{label}</span>
       {sub && (
         <span
-          className="block text-[9px] leading-tight mt-0.5 whitespace-nowrap"
+          className="block text-[9px] leading-tight mt-0.5 truncate"
           style={{ color: danger ? 'rgba(248,113,113,0.6)' : 'var(--color-text-muted)' }}
         >
           {sub}
