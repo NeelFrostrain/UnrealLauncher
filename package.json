@@ -1,7 +1,7 @@
 {
   "name": "unreal-launcher",
   "productName": "Unreal Launcher",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "NeelFrostrain",
@@ -80,3 +80,4 @@
     "zustand": "^5.0.11"
   }
 }
+

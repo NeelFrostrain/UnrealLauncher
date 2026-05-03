@@ -6,6 +6,9 @@ import path from 'path'
 import fs from 'fs'
 import { spawn } from 'child_process'
 import { loadEngines } from '../store'
+import { openFileOrDirectory } from '../utils/processUtils'
+import { scanEnginePaths } from '../utils/engineScanning'
+import { getBinaryExtension } from '../utils/platformPaths'
 
 /**
  * Locates the .uproject file in a project directory
@@ -13,14 +16,10 @@ import { loadEngines } from '../store'
 export async function locateUproject(projectPath: string): Promise<string | null> {
   const projectName = path.basename(projectPath)
   const direct = path.join(projectPath, `${projectName}.uproject`)
-
   try {
     await fs.promises.access(direct)
     return direct
-  } catch {
-    // File doesn't exist, continue to find any .uproject
-  }
-
+  } catch { /* not found, scan */ }
   try {
     const files = await fs.promises.readdir(projectPath)
     const uprojectFile = files.find((file) => file.endsWith('.uproject'))
@@ -44,12 +43,13 @@ async function getEngineAssociation(uprojectPath: string): Promise<string> {
 }
 
 /**
- * Finds the editor executable for a given engine association
+ * Finds the editor executable for a given engine association.
+ * Checks stored engines first, then falls back to a live scan on non-Windows.
  */
 function findEditorExecutable(engineAssociation: string): string {
   const engines = loadEngines()
 
-  // Match by version string
+  // 1. Match from stored engines list by version
   if (engineAssociation) {
     const match = engines.find(
       (e) =>
@@ -57,50 +57,77 @@ function findEditorExecutable(engineAssociation: string): string {
         e.version.startsWith(engineAssociation) ||
         engineAssociation.startsWith(e.version)
     )
-    if (match) return match.exePath
+    if (match?.exePath && fs.existsSync(match.exePath)) return match.exePath
   }
 
-  // Fallback: use any available engine
-  if (engines.length > 0) {
-    return engines[0].exePath
+  // 2. Any stored engine as fallback
+  const anyStored = engines.find((e) => e.exePath && fs.existsSync(e.exePath))
+  if (anyStored) return anyStored.exePath
+
+  // 3. On Linux/macOS: live scan common install paths (Windows uses OS file association)
+  if (process.platform !== 'win32') {
+    const scanned = scanEnginePaths()
+    if (engineAssociation) {
+      const match = scanned.find(
+        (e) =>
+          e.version === engineAssociation ||
+          e.version.startsWith(engineAssociation) ||
+          engineAssociation.startsWith(e.version)
+      )
+      if (match?.exePath) return match.exePath
+    }
+    if (scanned.length > 0) return scanned[0].exePath
+
+    // 4. Check UE_ROOT env var directly (Linux)
+    const ueRoot = process.env.UE_ROOT
+    if (ueRoot) {
+      const binPlatform = process.platform === 'darwin' ? 'Mac' : 'Linux'
+      const ext = getBinaryExtension()
+      for (const name of [`UnrealEditor${ext}`, `UE4Editor${ext}`]) {
+        const candidate = path.join(ueRoot, 'Engine', 'Binaries', binPlatform, name)
+        if (fs.existsSync(candidate)) return candidate
+      }
+    }
   }
 
   return ''
 }
 
 /**
- * Handles the launch-project IPC event
+ * Handles the launch-project IPC event.
+ * On Windows: uses shell.openPath on the .uproject (OS file association via registry).
+ * On Linux/macOS: finds the engine executable and spawns it directly.
  */
 export async function handleLaunchProject(
   projectPath: string
 ): Promise<Record<string, unknown>> {
   const uprojectPath = await locateUproject(projectPath)
-  if (!uprojectPath) {
-    return { success: false, error: 'Project file not found' }
+  if (!uprojectPath) return { success: false, error: 'Project file not found' }
+
+  // Windows: rely on Epic's registry file association — no engine lookup needed
+  if (process.platform === 'win32') {
+    try {
+      openFileOrDirectory(uprojectPath)
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+    }
   }
 
+  // Linux / macOS: find the engine and spawn it directly
   const engineAssociation = await getEngineAssociation(uprojectPath)
   const editorExe = findEditorExecutable(engineAssociation)
 
   if (!editorExe) {
     return {
       success: false,
-      error: `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab first.`
-    }
-  }
-
-  // Verify the executable exists
-  try {
-    await fs.promises.access(editorExe)
-  } catch {
-    return {
-      success: false,
-      error: `Engine executable not found at "${editorExe}". Re-add the engine in the Engines tab.`
+      error: engineAssociation
+        ? `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab or set UE_ROOT.`
+        : 'No Unreal Engine found. Add an engine in the Engines tab or set UE_ROOT.'
     }
   }
 
   try {
-    // Spawn the editor directly — avoids xdg-open opening .uproject in a text editor on Linux
     spawn(editorExe, [uprojectPath], { detached: true, stdio: 'ignore' }).unref()
     return { success: true }
   } catch (err) {
@@ -115,9 +142,7 @@ export async function handleLaunchProjectGame(
   projectPath: string
 ): Promise<Record<string, unknown>> {
   const uprojectPath = await locateUproject(projectPath)
-  if (!uprojectPath) {
-    return { success: false, error: 'Project file not found' }
-  }
+  if (!uprojectPath) return { success: false, error: 'Project file not found' }
 
   const engineAssociation = await getEngineAssociation(uprojectPath)
   const editorExe = findEditorExecutable(engineAssociation)
@@ -129,18 +154,16 @@ export async function handleLaunchProjectGame(
     }
   }
 
-  // Check if editor exe exists
   try {
     await fs.promises.access(editorExe)
   } catch {
     return {
       success: false,
-      error: `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab first.`
+      error: `Engine executable not found at "${editorExe}". Re-add the engine in the Engines tab.`
     }
   }
 
   try {
-    // Same as Windows shell "Launch game" — opens editor in -game mode
     spawn(editorExe, [uprojectPath, '-game'], { detached: true, stdio: 'ignore' }).unref()
     return { success: true }
   } catch (err) {

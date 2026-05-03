@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.0] - 2026-05-03 — `main`
+
+### ✨ Added
+
+- **In-app file editor** — Edit `DefaultEngine.ini` and `.uproject` files directly in the launcher without opening an external editor
+  - Find bar (`Ctrl+F`) with match counter, prev/next navigation, case-sensitive toggle
+  - Find & Replace (`Ctrl+H`) with Replace One and Replace All
+  - Unsaved indicator, `Ctrl+S` to save, JSON validation before saving `.uproject`
+- **Rich project context menu** — Right-click (or `⋮` button) now opens a full submenu system:
+  - **Git Tools** — Init repo + LFS + `.gitignore`, commit changes, switch/create branch, open remote URL, copy remote URL
+  - **Project Tools** — Edit Default Config, Edit .uproject, View Logs, Clean Intermediate
+  - **Organize** — Open in Explorer, Open Terminal, Open in GitHub Desktop
+- **Git commit dialog** — Stage all and commit with file diff preview showing changed files
+- **Git branch dialog** — Switch branches, create new branch, stash or discard conflict resolution
+- **Open Terminal** — Launches Windows Terminal / cmd on Windows, gnome-terminal / konsole / xfce4-terminal on Linux, Terminal.app on macOS
+- **Open in GitHub Desktop** — Finds GitHub Desktop exe on Windows, falls back to protocol URL on macOS/Linux
+- **Project list card** — Now uses the same full context menu as the grid card (previously had a basic 6-item dropdown)
+- **About page rebuilt** — New sections: Architecture, IPC Modules, Data Storage, Tech Stack
+- **Navigation persistence** — Last visited page and tab restored on relaunch
+- **App version synced from `package.json`** — Version displayed in About and Settings always matches the real build; no more hardcoded strings
+- **`VITE_APP_VERSION` in `.env`** — Build-time fallback so version shows instantly before IPC resolves
+
+### 🏗️ Refactored
+
+- **Full codebase split** — Every file over 200 lines broken into focused single-responsibility modules:
+  - IPC handlers → `projectGit.ts`, `projectLog.ts`, `projectFiles.ts`, `projectTerminal.ts`, `projectLaunching.ts`
+  - Main window → `windowConfig.ts`, `splashWindow.ts`, `windowHandlers.ts`, `windowLifecycle.ts`
+  - Engine utils → `engineGradient.ts`, `engineValidation.ts`, `engineRegistry.ts`, `engineScanning.ts`
+  - Theme utils → `themeTokens.ts`, `themePersistence.ts`, `themeProfiles.ts`, `themeApplication.ts`
+  - Worker scripts → `src/main/workers/projectScanWorker.ts`, `engineScanWorker.ts`
+  - Frontend → Sidebar, FabTab, ProjectCardGrid, EnginesPage all split into state hooks + content components
+- **Settings page** — Reusable `Card` / `SectionHeader` helpers, improved layout consistency
+- **Folder reorganization** — `card/`, `git/`, `log/`, `contextMenu/`, `sidebar/`, `fab/`, `plugins/` subfolders for related files
+
+### 🛠️ Fixed
+
+- **Linux: project launch opens text editor** — `handleLaunchProject` was calling `xdg-open` on the `.uproject` file; now spawns `UnrealEditor` directly
+- **Linux: engine auto-discovery** — Projects can now be launched without manually adding the engine in the Engines tab; falls back to live scan of common paths and `UE_ROOT`
+- **Linux: window controls broken** — `handleWindowMinimize` / `handleWindowMaximize` were passed directly as IPC callbacks after refactor; now wrapped to call `getMainWindow()` at invocation time
+- **Linux: preload path wrong** — Was `../../preload/index.js` (relative to source); corrected to `../preload/index.js` (relative to `out/main/`)
+- **`onLaunching is not defined`** — Stale variable name in `projectCardHandlers.ts` `useCallback` dependency array
+- **`fabTabContent` / `fabTabState` import errors** — Files moved into `fab/` subfolder but imports still had old `./fab/` prefix
+- **`projectCardContent` import error** — `projectUtils` path wrong after moving into `card/` subfolder
+- **Preload crash on startup** — `require('electron').app` is `undefined` in preload context; replaced with empty string fallback
+- **Version showing `…` in Settings** — `SystemInfoGrid` was using `useState` initializer as an effect; `getAppVersion()` IPC was never called; fixed to `useEffect`
+- **Context menu URL overflow** — Remote URL subtitle was `whitespace-nowrap`; changed to `truncate` with ellipsis
+- **File editor dialog closes on click inside** — Missing `stopPropagation` on the modal div
+- **File editor dialog not opening** — State lived in `ProjectToolsSubMenu` which unmounted before the dialog could render; moved to `ProjectCardDialogs` (stable parent)
+
+---
+
 ## [2.1.2] - 2026-04-26 — `v2.1.2`
 
 ### ✨ Added
