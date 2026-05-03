@@ -2,11 +2,12 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { useEffect, useState, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { X, GitCommit, RefreshCw, CheckCircle2 } from 'lucide-react'
-import { useToast } from '../ui/ToastContext'
+import { X, GitCommit, RefreshCw } from 'lucide-react'
+import { useGitCommitState } from './git/gitCommitState'
+import { useGitCommitHandlers } from './git/gitCommitHandlers'
+import { GitCommitContent } from './git/gitCommitContent'
 
 interface Props {
   projectName: string
@@ -14,78 +15,19 @@ interface Props {
   onClose: () => void
 }
 
-interface ChangedFile {
-  status: string
-  file: string
-}
-
-const STATUS_COLOR: Record<string, string> = {
-  M: '#f59e0b',
-  A: '#4ade80',
-  '?': '#4ade80',
-  D: '#f87171',
-  R: '#a78bfa',
-  C: '#60a5fa'
-}
-const STATUS_LABEL: Record<string, string> = {
-  M: 'M',
-  A: 'A',
-  '?': 'U',
-  D: 'D',
-  R: 'R',
-  C: 'C'
-}
-
 export default function GitCommitDialog({
   projectName,
   projectPath,
   onClose
 }: Props): React.ReactElement {
-  const { addToast } = useToast()
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const [loading, setLoading] = useState(true)
-  const [hasChanges, setHasChanges] = useState(false)
-  const [summary, setSummary] = useState('')
-  const [files, setFiles] = useState<ChangedFile[]>([])
-  const [commitMsg, setCommitMsg] = useState('')
-  const [committing, setCommitting] = useState(false)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    const r = await window.electronAPI.projectGitHasChanges(projectPath)
-    setHasChanges(r.hasChanges)
-    setSummary(r.summary)
-    setFiles(r.fileList ? r.fileList.map((f) => ({ status: f.status, file: f.file })) : [])
-    setLoading(false)
-    // Only focus input if there are changes to commit
-    if (r.hasChanges) setTimeout(() => inputRef.current?.focus(), 60)
-  }, [projectPath])
-
-  useEffect(() => {
-    load()
-  }, [load])
-
-  useEffect(() => {
-    const h = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', h)
-    return () => document.removeEventListener('keydown', h)
-  }, [onClose])
-
-  const handleCommit = useCallback(async () => {
-    if (!commitMsg.trim() || committing) return
-    setCommitting(true)
-    const r = await window.electronAPI.projectGitCommit(projectPath, commitMsg.trim())
-    setCommitting(false)
-    if (r.success) {
-      addToast('Changes committed successfully', 'success')
-      onClose()
-    } else {
-      addToast(r.error ?? 'Commit failed', 'error')
-    }
-  }, [projectPath, commitMsg, committing, addToast, onClose])
+  const state = useGitCommitState(projectPath, onClose)
+  const { handleCommit } = useGitCommitHandlers(
+    projectPath,
+    state.commitMsg,
+    state.committing,
+    state.setCommitting,
+    onClose
+  )
 
   return createPortal(
     <motion.div
@@ -149,111 +91,18 @@ export default function GitCommitDialog({
         </div>
 
         {/* Body */}
-        <div
-          className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3"
-          style={{ minHeight: 0 }}
-        >
-          {loading ? (
-            <div
-              className="flex items-center justify-center py-10 gap-2"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              <RefreshCw size={14} className="animate-spin" />
-              <span className="text-xs">Checking for changes…</span>
-            </div>
-          ) : !hasChanges ? (
-            <div
-              className="flex flex-col items-center justify-center py-10 gap-3"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              <CheckCircle2 size={32} style={{ color: '#34d399', opacity: 0.7 }} />
-              <div className="text-center">
-                <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                  Working tree is clean
-                </p>
-                <p className="text-xs mt-0.5">No changes to commit</p>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* File list */}
-              {files.length > 0 && (
-                <div>
-                  <p
-                    className="text-[10px] font-semibold uppercase tracking-widest mb-1.5"
-                    style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
-                  >
-                    {summary}
-                  </p>
-                  <div
-                    className="rounded overflow-hidden"
-                    style={{ border: '1px solid var(--color-border)' }}
-                  >
-                    <div className="overflow-y-auto" style={{ maxHeight: 160 }}>
-                      {files.map((f, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center gap-2.5 px-3 py-1.5 text-[11px] font-mono"
-                          style={{
-                            backgroundColor:
-                              i % 2 === 0 ? 'var(--color-surface-card)' : 'transparent'
-                          }}
-                        >
-                          <span
-                            className="shrink-0 font-bold text-[10px] w-3 text-center"
-                            style={{ color: STATUS_COLOR[f.status] ?? 'var(--color-text-muted)' }}
-                          >
-                            {STATUS_LABEL[f.status] ?? f.status}
-                          </span>
-                          <span
-                            className="truncate"
-                            style={{ color: 'var(--color-text-secondary)' }}
-                          >
-                            {f.file}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Commit message */}
-              <div>
-                <label
-                  className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5"
-                  style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
-                >
-                  Commit Message
-                </label>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Describe your changes…"
-                  value={commitMsg}
-                  onChange={(e) => setCommitMsg(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleCommit()
-                  }}
-                  className="w-full text-sm px-3 py-2 rounded outline-none transition-colors"
-                  style={{
-                    backgroundColor: 'var(--color-surface-card)',
-                    border: '1px solid var(--color-border)',
-                    color: 'var(--color-text-primary)'
-                  }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--color-accent)')}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--color-border)')}
-                />
-                <p
-                  className="text-[10px] mt-1"
-                  style={{ color: 'var(--color-text-muted)', opacity: 0.5 }}
-                >
-                  Press Enter to commit
-                </p>
-              </div>
-            </>
-          )}
-        </div>
+        <GitCommitContent
+          loading={state.loading}
+          hasChanges={state.hasChanges}
+          summary={state.summary}
+          files={state.files}
+          commitMsg={state.commitMsg}
+          inputRef={state.inputRef}
+          onCommitMsgChange={state.setCommitMsg}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleCommit()
+          }}
+        />
 
         {/* Footer */}
         <div
@@ -270,12 +119,12 @@ export default function GitCommitDialog({
               border: '1px solid var(--color-border)'
             }}
           >
-            {hasChanges ? 'Cancel' : 'Close'}
+            {state.hasChanges ? 'Cancel' : 'Close'}
           </button>
-          {!loading && hasChanges && (
+          {!state.loading && state.hasChanges && (
             <button
               onClick={handleCommit}
-              disabled={!commitMsg.trim() || committing}
+              disabled={!state.commitMsg.trim() || state.committing}
               className="flex items-center gap-2 px-4 py-1.5 text-xs font-semibold cursor-pointer disabled:opacity-40 transition-opacity"
               style={{
                 borderRadius: 'var(--radius)',
@@ -283,7 +132,7 @@ export default function GitCommitDialog({
                 color: 'white'
               }}
             >
-              {committing ? (
+              {state.committing ? (
                 <>
                   <RefreshCw size={12} className="animate-spin" /> Committing…
                 </>

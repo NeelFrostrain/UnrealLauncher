@@ -2,337 +2,46 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { ipcMain, dialog } from 'electron'
-import path from 'path'
-import fs from 'fs'
-import { spawn } from 'child_process'
-import {
-  loadProjects,
-  saveProjects,
-  mergeTracerProjects,
-  loadEngines,
-  loadProjectScanPaths
-} from '../store'
-import { findUprojectFiles, findProjectScreenshot, formatBytes, getFullFolderSize } from '../utils'
+import { ipcMain } from 'electron'
 import { openFileOrDirectory } from '../utils/processUtils'
-import { getNativeModulePath } from '../utils/native'
-import { getMainWindow } from '../window'
-import { spawnWorker } from './workers'
-import { PROJECT_SCAN_WORKER } from './scanWorkers'
-import type { Project, ProjectSelectionResult } from '../types'
+import {
+  handleSelectProjectFolder,
+  handleLaunchProject,
+  handleLaunchProjectGame,
+  calculateProjectSize,
+  calculateAllProjectSizes,
+  scanAndMergeProjects,
+  loadSavedProjects,
+  deleteProject
+} from './projectHandlers'
 
-async function locateUproject(projectPath: string): Promise<string | null> {
-  const projectName = path.basename(projectPath)
-  const direct = path.join(projectPath, `${projectName}.uproject`)
-  try {
-    await fs.promises.access(direct)
-    return direct
-  } catch {
-    // File doesn't exist, continue to find any .uproject
-  }
-  try {
-    const files = await fs.promises.readdir(projectPath)
-    const uprojectFile = files.find((file) => file.endsWith('.uproject'))
-    return uprojectFile ? path.join(projectPath, uprojectFile) : null
-  } catch {
-    return null
-  }
-}
-
+/**
+ * Registers all project-related IPC handlers
+ */
 export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
-  ipcMain_.handle('scan-projects', async (): Promise<Project[]> => {
-    const raw = mergeTracerProjects(loadProjects())
-    const saved = Array.isArray(raw) ? raw : []
+  ipcMain_.handle('scan-projects', scanAndMergeProjects)
 
-    // Run the worker scan
-    const scanned = await new Promise<Project[]>((resolve, reject) => {
-      const w = spawnWorker(PROJECT_SCAN_WORKER, {
-        saved,
-        nativePath: getNativeModulePath(),
-        customScanPaths: loadProjectScanPaths()
-      })
-      w.once('message', (msg) => resolve(msg as Project[]))
-      w.once('error', reject)
-      w.once('exit', (c: number) => {
-        if (c !== 0) reject(new Error(`Worker exited ${c}`))
-      })
-    })
+  ipcMain_.handle('load-saved-projects', loadSavedProjects)
 
-    // Merge: keep all saved projects, add any newly discovered ones.
-    // For existing projects, refresh all fields that can change on disk —
-    // version (EngineAssociation in .uproject), name, thumbnail, timestamps.
-    // Preserve fields that only the app manages: size (calculated), projectId.
-    const savedPaths = new Set(saved.map((p) => p.projectPath?.toLowerCase()))
-    const newProjects = scanned.filter(
-      (p) => p.projectPath && !savedPaths.has(p.projectPath.toLowerCase())
-    )
+  ipcMain_.handle('select-project-folder', handleSelectProjectFolder)
 
-    const merged = saved.map((s) => {
-      const fresh = scanned.find(
-        (p) => p.projectPath?.toLowerCase() === s.projectPath?.toLowerCase()
-      )
-      if (!fresh) return s
-      return {
-        ...s,
-        // Fields read fresh from disk on every scan
-        name: fresh.name ?? s.name,
-        version: fresh.version ?? s.version,
-        createdAt: fresh.createdAt ?? s.createdAt,
-        lastOpenedAt: fresh.lastOpenedAt ?? s.lastOpenedAt,
-        thumbnail: fresh.thumbnail ?? s.thumbnail
-      }
-    })
-
-    if (newProjects.length > 0) {
-      merged.push(...newProjects)
-    }
-
-    saveProjects(merged)
-    return merged
-  })
-
-  ipcMain_.handle('load-saved-projects', async (): Promise<Project[]> => {
-    const raw = mergeTracerProjects(loadProjects())
-    return Array.isArray(raw) ? raw : []
-  })
-
-  ipcMain_.handle('select-project-folder', async (): Promise<ProjectSelectionResult | null> => {
-    const win = getMainWindow()
-    if (!win) return null
-    const result = await dialog.showOpenDialog(win, {
-      title: 'Select Unreal Project Folder',
-      properties: ['openDirectory']
-    })
-    if (result.canceled || result.filePaths.length === 0) return null
-
-    const folder = result.filePaths[0]
-    const uprojectFiles = findUprojectFiles(folder, 3, 50)
-    const response: ProjectSelectionResult = {
-      addedProjects: [],
-      duplicateProjects: [],
-      invalidProjects: []
-    }
-
-    if (uprojectFiles.length === 0) {
-      response.invalidProjects.push({
-        projectPath: folder,
-        reason: 'No .uproject files were found in the selected folder.'
-      })
-      return response
-    }
-
-    const savedProjects = loadProjects()
-    const known = [...savedProjects]
-    const BATCH_LIMIT = 20
-
-    for (const uprojectPath of uprojectFiles) {
-      if (response.addedProjects.length >= BATCH_LIMIT) {
-        const remaining = uprojectFiles.length - uprojectFiles.indexOf(uprojectPath)
-        response.invalidProjects.push({
-          projectPath: folder,
-          reason: `Batch limit reached. ${remaining} more project(s) were skipped. Add the folder again to continue importing.`
-        })
-        break
-      }
-
-      const projectDir = path.dirname(uprojectPath)
-      const projectName = path.basename(uprojectPath, '.uproject') || path.basename(projectDir)
-      let projectId: string | undefined
-      let version = 'Unknown'
-
-      try {
-        const json = JSON.parse(fs.readFileSync(uprojectPath, 'utf8'))
-        if (typeof json.EngineAssociation === 'string') version = json.EngineAssociation
-        if (typeof json.ProjectID === 'string') projectId = json.ProjectID
-      } catch {
-        response.invalidProjects.push({
-          projectPath: projectDir,
-          reason: 'Invalid or corrupted .uproject file.'
-        })
-        continue
-      }
-
-      const existing = known.find(
-        (p) => p.projectPath === projectDir || (projectId && p.projectId === projectId)
-      )
-      if (existing) {
-        response.duplicateProjects.push({
-          projectPath: projectDir,
-          name: projectName,
-          reason: existing.projectPath === projectDir ? 'Already added' : 'Duplicate project ID'
-        })
-        continue
-      }
-
-      try {
-        const stats = fs.statSync(projectDir)
-        const newProject: Project = {
-          name: projectName,
-          version,
-          size: '~2-5 GB',
-          createdAt: stats.birthtime.toISOString().split('T')[0],
-          projectPath: projectDir,
-          thumbnail: findProjectScreenshot(projectDir),
-          projectId
-        }
-        response.addedProjects.push(newProject)
-        known.push(newProject)
-      } catch {
-        response.invalidProjects.push({
-          projectPath: projectDir,
-          reason: 'Unable to read project folder metadata.'
-        })
-      }
-    }
-
-    if (response.addedProjects.length > 0)
-      saveProjects([...savedProjects, ...response.addedProjects])
-    return response
-  })
-
-  ipcMain_.handle(
-    'launch-project',
-    async (_event, projectPath): Promise<Record<string, unknown>> => {
-      const uprojectPath = await locateUproject(projectPath)
-      if (!uprojectPath) return { success: false, error: 'Project file not found' }
-      try {
-        openFileOrDirectory(uprojectPath)
-        return { success: true }
-      } catch (err) {
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
-      }
-    }
+  ipcMain_.handle('launch-project', async (_event, projectPath) =>
+    handleLaunchProject(projectPath)
   )
 
-  ipcMain_.handle(
-    'launch-project-game',
-    async (_event, projectPath): Promise<Record<string, unknown>> => {
-      const uprojectPath = await locateUproject(projectPath)
-      if (!uprojectPath) return { success: false, error: 'Project file not found' }
-
-      // Read engine association from .uproject
-      let engineAssociation = ''
-      try {
-        const content = await fs.promises.readFile(uprojectPath, 'utf8')
-        const json = JSON.parse(content)
-        engineAssociation = json.EngineAssociation ?? ''
-      } catch {
-        /* ignore */
-      }
-
-      // Find the engine exe — check saved engines first, then common paths
-      const engines = loadEngines()
-
-      let editorExe = ''
-
-      // Match by version string
-      if (engineAssociation) {
-        const match = engines.find(
-          (e) =>
-            e.version === engineAssociation ||
-            e.version.startsWith(engineAssociation) ||
-            engineAssociation.startsWith(e.version)
-        )
-        if (match) editorExe = match.exePath
-      }
-
-      // Fallback: use any available engine
-      if (!editorExe && engines.length > 0) {
-        editorExe = engines[0].exePath
-      }
-
-      if (!editorExe) {
-        return {
-          success: false,
-          error: `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab first.`
-        }
-      }
-
-      // Check if editor exe exists with async access
-      try {
-        await fs.promises.access(editorExe)
-      } catch {
-        return {
-          success: false,
-          error: `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab first.`
-        }
-      }
-
-      try {
-        // Same as Windows shell "Launch game" — opens editor in -game mode
-        spawn(editorExe, [uprojectPath, '-game'], { detached: true, stdio: 'ignore' }).unref()
-        return { success: true }
-      } catch (err) {
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
-      }
-    }
+  ipcMain_.handle('launch-project-game', async (_event, projectPath) =>
+    handleLaunchProjectGame(projectPath)
   )
 
   ipcMain_.handle('open-directory', (_event, dirPath): void => {
     openFileOrDirectory(dirPath)
   })
 
-  ipcMain_.handle('delete-project', (_event, projectPath): boolean => {
-    try {
-      saveProjects(loadProjects().filter((p) => p.projectPath !== projectPath))
-      return true
-    } catch {
-      return false
-    }
-  })
+  ipcMain_.handle('delete-project', (_event, projectPath) => deleteProject(projectPath))
 
-  ipcMain_.handle(
-    'calculate-project-size',
-    async (_event, projectPath): Promise<Record<string, unknown>> => {
-      try {
-        const sizeStr = formatBytes(await getFullFolderSize(projectPath))
-        const projects = loadProjects()
-        const project = projects.find((p) => p.projectPath === projectPath)
-        if (project) {
-          project.size = sizeStr
-          saveProjects(projects)
-        }
-        return { success: true, size: sizeStr }
-      } catch (err) {
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
-      }
-    }
+  ipcMain_.handle('calculate-project-size', async (_event, projectPath) =>
+    calculateProjectSize(projectPath)
   )
 
-  // Streams results back via 'size-calculated' push events as each finishes.
-  ipcMain_.handle('calculate-all-project-sizes', async (): Promise<void> => {
-    const win = getMainWindow()
-    if (!win) return
-    const projects = loadProjects()
-    if (projects.length === 0) return
-
-    const CONCURRENCY = 2
-    let index = 0
-
-    async function next(): Promise<void> {
-      if (index >= projects.length) return
-      const project = projects[index++]
-      try {
-        const sizeStr = formatBytes(await getFullFolderSize(project.projectPath))
-        const all = loadProjects()
-        const entry = all.find((p) => p.projectPath === project.projectPath)
-        if (entry) {
-          entry.size = sizeStr
-          saveProjects(all)
-        }
-        if (win && !win.isDestroyed()) {
-          win.webContents.send('size-calculated', {
-            type: 'project',
-            path: project.projectPath,
-            size: sizeStr
-          })
-        }
-      } catch {
-        /* skip */
-      }
-      await next()
-    }
-
-    await Promise.all(Array.from({ length: CONCURRENCY }, next))
-  })
+  ipcMain_.handle('calculate-all-project-sizes', calculateAllProjectSizes)
 }

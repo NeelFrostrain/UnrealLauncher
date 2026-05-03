@@ -81,7 +81,7 @@ if (process.contextIsolated) {
       clearTracerData: () => ipcRenderer.invoke('clear-tracer-data'),
       getMainSettings: () => ipcRenderer.invoke('get-main-settings'),
       platform: process.platform,
-      appVersion: require('electron').app?.getVersion?.() ?? '',
+      appVersion: '',
       electronVersion: process.versions.electron ?? '',
       saveMainSettings: (settings) => ipcRenderer.invoke('save-main-settings', settings),
       selectFolder: () => ipcRenderer.invoke('select-folder'),

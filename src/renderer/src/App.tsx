@@ -5,7 +5,7 @@
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
-const EnginesPage = lazy(() => import('./pages/EnginesPage'))
+const EnginesPage = lazy(() => import('./pages/engines/EnginesPage'))
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 
