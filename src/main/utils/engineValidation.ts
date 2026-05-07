@@ -14,6 +14,8 @@ import { loadEngines, saveEngines, loadEngineScanPaths } from '../store'
 import { spawnWorker } from '../workers/workers'
 import { ENGINE_SCAN_WORKER } from '../ipc/scanWorkers'
 import { getNativeModulePath } from './native'
+import { getInstalledEngines } from './engineRegistry'
+import { generateGradient } from './engineGradient'
 import type { Engine } from '../types'
 
 export interface EngineValidationResult {
@@ -101,23 +103,55 @@ function _validateEngineJS(folder: string): EngineValidationResult {
 }
 
 /**
- * Scans for engines using the worker and merges with saved engines
+ * Scans for engines using the worker + Windows registry, merges with saved engines.
  */
 export async function scanAndMergeEngines(): Promise<Engine[]> {
   const saved = loadEngines()
 
-  const scanned = await new Promise<Engine[]>((resolve, reject) => {
-    const w = spawnWorker(ENGINE_SCAN_WORKER, {
-      saved,
-      nativePath: getNativeModulePath(),
-      engineScanPaths: loadEngineScanPaths()
-    })
-    w.once('message', (msg) => resolve(msg as Engine[]))
-    w.once('error', reject)
-    w.once('exit', (c: number) => {
-      if (c !== 0) reject(new Error(`Worker exited ${c}`))
-    })
-  })
+  // Run filesystem worker scan and Windows registry scan in parallel
+  const [workerScanned, registryEngines] = await Promise.all([
+    new Promise<Engine[]>((resolve, reject) => {
+      const w = spawnWorker(ENGINE_SCAN_WORKER, {
+        saved,
+        nativePath: getNativeModulePath(),
+        engineScanPaths: loadEngineScanPaths()
+      })
+      w.once('message', (msg) => resolve(msg as Engine[]))
+      w.once('error', reject)
+      w.once('exit', (c: number) => {
+        if (c !== 0) reject(new Error(`Worker exited ${c}`))
+      })
+    }),
+    // Registry scan only runs on Windows — returns [] on other platforms
+    getInstalledEngines().catch(() => [] as Engine[])
+  ])
+
+  // Merge registry results into worker results — registry wins for exePath/version
+  // since it's the authoritative source on Windows
+  const scannedMap = new Map<string, Engine>()
+  for (const e of workerScanned) {
+    if (e.directoryPath) scannedMap.set(e.directoryPath.toLowerCase(), e)
+  }
+  for (const e of registryEngines) {
+    if (!e.directoryPath) continue
+    const key = e.directoryPath.toLowerCase()
+    const existing = scannedMap.get(key)
+    if (existing) {
+      // Registry has authoritative version/exePath — update
+      scannedMap.set(key, { ...existing, version: e.version, exePath: e.exePath })
+    } else {
+      // New engine found only in registry — add it with defaults
+      scannedMap.set(key, {
+        version: e.version,
+        exePath: e.exePath,
+        directoryPath: e.directoryPath,
+        folderSize: '~35-45 GB',
+        lastLaunch: 'Unknown',
+        gradient: generateGradient()
+      } as Engine)
+    }
+  }
+  const scanned = Array.from(scannedMap.values())
 
   // Merge: preserve app-managed fields (gradient, folderSize, lastLaunch)
   const savedPaths = new Set(saved.map((e) => e.directoryPath?.toLowerCase()))

@@ -21,7 +21,11 @@ if (process.platform === 'win32') {
   }
 }
 
-const REGISTRY_KEY = 'HKLM\\SOFTWARE\\EpicGames\\Unreal Engine'
+const REGISTRY_KEYS = [
+  'HKLM\\SOFTWARE\\EpicGames\\Unreal Engine',
+  'HKCU\\SOFTWARE\\EpicGames\\Unreal Engine',
+  'HKLM\\SOFTWARE\\WOW6432Node\\EpicGames\\Unreal Engine'
+]
 
 export async function getInstalledEngines(): Promise<ScannedEngine[]> {
   // Only available on Windows with regedit
@@ -29,41 +33,52 @@ export async function getInstalledEngines(): Promise<ScannedEngine[]> {
     return []
   }
 
-  try {
-    const list = await regedit.promisified.list([REGISTRY_KEY])
-    const entry = list[REGISTRY_KEY]
-    if (!entry || !entry.keys || entry.keys.length === 0) return []
+  const seen = new Set<string>()
+  const allResults: ScannedEngine[] = []
 
-    const results = await Promise.all(
-      entry.keys.map(async (version) => {
-        const versionPath = `${REGISTRY_KEY}\\${version}`
-        try {
-          const details = await regedit.promisified.list([versionPath])
-          const values = details[versionPath]?.values
-          const installedDir = values?.['InstalledDirectory']?.value as string | undefined
-          if (!installedDir) return null
+  for (const REGISTRY_KEY of REGISTRY_KEYS) {
+    try {
+      const list = await regedit.promisified.list([REGISTRY_KEY])
+      const entry = list[REGISTRY_KEY]
+      if (!entry || !entry.keys || entry.keys.length === 0) continue
 
-          const binPlatform =
-            process.platform === 'win32' ? 'Win64' : process.platform === 'darwin' ? 'Mac' : 'Linux'
-          const binPath = path.join(installedDir, 'Engine', 'Binaries', binPlatform)
-          const exeName = `UnrealEditor${getBinaryExtension()}`
-          let exePath = path.join(binPath, exeName)
-          if (!fs.existsSync(exePath)) {
-            // Try UE4Editor for older versions
-            const ue4ExeName = `UE4Editor${getBinaryExtension()}`
-            exePath = path.join(binPath, ue4ExeName)
+      const results = await Promise.all(
+        entry.keys.map(async (version: string) => {
+          const versionPath = `${REGISTRY_KEY}\\${version}`
+          try {
+            const details = await regedit.promisified.list([versionPath])
+            const values = details[versionPath]?.values
+            const installedDir = values?.['InstalledDirectory']?.value as string | undefined
+            if (!installedDir) return null
+
+            // Deduplicate by directory path
+            const normalised = installedDir.toLowerCase().replace(/\\/g, '/')
+            if (seen.has(normalised)) return null
+            seen.add(normalised)
+
+            const binPath = path.join(installedDir, 'Engine', 'Binaries', 'Win64')
+            const exeName = `UnrealEditor${getBinaryExtension()}`
+            let exePath = path.join(binPath, exeName)
+            if (!fs.existsSync(exePath)) {
+              const ue4ExeName = `UE4Editor${getBinaryExtension()}`
+              exePath = path.join(binPath, ue4ExeName)
+            }
+            if (!fs.existsSync(exePath)) return null
+
+            return { version, exePath, directoryPath: installedDir } satisfies ScannedEngine
+          } catch {
+            return null
           }
-          if (!fs.existsSync(exePath)) return null
+        })
+      )
 
-          return { version, exePath, directoryPath: installedDir } satisfies ScannedEngine
-        } catch {
-          return null
-        }
-      })
-    )
-
-    return results.filter((e): e is ScannedEngine => e !== null)
-  } catch {
-    return []
+      for (const r of results) {
+        if (r) allResults.push(r)
+      }
+    } catch {
+      // Key doesn't exist — skip
+    }
   }
+
+  return allResults
 }

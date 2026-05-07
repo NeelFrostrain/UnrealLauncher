@@ -4,6 +4,13 @@
 // See LICENSE in the project root for full license terms.
 import { GitBranch, GitCommit, Plus, Wrench } from 'lucide-react'
 
+// ── v2.2.1 — Windows registry engine scan fix ────────────────────────────────
+const v221commits = [
+  { type: 'fix', msg: 'Windows registry engine scan not working — getInstalledEngines() was never called in the scan flow; now runs in parallel with filesystem worker scan' },
+  { type: 'fix', msg: 'Registry scan only checked HKLM — now also checks HKCU (per-user installs) and WOW6432Node (32-bit view), deduplicates by directory path' },
+  { type: 'fix', msg: 'Registry scan used wrong binary platform — hardcoded to Win64 since this code only runs on Windows' },
+]
+
 // ── v2.2.0 — main branch, everything since v2.1.2 (linux tag) ────────────────
 const v220commits = [
   { type: 'refactor', msg: 'Full codebase split — all files >200 lines broken into focused modules' },
@@ -186,7 +193,8 @@ const VersionBlock = ({
 
 const AboutChangelog = (): React.ReactElement => (
   <div className="space-y-3">
-    <VersionBlock version="2.2.0" date="2026-05-03" branch="main"      commits={v220commits} isCurrent />
+    <VersionBlock version="2.2.1" date="2026-05-07" branch="main"      commits={v221commits} isCurrent />
+    <VersionBlock version="2.2.0" date="2026-05-03" branch="main"      commits={v220commits} />
     <VersionBlock version="2.1.2" date="2026-04-20" branch="linux"     commits={v212commits} />
     <VersionBlock version="2.0.1" date="2026-04-11" branch="main"      commits={v200commits} />
     <VersionBlock version="1.9.0" date="2026-04-09" branch="v1.9_dev"  commits={v190commits} />
