@@ -2,7 +2,7 @@
   "name": "unreal-launcher",
   "productName": "Unreal Launcher",
   "version": "2.2.2",
-  "description": "An Electron application with React and TypeScript",
+  "description": "A lightweight Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects",
   "main": "./out/main/index.js",
   "author": "NeelFrostrain",
   "license": "SEE LICENSE IN LICENSE",
