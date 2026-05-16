@@ -3,7 +3,7 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { RefreshCw, Download, CheckCircle, GitBranch } from 'lucide-react'
-import { SectionHeader, Card } from '../SectionHelpers'
+import { Card } from '../SectionHelpers'
 import { useUpdateCheck } from '../../../hooks/useUpdateCheck'
 
 // Status-specific semantic colors — these are intentional fixed colors, not theme tokens
@@ -75,11 +75,6 @@ const UpdatesSection = (): React.ReactElement => {
 
   return (
     <section>
-      <SectionHeader
-        icon={<RefreshCw size={13} className="text-blue-300" />}
-        label="Updates"
-        accent="bg-blue-500/20"
-      />
       <Card>
         {/* Auto-updater */}
         <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-border)' }}>

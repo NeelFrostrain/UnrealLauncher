@@ -11,7 +11,7 @@ import { registerUpdateHandlers } from './ipc/updates'
 import { registerMiscHandlers } from './ipc/misc'
 import { registerFabHandlers } from './ipc/fab'
 
-export { cleanupWorkers } from './ipc/workers'
+export { cleanupWorkers } from './workers/workers'
 
 export function registerIpcHandlers(): void {
   registerEngineHandlers(ipcMain)

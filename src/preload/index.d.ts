@@ -23,6 +23,7 @@ declare global {
     folderSize: string
     lastLaunch: string
     gradient?: string
+    alias?: string
   }
 
   interface ProjectSelectionResult {
@@ -74,12 +75,16 @@ declare global {
     filters?: string[]
   }
 
-  interface MarketplacePlugin {
+  interface EnginePlugin {
     name: string
     path: string
     description: string
     version: string
+    category: string
+    isBeta: boolean
+    isExperimental: boolean
     icon: string | null
+    createdBy: string
   }
 
   interface Window {
@@ -93,6 +98,7 @@ declare global {
       calculateEngineSize: (
         directoryPath: string
       ) => Promise<{ success: boolean; size?: string; error?: string }>
+      updateEngineAlias: (directoryPath: string, alias: string) => Promise<boolean>
       // Projects
       scanProjects: () => Promise<ProjectData[]>
       launchProject: (projectPath: string) => Promise<{ success: boolean; error?: string }>
@@ -156,7 +162,7 @@ declare global {
       saveMainSettings: (settings: any) => Promise<void>
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>
-      scanMarketplacePlugins: (engineDir: string) => Promise<MarketplacePlugin[]>
+      scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
       // Fab cache
       fabGetDefaultPath: () => Promise<string>
       fabSelectFolder: () => Promise<string | null>
@@ -181,8 +187,63 @@ declare global {
         behind: number
         remoteUrl: string
       }>
-      projectGitInit: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectGitInit: (
+        projectPath: string
+      ) => Promise<{ success: boolean; lfsAvailable: boolean; error?: string }>
       projectLaunchGame: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectOpenUproject: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectOpenDefaultConfig: (
+        projectPath: string
+      ) => Promise<{ success: boolean; error?: string }>
+      projectOpenSubfolder: (
+        projectPath: string,
+        subfolder: string
+      ) => Promise<{ success: boolean; error?: string }>
+      projectGenerateFiles: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectCleanIntermediate: (
+        projectPath: string
+      ) => Promise<{ success: boolean; cleaned: string[]; error?: string }>
+      projectOpenRemote: (remoteUrl: string) => Promise<{ success: boolean; error?: string }>
+      projectGitReinit: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectGitWriteGitignore: (
+        projectPath: string
+      ) => Promise<{ success: boolean; existed: boolean; error?: string }>
+      projectGitInitLfs: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectGitHasChanges: (projectPath: string) => Promise<{
+        hasChanges: boolean
+        summary: string
+        fileList: Array<{ status: string; file: string }>
+        error?: string
+      }>
+      projectGitCommit: (
+        projectPath: string,
+        message: string
+      ) => Promise<{ success: boolean; error?: string }>
+      projectGitBranches: (
+        projectPath: string
+      ) => Promise<{ branches: string[]; current: string; error?: string }>
+      projectGitSwitchBranch: (
+        projectPath: string,
+        branch: string,
+        create: boolean,
+        strategy?: 'normal' | 'stash' | 'force'
+      ) => Promise<{ success: boolean; hasUncommitted?: boolean; error?: string }>
+      projectGitFileStatus: (
+        projectPath: string
+      ) => Promise<{ hasGitignore: boolean; hasGitattributes: boolean }>
+      projectReadTextFile: (filePath: string) => Promise<{ success: boolean; content: string; error?: string }>
+      projectWriteTextFile: (
+        filePath: string,
+        content: string
+      ) => Promise<{ success: boolean; error?: string }>
+      projectResolveConfigPath: (
+        projectPath: string
+      ) => Promise<{ success: boolean; filePath: string; error?: string }>
+      projectResolveUprojectPath: (
+        projectPath: string
+      ) => Promise<{ success: boolean; filePath: string; error?: string }>
+      projectOpenTerminal: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      projectOpenGithub: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       // Engine scan paths (Linux)
       getEngineScanPaths: () => Promise<string[]>
       saveEngineScanPaths: (paths: string[]) => Promise<void>

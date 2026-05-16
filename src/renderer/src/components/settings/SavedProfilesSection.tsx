@@ -83,7 +83,12 @@ const SavedProfilesSection = ({
         />
         <button
           onClick={handleSaveProfile}
-          className="px-3 py-1.5 rounded-lg text-xs bg-blue-600 text-white cursor-pointer"
+          className="px-3 py-1.5 text-xs cursor-pointer transition-colors"
+          style={{
+            borderRadius: 'var(--radius)',
+            backgroundColor: 'var(--color-accent)',
+            color: 'white'
+          }}
         >
           Save
         </button>
@@ -200,8 +205,10 @@ const SavedProfilesSection = ({
                   e.stopPropagation()
                   deleteProfile(profile.id)
                 }}
-                className="flex items-center gap-1 text-[10px] hover:text-red-400 transition-colors cursor-pointer"
+                className="flex items-center gap-1 text-[10px] transition-colors cursor-pointer"
                 style={{ color: 'var(--color-text-muted)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-muted)')}
                 title="Delete"
               >
                 <Trash2 size={10} />

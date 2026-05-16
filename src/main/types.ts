@@ -9,6 +9,7 @@ export interface Engine {
   folderSize: string
   lastLaunch: string
   gradient: string
+  alias?: string
 }
 
 export interface Project {

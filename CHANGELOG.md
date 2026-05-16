@@ -2,6 +2,117 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.2] - 2026-05-16 — `hotfix`
+
+### ✨ Added
+
+- **Engine custom alias** — Set a nickname for any engine instance so duplicate versions are easy to tell apart
+  - Alias displays as the primary title on the engine card; "Unreal Engine X.X" becomes the subtitle when an alias is set
+  - Click the title (or the pencil icon that appears on hover) to enter inline edit mode
+  - Underline-style input — press Enter or click away to save, Escape to cancel
+  - 32-character limit, sanitized on save; stored in `engines.json` alongside the engine entry
+  - Persists across restarts and survives scan/merge cycles (alias is never overwritten by a rescan)
+- **Project sorting** — Full sort system on the Projects page
+  - Sort by: **Name (A–Z)**, **Last Opened**, **Date Created**, **Size**, **Engine Version**
+  - Ascending / descending toggle per key; sensible defaults (dates → newest first, name/version → A–Z)
+  - Sort preference persisted to `localStorage` and restored on relaunch
+  - Size sort parses `~35-45 GB` range strings and `MB`/`KB`/`GB` units correctly
+- **Hidden projects tab** — Replace "Remove from list" with a non-destructive hide system
+  - New **Hidden** tab replaces the **Recent** tab in the Projects toolbar
+  - "Hide from List" moves a project out of All/Favorites without touching `projects.json` or disk
+  - "Unhide from List" restores it instantly — label and subtitle toggle based on current state
+  - Hidden paths stored in `localStorage` under `projectHidden`; zero IPC, zero file writes
+  - All/Favorites tabs automatically exclude hidden projects; Hidden tab shows only hidden ones
+
+### 🛠️ Fixed
+
+- **Registry scan broken in packaged builds** — Replaced the `regedit` npm package (VBS-based) with direct `reg.exe` CLI calls via `child_process.spawn`. The `regedit` package requires its VBS helper scripts to be accessible at runtime — inside an `.asar` archive they are inaccessible, and even with `setExternalVBSLocation` pointing at `app.asar.unpacked`, `promisified.list()` silently returned `exists: false` for `HKLM` keys on this machine. The native `reg.exe` is always available on Windows, requires no helper scripts, no elevation for read-only queries, and correctly returns all registered engine versions
+- **Registry sub-key parser using wrong key format** — `reg.exe` outputs full expanded hive names (`HKEY_LOCAL_MACHINE\...`) but the parser was comparing against the short form (`HKLM\...`), so every line failed the `startsWith` check and zero versions were parsed. Fixed by expanding short hive names before comparison via `expandHive()`
+- **Registry scan skipping valid keys** — Was checking `!entry || !entry.keys` but not `entry.exists`; now checks `entry?.exists` so genuinely missing keys are skipped cleanly
+- **Registry scan not verifying directory on disk** — Was resolving the exe path without first confirming `InstalledDirectory` exists on disk; now calls `fs.existsSync(installedDir)` before attempting to resolve the binary
+- **Engine alias lost on rescan** — `scanAndMergeEngines` spread `...s` but the comment was misleading; clarified that `alias`, `gradient`, `folderSize`, and `lastLaunch` are all preserved via the spread — no data loss on scan
+- **Registry-only engines missing `alias` field** — Engines discovered exclusively via registry were constructed with `as Engine` cast, silently dropping the `alias` field. Changed to `satisfies Engine` with explicit `alias: undefined` so the shape is always complete
+- **`ERR_FILE_NOT_FOUND` console spam** — `local-asset://` protocol handler was forwarding all requests to `net.fetch` regardless of whether the file existed. Missing plugin icons, project thumbnails, and Fab asset icons all produced uncaught Electron network errors. Handler now returns a clean `404` response for missing files; `onError` fallbacks in image components still fire silently
+- **Typecheck: 38 pre-existing errors cleared** — Fixed across 16 files:
+  - Unused imports: `loadSavedEngines`, `getSplashWindow`, `loadNativeModule`, `useTheme`, `APP_VERSION`, `LogLevel`, `resolveAsset` (projectCardContent)
+  - `FabAsset` imported from wrong module (`fabScanner` re-exports it from `fabAssetDetection` but doesn't export the type itself)
+  - `uprojectPath` unused parameter in `projectSelection.ts`
+  - `icon` destructured but unused in both `AssetListCard` and `AssetGridCard`
+  - `Mode` type and `setStatus` missing in `FeedbackDialog`
+  - `projectName` unused in `ProjectToolsSubMenu`
+  - `onClose` unused in `AboutSection`
+  - `selectedEngine` unused in `EnginesPageToolbar`
+  - `setShowCommitDialog` / `setShowBranchDialog` / `message` unused in `projectCardHandlers`
+  - `projectResolveConfigPath`, `projectResolveUprojectPath`, `projectReadTextFile`, `projectWriteTextFile` missing from `preload/index.d.ts`
+  - `projectName: string | undefined` not assignable to `string` in `ProjectCardDialogs` — fixed with `?? ''` coercion
+  - `onToggle: () => void` vs `handleAutoCloseToggle: (value: boolean) => void` mismatch in `SettingsPage` — wrapped with arrow function
+  - `RefObject<HTMLDivElement | null>` not assignable to `RefObject<HTMLDivElement>` — relaxed `containerRef` type in `ProjectsContent`
+  - `handleListScroll` missing from `useProjectsPageState` return — re-added to return object
+  - `SystemSection` importing non-existent `appVersion` utility — removed import, initialised state with `''`
+
+---
+
+## [2.2.1] - 2026-05-07 — `main`
+
+### 🛠️ Fixed
+
+- **Windows registry engine scan not working** — `getInstalledEngines()` was never called during the scan flow; `scanAndMergeEngines` only ran the filesystem worker and completely ignored the registry. Now runs both in parallel via `Promise.all` and merges results — registry wins for `version`/`exePath` as the authoritative source on Windows
+- **Registry scan only checked one key** — Was only querying `HKLM\SOFTWARE\EpicGames\Unreal Engine`; now also checks `HKCU\SOFTWARE\EpicGames\Unreal Engine` (per-user installs) and `HKLM\SOFTWARE\WOW6432Node\EpicGames\Unreal Engine` (32-bit registry view). Deduplicates by directory path so the same engine is never added twice
+- **Registry scan used wrong binary platform** — Was resolving `Win64`/`Mac`/`Linux` based on `process.platform` inside a Windows-only code path; hardcoded to `Win64` since this code only runs on Windows
+
+---
+
+## [2.2.0] - 2026-05-03 — `main`
+
+### ✨ Added
+
+- **In-app file editor** — Edit `DefaultEngine.ini` and `.uproject` files directly in the launcher without opening an external editor
+  - Find bar (`Ctrl+F`) with match counter, prev/next navigation, case-sensitive toggle
+  - Find & Replace (`Ctrl+H`) with Replace One and Replace All
+  - Unsaved indicator, `Ctrl+S` to save, JSON validation before saving `.uproject`
+- **Rich project context menu** — Right-click (or `⋮` button) now opens a full submenu system:
+  - **Git Tools** — Init repo + LFS + `.gitignore`, commit changes, switch/create branch, open remote URL, copy remote URL
+  - **Project Tools** — Edit Default Config, Edit .uproject, View Logs, Clean Intermediate
+  - **Organize** — Open in Explorer, Open Terminal, Open in GitHub Desktop
+- **Git commit dialog** — Stage all and commit with file diff preview showing changed files
+- **Git branch dialog** — Switch branches, create new branch, stash or discard conflict resolution
+- **Open Terminal** — Launches Windows Terminal / cmd on Windows, gnome-terminal / konsole / xfce4-terminal on Linux, Terminal.app on macOS
+- **Open in GitHub Desktop** — Finds GitHub Desktop exe on Windows, falls back to protocol URL on macOS/Linux
+- **Project list card** — Now uses the same full context menu as the grid card (previously had a basic 6-item dropdown)
+- **About page rebuilt** — New sections: Architecture, IPC Modules, Data Storage, Tech Stack
+- **Navigation persistence** — Last visited page and tab restored on relaunch
+- **App version synced from `package.json`** — Version displayed in About and Settings always matches the real build; no more hardcoded strings
+- **`VITE_APP_VERSION` in `.env`** — Build-time fallback so version shows instantly before IPC resolves
+
+### 🏗️ Refactored
+
+- **Full codebase split** — Every file over 200 lines broken into focused single-responsibility modules:
+  - IPC handlers → `projectGit.ts`, `projectLog.ts`, `projectFiles.ts`, `projectTerminal.ts`, `projectLaunching.ts`
+  - Main window → `windowConfig.ts`, `splashWindow.ts`, `windowHandlers.ts`, `windowLifecycle.ts`
+  - Engine utils → `engineGradient.ts`, `engineValidation.ts`, `engineRegistry.ts`, `engineScanning.ts`
+  - Theme utils → `themeTokens.ts`, `themePersistence.ts`, `themeProfiles.ts`, `themeApplication.ts`
+  - Worker scripts → `src/main/workers/projectScanWorker.ts`, `engineScanWorker.ts`
+  - Frontend → Sidebar, FabTab, ProjectCardGrid, EnginesPage all split into state hooks + content components
+- **Settings page** — Reusable `Card` / `SectionHeader` helpers, improved layout consistency
+- **Folder reorganization** — `card/`, `git/`, `log/`, `contextMenu/`, `sidebar/`, `fab/`, `plugins/` subfolders for related files
+
+### 🛠️ Fixed
+
+- **Linux: project launch opens text editor** — `handleLaunchProject` was calling `xdg-open` on the `.uproject` file; now spawns `UnrealEditor` directly
+- **Linux: engine auto-discovery** — Projects can now be launched without manually adding the engine in the Engines tab; falls back to live scan of common paths and `UE_ROOT`
+- **Linux: window controls broken** — `handleWindowMinimize` / `handleWindowMaximize` were passed directly as IPC callbacks after refactor; now wrapped to call `getMainWindow()` at invocation time
+- **Linux: preload path wrong** — Was `../../preload/index.js` (relative to source); corrected to `../preload/index.js` (relative to `out/main/`)
+- **`onLaunching is not defined`** — Stale variable name in `projectCardHandlers.ts` `useCallback` dependency array
+- **`fabTabContent` / `fabTabState` import errors** — Files moved into `fab/` subfolder but imports still had old `./fab/` prefix
+- **`projectCardContent` import error** — `projectUtils` path wrong after moving into `card/` subfolder
+- **Preload crash on startup** — `require('electron').app` is `undefined` in preload context; replaced with empty string fallback
+- **Version showing `…` in Settings** — `SystemInfoGrid` was using `useState` initializer as an effect; `getAppVersion()` IPC was never called; fixed to `useEffect`
+- **Context menu URL overflow** — Remote URL subtitle was `whitespace-nowrap`; changed to `truncate` with ellipsis
+- **File editor dialog closes on click inside** — Missing `stopPropagation` on the modal div
+- **File editor dialog not opening** — State lived in `ProjectToolsSubMenu` which unmounted before the dialog could render; moved to `ProjectCardDialogs` (stable parent)
+
+---
+
 ## [2.1.2] - 2026-04-26 — `v2.1.2`
 
 ### ✨ Added
@@ -21,7 +132,6 @@ All notable changes to this project will be documented in this file.
   - Tracer status (Windows only)
 - **Theme-aware badges** — System badges use theme colors and respect `--radius` variable
 - **Responsive layout** — Compact horizontal badge layout instead of grid to save vertical space
-
 
 ### 🛠️ Fixed
 

@@ -46,7 +46,11 @@ export function killProcess(processName: string): void {
   } else {
     // pkill -f with end-anchor to avoid matching the electron process itself
     // (which contains the binary name as a string in its JS bundle path).
-    try { execSync(`pkill -f "/${processName}$"`, { stdio: 'ignore' }) } catch { /* not found */ }
+    try {
+      execSync(`pkill -f "/${processName}$"`, { stdio: 'ignore' })
+    } catch {
+      /* not found */
+    }
   }
 }
 

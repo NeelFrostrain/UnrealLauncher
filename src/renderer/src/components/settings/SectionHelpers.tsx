@@ -44,10 +44,8 @@ export const Toggle = ({
 }): React.ReactElement => (
   <button
     onClick={onChange}
-    className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none ${
-      on ? (color === 'green' ? 'bg-green-500' : 'bg-blue-600') : ''
-    }`}
-    style={!on ? { backgroundColor: 'var(--color-border)' } : undefined}
+    className="relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none"
+    style={{ backgroundColor: on ? (color === 'green' ? '#4ade80' : 'var(--color-accent)') : 'var(--color-border)' }}
     role="switch"
     aria-checked={on}
   >

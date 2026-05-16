@@ -3,8 +3,8 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { useState } from 'react'
-import { Database, Trash2 } from 'lucide-react'
-import { SectionHeader, Card, SettingRow } from '../SectionHelpers'
+import { Trash2 } from 'lucide-react'
+import { Card, SettingRow } from '../SectionHelpers'
 import { getSetting, setSetting } from '../../../utils/settings'
 
 const LOG_PRESETS = [500, 1000, 2000, 5000, 10000]
@@ -36,11 +36,6 @@ const DataSection = (): React.ReactElement => {
 
   return (
     <section>
-      <SectionHeader
-        icon={<Database size={13} className="text-red-300" />}
-        label="Data"
-        accent="bg-red-500/20"
-      />
       <Card>
         <SettingRow
           label="Log viewer lines"
@@ -83,7 +78,13 @@ const DataSection = (): React.ReactElement => {
           <button
             onClick={handleClearAppData}
             disabled={clearing === 'app'}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 hover:bg-red-500/18 text-red-400 border border-red-500/20 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            style={{
+              borderRadius: 'var(--radius)',
+              backgroundColor: 'rgba(248,113,113,0.1)',
+              color: '#f87171',
+              border: '1px solid rgba(248,113,113,0.2)'
+            }}
           >
             <Trash2 size={12} />
             {clearing === 'app' ? 'Clearing…' : 'Reset All App Data'}
@@ -98,7 +99,13 @@ const DataSection = (): React.ReactElement => {
           <button
             onClick={handleClearTracerData}
             disabled={clearing === 'tracer'}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 hover:bg-red-500/18 text-red-400 border border-red-500/20 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            style={{
+              borderRadius: 'var(--radius)',
+              backgroundColor: 'rgba(248,113,113,0.1)',
+              color: '#f87171',
+              border: '1px solid rgba(248,113,113,0.2)'
+            }}
           >
             <Trash2 size={12} />
             {clearing === 'tracer' ? 'Clearing…' : 'Clear'}

@@ -4,8 +4,12 @@
 // See LICENSE in the project root for full license terms.
 import React from 'react'
 import { Sidebar, Titlebar } from '../components'
+import { useNavigationPersist } from '../hooks/useNavigationPersist'
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => {
+  // Persist the current route on every navigation so the app restores it on next launch
+  useNavigationPersist()
+
   return (
     <div className="w-screen h-screen bg-black text-white p-px overflow-hidden select-none">
       <div

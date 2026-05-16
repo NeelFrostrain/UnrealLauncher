@@ -50,6 +50,19 @@ export interface NativeModule {
   findProjectScreenshot: (projectPath: string) => string | null
   findLatestLogTimestamp: (projectPath: string) => string | null
   getFolderSize: (folderPath: string) => number
+  scanEnginePlugins: (engineDir: string) => NativeEnginePlugin[]
+}
+
+export interface NativeEnginePlugin {
+  name: string
+  path: string
+  description: string
+  version: string
+  category: string
+  isBeta: boolean
+  isExperimental: boolean
+  icon: string | null
+  createdBy: string
 }
 
 export interface ScannedEngine {

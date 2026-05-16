@@ -3,7 +3,7 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 export type PageType = 'Engines' | 'Projects' | 'About' | 'Settings'
-export type TabType = 'all' | 'recent' | 'favorites'
+export type TabType = 'all' | 'hidden' | 'favorites'
 
 // These mirror the global types in preload/index.d.ts — single shape, two contexts
 export type EngineCardProps = EngineData

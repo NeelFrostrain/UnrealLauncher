@@ -3,8 +3,8 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { useEffect, useState } from 'react'
-import { Activity, FolderOpen, Cpu } from 'lucide-react'
-import { SectionHeader, Card, SettingRow, Toggle } from '../SectionHelpers'
+import { FolderOpen, Cpu } from 'lucide-react'
+import { Card, SettingRow, Toggle } from '../SectionHelpers'
 import { useTracerSettings } from '../../../hooks/useTracerSettings'
 
 const TracerSection = (): React.ReactElement | null => {
@@ -31,11 +31,6 @@ const TracerSection = (): React.ReactElement | null => {
 
   return (
     <section>
-      <SectionHeader
-        icon={<Activity size={13} className="text-green-300" />}
-        label="Session Tracer"
-        accent="bg-green-500/20"
-      />
       <Card>
         <SettingRow
           label="Run tracer on startup"

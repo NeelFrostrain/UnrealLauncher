@@ -6,7 +6,6 @@ import { useCallback } from 'react'
 import type { TabType } from '../types'
 import { getSetting } from '../utils/settings'
 import { useToast } from '../components/ui/ToastContext'
-import { useProjectFavorites } from './useProjectFavorites'
 
 interface UseProjectActionsOptions {
   currentTab: TabType
@@ -17,14 +16,9 @@ export interface UseProjectActionsReturn {
   handleRefresh: (opts: {
     setRefreshing: (v: boolean) => void
     setCalculatingSizes: (v: boolean) => void
-    setProjects: (v: []) => void
   }) => Promise<void>
   handleLaunch: (projectPath: string) => Promise<void>
   handleOpenDir: (dirPath: string) => Promise<void>
-  handleDelete: (
-    projectPath: string,
-    setProjects: (fn: (prev: import('../types').Project[]) => import('../types').Project[]) => void
-  ) => Promise<void>
   handleAddProject: (opts: {
     addingProject: boolean
     setAddingProject: (v: boolean) => void
@@ -36,17 +30,14 @@ export function useProjectActions({
   loadProjectsForTab
 }: UseProjectActionsOptions): UseProjectActionsReturn {
   const { addToast } = useToast()
-  const { getFavoritePaths, saveFavoritePaths } = useProjectFavorites()
 
   const handleRefresh = useCallback(
     async ({
       setRefreshing,
-      setCalculatingSizes,
-      setProjects
+      setCalculatingSizes
     }: {
       setRefreshing: (v: boolean) => void
       setCalculatingSizes: (v: boolean) => void
-      setProjects: (v: []) => void
     }): Promise<void> => {
       setRefreshing(true)
       setCalculatingSizes(true)
@@ -76,38 +67,6 @@ export function useProjectActions({
       await window.electronAPI.openDirectory(dirPath)
     }
   }, [])
-
-  const handleDelete = useCallback(
-    async (
-      projectPath: string,
-      setProjects: (
-        fn: (prev: import('../types').Project[]) => import('../types').Project[]
-      ) => void
-    ): Promise<void> => {
-      try {
-        if (window.electronAPI) {
-          const success = await window.electronAPI.deleteProject(projectPath)
-          if (!success) {
-            addToast('Failed to remove project from storage', 'error')
-            return
-          }
-        }
-        setProjects((prev) => prev.filter((p) => p.projectPath !== projectPath))
-        const favorites = getFavoritePaths()
-        if (favorites.includes(projectPath)) {
-          saveFavoritePaths(favorites.filter((p) => p !== projectPath))
-          if (currentTab === 'favorites') {
-            await loadProjectsForTab('favorites')
-          }
-        }
-        addToast('Project removed from list', 'success')
-      } catch (error) {
-        console.error('Error deleting project:', error)
-        addToast('Failed to remove project', 'error')
-      }
-    },
-    [addToast, currentTab, getFavoritePaths, loadProjectsForTab, saveFavoritePaths]
-  )
 
   const handleAddProject = useCallback(
     async ({
@@ -160,5 +119,5 @@ export function useProjectActions({
     [addToast, currentTab, loadProjectsForTab]
   )
 
-  return { handleRefresh, handleLaunch, handleOpenDir, handleDelete, handleAddProject }
+  return { handleRefresh, handleLaunch, handleOpenDir, handleAddProject }
 }

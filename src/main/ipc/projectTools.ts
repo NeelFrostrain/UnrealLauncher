@@ -2,149 +2,54 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { ipcMain, app } from 'electron'
-import path from 'path'
-import fs from 'fs'
-
-const TAIL_BYTES = 64 * 1024
-
-function findLatestLog(projectPath: string): string | null {
-  const logsDir = path.join(projectPath, 'Saved', 'Logs')
-  if (!fs.existsSync(logsDir)) return null
-  let best: { file: string; mtime: number } | null = null
-  try {
-    for (const f of fs.readdirSync(logsDir)) {
-      if (!f.endsWith('.log')) continue
-      const fp = path.join(logsDir, f)
-      const mtime = fs.statSync(fp).mtimeMs
-      if (!best || mtime > best.mtime) best = { file: fp, mtime }
-    }
-  } catch {
-    return null
-  }
-  return best?.file ?? null
-}
+import { ipcMain } from 'electron'
+import { handleProjectReadLog } from './projectLog'
+import {
+  handleProjectGitStatus, handleProjectGitInit, handleProjectGitFileStatus,
+  handleProjectGitReinit, handleProjectGitWriteGitignore, handleProjectGitInitLfs,
+  handleProjectGitHasChanges, handleProjectGitCommit, handleProjectGitBranches,
+  handleProjectGitSwitchBranch
+} from './projectGit'
+import {
+  handleProjectOpenDefaultConfig, handleProjectOpenUproject,
+  handleProjectOpenSubfolder, handleProjectGenerateFiles, handleProjectCleanIntermediate,
+  handleProjectReadTextFile, handleProjectWriteTextFile,
+  handleProjectResolveConfigPath, handleProjectResolveUprojectPath
+} from './projectFiles'
+import {
+  handleProjectOpenTerminal, handleProjectOpenGithub, handleProjectOpenRemote
+} from './projectTerminal'
 
 export function registerProjectToolHandlers(ipcMain_: typeof ipcMain): void {
-  // ── Log tail ────────────────────────────────────────────────────────────────
-  ipcMain_.handle(
-    'project-read-log',
-    (
-      _event,
-      projectPath: string,
-      fromByte = 0
-    ): {
-      logPath: string
-      content: string
-      sizeBytes: number
-      startByte: number
-    } | null => {
-      const logPath = findLatestLog(projectPath)
-      if (!logPath) return null
-      let sizeBytes = 0
-      try {
-        sizeBytes = fs.statSync(logPath).size
-      } catch {
-        return null
-      }
-      if (fromByte > 0 && fromByte >= sizeBytes)
-        return { logPath, content: '', sizeBytes, startByte: fromByte }
-      const readFrom = fromByte > 0 ? fromByte : Math.max(0, sizeBytes - TAIL_BYTES)
-      const readLen = sizeBytes - readFrom
-      if (readLen <= 0) return { logPath, content: '', sizeBytes, startByte: readFrom }
-      let content = ''
-      try {
-        const buf = Buffer.alloc(readLen)
-        const fd = fs.openSync(logPath, 'r')
-        fs.readSync(fd, buf, 0, readLen, readFrom)
-        fs.closeSync(fd)
-        content = buf.toString('utf8')
-        if (readFrom > 0) {
-          const nl = content.indexOf('\n')
-          if (nl !== -1) content = content.slice(nl + 1)
-        }
-      } catch {
-        return null
-      }
-      return { logPath, content, sizeBytes, startByte: readFrom }
-    }
-  )
-
-  // ── Git status ──────────────────────────────────────────────────────────────
-  ipcMain_.handle(
-    'project-git-status',
-    (
-      _event,
-      projectPath: string
-    ): {
-      initialized: boolean
-      branch: string
-      hasUncommitted: boolean
-      ahead: number
-      behind: number
-      remoteUrl: string
-    } => {
-      const gitDir = path.join(projectPath, '.git')
-      if (!fs.existsSync(gitDir))
-        return {
-          initialized: false,
-          branch: '',
-          hasUncommitted: false,
-          ahead: 0,
-          behind: 0,
-          remoteUrl: ''
-        }
-      let branch = 'unknown'
-      try {
-        branch = fs
-          .readFileSync(path.join(gitDir, 'HEAD'), 'utf8')
-          .trim()
-          .replace('ref: refs/heads/', '')
-      } catch {
-        /* ignore */
-      }
-      let remoteUrl = ''
-      try {
-        const m = fs.readFileSync(path.join(gitDir, 'config'), 'utf8').match(/url\s*=\s*(.+)/)
-        if (m) remoteUrl = m[1].trim()
-      } catch {
-        /* ignore */
-      }
-      return { initialized: true, branch, hasUncommitted: false, ahead: 0, behind: 0, remoteUrl }
-    }
-  )
-
-  // ── Git init ────────────────────────────────────────────────────────────────
-  ipcMain_.handle(
-    'project-git-init',
-    async (_event, projectPath: string): Promise<{ success: boolean; error?: string }> => {
-      try {
-        const { execSync } = await import('child_process')
-        execSync('git init', { cwd: projectPath, stdio: 'pipe' })
-        const gitignore = path.join(projectPath, '.gitignore')
-        if (!fs.existsSync(gitignore)) {
-          fs.writeFileSync(
-            gitignore,
-            [
-              'Binaries/',
-              'Build/',
-              'DerivedDataCache/',
-              'Intermediate/',
-              'Saved/',
-              '*.VC.db',
-              '*.sln',
-              '*.suo'
-            ].join('\n'),
-            'utf8'
-          )
-        }
-        return { success: true }
-      } catch (err) {
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
-      }
-    }
-  )
+  ipcMain_.handle('project-read-log', (_e, p: string, from = 0) => handleProjectReadLog(p, from))
+  ipcMain_.handle('project-git-status', (_e, p: string) => handleProjectGitStatus(p))
+  ipcMain_.handle('project-git-init', (_e, p: string) => handleProjectGitInit(p))
+  ipcMain_.handle('project-git-file-status', (_e, p: string) => handleProjectGitFileStatus(p))
+  ipcMain_.handle('project-git-reinit', (_e, p: string) => handleProjectGitReinit(p))
+  ipcMain_.handle('project-git-write-gitignore', (_e, p: string) => handleProjectGitWriteGitignore(p))
+  ipcMain_.handle('project-git-init-lfs', (_e, p: string) => handleProjectGitInitLfs(p))
+  ipcMain_.handle('project-git-has-changes', (_e, p: string) => handleProjectGitHasChanges(p))
+  ipcMain_.handle('project-git-commit', (_e, p: string, msg: string) => handleProjectGitCommit(p, msg))
+  ipcMain_.handle('project-git-branches', (_e, p: string) => handleProjectGitBranches(p))
+  ipcMain_.handle('project-git-switch-branch', (_e, p: string, b: string, create: boolean, strategy?: 'normal' | 'stash' | 'force') =>
+    handleProjectGitSwitchBranch(p, b, create, strategy))
+  ipcMain_.handle('project-open-default-config', (_e, p: string) => handleProjectOpenDefaultConfig(p))
+  ipcMain_.handle('project-open-uproject', (_e, p: string) => handleProjectOpenUproject(p))
+  ipcMain_.handle('project-open-subfolder', (_e, p: string, sub: string) => handleProjectOpenSubfolder(p, sub))
+  ipcMain_.handle('project-generate-files', (_e, p: string) => handleProjectGenerateFiles(p))
+  ipcMain_.handle('project-clean-intermediate', (_e, p: string) => handleProjectCleanIntermediate(p))
+  ipcMain_.handle('project-read-text-file', (_e, filePath: string) => handleProjectReadTextFile(filePath))
+  ipcMain_.handle('project-write-text-file', (_e, filePath: string, content: string) => handleProjectWriteTextFile(filePath, content))
+  ipcMain_.handle('project-resolve-config-path', (_e, p: string) => handleProjectResolveConfigPath(p))
+  ipcMain_.handle('project-resolve-uproject-path', (_e, p: string) => handleProjectResolveUprojectPath(p))
+  ipcMain_.handle('project-open-terminal', (_e, p: string) => handleProjectOpenTerminal(p))
+  ipcMain_.handle('project-open-github', (_e, p: string) => handleProjectOpenGithub(p))
+  ipcMain_.handle('project-open-remote', async (_e, remoteUrl: string) => {
+    if (!remoteUrl) return { success: false, error: 'No remote URL' }
+    let url = remoteUrl
+    const sshMatch = url.match(/^git@([^:]+):(.+?)(?:\.git)?$/)
+    if (sshMatch) url = `https://${sshMatch[1]}/${sshMatch[2]}`
+    else if (url.endsWith('.git')) url = url.slice(0, -4)
+    return handleProjectOpenRemote(url)
+  })
 }
-
-// Keep app import used
-void app

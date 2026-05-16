@@ -95,8 +95,11 @@ const ColorOverrides = ({
               />
               {isOverridden && (
                 <div
-                  className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-purple-400"
-                  style={{ border: '1px solid var(--color-surface-card)' }}
+                  className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full"
+                  style={{
+                    backgroundColor: 'var(--color-accent)',
+                    border: '1px solid var(--color-surface-card)'
+                  }}
                 />
               )}
             </div>

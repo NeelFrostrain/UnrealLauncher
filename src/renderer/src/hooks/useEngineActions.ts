@@ -17,6 +17,7 @@ export function useEngineActions(
   handleOpenDir: (dirPath: string) => Promise<void>
   handleDelete: (dirPath: string) => Promise<void>
   handleAddEngine: () => Promise<void>
+  handleUpdateAlias: (directoryPath: string, alias: string) => Promise<void>
 } {
   const { addToast } = useToast()
   const [scanning, setScanning] = useState(false)
@@ -104,6 +105,25 @@ export function useEngineActions(
     }
   }
 
+  const handleUpdateAlias = async (directoryPath: string, alias: string): Promise<void> => {
+    try {
+      const success = await window.electronAPI.updateEngineAlias(directoryPath, alias)
+      if (!success) {
+        addToast('Failed to save alias', 'error')
+        return
+      }
+      setEngines((prev) =>
+        prev.map((e) =>
+          e.directoryPath === directoryPath
+            ? { ...e, alias: alias.trim().slice(0, 32) || undefined }
+            : e
+        )
+      )
+    } catch {
+      addToast('Failed to save alias', 'error')
+    }
+  }
+
   return {
     scanning,
     addingEngine,
@@ -111,6 +131,7 @@ export function useEngineActions(
     handleLaunch,
     handleOpenDir,
     handleDelete,
-    handleAddEngine
+    handleAddEngine,
+    handleUpdateAlias
   }
 }

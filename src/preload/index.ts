@@ -40,6 +40,8 @@ if (process.contextIsolated) {
       },
       calculateEngineSize: (directoryPath) =>
         ipcRenderer.invoke('calculate-engine-size', directoryPath),
+      updateEngineAlias: (directoryPath: string, alias: string) =>
+        ipcRenderer.invoke('update-engine-alias', directoryPath, alias),
       calculateProjectSize: (projectPath) =>
         ipcRenderer.invoke('calculate-project-size', projectPath),
       calculateAllProjectSizes: () => ipcRenderer.invoke('calculate-all-project-sizes'),
@@ -81,13 +83,13 @@ if (process.contextIsolated) {
       clearTracerData: () => ipcRenderer.invoke('clear-tracer-data'),
       getMainSettings: () => ipcRenderer.invoke('get-main-settings'),
       platform: process.platform,
-      appVersion: require('electron').app?.getVersion?.() ?? '',
+      appVersion: '',
       electronVersion: process.versions.electron ?? '',
       saveMainSettings: (settings) => ipcRenderer.invoke('save-main-settings', settings),
       selectFolder: () => ipcRenderer.invoke('select-folder'),
       loadSavedProjects: () => ipcRenderer.invoke('load-saved-projects'),
-      scanMarketplacePlugins: (engineDir: string) =>
-        ipcRenderer.invoke('scan-marketplace-plugins', engineDir),
+      scanEnginePlugins: (engineDir: string) =>
+        ipcRenderer.invoke('scan-engine-plugins', engineDir),
       fabGetDefaultPath: () => ipcRenderer.invoke('fab-get-default-path'),
       fabSelectFolder: () => ipcRenderer.invoke('fab-select-folder'),
       fabScanFolder: (folderPath: string) => ipcRenderer.invoke('fab-scan-folder', folderPath),
@@ -100,6 +102,57 @@ if (process.contextIsolated) {
       projectGitInit: (projectPath: string) => ipcRenderer.invoke('project-git-init', projectPath),
       projectLaunchGame: (projectPath: string) =>
         ipcRenderer.invoke('launch-project-game', projectPath),
+      projectOpenUproject: (projectPath: string) =>
+        ipcRenderer.invoke('project-open-uproject', projectPath),
+      projectOpenDefaultConfig: (projectPath: string) =>
+        ipcRenderer.invoke('project-open-default-config', projectPath),
+      projectOpenSubfolder: (projectPath: string, subfolder: string) =>
+        ipcRenderer.invoke('project-open-subfolder', projectPath, subfolder),
+      projectGenerateFiles: (projectPath: string) =>
+        ipcRenderer.invoke('project-generate-files', projectPath),
+      projectCleanIntermediate: (projectPath: string) =>
+        ipcRenderer.invoke('project-clean-intermediate', projectPath),
+      projectOpenRemote: (remoteUrl: string) =>
+        ipcRenderer.invoke('project-open-remote', remoteUrl),
+      projectGitReinit: (projectPath: string) =>
+        ipcRenderer.invoke('project-git-reinit', projectPath),
+      projectGitWriteGitignore: (projectPath: string) =>
+        ipcRenderer.invoke('project-git-write-gitignore', projectPath),
+      projectGitInitLfs: (projectPath: string) =>
+        ipcRenderer.invoke('project-git-init-lfs', projectPath),
+      projectGitHasChanges: (projectPath: string) =>
+        ipcRenderer.invoke('project-git-has-changes', projectPath),
+      projectGitCommit: (projectPath: string, message: string) =>
+        ipcRenderer.invoke('project-git-commit', projectPath, message),
+      projectGitBranches: (projectPath: string) =>
+        ipcRenderer.invoke('project-git-branches', projectPath),
+      projectGitSwitchBranch: (
+        projectPath: string,
+        branch: string,
+        create: boolean,
+        strategy?: string
+      ) =>
+        ipcRenderer.invoke(
+          'project-git-switch-branch',
+          projectPath,
+          branch,
+          create,
+          strategy ?? 'normal'
+        ),
+      projectGitFileStatus: (projectPath: string) =>
+        ipcRenderer.invoke('project-git-file-status', projectPath),
+      projectOpenTerminal: (projectPath: string) =>
+        ipcRenderer.invoke('project-open-terminal', projectPath),
+      projectOpenGithub: (projectPath: string) =>
+        ipcRenderer.invoke('project-open-github', projectPath),
+      projectReadTextFile: (filePath: string) =>
+        ipcRenderer.invoke('project-read-text-file', filePath),
+      projectWriteTextFile: (filePath: string, content: string) =>
+        ipcRenderer.invoke('project-write-text-file', filePath, content),
+      projectResolveConfigPath: (projectPath: string) =>
+        ipcRenderer.invoke('project-resolve-config-path', projectPath),
+      projectResolveUprojectPath: (projectPath: string) =>
+        ipcRenderer.invoke('project-resolve-uproject-path', projectPath),
       // Engine scan paths (Linux)
       getEngineScanPaths: () => ipcRenderer.invoke('get-engine-scan-paths'),
       saveEngineScanPaths: (paths: string[]) => ipcRenderer.invoke('save-engine-scan-paths', paths),
