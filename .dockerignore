@@ -1,0 +1,15 @@
+node_modules
+dist
+out
+.git
+.gitignore
+*.log
+.eslintcache
+website
+tracer/target
+native/target
+native/dist
+build-docker.sh
+build-docker.ps1
+Dockerfile
+.dockerignore
