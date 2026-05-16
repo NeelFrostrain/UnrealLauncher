@@ -38,7 +38,7 @@ export function EnginesPageToolbar({
   activeTab,
   engines,
   activeEngine,
-  selectedEngine,
+  selectedEngine: _selectedEngine,
   dropdownOpen,
   dropdownAnchorRef,
   scanning,

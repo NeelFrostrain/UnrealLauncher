@@ -7,7 +7,7 @@ import path from 'path'
 import fs from 'fs'
 import { getMainWindow } from '../window'
 import { getDefaultFabPaths, findFirstExisting, scanFabFolder } from './fabScanner'
-import type { FabAsset } from './fabScanner'
+import type { FabAsset } from '../utils/fabAssetDetection'
 
 export type { FabAsset }
 

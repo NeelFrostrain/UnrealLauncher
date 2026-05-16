@@ -18,6 +18,7 @@ interface ProjectCardDialogsProps {
   projectName: string | undefined
   projectVersion: string
   isFavorite: boolean
+  isHidden: boolean
   gitInitialized: boolean
   gitBranch: string
   gitRemoteUrl: string
@@ -25,7 +26,7 @@ interface ProjectCardDialogsProps {
   onLaunchGame: () => Promise<void>
   onFavorite: () => void
   onOpenDir: () => void
-  onDelete: () => void
+  onHide: () => void
   onViewLogs: () => void
   onGitInit: () => Promise<void>
   onOpenCommitDialog: () => void
@@ -50,6 +51,7 @@ export function ProjectCardDialogs({
   projectName,
   projectVersion,
   isFavorite,
+  isHidden,
   gitInitialized,
   gitBranch,
   gitRemoteUrl,
@@ -57,7 +59,7 @@ export function ProjectCardDialogs({
   onLaunchGame,
   onFavorite,
   onOpenDir,
-  onDelete,
+  onHide,
   onViewLogs,
   onGitInit,
   onOpenCommitDialog,
@@ -77,10 +79,11 @@ export function ProjectCardDialogs({
         <ProjectContextMenu
           x={ctxMenu.x}
           y={ctxMenu.y}
-          name={projectName}
+          name={projectName ?? ''}
           projectPath={projectPath}
           projectVersion={projectVersion}
           isFavorite={isFavorite}
+          isHidden={isHidden}
           gitInitialized={gitInitialized}
           gitBranch={gitBranch}
           gitRemoteUrl={gitRemoteUrl}
@@ -88,7 +91,7 @@ export function ProjectCardDialogs({
           onLaunchGame={onLaunchGame}
           onFavorite={onFavorite}
           onOpenDir={onOpenDir}
-          onDelete={onDelete}
+          onHide={onHide}
           onViewLogs={onViewLogs}
           onGitInit={onGitInit}
           onOpenCommitDialog={onOpenCommitDialog}
@@ -100,7 +103,7 @@ export function ProjectCardDialogs({
 
       {showLogs && projectPath && (
         <ProjectLogDialog
-          projectName={projectName}
+          projectName={projectName ?? ''}
           projectPath={projectPath}
           onClose={onCloseLogs}
         />
@@ -108,7 +111,7 @@ export function ProjectCardDialogs({
 
       {showCommitDialog && projectPath && (
         <GitCommitDialog
-          projectName={projectName}
+          projectName={projectName ?? ''}
           projectPath={projectPath}
           onClose={onCloseCommitDialog}
         />
@@ -116,7 +119,7 @@ export function ProjectCardDialogs({
 
       {showBranchDialog && projectPath && (
         <GitBranchDialog
-          projectName={projectName}
+          projectName={projectName ?? ''}
           projectPath={projectPath}
           currentBranch={gitBranch}
           onBranchChanged={onBranchChanged}

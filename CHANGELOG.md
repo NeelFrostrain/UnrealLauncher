@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.2] - 2026-05-16 — `hotfix`
+
+### ✨ Added
+
+- **Engine custom alias** — Set a nickname for any engine instance so duplicate versions are easy to tell apart
+  - Alias displays as the primary title on the engine card; "Unreal Engine X.X" becomes the subtitle when an alias is set
+  - Click the title (or the pencil icon that appears on hover) to enter inline edit mode
+  - Underline-style input — press Enter or click away to save, Escape to cancel
+  - 32-character limit, sanitized on save; stored in `engines.json` alongside the engine entry
+  - Persists across restarts and survives scan/merge cycles (alias is never overwritten by a rescan)
+- **Project sorting** — Full sort system on the Projects page
+  - Sort by: **Name (A–Z)**, **Last Opened**, **Date Created**, **Size**, **Engine Version**
+  - Ascending / descending toggle per key; sensible defaults (dates → newest first, name/version → A–Z)
+  - Sort preference persisted to `localStorage` and restored on relaunch
+  - Size sort parses `~35-45 GB` range strings and `MB`/`KB`/`GB` units correctly
+- **Hidden projects tab** — Replace "Remove from list" with a non-destructive hide system
+  - New **Hidden** tab replaces the **Recent** tab in the Projects toolbar
+  - "Hide from List" moves a project out of All/Favorites without touching `projects.json` or disk
+  - "Unhide from List" restores it instantly — label and subtitle toggle based on current state
+  - Hidden paths stored in `localStorage` under `projectHidden`; zero IPC, zero file writes
+  - All/Favorites tabs automatically exclude hidden projects; Hidden tab shows only hidden ones
+
+### 🛠️ Fixed
+
+- **Registry scan broken in packaged builds** — `regedit` requires its VBS helper scripts to be accessible at runtime. Inside an `.asar` archive the scripts are inaccessible, causing every `promisified.list()` call to silently return `exists: false`. Fixed by calling `regedit.setExternalVBSLocation()` pointing at `app.asar.unpacked/node_modules/regedit/vbs` in production and the local `node_modules` path in development
+- **Registry scan skipping valid keys** — Was checking `!entry || !entry.keys` but not `entry.exists`; a key that exists but has no sub-keys would still pass the guard. Now checks `!entry?.exists` so genuinely missing keys are skipped cleanly
+- **Registry scan not verifying directory on disk** — Was resolving the exe path without first confirming `InstalledDirectory` exists on disk; now calls `fs.existsSync(installedDir)` before attempting to resolve the binary
+- **Engine alias lost on rescan** — `scanAndMergeEngines` spread `...s` but the comment was misleading; clarified that `alias`, `gradient`, `folderSize`, and `lastLaunch` are all preserved via the spread — no data loss on scan
+- **Registry-only engines missing `alias` field** — Engines discovered exclusively via registry were constructed with `as Engine` cast, silently dropping the `alias` field. Changed to `satisfies Engine` with explicit `alias: undefined` so the shape is always complete
+- **`ERR_FILE_NOT_FOUND` console spam** — `local-asset://` protocol handler was forwarding all requests to `net.fetch` regardless of whether the file existed. Missing plugin icons, project thumbnails, and Fab asset icons all produced uncaught Electron network errors. Handler now returns a clean `404` response for missing files; `onError` fallbacks in image components still fire silently
+- **Typecheck: 38 pre-existing errors cleared** — Fixed across 16 files:
+  - Unused imports: `loadSavedEngines`, `getSplashWindow`, `loadNativeModule`, `useTheme`, `APP_VERSION`, `LogLevel`, `resolveAsset` (projectCardContent)
+  - `FabAsset` imported from wrong module (`fabScanner` re-exports it from `fabAssetDetection` but doesn't export the type itself)
+  - `uprojectPath` unused parameter in `projectSelection.ts`
+  - `icon` destructured but unused in both `AssetListCard` and `AssetGridCard`
+  - `Mode` type and `setStatus` missing in `FeedbackDialog`
+  - `projectName` unused in `ProjectToolsSubMenu`
+  - `onClose` unused in `AboutSection`
+  - `selectedEngine` unused in `EnginesPageToolbar`
+  - `setShowCommitDialog` / `setShowBranchDialog` / `message` unused in `projectCardHandlers`
+  - `projectResolveConfigPath`, `projectResolveUprojectPath`, `projectReadTextFile`, `projectWriteTextFile` missing from `preload/index.d.ts`
+  - `projectName: string | undefined` not assignable to `string` in `ProjectCardDialogs` — fixed with `?? ''` coercion
+  - `onToggle: () => void` vs `handleAutoCloseToggle: (value: boolean) => void` mismatch in `SettingsPage` — wrapped with arrow function
+  - `RefObject<HTMLDivElement | null>` not assignable to `RefObject<HTMLDivElement>` — relaxed `containerRef` type in `ProjectsContent`
+  - `handleListScroll` missing from `useProjectsPageState` return — re-added to return object
+  - `SystemSection` importing non-existent `appVersion` utility — removed import, initialised state with `''`
+
+---
+
 ## [2.2.1] - 2026-05-07 — `main`
 
 ### 🛠️ Fixed

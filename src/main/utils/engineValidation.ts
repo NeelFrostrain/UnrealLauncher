@@ -147,8 +147,9 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
         directoryPath: e.directoryPath,
         folderSize: '~35-45 GB',
         lastLaunch: 'Unknown',
-        gradient: generateGradient()
-      } as Engine)
+        gradient: generateGradient(),
+        alias: undefined
+      } satisfies Engine)
     }
   }
   const scanned = Array.from(scannedMap.values())
@@ -168,6 +169,7 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
       ...s,
       version: fresh.version ?? s.version,
       exePath: fresh.exePath ?? s.exePath
+      // alias, gradient, folderSize, lastLaunch preserved via ...s spread
     }
   })
 

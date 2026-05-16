@@ -5,6 +5,7 @@
 import { motion } from 'framer-motion'
 import { X, Paperclip, Send, Loader2, CheckCircle, AlertCircle, Trash2 } from 'lucide-react'
 import { useFeedbackState } from './useFeedbackState'
+import type { Mode } from './useFeedbackState'
 
 export default function FeedbackDialog({ onClose }: { onClose: () => void }): React.ReactElement {
   const {
@@ -56,10 +57,7 @@ export default function FeedbackDialog({ onClose }: { onClose: () => void }): Re
             {(['report', 'suggestion'] as Mode[]).map((m) => (
               <button
                 key={m}
-                onClick={() => {
-                  setMode(m)
-                  setStatus('idle')
-                }}
+                onClick={() => setMode(m)}
                 className="px-3 py-1 text-xs font-semibold cursor-pointer transition-all"
                 style={{
                   borderRadius: 'calc(var(--radius) * 0.7)',

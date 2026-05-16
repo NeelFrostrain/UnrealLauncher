@@ -7,7 +7,6 @@ import PageWrapper from '../layout/PageWrapper'
 import { SettingsNavigation, type SectionId } from '../components/settings/SettingsNavigation'
 import { AboutSection } from '../components/settings/AboutSection'
 import { useSettingsState } from '../hooks/useSettingsState'
-import { useTheme } from '../utils/ThemeContext'
 import AppearanceSection from '../components/settings/AppearanceSection'
 import LaunchSection from '../components/settings/sections/LaunchSection'
 import TracerSection from '../components/settings/sections/TracerSection'
@@ -29,7 +28,7 @@ const SettingsPage = (): React.ReactElement => {
           <div className="space-y-6">
             <LaunchSection
               autoCloseOnLaunch={settingsState.autoCloseOnLaunch}
-              onToggle={settingsState.handleAutoCloseToggle}
+              onToggle={() => settingsState.handleAutoCloseToggle(!settingsState.autoCloseOnLaunch)}
             />
           </div>
         )

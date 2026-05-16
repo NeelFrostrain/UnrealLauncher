@@ -103,7 +103,7 @@ const AssetTags = ({ asset }: { asset: FabAsset }) => {
 // ── List card ─────────────────────────────────────────────────────────────────
 export const AssetListCard = ({ asset }: { asset: FabAsset }): React.ReactElement => {
   const [hovered, setHovered] = useState(false)
-  const { label, icon, color } = TYPE_LABELS[asset.type]
+  const { label, color } = TYPE_LABELS[asset.type]
   const recentApps = asset.compatibleApps.slice(-3).reverse()
 
   return (
@@ -152,7 +152,7 @@ export const AssetListCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
 // ── Grid card ─────────────────────────────────────────────────────────────────
 export const AssetGridCard = ({ asset }: { asset: FabAsset }): React.ReactElement => {
   const [hovered, setHovered] = useState(false)
-  const { label, icon, color } = TYPE_LABELS[asset.type]
+  const { label, color } = TYPE_LABELS[asset.type]
   const recentApps = asset.compatibleApps.slice(-3).reverse()
 
   return (

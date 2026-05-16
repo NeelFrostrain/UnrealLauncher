@@ -15,8 +15,8 @@ export function useProjectCardHandlers(
   setLaunching: (v: boolean) => void,
   setCtxMenu: (v: { x: number; y: number } | null) => void,
   setGit: (v: any) => void,
-  setShowCommitDialog: (v: boolean) => void,
-  setShowBranchDialog: (v: boolean) => void
+  _setShowCommitDialog: (v: boolean) => void,
+  _setShowBranchDialog: (v: boolean) => void
 ) {
   const { addToast } = useToast()
 
@@ -76,9 +76,8 @@ export function useProjectCardHandlers(
 }
 
 /**
- * Shows error toast message
+ * Shows error toast message (kept for external callers)
  */
-export function showErrorToast(message: string): void {
-  // This is a utility function that can be called directly
-  // The actual toast is shown through the hook in the component
+export function showErrorToast(_message: string): void {
+  // Intentionally empty — toast is shown through the hook in components
 }

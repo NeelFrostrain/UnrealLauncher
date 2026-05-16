@@ -5,7 +5,6 @@
 import { useEffect, useState } from 'react'
 import { Monitor, Cpu, Tag } from 'lucide-react'
 import { Card } from '../SectionHelpers'
-import { APP_VERSION } from '../../utils/appVersion'
 
 const PLATFORM_LABEL: Record<string, string> = {
   win32: 'Windows',
@@ -15,7 +14,7 @@ const PLATFORM_LABEL: Record<string, string> = {
 
 const SystemSection = (): React.ReactElement => {
   const [nativeLoaded, setNativeLoaded] = useState<boolean | null>(null)
-  const [appVersion, setAppVersion] = useState(APP_VERSION)
+  const [appVersion, setAppVersion] = useState('')
   const [tracerRunning, setTracerRunning] = useState<boolean | null>(null)
   const platform = window.electronAPI.platform
 

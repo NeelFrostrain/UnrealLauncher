@@ -16,8 +16,6 @@ interface Props {
   onClose: () => void
 }
 
-type LogLevel = 'error' | 'warning' | 'info' | 'verbose'
-
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'All' }, { id: 'error', label: 'Errors' },
   { id: 'warning', label: 'Warnings' }, { id: 'info', label: 'Info' }, { id: 'verbose', label: 'Verbose' }

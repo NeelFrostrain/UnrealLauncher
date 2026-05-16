@@ -231,6 +231,17 @@ declare global {
       projectGitFileStatus: (
         projectPath: string
       ) => Promise<{ hasGitignore: boolean; hasGitattributes: boolean }>
+      projectReadTextFile: (filePath: string) => Promise<{ success: boolean; content: string; error?: string }>
+      projectWriteTextFile: (
+        filePath: string,
+        content: string
+      ) => Promise<{ success: boolean; error?: string }>
+      projectResolveConfigPath: (
+        projectPath: string
+      ) => Promise<{ success: boolean; filePath: string; error?: string }>
+      projectResolveUprojectPath: (
+        projectPath: string
+      ) => Promise<{ success: boolean; filePath: string; error?: string }>
       projectOpenTerminal: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       projectOpenGithub: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       // Engine scan paths (Linux)

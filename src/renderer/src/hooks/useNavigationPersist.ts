@@ -17,7 +17,7 @@ const VALID_PATHS = new Set([
   '/engines/plugins',
   '/engines/fab',
   '/projects',
-  '/projects/recent',
+  '/projects/hidden',
   '/projects/favorites',
   '/settings'
 ])

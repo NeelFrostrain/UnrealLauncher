@@ -9,7 +9,6 @@ import {
   handleDeleteEngine,
   calculateEngineSize,
   scanAndMergeEngines,
-  loadSavedEngines,
   scanEnginePlugins,
   handleUpdateEngineAlias
 } from './engineHandlers'

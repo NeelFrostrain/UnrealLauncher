@@ -4,7 +4,6 @@
 // See LICENSE in the project root for full license terms.
 import { motion, AnimatePresence } from 'framer-motion'
 import { Clock, Database, GitBranch } from 'lucide-react'
-import { resolveAsset } from '../../utils/resolveAsset'
 import { formatVersion, formatDate } from '../projectUtils'
 
 interface ProjectCardContentProps {

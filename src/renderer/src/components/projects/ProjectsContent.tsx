@@ -7,6 +7,8 @@ import ProjectCard from './ProjectCard'
 import ProjectCardGrid from './ProjectCardGrid'
 import type { Project, TabType } from '../../types'
 import type { ViewMode } from './ProjectsToolbar'
+import type { SortConfig } from './projectUtils'
+import { sortProjects } from './projectUtils'
 
 export interface ProjectsContentProps {
   projects: Project[]
@@ -14,16 +16,20 @@ export interface ProjectsContentProps {
   currentTab: TabType
   searchQuery: string
   viewMode: ViewMode
+  sortConfig: SortConfig
   scanEpoch: number
   favoritePaths: string[]
+  hiddenPaths: string[]
   displayStart: number
-  containerRef: React.RefObject<HTMLDivElement>
+  containerRef: React.RefObject<HTMLDivElement | null>
   onToggleFavorite: (path: string) => void
-  onLaunch: (project: Project) => void
-  onOpenDir: (project: Project) => void
-  onDelete: (path: string) => void
+  onHide: (path: string) => void
+  onLaunch: (path: string) => void
+  onOpenDir: (path: string) => void
   onListScroll: (e: React.UIEvent<HTMLDivElement>) => void
 }
+
+type ProjectWithFlags = Project & { isFavorite: boolean; isHidden: boolean }
 
 const ITEMS_PER_BATCH = 50
 
@@ -33,27 +39,30 @@ export const ProjectsContent = ({
   currentTab,
   searchQuery,
   viewMode,
+  sortConfig,
   scanEpoch,
   favoritePaths,
+  hiddenPaths,
   displayStart,
   containerRef,
   onToggleFavorite,
+  onHide,
   onLaunch,
   onOpenDir,
-  onDelete,
   onListScroll
 }: ProjectsContentProps): React.ReactElement => {
-  const visibleProjects = useMemo(
-    () =>
-      (searchQuery.trim()
+  const visibleProjects = useMemo((): ProjectWithFlags[] => {
+    const filtered = (
+      searchQuery.trim()
         ? projects.filter((p) => p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
         : projects
-      ).map((project) => ({
-        ...project,
-        isFavorite: project.projectPath ? favoritePaths.includes(project.projectPath) : false
-      })),
-    [projects, searchQuery, favoritePaths]
-  )
+    ).map((project): ProjectWithFlags => ({
+      ...project,
+      isFavorite: project.projectPath ? favoritePaths.includes(project.projectPath) : false,
+      isHidden: project.projectPath ? hiddenPaths.includes(project.projectPath) : false
+    }))
+    return sortProjects(filtered, sortConfig) as ProjectWithFlags[]
+  }, [projects, searchQuery, favoritePaths, hiddenPaths, sortConfig])
 
   if (loading) {
     return (
@@ -77,14 +86,18 @@ export const ProjectsContent = ({
             ? 'No projects match your search'
             : currentTab === 'favorites'
               ? 'No favorite projects'
-              : 'No projects found'}
+              : currentTab === 'hidden'
+                ? 'No hidden projects'
+                : 'No projects found'}
         </p>
         <p className="text-sm text-white/30 mb-4">
           {searchQuery.trim()
             ? 'Try a different project name or clear the search.'
             : currentTab === 'favorites'
               ? 'Add projects to favorites from the All Projects tab'
-              : 'Use Add Project to add one manually.'}
+              : currentTab === 'hidden'
+                ? 'Hide projects using the context menu or the hide button on each card'
+                : 'Use Add Project to add one manually.'}
         </p>
       </div>
     )
@@ -98,11 +111,12 @@ export const ProjectsContent = ({
             key={data.projectPath || data.name}
             {...data}
             isFavorite={data.isFavorite}
+            isHidden={data.isHidden}
             scanEpoch={scanEpoch}
             onToggleFavorite={onToggleFavorite}
+            onHide={onHide}
             onLaunch={onLaunch}
             onOpenDir={onOpenDir}
-            onDelete={onDelete}
           />
         ))}
       </div>
@@ -120,11 +134,12 @@ export const ProjectsContent = ({
           key={data.projectPath || data.name}
           {...data}
           isFavorite={data.isFavorite}
+          isHidden={data.isHidden}
           scanEpoch={scanEpoch}
           onToggleFavorite={onToggleFavorite}
+          onHide={onHide}
           onLaunch={onLaunch}
           onOpenDir={onOpenDir}
-          onDelete={onDelete}
         />
       ))}
     </div>

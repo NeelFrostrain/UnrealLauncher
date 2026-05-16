@@ -12,7 +12,7 @@ import { useContextMenuPosition } from './useContextMenuPosition'
 
 export const ProjectToolsSubMenu = ({
   projectPath,
-  projectName,
+  projectName: _projectName,
   anchorRef,
   parentLeft,
   parentWidth,

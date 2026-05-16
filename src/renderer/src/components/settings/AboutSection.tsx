@@ -11,7 +11,7 @@ export interface AboutSectionProps {
   onClose?: () => void
 }
 
-export const AboutSection = ({ onClose }: AboutSectionProps): React.ReactElement => {
+export const AboutSection = ({ onClose: _onClose }: AboutSectionProps): React.ReactElement => {
   const [showAbout, setShowAbout] = useState(false)
 
   return (

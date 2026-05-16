@@ -25,6 +25,7 @@ export interface ProjectContextMenuProps {
   projectPath: string
   projectVersion: string
   isFavorite: boolean
+  isHidden: boolean
   gitInitialized: boolean
   gitBranch: string
   gitRemoteUrl: string
@@ -32,7 +33,7 @@ export interface ProjectContextMenuProps {
   onLaunchGame: () => void
   onFavorite: () => void
   onOpenDir: () => void
-  onDelete: () => void
+  onHide: () => void
   onViewLogs: () => void
   onGitInit: () => void
   onClose: () => void
@@ -243,9 +244,9 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
 
           <MenuItem
             icon={<AlertTriangle size={11} />}
-            label="Remove from List"
-            sub="Does not delete files"
-            onClick={p.onDelete}
+            label={p.isHidden ? 'Unhide from List' : 'Hide from List'}
+            sub={p.isHidden ? 'Restore to main list' : 'Move to Hidden tab'}
+            onClick={p.onHide}
             danger
             onClose={p.onClose}
           />

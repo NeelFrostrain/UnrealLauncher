@@ -29,7 +29,7 @@ function getInitialPath(): string {
     '/engines/plugins',
     '/engines/fab',
     '/projects',
-    '/projects/recent',
+    '/projects/hidden',
     '/projects/favorites',
     '/settings'
   ]

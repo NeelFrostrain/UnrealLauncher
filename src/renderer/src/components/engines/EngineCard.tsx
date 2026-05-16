@@ -24,7 +24,6 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     exePath,
     directoryPath,
     folderSize,
-    lastLaunch,
     gradient,
     alias,
     onLaunch,
@@ -166,15 +165,6 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                   Unreal Engine {version}
                 </p>
               )}
-
-              {/* Path */}
-              <p
-                className="text-[10px] mt-1 font-mono truncate"
-                style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
-                title={directoryPath}
-              >
-                {directoryPath}
-              </p>
             </div>
 
             {/* Delete */}
@@ -226,11 +216,16 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                   className="text-[9px] uppercase tracking-wide font-semibold"
                   style={{ color: 'var(--color-text-muted)' }}
                 >
-                  Last used
+                  Ending Path
                 </span>
-                <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                  {lastLaunch}
-                </span>
+                {/* Path */}
+                <p
+                  className="text-xs font-mono truncate"
+                  style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
+                  title={directoryPath}
+                >
+                  {directoryPath}
+                </p>
               </div>
             </div>
 

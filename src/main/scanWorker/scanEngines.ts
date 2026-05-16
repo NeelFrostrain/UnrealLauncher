@@ -6,7 +6,6 @@ import fs from 'fs'
 import path from 'path'
 import { getEngineInstallPaths } from '../utils/platformPaths'
 import {
-  loadNativeModule,
   generateGradient,
   getExecutableName,
   getBinaryPlatform,

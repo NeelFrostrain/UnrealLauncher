@@ -49,7 +49,7 @@ function findDuplicateProject(
  * Creates a new project entry from a .uproject file
  */
 function createProjectEntry(
-  uprojectPath: string,
+  _uprojectPath: string,
   projectDir: string,
   metadata: { projectName: string; version: string; projectId?: string }
 ): Project | null {

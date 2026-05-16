@@ -21,18 +21,20 @@ const ProjectCardGrid = memo(
     thumbnail,
     projectPath,
     isFavorite,
+    isHidden,
     scanEpoch,
     onToggleFavorite,
     onLaunch,
     onOpenDir,
-    onDelete
+    onHide
   }: Project & {
     isFavorite: boolean
+    isHidden: boolean
     scanEpoch?: number
     onToggleFavorite: (p: string) => void
     onLaunch: (p: string) => void
     onOpenDir: (p: string) => void
-    onDelete: (p: string) => void
+    onHide: (p: string) => void
   }) => {
     const state = useProjectCardState(projectPath, scanEpoch)
     const handlers = useProjectCardHandlers(
@@ -95,6 +97,7 @@ const ProjectCardGrid = memo(
           projectName={name}
           projectVersion={version}
           isFavorite={isFavorite}
+          isHidden={isHidden}
           gitInitialized={state.git.initialized}
           gitBranch={state.git.branch}
           gitRemoteUrl={state.git.remoteUrl}
@@ -102,7 +105,7 @@ const ProjectCardGrid = memo(
           onLaunchGame={handlers.handleLaunchGame}
           onFavorite={() => projectPath && onToggleFavorite(projectPath)}
           onOpenDir={() => projectPath && onOpenDir(projectPath)}
-          onDelete={() => projectPath && onDelete(projectPath)}
+          onHide={() => projectPath && onHide(projectPath)}
           onViewLogs={() => state.setShowLogs(true)}
           onGitInit={handlers.handleGitInit}
           onOpenCommitDialog={() => state.setShowCommitDialog(true)}

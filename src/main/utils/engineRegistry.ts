@@ -8,6 +8,7 @@
 
 import fs from 'fs'
 import path from 'path'
+import { app } from 'electron'
 import { getBinaryExtension } from './platformPaths'
 import type { ScannedEngine } from './native'
 
@@ -16,6 +17,17 @@ let regedit: any = null
 if (process.platform === 'win32') {
   try {
     regedit = require('regedit')
+
+    // In packaged builds the VBS scripts are extracted to app.asar.unpacked.
+    // Without pointing regedit at them it silently returns exists:false for
+    // every key because it can't find its helper scripts inside the asar.
+    const vbsDir = app.isPackaged
+      ? path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', 'regedit', 'vbs')
+      : path.join(__dirname, '..', '..', '..', 'node_modules', 'regedit', 'vbs')
+
+    if (fs.existsSync(vbsDir)) {
+      regedit.setExternalVBSLocation(vbsDir)
+    }
   } catch (error) {
     console.warn('regedit not available, registry engine discovery disabled')
   }
@@ -40,7 +52,7 @@ export async function getInstalledEngines(): Promise<ScannedEngine[]> {
     try {
       const list = await regedit.promisified.list([REGISTRY_KEY])
       const entry = list[REGISTRY_KEY]
-      if (!entry || !entry.keys || entry.keys.length === 0) continue
+      if (!entry?.exists || !entry.keys || entry.keys.length === 0) continue
 
       const results = await Promise.all(
         entry.keys.map(async (version: string) => {
@@ -55,6 +67,9 @@ export async function getInstalledEngines(): Promise<ScannedEngine[]> {
             const normalised = installedDir.toLowerCase().replace(/\\/g, '/')
             if (seen.has(normalised)) return null
             seen.add(normalised)
+
+            // Verify the directory actually exists on disk
+            if (!fs.existsSync(installedDir)) return null
 
             const binPath = path.join(installedDir, 'Engine', 'Binaries', 'Win64')
             const exeName = `UnrealEditor${getBinaryExtension()}`
@@ -76,7 +91,7 @@ export async function getInstalledEngines(): Promise<ScannedEngine[]> {
         if (r) allResults.push(r)
       }
     } catch {
-      // Key doesn't exist — skip
+      // Key doesn't exist or access denied — skip
     }
   }
 

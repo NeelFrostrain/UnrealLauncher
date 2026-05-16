@@ -2,7 +2,8 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { FolderOpen, Clock, Star } from 'lucide-react'
+
+import { FolderOpen, EyeOff, Star } from 'lucide-react'
 import PageWrapper from '../layout/PageWrapper'
 import ProjectsToolbar from '../components/projects/ProjectsToolbar'
 import { ProjectsContent } from '../components/projects/ProjectsContent'
@@ -16,8 +17,8 @@ const ProjectsPage = (): React.ReactElement => {
       <ProjectsToolbar
         tabs={[
           { id: 'all', label: 'All', icon: <FolderOpen size={11} /> },
-          { id: 'recent', label: 'Recent', icon: <Clock size={11} /> },
-          { id: 'favorites', label: 'Favorites', icon: <Star size={11} /> }
+          { id: 'favorites', label: 'Favorites', icon: <Star size={11} /> },
+          { id: 'hidden', label: 'Hidden', icon: <EyeOff size={11} /> }
         ]}
         currentTab={state.currentTab}
         searchOpen={state.searchOpen}
@@ -33,6 +34,8 @@ const ProjectsPage = (): React.ReactElement => {
         backgroundScanning={state.backgroundScanning}
         viewMode={state.viewMode}
         onViewChange={state.handleViewChange}
+        sortConfig={state.sortConfig}
+        onSortChange={state.handleSortChange}
       />
 
       <div className="flex-1 overflow-hidden mt-1">
@@ -42,14 +45,16 @@ const ProjectsPage = (): React.ReactElement => {
           currentTab={state.currentTab}
           searchQuery={state.searchQuery}
           viewMode={state.viewMode}
+          sortConfig={state.sortConfig}
           scanEpoch={state.scanEpoch}
           favoritePaths={state.favoritePaths}
+          hiddenPaths={state.hiddenPaths}
           displayStart={state.displayStart}
           containerRef={state.containerRef}
           onToggleFavorite={state.toggleFavoritePath}
+          onHide={state.toggleHiddenPath}
           onLaunch={state.handleLaunch}
           onOpenDir={state.handleOpenDir}
-          onDelete={state.handleDeleteCard}
           onListScroll={state.handleListScroll}
         />
       </div>
