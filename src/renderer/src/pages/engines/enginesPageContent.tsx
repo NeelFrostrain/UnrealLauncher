@@ -20,6 +20,7 @@ interface EnginesPageContentProps {
   onLaunch: (exePath: string) => void
   onOpenDir: (dirPath: string) => void
   onDelete: (dirPath: string) => void
+  onUpdateAlias: (directoryPath: string, alias: string) => Promise<void>
   onScan: () => void
   scanning: boolean
 }
@@ -39,6 +40,7 @@ export function EnginesPageContent({
   onLaunch,
   onOpenDir,
   onDelete,
+  onUpdateAlias,
   onScan,
   scanning
 }: EnginesPageContentProps) {
@@ -68,6 +70,7 @@ export function EnginesPageContent({
                 onLaunch={onLaunch}
                 onOpenDir={onOpenDir}
                 onDelete={onDelete}
+                onUpdateAlias={onUpdateAlias}
               />
             ))}
           </div>

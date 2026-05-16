@@ -23,6 +23,7 @@ declare global {
     folderSize: string
     lastLaunch: string
     gradient?: string
+    alias?: string
   }
 
   interface ProjectSelectionResult {
@@ -97,6 +98,7 @@ declare global {
       calculateEngineSize: (
         directoryPath: string
       ) => Promise<{ success: boolean; size?: string; error?: string }>
+      updateEngineAlias: (directoryPath: string, alias: string) => Promise<boolean>
       // Projects
       scanProjects: () => Promise<ProjectData[]>
       launchProject: (projectPath: string) => Promise<{ success: boolean; error?: string }>

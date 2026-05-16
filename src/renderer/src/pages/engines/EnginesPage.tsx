@@ -18,7 +18,8 @@ const EnginesPage = (): React.ReactElement => {
     handleLaunch,
     handleOpenDir,
     handleDelete,
-    handleAddEngine
+    handleAddEngine,
+    handleUpdateAlias
   } = useEngineActions(state.setEngines)
 
   // Load engines on mount
@@ -80,6 +81,9 @@ const EnginesPage = (): React.ReactElement => {
         onLaunch={(exePath: string) => handleLaunch(exePath)}
         onOpenDir={(dirPath: string) => handleOpenDir(dirPath)}
         onDelete={(dirPath: string) => handleDelete(dirPath)}
+        onUpdateAlias={(directoryPath: string, alias: string) =>
+          handleUpdateAlias(directoryPath, alias)
+        }
         onScan={handleScan}
         scanning={scanning}
       />

@@ -3,16 +3,19 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import { motion } from 'framer-motion'
-import type { FC, ReactElement } from 'react'
-import { useState, memo } from 'react'
-import { Play, FolderOpen, XCircle } from 'lucide-react'
+import type { FC, ReactElement, KeyboardEvent } from 'react'
+import { useState, useRef, memo, useCallback } from 'react'
+import { Play, FolderOpen, XCircle, Pencil } from 'lucide-react'
 import type { EngineCardProps } from '../../types'
 import { generateGradient } from '@renderer/utils/generateGradient'
+
+const MAX_ALIAS = 32
 
 interface EngineCardComponentProps extends EngineCardProps {
   onLaunch: (exePath: string) => void
   onOpenDir: (dirPath: string) => void
   onDelete: (dirPath: string) => void
+  onUpdateAlias: (directoryPath: string, alias: string) => Promise<void>
 }
 
 const EngineCard: FC<EngineCardComponentProps> = memo(
@@ -23,18 +26,26 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     folderSize,
     lastLaunch,
     gradient,
+    alias,
     onLaunch,
     onOpenDir,
-    onDelete
+    onDelete,
+    onUpdateAlias
   }): ReactElement => {
     const [currentGradient] = useState(gradient || generateGradient())
     const [launching, setLaunching] = useState(false)
     const [calculating, setCalculating] = useState(false)
     const [currentSize, setCurrentSize] = useState(folderSize)
 
+    // Alias editing state
+    const [editingAlias, setEditingAlias] = useState(false)
+    const [aliasInput, setAliasInput] = useState(alias ?? '')
+    const [savingAlias, setSavingAlias] = useState(false)
+    const inputRef = useRef<HTMLInputElement>(null)
+
     const handleLaunch = async (): Promise<void> => {
       setLaunching(true)
-      await onLaunch(exePath)
+      onLaunch(exePath)
       setTimeout(() => setLaunching(false), 3000)
     }
 
@@ -47,6 +58,33 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
         setCurrentSize(result.success && result.size ? result.size : 'Error')
       }
       setCalculating(false)
+    }
+
+    const startEditAlias = useCallback((): void => {
+      setAliasInput(alias ?? '')
+      setEditingAlias(true)
+      setTimeout(() => {
+        inputRef.current?.focus()
+        inputRef.current?.select()
+      }, 0)
+    }, [alias])
+
+    const cancelEditAlias = useCallback((): void => {
+      setEditingAlias(false)
+      setAliasInput(alias ?? '')
+    }, [alias])
+
+    const commitAlias = useCallback(async (): Promise<void> => {
+      if (savingAlias) return
+      setSavingAlias(true)
+      await onUpdateAlias(directoryPath, aliasInput)
+      setSavingAlias(false)
+      setEditingAlias(false)
+    }, [aliasInput, directoryPath, onUpdateAlias, savingAlias])
+
+    const handleAliasKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
+      if (e.key === 'Enter') commitAlias()
+      else if (e.key === 'Escape') cancelEditAlias()
     }
 
     return (
@@ -62,54 +100,101 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
         whileHover={{ y: -1 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
-        {/* Gradient panel */}
+        {/* ── Gradient panel ─────────────────────────────────────────── */}
         <div
-          className="w-48 p-5 h-full flex flex-col justify-between relative select-none"
+          className="w-48 p-5 h-full flex flex-col justify-between relative select-none shrink-0"
           style={{ background: currentGradient, borderRight: '1px solid var(--color-border)' }}
         >
-          <div className="absolute z-0 inset-0 bg-black/10 backdrop-blur-[1px]" />
-          <div className="relative z-10">
-            <p className="opacity-80 uppercase text-[10px] font-bold tracking-[0.2em] text-white">
-              Version
-            </p>
-          </div>
-          <h1 className="text-4xl z-20 font-black tracking-tight mt-1 text-white">{version}</h1>
+          <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" />
+          <p className="relative z-10 opacity-80 uppercase text-[10px] font-bold tracking-[0.2em] text-white">
+            Version
+          </p>
+          <h1 className="relative z-10 text-4xl font-black tracking-tight text-white">{version}</h1>
         </div>
 
-        {/* Info panel */}
-        <div
-          className="flex-1 h-full flex flex-col p-4 justify-between"
-          style={{
-            backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 50%, transparent)'
-          }}
-        >
-          <div className="flex justify-between items-start">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                Unreal Engine {version}
-              </h3>
+        {/* ── Info panel ─────────────────────────────────────────────── */}
+        <div className="flex-1 min-w-0 h-full flex flex-col px-4 py-3 justify-between">
+
+          {/* Top row: alias/title + delete */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0 group/alias">
+
+              {/* Alias — primary title, editable */}
+              {editingAlias ? (
+                <input
+                  ref={inputRef}
+                  value={aliasInput}
+                  onChange={(e) => setAliasInput(e.target.value.slice(0, MAX_ALIAS))}
+                  onKeyDown={handleAliasKeyDown}
+                  onBlur={commitAlias}
+                  maxLength={MAX_ALIAS}
+                  placeholder={`Unreal Engine ${version}`}
+                  className="w-full text-sm font-semibold bg-transparent outline-none pb-px"
+                  style={{
+                    color: 'var(--color-text-primary)',
+                    borderBottom: '1px solid var(--color-accent)',
+                    caretColor: 'var(--color-accent)'
+                  }}
+                />
+              ) : (
+                <button
+                  onClick={startEditAlias}
+                  className="flex items-center gap-1.5 max-w-full text-left cursor-pointer group/btn"
+                  title="Click to set alias"
+                >
+                  <span
+                    className="text-sm font-semibold truncate"
+                    style={{ color: alias ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}
+                  >
+                    {alias || `Unreal Engine ${version}`}
+                  </span>
+                  {/* Pencil — only visible on hover */}
+                  <Pencil
+                    size={11}
+                    className="shrink-0 opacity-0 group-hover/alias:opacity-50 transition-opacity"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  />
+                </button>
+              )}
+
+              {/* Subtitle: always shows "Unreal Engine X" when alias is set */}
+              {alias && !editingAlias && (
+                <p
+                  className="text-[11px] mt-0.5 font-medium"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  Unreal Engine {version}
+                </p>
+              )}
+
+              {/* Path */}
               <p
-                className="text-[11px] mt-1 font-mono truncate"
-                style={{ color: 'var(--color-text-muted)' }}
+                className="text-[10px] mt-1 font-mono truncate"
+                style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
                 title={directoryPath}
               >
                 {directoryPath}
               </p>
             </div>
+
+            {/* Delete */}
             <button
               onClick={() => onDelete(directoryPath)}
-              className="flex p-1 transition-colors cursor-pointer hover:text-red-400 rounded-md ml-2"
+              className="shrink-0 p-1 transition-colors cursor-pointer hover:text-red-400 rounded-md"
               style={{ color: 'var(--color-text-muted)' }}
               title="Remove from list"
             >
-              <XCircle size={16} />
+              <XCircle size={15} />
             </button>
           </div>
 
+          {/* Bottom row: stats + actions */}
           <div className="flex items-center justify-between">
-            <div className="flex gap-4">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1 mb-0.5">
+
+            {/* Stats */}
+            <div className="flex gap-5">
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1">
                   <span
                     className="text-[9px] uppercase tracking-wide font-semibold"
                     style={{ color: 'var(--color-text-muted)' }}
@@ -135,12 +220,13 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                   {currentSize}
                 </span>
               </div>
-              <div className="flex flex-col">
+
+              <div className="flex flex-col gap-0.5">
                 <span
                   className="text-[9px] uppercase tracking-wide font-semibold"
                   style={{ color: 'var(--color-text-muted)' }}
                 >
-                  Usage
+                  Last used
                 </span>
                 <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                   {lastLaunch}
@@ -148,10 +234,11 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
               </div>
             </div>
 
+            {/* Action buttons */}
             <div className="flex gap-2">
               <button
                 onClick={() => onOpenDir(directoryPath)}
-                className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
                 style={{
                   backgroundColor: 'var(--color-surface-elevated)',
                   border: '1px solid var(--color-border)',
@@ -160,13 +247,13 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                 }}
                 title="Open in Explorer"
               >
-                <FolderOpen size={14} />
+                <FolderOpen size={13} />
                 Directory
               </button>
               <button
                 onClick={handleLaunch}
                 disabled={launching}
-                className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold transition-all shadow-lg ${launching ? 'cursor-not-allowed' : 'cursor-pointer'} hover:scale-105 ease-in-out duration-100`}
+                className={`flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold transition-all ${launching ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'} ease-in-out duration-100`}
                 style={{
                   borderRadius: 'var(--radius)',
                   color: 'var(--color-text-primary)',
@@ -177,7 +264,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                 }}
                 title="Launch Engine"
               >
-                <Play size={14} className={launching ? 'animate-pulse' : ''} />
+                <Play size={13} className={launching ? 'animate-pulse' : ''} />
                 {launching ? 'Launching...' : 'Launch'}
               </button>
             </div>

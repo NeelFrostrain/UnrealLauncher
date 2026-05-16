@@ -78,6 +78,7 @@ if (!gotTheLock) {
     protocol.handle('local-asset', (request) => {
       let filePath = decodeURIComponent(new URL(request.url).pathname)
       if (process.platform === 'win32' && filePath.startsWith('/')) filePath = filePath.slice(1)
+      if (!fs.existsSync(filePath)) return new Response(null, { status: 404 })
       return net.fetch(`file:///${filePath.replace(/\\/g, '/')}`)
     })
 

@@ -10,7 +10,8 @@ import {
   calculateEngineSize,
   scanAndMergeEngines,
   loadSavedEngines,
-  scanEnginePlugins
+  scanEnginePlugins,
+  handleUpdateEngineAlias
 } from './engineHandlers'
 
 /**
@@ -31,5 +32,9 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
 
   ipcMain_.handle('scan-engine-plugins', (_event, engineDir: string) =>
     scanEnginePlugins(engineDir)
+  )
+
+  ipcMain_.handle('update-engine-alias', (_event, directoryPath: string, alias: string) =>
+    handleUpdateEngineAlias(directoryPath, alias)
   )
 }

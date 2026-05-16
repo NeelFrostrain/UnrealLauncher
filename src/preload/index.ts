@@ -40,6 +40,8 @@ if (process.contextIsolated) {
       },
       calculateEngineSize: (directoryPath) =>
         ipcRenderer.invoke('calculate-engine-size', directoryPath),
+      updateEngineAlias: (directoryPath: string, alias: string) =>
+        ipcRenderer.invoke('update-engine-alias', directoryPath, alias),
       calculateProjectSize: (projectPath) =>
         ipcRenderer.invoke('calculate-project-size', projectPath),
       calculateAllProjectSizes: () => ipcRenderer.invoke('calculate-all-project-sizes'),
