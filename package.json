@@ -1,13 +1,14 @@
 {
   "name": "unreal-launcher",
   "productName": "Unreal Launcher",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "A lightweight Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects",
   "main": "./out/main/index.js",
   "author": "NeelFrostrain",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "PROPRIETARY SOURCE LICENSE",
   "homepage": "https://neelfrostrain.github.io/UnrealLauncher/",
-  "download:win": "https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v2.1.0/unreal-launcher-2.1.0-setup.exe",
+  "download:win": "https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v2.2.3/unreal-launcher-2.2.3-setup.exe",
+  "download:linux": "https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v2.2.3/unreal-launcher-2.2.3-linux.AppImage",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
