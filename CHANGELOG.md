@@ -7,7 +7,6 @@ All notable changes to this project will be documented in this file.
 ### ✨ Added
 
 - **Per-project thumbnail keys** — `thumbnailKey` (``${projectPath}:${thumbnail}``) passed to project cards so only cards whose thumbnails change re-render.
-- **Testing checklist** — Added `docs/TESTING_CHANGES.md` with manual verification steps for thumbnail updates, worker error handling, sizing, and rendering behavior.
 
 ### 🛠️ Fixed
 
