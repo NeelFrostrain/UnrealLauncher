@@ -24,10 +24,6 @@ All notable changes to this project will be documented in this file.
 - **ProjectsContent improvements** — Hoisted search and filtering, use `projectPath` as React key, pass `thumbnailKey` and `index` to cards, and wrapped callbacks with `useCallback` where appropriate.
 - **Window config** — Removed deprecated `backgroundThrottling: true` option from `windowConfig` to avoid platform inconsistencies.
 
-### 🧭 Notes
-
-- These changes reduce full-list invalidation during scans and make thumbnail updates, sizing, and worker lifecycles more robust. The remaining follow-up is to tighten the return type of `useProjectsPageState` (todo).
-
 
 ## [2.2.2] - 2026-05-16 — `hotfix`
 
