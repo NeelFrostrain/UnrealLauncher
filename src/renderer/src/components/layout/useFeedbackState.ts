@@ -31,17 +31,29 @@ export function useFeedbackState(onClose: () => void) {
   const accentColor = mode === 'report' ? '#f87171' : '#60a5fa'
   const accentHex = mode === 'report' ? 0xf87171 : 0x60a5fa
 
-  const addFiles = useCallback((files: FileList | null) => {
-    if (!files) return
-    setFileError('')
-    const next = [...attachments]
-    for (const file of Array.from(files)) {
-      if (next.length >= MAX_FILES) { setFileError(`Max ${MAX_FILES} attachments`); break }
-      if (file.size > MAX_FILE_BYTES) { setFileError(`"${file.name}" exceeds 2 MB`); continue }
-      next.push({ file, preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null })
-    }
-    setAttachments(next)
-  }, [attachments])
+  const addFiles = useCallback(
+    (files: FileList | null) => {
+      if (!files) return
+      setFileError('')
+      const next = [...attachments]
+      for (const file of Array.from(files)) {
+        if (next.length >= MAX_FILES) {
+          setFileError(`Max ${MAX_FILES} attachments`)
+          break
+        }
+        if (file.size > MAX_FILE_BYTES) {
+          setFileError(`"${file.name}" exceeds 2 MB`)
+          continue
+        }
+        next.push({
+          file,
+          preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null
+        })
+      }
+      setAttachments(next)
+    },
+    [attachments]
+  )
 
   const removeAttachment = (i: number): void => {
     const next = [...attachments]
@@ -89,8 +101,27 @@ export function useFeedbackState(onClose: () => void) {
   const canSubmit = title.trim().length > 0 && description.trim().length > 0 && status === 'idle'
 
   return {
-    mode, setMode, name, setName, email, setEmail, title, setTitle,
-    description, setDescription, attachments, fileError, status, errorMsg,
-    fileRef, accentColor, accentHex, MAX_FILES, addFiles, removeAttachment, handleSubmit, canSubmit
+    mode,
+    setMode,
+    name,
+    setName,
+    email,
+    setEmail,
+    title,
+    setTitle,
+    description,
+    setDescription,
+    attachments,
+    fileError,
+    status,
+    errorMsg,
+    fileRef,
+    accentColor,
+    accentHex,
+    MAX_FILES,
+    addFiles,
+    removeAttachment,
+    handleSubmit,
+    canSubmit
   }
 }

@@ -1,11 +1,11 @@
-# Ensure we are in the project root
+# Run from project root or docker/ subfolder — both work
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-Set-Location $scriptDir
+$projectRoot = if ((Split-Path -Leaf $scriptDir) -eq 'docker') { Split-Path -Parent $scriptDir } else { $scriptDir }
+Set-Location $projectRoot
 
 Write-Host "Building Unreal Launcher Docker Image..." -ForegroundColor Cyan
 
-# Build the docker image
-docker build -t unreal-launcher-build .
+docker build -f docker/Dockerfile -t unreal-launcher-build .
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Error: Docker build failed" -ForegroundColor Red
@@ -14,19 +14,16 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host "Extracting build artifacts..." -ForegroundColor Cyan
 
-# Create the dist directory if it doesn't exist
 if (-not (Test-Path "dist")) {
     New-Item -ItemType Directory -Path "dist" | Out-Null
 }
 
-# Get the version from package.json
 $packageJson = Get-Content -Raw -Path "package.json" | ConvertFrom-Json
 $version = $packageJson.version
 $zipName = "Unreal Launcher $version.zip"
 
 Write-Host "Copying $zipName to ./dist/..." -ForegroundColor Yellow
 
-# Run a temporary container to copy the zip file out
 $containerId = docker create unreal-launcher-build
 
 if ($LASTEXITCODE -ne 0) {

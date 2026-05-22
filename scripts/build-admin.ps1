@@ -9,5 +9,6 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 }
 
 Write-Host "Running as Administrator"
-Set-Location "E:\Projects\UnrealLauncher"
+# Navigate to project root (one level up from scripts/)
+Set-Location (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path))
 npm run build:win

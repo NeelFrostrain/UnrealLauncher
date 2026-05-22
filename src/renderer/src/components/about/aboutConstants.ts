@@ -107,14 +107,14 @@ export const FEATURES = [
 export const FEATURE_COUNTS = [
   {
     category: 'Engine Management',
-    count: 7,
+    count: 8,
     num: '#60a5fa',
     bg: 'rgba(96,165,250,0.08)',
     border: 'rgba(96,165,250,0.22)'
   },
   {
     category: 'Project Management',
-    count: 12,
+    count: 13,
     num: '#4ade80',
     bg: 'rgba(74,222,128,0.08)',
     border: 'rgba(74,222,128,0.22)'
@@ -305,6 +305,5 @@ export const TECH_STACK = [
   { label: 'React Router 7', color: '#4ade80' },
   { label: 'React Window 2', color: '#2dd4bf' },
   { label: 'Rust (napi-rs)', color: '#f87171' },
-  { label: 'electron-updater', color: '#818cf8' },
-  { label: 'regedit', color: '#94a3b8' }
+  { label: 'electron-updater', color: '#818cf8' }
 ]

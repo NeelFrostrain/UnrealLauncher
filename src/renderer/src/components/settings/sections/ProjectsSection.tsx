@@ -97,8 +97,15 @@ const ProjectsSection = (): React.ReactElement => {
                     }}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <FolderOpen size={14} className="shrink-0" style={{ color: 'var(--color-accent)' }} />
-                      <span className="text-xs font-mono truncate" style={{ color: 'var(--color-text-primary)' }}>
+                      <FolderOpen
+                        size={14}
+                        className="shrink-0"
+                        style={{ color: 'var(--color-accent)' }}
+                      />
+                      <span
+                        className="text-xs font-mono truncate"
+                        style={{ color: 'var(--color-text-primary)' }}
+                      >
                         {p}
                       </span>
                     </div>

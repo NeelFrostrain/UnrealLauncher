@@ -65,9 +65,7 @@ export const MenuItem = ({
       paddingBottom: sub ? '5px' : '4px'
     }}
   >
-    <span className="shrink-0 w-3.5 flex items-center justify-center self-start mt-px">
-      {icon}
-    </span>
+    <span className="shrink-0 w-3.5 flex items-center justify-center self-start mt-px">{icon}</span>
     <span className="flex-1 text-left min-w-0">
       <span className="block text-[11px] leading-tight truncate">{label}</span>
       {sub && (

@@ -45,7 +45,13 @@ export const Toggle = ({
   <button
     onClick={onChange}
     className="relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none"
-    style={{ backgroundColor: on ? (color === 'green' ? '#4ade80' : 'var(--color-accent)') : 'var(--color-border)' }}
+    style={{
+      backgroundColor: on
+        ? color === 'green'
+          ? '#4ade80'
+          : 'var(--color-accent)'
+        : 'var(--color-border)'
+    }}
     role="switch"
     aria-checked={on}
   >

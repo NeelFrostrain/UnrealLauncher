@@ -19,7 +19,9 @@ export async function locateUproject(projectPath: string): Promise<string | null
   try {
     await fs.promises.access(direct)
     return direct
-  } catch { /* not found, scan */ }
+  } catch {
+    /* not found, scan */
+  }
   try {
     const files = await fs.promises.readdir(projectPath)
     const uprojectFile = files.find((file) => file.endsWith('.uproject'))
@@ -98,9 +100,7 @@ function findEditorExecutable(engineAssociation: string): string {
  * On Windows: uses shell.openPath on the .uproject (OS file association via registry).
  * On Linux/macOS: finds the engine executable and spawns it directly.
  */
-export async function handleLaunchProject(
-  projectPath: string
-): Promise<Record<string, unknown>> {
+export async function handleLaunchProject(projectPath: string): Promise<Record<string, unknown>> {
   const uprojectPath = await locateUproject(projectPath)
   if (!uprojectPath) return { success: false, error: 'Project file not found' }
 

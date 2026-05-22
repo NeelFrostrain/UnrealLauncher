@@ -19,7 +19,7 @@ export const MAIN_WINDOW_CONFIG = {
     contextIsolation: true,
     preload: path.join(__dirname, '../preload/index.js'),
     sandbox: false,
-    backgroundThrottling: true,
+    // Remove explicit backgroundThrottling because Chromium flags already control timer throttling
     spellcheck: false,
     enableWebSQL: false,
     v8CacheOptions: 'bypassHeatCheck' as const,

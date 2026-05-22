@@ -14,7 +14,7 @@ interface GitStatus {
 /**
  * Custom hook for managing ProjectCardGrid state
  */
-export function useProjectCardState(projectPath: string | undefined, scanEpoch?: number) {
+export function useProjectCardState(projectPath: string | undefined) {
   const [launching, setLaunching] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null)
@@ -28,13 +28,14 @@ export function useProjectCardState(projectPath: string | undefined, scanEpoch?:
   })
 
   // Load git status on mount and when projectPath changes
+  // Removed `scanEpoch` from deps to avoid refetching on every scan; cache handles invalidation
   useEffect(() => {
     if (projectPath) {
       getGitStatus(projectPath).then((s) =>
         setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' })
       )
     }
-  }, [projectPath, scanEpoch])
+  }, [projectPath])
 
   const handleBranchChanged = useCallback(
     (newBranch: string): void => {

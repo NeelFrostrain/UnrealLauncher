@@ -6,7 +6,15 @@ import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  X, GitBranch, RefreshCw, Plus, Check, AlertTriangle, Archive, Trash2, ChevronLeft
+  X,
+  GitBranch,
+  RefreshCw,
+  Plus,
+  Check,
+  AlertTriangle,
+  Archive,
+  Trash2,
+  ChevronLeft
 } from 'lucide-react'
 import { useGitBranchState } from './git/useGitBranchState'
 
@@ -18,11 +26,27 @@ interface Props {
   onBranchChanged: (newBranch: string) => void
 }
 
-export default function GitBranchDialog({ projectName, projectPath, currentBranch, onClose, onBranchChanged }: Props): React.ReactElement {
+export default function GitBranchDialog({
+  projectName,
+  projectPath,
+  currentBranch,
+  onClose,
+  onBranchChanged
+}: Props): React.ReactElement {
   const newBranchRef = useRef<HTMLInputElement>(null)
   const {
-    loading, branches, newBranch, setNewBranch, switching, creating,
-    conflict, setConflict, handleSwitch, handleConflictResolve, handleCreate, isConflictSwitching
+    loading,
+    branches,
+    newBranch,
+    setNewBranch,
+    switching,
+    creating,
+    conflict,
+    setConflict,
+    handleSwitch,
+    handleConflictResolve,
+    handleCreate,
+    isConflictSwitching
   } = useGitBranchState(projectPath, currentBranch, onClose, onBranchChanged)
 
   return createPortal(

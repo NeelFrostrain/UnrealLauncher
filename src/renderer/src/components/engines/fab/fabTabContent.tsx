@@ -40,10 +40,7 @@ export function FabTabContent({
           <FolderOpen size={22} style={{ color: 'var(--color-accent)' }} />
         </div>
 
-        <p
-          className="text-sm font-semibold mb-1"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
+        <p className="text-sm font-semibold mb-1" style={{ color: 'var(--color-text-primary)' }}>
           Set your Fab library folder
         </p>
         <p

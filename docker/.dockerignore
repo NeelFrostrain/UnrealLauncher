@@ -9,7 +9,7 @@ website
 tracer/target
 native/target
 native/dist
-build-docker.sh
-build-docker.ps1
-Dockerfile
-.dockerignore
+docker/build-docker.sh
+docker/build-docker.ps1
+docker/Dockerfile
+docker/.dockerignore

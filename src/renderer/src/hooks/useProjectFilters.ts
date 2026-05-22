@@ -19,7 +19,8 @@ export interface UseProjectFiltersReturn {
     allProjects: Project[],
     setCurrentTab: (tab: TabType) => void,
     setProjects: (projects: Project[]) => void,
-    hidden: string[]
+    hidden: string[],
+    favorites: string[]
   ) => void
 }
 
@@ -34,9 +35,7 @@ export function useProjectFilters(): UseProjectFiltersReturn {
       if (tab === 'favorites') {
         return source.filter(
           (p) =>
-            p.projectPath &&
-            favorites.includes(p.projectPath) &&
-            !hidden.includes(p.projectPath)
+            p.projectPath && favorites.includes(p.projectPath) && !hidden.includes(p.projectPath)
         )
       }
       // 'all' — exclude hidden
@@ -52,12 +51,13 @@ export function useProjectFilters(): UseProjectFiltersReturn {
       allProjects: Project[],
       setCurrentTab: (tab: TabType) => void,
       setProjects: (projects: Project[]) => void,
-      hidden: string[]
+      hidden: string[],
+      favorites: string[]
     ): void => {
       if (currentTab === tab) return
       setCurrentTab(tab)
-      const favs = JSON.parse(localStorage.getItem('projectFavorites') || '[]') as string[]
-      setProjects(filterForTab(tab, allProjects, favs, hidden))
+      // Use provided favorites array instead of reading localStorage directly
+      setProjects(filterForTab(tab, allProjects, favorites, hidden))
 
       if (tab === 'favorites') navigate('/projects/favorites')
       else if (tab === 'hidden') navigate('/projects/hidden')

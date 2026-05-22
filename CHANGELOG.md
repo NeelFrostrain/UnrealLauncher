@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.3] - 2026-05-22 — `main`
+
+### ✨ Added
+
+- **Per-project thumbnail keys** — `thumbnailKey` (``${projectPath}:${thumbnail}``) passed to project cards so only cards whose thumbnails change re-render.
+- **Testing checklist** — Added `docs/TESTING_CHANGES.md` with manual verification steps for thumbnail updates, worker error handling, sizing, and rendering behavior.
+
+### 🛠️ Fixed
+
+- **Avoid excess re-renders** — Removed global `scanEpoch` from `ProjectCard` hook/call-sites and removed it from `useEffect` dependency arrays so Git status and other per-card effects no longer refire on global scans.
+- **Stable filters & refs** — Stabilized favorites/hidden arrays using refs and memoization (keyed on `.join(',')`) to avoid stale closures and unnecessary memo invalidation.
+- **Worker error handling** — `spawnWorker` now listens for `'error'` and terminates the worker and deregisters it to prevent leaked worker threads.
+- **Immutable project updates** — Project size updates now use immutable `saveProjects(projects.map(...))` instead of mutating saved arrays in place.
+- **Worker-pool for sizing** — `calculateAllProjectSizes` refactored to a queue + concurrency worker-pool to limit parallel work and reliably stream `size-calculated` events.
+- **Concurrent-scan guard** — Added simple `_inFlight` guards to engine/project scan entrypoints to prevent concurrent runs and race conditions.
+- **Lint & type cleanup** — Removed unused `scanEpoch` props/call-sites and fixed several TypeScript and ESLint warnings introduced during the refactor.
+
+### 🔧 Changed
+
+- **Rendering performance** — Limit initial entry animations to the first ~8 project cards to reduce paint churn on large lists.
+- **ProjectsContent improvements** — Hoisted search and filtering, use `projectPath` as React key, pass `thumbnailKey` and `index` to cards, and wrapped callbacks with `useCallback` where appropriate.
+- **Window config** — Removed deprecated `backgroundThrottling: true` option from `windowConfig` to avoid platform inconsistencies.
+
+### 🧭 Notes
+
+- These changes reduce full-list invalidation during scans and make thumbnail updates, sizing, and worker lifecycles more robust. The remaining follow-up is to tighten the return type of `useProjectsPageState` (todo).
+
+
 ## [2.2.2] - 2026-05-16 — `hotfix`
 
 ### ✨ Added
@@ -26,13 +54,12 @@ All notable changes to this project will be documented in this file.
 
 ### 🛠️ Fixed
 
-- **Registry scan broken in packaged builds** — Replaced the `regedit` npm package (VBS-based) with direct `reg.exe` CLI calls via `child_process.spawn`. The `regedit` package requires its VBS helper scripts to be accessible at runtime — inside an `.asar` archive they are inaccessible, and even with `setExternalVBSLocation` pointing at `app.asar.unpacked`, `promisified.list()` silently returned `exists: false` for `HKLM` keys on this machine. The native `reg.exe` is always available on Windows, requires no helper scripts, no elevation for read-only queries, and correctly returns all registered engine versions
-- **Registry sub-key parser using wrong key format** — `reg.exe` outputs full expanded hive names (`HKEY_LOCAL_MACHINE\...`) but the parser was comparing against the short form (`HKLM\...`), so every line failed the `startsWith` check and zero versions were parsed. Fixed by expanding short hive names before comparison via `expandHive()`
-- **Registry scan skipping valid keys** — Was checking `!entry || !entry.keys` but not `entry.exists`; now checks `entry?.exists` so genuinely missing keys are skipped cleanly
-- **Registry scan not verifying directory on disk** — Was resolving the exe path without first confirming `InstalledDirectory` exists on disk; now calls `fs.existsSync(installedDir)` before attempting to resolve the binary
-- **Engine alias lost on rescan** — `scanAndMergeEngines` spread `...s` but the comment was misleading; clarified that `alias`, `gradient`, `folderSize`, and `lastLaunch` are all preserved via the spread — no data loss on scan
-- **Registry-only engines missing `alias` field** — Engines discovered exclusively via registry were constructed with `as Engine` cast, silently dropping the `alias` field. Changed to `satisfies Engine` with explicit `alias: undefined` so the shape is always complete
-- **`ERR_FILE_NOT_FOUND` console spam** — `local-asset://` protocol handler was forwarding all requests to `net.fetch` regardless of whether the file existed. Missing plugin icons, project thumbnails, and Fab asset icons all produced uncaught Electron network errors. Handler now returns a clean `404` response for missing files; `onError` fallbacks in image components still fire silently
+- **Registry scan broken — replaced `regedit` with native `reg.exe`** — The `regedit` npm package (VBS-based) silently returned `exists: false` for `HKLM` keys regardless of `setExternalVBSLocation`. Replaced entirely with direct `reg.exe` CLI calls via `child_process.spawn` — no helper scripts, no elevation required, works in both dev and packaged builds
+- **Registry sub-key parser using wrong hive format** — `reg.exe` outputs full expanded hive names (`HKEY_LOCAL_MACHINE\...`) but the parser compared against short form (`HKLM\...`), so every line failed `startsWith` and zero engine versions were ever parsed. Fixed by `expandHive()` which maps short names to full names before comparison
+- **Registry scan not verifying directory on disk** — Was resolving the exe path without first confirming `InstalledDirectory` exists on disk; now calls `fs.existsSync(installedDir)` before attempting to resolve the binary. Stale registry entries from uninstalled engines are silently skipped
+- **Engine alias lost on rescan** — Clarified that `alias`, `gradient`, `folderSize`, and `lastLaunch` are all preserved via `...s` spread in `scanAndMergeEngines` — no data loss on scan
+- **Registry-only engines missing `alias` field** — Engines discovered exclusively via registry were constructed with `as Engine` cast, silently dropping the `alias` field. Changed to `satisfies Engine` with explicit `alias: undefined`
+- **`ERR_FILE_NOT_FOUND` console spam** — `local-asset://` protocol handler forwarded all requests to `net.fetch` regardless of whether the file existed. Missing plugin icons, project thumbnails, and Fab asset icons all produced uncaught Electron network errors. Handler now returns a clean `404` response for missing files; `onError` fallbacks in image components still fire silently
 - **Typecheck: 38 pre-existing errors cleared** — Fixed across 16 files:
   - Unused imports: `loadSavedEngines`, `getSplashWindow`, `loadNativeModule`, `useTheme`, `APP_VERSION`, `LogLevel`, `resolveAsset` (projectCardContent)
   - `FabAsset` imported from wrong module (`fabScanner` re-exports it from `fabAssetDetection` but doesn't export the type itself)

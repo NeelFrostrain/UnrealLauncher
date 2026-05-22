@@ -25,9 +25,7 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
 
   ipcMain_.handle('select-project-folder', handleSelectProjectFolder)
 
-  ipcMain_.handle('launch-project', async (_event, projectPath) =>
-    handleLaunchProject(projectPath)
-  )
+  ipcMain_.handle('launch-project', async (_event, projectPath) => handleLaunchProject(projectPath))
 
   ipcMain_.handle('launch-project-game', async (_event, projectPath) =>
     handleLaunchProjectGame(projectPath)

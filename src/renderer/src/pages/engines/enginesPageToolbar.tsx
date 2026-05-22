@@ -68,8 +68,7 @@ export function EnginesPageToolbar({
             onClick={() => onTabChange(tab.id)}
             className="flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer"
             style={{
-              color:
-                activeTab === tab.id ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+              color: activeTab === tab.id ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
               backgroundColor:
                 activeTab === tab.id
                   ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'

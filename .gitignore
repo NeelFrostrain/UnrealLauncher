@@ -7,7 +7,6 @@ yarn-error.log*
 # Build outputs
 dist/
 out/
-build/
 release/
 
 # Cache directories
@@ -35,7 +34,7 @@ pids
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
+# Coverage
 coverage/
 
 # Environment variables
@@ -55,7 +54,12 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+# Native module build artifacts
 /native/target
 /native/dist/*.node
+
+# Tracer build artifacts
 /tracer/target
 /resources/unreal_launcher_tracer.exe
+/resources/unreal_launcher_tracer

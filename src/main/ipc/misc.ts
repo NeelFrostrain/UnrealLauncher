@@ -30,8 +30,9 @@ export function registerMiscHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('open-external', async (_event, url) => handleOpenExternal(url))
 
   // Discord webhook
-  ipcMain_.handle('send-discord-webhook', async (_event, _webhookUrl: string, payloadJson: string) =>
-    sendDiscordWebhook(payloadJson)
+  ipcMain_.handle(
+    'send-discord-webhook',
+    async (_event, _webhookUrl: string, payloadJson: string) => sendDiscordWebhook(payloadJson)
   )
 
   // App data

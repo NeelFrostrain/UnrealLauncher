@@ -46,8 +46,7 @@
     "lucide-react": "^1.8.0",
     "react-router-dom": "^7.14.0",
     "react-virtualized-auto-sizer": "^2.0.3",
-    "react-window": "^2.2.7",
-    "regedit": "^5.1.4"
+    "react-window": "^2.2.7"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
@@ -80,5 +79,3 @@
     "zustand": "^5.0.11"
   }
 }
-
-

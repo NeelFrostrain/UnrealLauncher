@@ -231,7 +231,9 @@ declare global {
       projectGitFileStatus: (
         projectPath: string
       ) => Promise<{ hasGitignore: boolean; hasGitattributes: boolean }>
-      projectReadTextFile: (filePath: string) => Promise<{ success: boolean; content: string; error?: string }>
+      projectReadTextFile: (
+        filePath: string
+      ) => Promise<{ success: boolean; content: string; error?: string }>
       projectWriteTextFile: (
         filePath: string,
         content: string

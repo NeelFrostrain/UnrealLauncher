@@ -34,7 +34,7 @@ export const AboutCodeOfConduct = (): React.ReactElement => (
       <button
         onClick={() =>
           window.electronAPI.openExternal(
-            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CODE_OF_CONDUCT.md'
+            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/docs/CODE_OF_CONDUCT.md'
           )
         }
         className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 border border-blue-500/50 rounded-lg text-sm transition-colors cursor-pointer"

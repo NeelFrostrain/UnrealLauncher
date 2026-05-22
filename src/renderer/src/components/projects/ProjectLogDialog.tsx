@@ -5,7 +5,15 @@
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import {
-  X, RefreshCw, FileText, AlertCircle, AlertTriangle, ChevronDown, Search, Terminal, Pause
+  X,
+  RefreshCw,
+  FileText,
+  AlertCircle,
+  AlertTriangle,
+  ChevronDown,
+  Search,
+  Terminal,
+  Pause
 } from 'lucide-react'
 import { useProjectLogState, FONT_SIZES, type Filter } from './log/useProjectLogState'
 import { LogRows } from './log/LogRows'
@@ -17,16 +25,39 @@ interface Props {
 }
 
 const FILTERS: { id: Filter; label: string }[] = [
-  { id: 'all', label: 'All' }, { id: 'error', label: 'Errors' },
-  { id: 'warning', label: 'Warnings' }, { id: 'info', label: 'Info' }, { id: 'verbose', label: 'Verbose' }
+  { id: 'all', label: 'All' },
+  { id: 'error', label: 'Errors' },
+  { id: 'warning', label: 'Warnings' },
+  { id: 'info', label: 'Info' },
+  { id: 'verbose', label: 'Verbose' }
 ]
 
 // ── Dialog ────────────────────────────────────────────────────────────────────
-export default function ProjectLogDialog({ projectName, projectPath, onClose }: Props): React.ReactElement {
+export default function ProjectLogDialog({
+  projectName,
+  projectPath,
+  onClose
+}: Props): React.ReactElement {
   const {
-    lines, logPath, loading, filter, setFilter, search, setSearch,
-    autoScroll, setAutoScroll, sizeKb, live, setLive, fontSizeIdx, setFontSizeIdx,
-    maxLines, logScrollRef, counts, filtered, poll
+    lines,
+    logPath,
+    loading,
+    filter,
+    setFilter,
+    search,
+    setSearch,
+    autoScroll,
+    setAutoScroll,
+    sizeKb,
+    live,
+    setLive,
+    fontSizeIdx,
+    setFontSizeIdx,
+    maxLines,
+    logScrollRef,
+    counts,
+    filtered,
+    poll
   } = useProjectLogState(projectPath, onClose)
 
   return createPortal(

@@ -106,79 +106,86 @@ function _validateEngineJS(folder: string): EngineValidationResult {
  * Scans for engines using the worker + Windows registry, merges with saved engines.
  */
 export async function scanAndMergeEngines(): Promise<Engine[]> {
-  const saved = loadEngines()
+  // Prevent concurrent scans from running and clobbering each other's results
+  if ((scanAndMergeEngines as any)._inFlight) return [] as Engine[]
+  ;(scanAndMergeEngines as any)._inFlight = true
+  try {
+    const saved = loadEngines()
 
-  // Run filesystem worker scan and Windows registry scan in parallel
-  const [workerScanned, registryEngines] = await Promise.all([
-    new Promise<Engine[]>((resolve, reject) => {
-      const w = spawnWorker(ENGINE_SCAN_WORKER, {
-        saved,
-        nativePath: getNativeModulePath(),
-        engineScanPaths: loadEngineScanPaths()
-      })
-      w.once('message', (msg) => resolve(msg as Engine[]))
-      w.once('error', reject)
-      w.once('exit', (c: number) => {
-        if (c !== 0) reject(new Error(`Worker exited ${c}`))
-      })
-    }),
-    // Registry scan only runs on Windows — returns [] on other platforms
-    getInstalledEngines().catch(() => [] as Engine[])
-  ])
+    // Run filesystem worker scan and Windows registry scan in parallel
+    const [workerScanned, registryEngines] = await Promise.all([
+      new Promise<Engine[]>((resolve, reject) => {
+        const w = spawnWorker(ENGINE_SCAN_WORKER, {
+          saved,
+          nativePath: getNativeModulePath(),
+          engineScanPaths: loadEngineScanPaths()
+        })
+        w.once('message', (msg) => resolve(msg as Engine[]))
+        w.once('error', reject)
+        w.once('exit', (c: number) => {
+          if (c !== 0) reject(new Error(`Worker exited ${c}`))
+        })
+      }),
+      // Registry scan only runs on Windows — returns [] on other platforms
+      getInstalledEngines().catch(() => [] as Engine[])
+    ])
 
-  // Merge registry results into worker results — registry wins for exePath/version
-  // since it's the authoritative source on Windows
-  const scannedMap = new Map<string, Engine>()
-  for (const e of workerScanned) {
-    if (e.directoryPath) scannedMap.set(e.directoryPath.toLowerCase(), e)
-  }
-  for (const e of registryEngines) {
-    if (!e.directoryPath) continue
-    const key = e.directoryPath.toLowerCase()
-    const existing = scannedMap.get(key)
-    if (existing) {
-      // Registry has authoritative version/exePath — update
-      scannedMap.set(key, { ...existing, version: e.version, exePath: e.exePath })
-    } else {
-      // New engine found only in registry — add it with defaults
-      scannedMap.set(key, {
-        version: e.version,
-        exePath: e.exePath,
-        directoryPath: e.directoryPath,
-        folderSize: '~35-45 GB',
-        lastLaunch: 'Unknown',
-        gradient: generateGradient(),
-        alias: undefined
-      } satisfies Engine)
+    // Merge registry results into worker results — registry wins for exePath/version
+    // since it's the authoritative source on Windows
+    const scannedMap = new Map<string, Engine>()
+    for (const e of workerScanned) {
+      if (e.directoryPath) scannedMap.set(e.directoryPath.toLowerCase(), e)
     }
-  }
-  const scanned = Array.from(scannedMap.values())
+    for (const e of registryEngines) {
+      if (!e.directoryPath) continue
+      const key = e.directoryPath.toLowerCase()
+      const existing = scannedMap.get(key)
+      if (existing) {
+        // Registry has authoritative version/exePath — update
+        scannedMap.set(key, { ...existing, version: e.version, exePath: e.exePath })
+      } else {
+        // New engine found only in registry — add it with defaults
+        scannedMap.set(key, {
+          version: e.version,
+          exePath: e.exePath,
+          directoryPath: e.directoryPath,
+          folderSize: '~35-45 GB',
+          lastLaunch: 'Unknown',
+          gradient: generateGradient(),
+          alias: undefined
+        } satisfies Engine)
+      }
+    }
+    const scanned = Array.from(scannedMap.values())
 
-  // Merge: preserve app-managed fields (gradient, folderSize, lastLaunch)
-  const savedPaths = new Set(saved.map((e) => e.directoryPath?.toLowerCase()))
-  const newEngines = scanned.filter(
-    (e) => e.directoryPath && !savedPaths.has(e.directoryPath.toLowerCase())
-  )
-
-  const merged = saved.map((s) => {
-    const fresh = scanned.find(
-      (e) => e.directoryPath?.toLowerCase() === s.directoryPath?.toLowerCase()
+    // Merge: preserve app-managed fields (gradient, folderSize, lastLaunch)
+    const savedPaths = new Set(saved.map((e) => e.directoryPath?.toLowerCase()))
+    const newEngines = scanned.filter(
+      (e) => e.directoryPath && !savedPaths.has(e.directoryPath.toLowerCase())
     )
-    if (!fresh) return s
-    return {
-      ...s,
-      version: fresh.version ?? s.version,
-      exePath: fresh.exePath ?? s.exePath
-      // alias, gradient, folderSize, lastLaunch preserved via ...s spread
+
+    const merged = saved.map((s) => {
+      const fresh = scanned.find(
+        (e) => e.directoryPath?.toLowerCase() === s.directoryPath?.toLowerCase()
+      )
+      if (!fresh) return s
+      return {
+        ...s,
+        version: fresh.version ?? s.version,
+        exePath: fresh.exePath ?? s.exePath
+        // alias, gradient, folderSize, lastLaunch preserved via ...s spread
+      }
+    })
+
+    if (newEngines.length > 0) {
+      merged.push(...newEngines)
     }
-  })
 
-  if (newEngines.length > 0) {
-    merged.push(...newEngines)
+    saveEngines(merged)
+    return merged
+  } finally {
+    ;(scanAndMergeEngines as any)._inFlight = false
   }
-
-  saveEngines(merged)
-  return merged
 }
 
 /**

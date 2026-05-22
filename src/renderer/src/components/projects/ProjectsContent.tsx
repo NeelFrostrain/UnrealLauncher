@@ -2,7 +2,7 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import ProjectCard from './ProjectCard'
 import ProjectCardGrid from './ProjectCardGrid'
 import type { Project, TabType } from '../../types'
@@ -17,7 +17,6 @@ export interface ProjectsContentProps {
   searchQuery: string
   viewMode: ViewMode
   sortConfig: SortConfig
-  scanEpoch: number
   favoritePaths: string[]
   hiddenPaths: string[]
   displayStart: number
@@ -40,7 +39,6 @@ export const ProjectsContent = ({
   searchQuery,
   viewMode,
   sortConfig,
-  scanEpoch,
   favoritePaths,
   hiddenPaths,
   displayStart,
@@ -51,18 +49,23 @@ export const ProjectsContent = ({
   onOpenDir,
   onListScroll
 }: ProjectsContentProps): React.ReactElement => {
+  // Hoist processed search query to avoid per-project computation on each keystroke
+  const q = searchQuery.trim().toLowerCase()
+
   const visibleProjects = useMemo((): ProjectWithFlags[] => {
-    const filtered = (
-      searchQuery.trim()
-        ? projects.filter((p) => p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
-        : projects
-    ).map((project): ProjectWithFlags => ({
-      ...project,
-      isFavorite: project.projectPath ? favoritePaths.includes(project.projectPath) : false,
-      isHidden: project.projectPath ? hiddenPaths.includes(project.projectPath) : false
-    }))
+    const filtered = (q ? projects.filter((p) => p.name.toLowerCase().includes(q)) : projects).map(
+      (project): ProjectWithFlags => ({
+        ...project,
+        isFavorite: project.projectPath ? favoritePaths.includes(project.projectPath) : false,
+        isHidden: project.projectPath ? hiddenPaths.includes(project.projectPath) : false
+      })
+    )
     return sortProjects(filtered, sortConfig) as ProjectWithFlags[]
-  }, [projects, searchQuery, favoritePaths, hiddenPaths, sortConfig])
+  }, [projects, q, favoritePaths, hiddenPaths, sortConfig])
+
+  // Stabilize handlers so child memo'd cards don't receive new function refs each render
+  const stableLaunch = useCallback((p: string) => onLaunch(p), [onLaunch])
+  const stableOpenDir = useCallback((p: string) => onOpenDir(p), [onOpenDir])
 
   if (loading) {
     return (
@@ -104,21 +107,25 @@ export const ProjectsContent = ({
   }
 
   if (viewMode === 'grid') {
+    // Filter out entries missing a projectPath and pass a per-project thumbnailKey so only changed cards re-render
     return (
       <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto py-2 h-full content-start">
-        {visibleProjects.map((data) => (
-          <ProjectCardGrid
-            key={data.projectPath || data.name}
-            {...data}
-            isFavorite={data.isFavorite}
-            isHidden={data.isHidden}
-            scanEpoch={scanEpoch}
-            onToggleFavorite={onToggleFavorite}
-            onHide={onHide}
-            onLaunch={onLaunch}
-            onOpenDir={onOpenDir}
-          />
-        ))}
+        {visibleProjects
+          .filter((p) => !!p.projectPath)
+          .map((data, idx) => (
+            <ProjectCardGrid
+              key={data.projectPath}
+              {...data}
+              index={idx}
+              isFavorite={data.isFavorite}
+              isHidden={data.isHidden}
+              thumbnailKey={`${data.projectPath}:${data.thumbnail}`}
+              onToggleFavorite={onToggleFavorite}
+              onHide={onHide}
+              onLaunch={stableLaunch}
+              onOpenDir={stableOpenDir}
+            />
+          ))}
       </div>
     )
   }
@@ -129,19 +136,24 @@ export const ProjectsContent = ({
       onScroll={onListScroll}
       className="flex flex-col gap-2 overflow-y-auto py-2 h-full"
     >
-      {visibleProjects.slice(displayStart, displayStart + ITEMS_PER_BATCH).map((data) => (
-        <ProjectCard
-          key={data.projectPath || data.name}
-          {...data}
-          isFavorite={data.isFavorite}
-          isHidden={data.isHidden}
-          scanEpoch={scanEpoch}
-          onToggleFavorite={onToggleFavorite}
-          onHide={onHide}
-          onLaunch={onLaunch}
-          onOpenDir={onOpenDir}
-        />
-      ))}
+      {visibleProjects
+        .slice(displayStart, displayStart + ITEMS_PER_BATCH)
+        .filter((p) => !!p.projectPath)
+        .map((data, idx) => (
+          <ProjectCard
+            // Use projectPath as stable, unique key
+            key={data.projectPath}
+            {...data}
+            index={displayStart + idx}
+            isFavorite={data.isFavorite}
+            isHidden={data.isHidden}
+            thumbnailKey={`${data.projectPath}:${data.thumbnail}`}
+            onToggleFavorite={onToggleFavorite}
+            onHide={onHide}
+            onLaunch={stableLaunch}
+            onOpenDir={stableOpenDir}
+          />
+        ))}
     </div>
   )
 }

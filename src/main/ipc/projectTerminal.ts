@@ -7,18 +7,29 @@ import path from 'path'
 import fs from 'fs'
 import { spawn } from 'child_process'
 
-export async function handleProjectOpenTerminal(projectPath: string): Promise<{ success: boolean; error?: string }> {
+export async function handleProjectOpenTerminal(
+  projectPath: string
+): Promise<{ success: boolean; error?: string }> {
   if (!fs.existsSync(projectPath)) return { success: false, error: 'Project folder not found' }
 
   if (process.platform === 'win32') {
     try {
       const { execSync } = await import('child_process')
       let wtAvailable = false
-      try { execSync('where wt', { stdio: 'pipe' }); wtAvailable = true } catch { /* not installed */ }
+      try {
+        execSync('where wt', { stdio: 'pipe' })
+        wtAvailable = true
+      } catch {
+        /* not installed */
+      }
       if (wtAvailable) {
         spawn('wt', ['-d', projectPath], { detached: true, stdio: 'ignore' }).unref()
       } else {
-        spawn('cmd', ['/c', 'start', '""', 'cmd', '/K', `cd /d "${projectPath}"`], { detached: true, stdio: 'ignore', shell: true }).unref()
+        spawn('cmd', ['/c', 'start', '""', 'cmd', '/K', `cd /d "${projectPath}"`], {
+          detached: true,
+          stdio: 'ignore',
+          shell: true
+        }).unref()
       }
       return { success: true }
     } catch (err) {
@@ -47,12 +58,16 @@ export async function handleProjectOpenTerminal(projectPath: string): Promise<{ 
       child.on('error', () => {})
       child.unref()
       return { success: true }
-    } catch { /* try next */ }
+    } catch {
+      /* try next */
+    }
   }
   return { success: false, error: 'No terminal emulator found' }
 }
 
-export async function handleProjectOpenGithub(projectPath: string): Promise<{ success: boolean; error?: string }> {
+export async function handleProjectOpenGithub(
+  projectPath: string
+): Promise<{ success: boolean; error?: string }> {
   if (process.platform === 'win32') {
     const localAppData = process.env.LOCALAPPDATA ?? ''
     const candidates = [
@@ -62,15 +77,20 @@ export async function handleProjectOpenGithub(projectPath: string): Promise<{ su
     ]
     const exe = candidates.find((c) => fs.existsSync(c))
     if (exe) {
-      try { spawn(exe, [projectPath], { detached: true, stdio: 'ignore' }).unref(); return { success: true } }
-      catch (err) { return { success: false, error: err instanceof Error ? err.message : 'Unknown error' } }
+      try {
+        spawn(exe, [projectPath], { detached: true, stdio: 'ignore' }).unref()
+        return { success: true }
+      } catch (err) {
+        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+      }
     }
     return { success: false, error: 'GitHub Desktop not found. Install it from desktop.github.com' }
   }
   const encoded = encodeURIComponent(projectPath)
-  const url = process.platform === 'darwin'
-    ? `github-mac://openRepo?path=${encoded}`
-    : `x-github-client://openRepo?path=${encoded}`
+  const url =
+    process.platform === 'darwin'
+      ? `github-mac://openRepo?path=${encoded}`
+      : `x-github-client://openRepo?path=${encoded}`
   try {
     await shell.openExternal(url)
     return { success: true }
@@ -79,7 +99,9 @@ export async function handleProjectOpenGithub(projectPath: string): Promise<{ su
   }
 }
 
-export async function handleProjectOpenRemote(remoteUrl: string): Promise<{ success: boolean; error?: string }> {
+export async function handleProjectOpenRemote(
+  remoteUrl: string
+): Promise<{ success: boolean; error?: string }> {
   if (!remoteUrl) return { success: false, error: 'No remote URL configured' }
   try {
     await shell.openExternal(remoteUrl)

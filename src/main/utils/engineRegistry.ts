@@ -42,7 +42,9 @@ function regQuery(key: string, extra: string[] = []): Promise<string> {
       stdio: ['ignore', 'pipe', 'ignore'],
       windowsHide: true
     })
-    proc.stdout?.on('data', (d: Buffer) => { out += d.toString() })
+    proc.stdout?.on('data', (d: Buffer) => {
+      out += d.toString()
+    })
     proc.once('close', () => resolve(out))
     proc.once('error', () => resolve(''))
   })
@@ -71,10 +73,7 @@ function parseSubKeys(parentKey: string, output: string): string[] {
   const subKeys: string[] = []
   for (const line of lines) {
     const trimmed = line.trim().toLowerCase()
-    if (
-      trimmed.startsWith(expanded + '\\') &&
-      trimmed !== expanded
-    ) {
+    if (trimmed.startsWith(expanded + '\\') && trimmed !== expanded) {
       // Extract just the version name (last segment after parent)
       const rest = line.trim().slice(expanded.length + 1)
       const version = rest.split('\\')[0].trim()

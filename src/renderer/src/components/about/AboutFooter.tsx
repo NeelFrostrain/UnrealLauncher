@@ -29,7 +29,7 @@ const LINKS = [
   {
     label: 'Contribute',
     icon: <Code size={14} />,
-    url: `${config.githubRepo}/blob/main/CONTRIBUTING.md`,
+    url: `${config.githubRepo}/blob/main/docs/CONTRIBUTING.md`,
     style: {
       color: 'var(--color-text-secondary)',
       borderColor: 'var(--color-border)',

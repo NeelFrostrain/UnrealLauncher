@@ -28,12 +28,17 @@ export function usePluginsState(engineDir: string) {
 
   const load = useCallback(async (): Promise<void> => {
     setLoading(true)
-    try { setPlugins(await window.electronAPI.scanEnginePlugins(engineDir)) }
-    catch { setPlugins([]) }
+    try {
+      setPlugins(await window.electronAPI.scanEnginePlugins(engineDir))
+    } catch {
+      setPlugins([])
+    }
     setLoading(false)
   }, [engineDir])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   const handleViewChange = useCallback((mode: ViewMode): void => {
     setViewMode(mode)
@@ -43,10 +48,12 @@ export function usePluginsState(engineDir: string) {
   const grouped = useMemo((): Array<{ category: string; plugins: EnginePlugin[] }> => {
     const q = searchQuery.trim().toLowerCase()
     const filtered = q
-      ? plugins.filter((p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q))
+      ? plugins.filter(
+          (p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q)
+        )
       : plugins
     const map = new Map<string, EnginePlugin[]>()
     for (const p of filtered) {
@@ -65,5 +72,15 @@ export function usePluginsState(engineDir: string) {
 
   const totalVisible = useMemo(() => grouped.reduce((s, g) => s + g.plugins.length, 0), [grouped])
 
-  return { plugins, loading, searchQuery, setSearchQuery, viewMode, handleViewChange, grouped, totalVisible, load }
+  return {
+    plugins,
+    loading,
+    searchQuery,
+    setSearchQuery,
+    viewMode,
+    handleViewChange,
+    grouped,
+    totalVisible,
+    load
+  }
 }

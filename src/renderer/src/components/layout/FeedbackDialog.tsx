@@ -9,9 +9,27 @@ import type { Mode } from './useFeedbackState'
 
 export default function FeedbackDialog({ onClose }: { onClose: () => void }): React.ReactElement {
   const {
-    mode, setMode, name, setName, email, setEmail, title, setTitle,
-    description, setDescription, attachments, fileError, status, errorMsg,
-    fileRef, accentColor, MAX_FILES, addFiles, removeAttachment, handleSubmit, canSubmit
+    mode,
+    setMode,
+    name,
+    setName,
+    email,
+    setEmail,
+    title,
+    setTitle,
+    description,
+    setDescription,
+    attachments,
+    fileError,
+    status,
+    errorMsg,
+    fileRef,
+    accentColor,
+    MAX_FILES,
+    addFiles,
+    removeAttachment,
+    handleSubmit,
+    canSubmit
   } = useFeedbackState(onClose)
 
   return (

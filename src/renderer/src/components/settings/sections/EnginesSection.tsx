@@ -82,7 +82,8 @@ const EnginesSection = (): React.ReactElement => {
                   color: 'var(--color-text-muted)'
                 }}
               >
-                No extra folders configured. The scanner already checks common locations automatically.
+                No extra folders configured. The scanner already checks common locations
+                automatically.
               </div>
             ) : (
               <div className="space-y-2">
@@ -97,8 +98,15 @@ const EnginesSection = (): React.ReactElement => {
                     }}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <FolderOpen size={14} className="shrink-0" style={{ color: 'var(--color-accent)' }} />
-                      <span className="text-xs font-mono truncate" style={{ color: 'var(--color-text-primary)' }}>
+                      <FolderOpen
+                        size={14}
+                        className="shrink-0"
+                        style={{ color: 'var(--color-accent)' }}
+                      />
+                      <span
+                        className="text-xs font-mono truncate"
+                        style={{ color: 'var(--color-text-primary)' }}
+                      >
                         {p}
                       </span>
                     </div>

@@ -24,7 +24,10 @@ const ProjectCard = memo(
     projectPath,
     isFavorite,
     isHidden,
-    scanEpoch,
+    // Use a per-project thumbnailKey so only cards with changed thumbnails re-render
+    thumbnailKey,
+    // Index used to limit entrance animations to the first few cards
+    index,
     onToggleFavorite,
     onLaunch,
     onOpenDir,
@@ -32,13 +35,15 @@ const ProjectCard = memo(
   }: Project & {
     isFavorite: boolean
     isHidden: boolean
-    scanEpoch?: number
+    thumbnailKey?: string
+    index?: number
     onToggleFavorite: (p: string) => void
     onLaunch: (p: string) => void
     onOpenDir: (p: string) => void
     onHide: (p: string) => void
   }) => {
-    const state = useProjectCardState(projectPath, scanEpoch)
+    // Removed scanEpoch here; git status cache handles invalidation
+    const state = useProjectCardState(projectPath)
     const handlers = useProjectCardHandlers(
       projectPath,
       onLaunch,
@@ -50,8 +55,9 @@ const ProjectCard = memo(
     )
 
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
+    // Use thumbnailKey as a cache-busting token for the per-project thumbnail
     const imageSrc = thumbnail
-      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}?t=${scanEpoch ?? 0}`
+      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}?t=${thumbnailKey ?? ''}`
       : null
     const dateLabel = lastOpenedAt ? formatDate(lastOpenedAt) : createdAt
     const dateType = lastOpenedAt ? 'Opened' : 'Created'
@@ -65,7 +71,8 @@ const ProjectCard = memo(
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius)'
           }}
-          initial={{ opacity: 0, y: 8 }}
+          // Only animate the first 8 cards to avoid many simultaneous animations
+          initial={index !== undefined && index < 8 ? { opacity: 0, y: 8 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           onContextMenu={handlers.handleContextMenu}
@@ -126,11 +133,19 @@ const ProjectCard = memo(
                 )}
               </div>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
+                <div
+                  className="flex items-center gap-1"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   <Clock size={11} />
-                  <span className="text-[10px]">{dateType} {dateLabel}</span>
+                  <span className="text-[10px]">
+                    {dateType} {dateLabel}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
+                <div
+                  className="flex items-center gap-1"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   <Database size={11} />
                   <span className="text-[10px] font-mono">{size}</span>
                 </div>

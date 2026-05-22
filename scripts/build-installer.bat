@@ -1,6 +1,6 @@
 @echo off
 REM Build script - requests admin privileges and builds the Windows installer
-REM This is needed because code signing tools require symlink support on Windows
+REM Run from project root or scripts/ folder
 
 echo.
 echo ===== Unreal Launcher Builder =====
@@ -11,19 +11,17 @@ net session >nul 2>&1
 if %errorlevel% neq 0 (
     echo Requesting Administrator privileges...
     echo.
-    
-    REM Re-run as admin
     powershell -Command "Start-Process '%~f0' -Verb RunAs"
     exit /b
 )
 
-REM We're admin, proceed with build
+REM Navigate to project root (handles running from scripts/ subfolder)
+cd /d "%~dp0.."
+
 echo Running as Administrator
 echo.
 echo Building Windows installer...
 echo.
-
-cd /d "E:\Projects\UnrealLauncher"
 
 call npm run build:win
 

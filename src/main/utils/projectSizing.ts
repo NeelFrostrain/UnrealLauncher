@@ -18,8 +18,10 @@ export async function calculateProjectSize(projectPath: string): Promise<Record<
     const project = projects.find((p) => p.projectPath === projectPath)
 
     if (project) {
-      project.size = sizeStr
-      saveProjects(projects)
+      // Use immutable update to avoid mutating the loaded projects array directly
+      saveProjects(
+        projects.map((p) => (p.projectPath === projectPath ? { ...p, size: sizeStr } : p))
+      )
     }
 
     return { success: true, size: sizeStr }
@@ -39,37 +41,35 @@ export async function calculateAllProjectSizes(): Promise<void> {
   const projects = loadProjects()
   if (projects.length === 0) return
 
-  let index = 0
+  // Replace recursive processing with a worker-pool pattern to avoid stack depth and improve clarity
+  const queue = projects.slice()
 
-  async function processNext(): Promise<void> {
-    if (index >= projects.length) return
+  async function worker(): Promise<void> {
+    while (queue.length > 0) {
+      const project = queue.shift()
+      if (!project) break
+      try {
+        const sizeStr = formatBytes(await getFullFolderSize(project.projectPath))
+        const all = loadProjects()
 
-    const project = projects[index++]
+        // Immutable update when saving sizes
+        saveProjects(
+          all.map((p) => (p.projectPath === project.projectPath ? { ...p, size: sizeStr } : p))
+        )
 
-    try {
-      const sizeStr = formatBytes(await getFullFolderSize(project.projectPath))
-      const all = loadProjects()
-      const entry = all.find((p) => p.projectPath === project.projectPath)
-
-      if (entry) {
-        entry.size = sizeStr
-        saveProjects(all)
+        if (win && !win.isDestroyed()) {
+          win.webContents.send('size-calculated', {
+            type: 'project',
+            path: project.projectPath,
+            size: sizeStr
+          })
+        }
+      } catch {
+        /* skip errors and continue */
       }
-
-      if (win && !win.isDestroyed()) {
-        win.webContents.send('size-calculated', {
-          type: 'project',
-          path: project.projectPath,
-          size: sizeStr
-        })
-      }
-    } catch {
-      /* skip errors and continue */
     }
-
-    await processNext()
   }
 
-  // Run with concurrency limit
-  await Promise.all(Array.from({ length: CONCURRENCY }, processNext))
+  // Run with concurrency limit using multiple worker loops
+  await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()))
 }

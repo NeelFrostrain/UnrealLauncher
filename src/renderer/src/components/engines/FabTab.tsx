@@ -26,17 +26,13 @@ const FabTab = (): React.ReactElement => {
             borderRadius: 'var(--radius)',
             backgroundColor: 'var(--color-surface-card)',
             border: '1px solid var(--color-border)',
-            color: state.folderPath
-              ? 'var(--color-text-secondary)'
-              : 'var(--color-text-muted)',
+            color: state.folderPath ? 'var(--color-text-secondary)' : 'var(--color-text-muted)',
             transition: 'border-color 150ms ease'
           }}
           title="Click to change folder"
         >
           <FolderInput size={12} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-          <span className="truncate">
-            {state.folderPath || 'Click to set Fab cache folder…'}
-          </span>
+          <span className="truncate">{state.folderPath || 'Click to set Fab cache folder…'}</span>
         </button>
 
         {/* Search */}
@@ -71,9 +67,7 @@ const FabTab = (): React.ReactElement => {
               backgroundColor:
                 state.viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
               color:
-                state.viewMode === 'list'
-                  ? 'var(--color-text-primary)'
-                  : 'var(--color-text-muted)'
+                state.viewMode === 'list' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
             }}
             title="List view"
           >
@@ -86,9 +80,7 @@ const FabTab = (): React.ReactElement => {
               backgroundColor:
                 state.viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
               color:
-                state.viewMode === 'grid'
-                  ? 'var(--color-text-primary)'
-                  : 'var(--color-text-muted)'
+                state.viewMode === 'grid' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
             }}
             title="Grid view"
           >

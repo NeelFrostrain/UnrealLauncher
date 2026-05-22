@@ -6,8 +6,7 @@ param(
 if (-not $AsAdmin) {
     Write-Host "⚠ Admin privileges required for code signing tool extraction"
     Write-Host "Requesting administrator privileges..."
-    
-    # Re-run as admin
+
     $scriptPath = $MyInvocation.MyCommand.Path
     $args = "-ExecutionPolicy Bypass -File `"$scriptPath`" -AsAdmin"
     Start-Process powershell -ArgumentList $args -Verb RunAs -Wait
@@ -15,7 +14,8 @@ if (-not $AsAdmin) {
 }
 
 Write-Host "✓ Running as Administrator" -ForegroundColor Green
-Set-Location "E:\Projects\UnrealLauncher"
+# Navigate to project root (one level up from scripts/)
+Set-Location (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path))
 
 Write-Host ""
 Write-Host "Building Unreal Launcher installer..."

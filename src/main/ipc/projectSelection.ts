@@ -40,9 +40,7 @@ function findDuplicateProject(
   projectId: string | undefined,
   known: Project[]
 ): Project | undefined {
-  return known.find(
-    (p) => p.projectPath === projectDir || (projectId && p.projectId === projectId)
-  )
+  return known.find((p) => p.projectPath === projectDir || (projectId && p.projectId === projectId))
 }
 
 /**

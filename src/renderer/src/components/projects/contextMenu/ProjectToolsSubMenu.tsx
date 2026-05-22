@@ -49,10 +49,13 @@ export const ProjectToolsSubMenu = ({
   }, [projectPath, addToast, onClose])
 
   // Open editor via parent callback — state lives in projectCardDialogs, survives menu close
-  const handleOpenEditor = useCallback((mode: 'config' | 'uproject') => {
-    onOpenFileEditor(mode)
-    onClose()
-  }, [onOpenFileEditor, onClose])
+  const handleOpenEditor = useCallback(
+    (mode: 'config' | 'uproject') => {
+      onOpenFileEditor(mode)
+      onClose()
+    },
+    [onOpenFileEditor, onClose]
+  )
 
   return createPortal(
     <motion.div

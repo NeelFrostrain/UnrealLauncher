@@ -12,6 +12,11 @@ const activeWorkers = new Set<Worker>()
 export function spawnWorker(script: string, workerData: unknown): Worker {
   const w = new Worker(script, { eval: true, workerData })
   activeWorkers.add(w)
+  // Ensure workers are removed/terminated on unexpected errors to avoid leaks
+  w.once('error', () => {
+    w.terminate()
+    activeWorkers.delete(w)
+  })
   w.once('exit', () => activeWorkers.delete(w))
   return w
 }
