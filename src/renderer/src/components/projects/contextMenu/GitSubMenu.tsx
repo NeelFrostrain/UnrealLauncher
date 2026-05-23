@@ -158,9 +158,7 @@ export const GitSubMenu = ({
                 <MenuItem
                   icon={<Globe size={11} style={{ color: '#60a5fa' }} />}
                   label="Open Remote"
-                  sub={gitRemoteUrl
-                    .replace(/^git@([^:]+):/, 'https://$1/')
-                    .replace(/\.git$/, '')}
+                  sub={gitRemoteUrl.replace(/^git@([^:]+):/, 'https://$1/').replace(/\.git$/, '')}
                   onClick={() => window.electronAPI.projectOpenRemote(gitRemoteUrl)}
                   onClose={onClose}
                 />

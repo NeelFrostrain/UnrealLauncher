@@ -48,7 +48,7 @@ const LaunchSection = ({ autoCloseOnLaunch, onToggle }: LaunchSectionProps): Rea
           </SettingRow>
         )}
         <SettingRow
-          label="UI Animations"
+          label="Extra UI Animations"
           description="Enable transitions and motion effects. Disable to reduce CPU/GPU usage and improve performance."
         >
           <Toggle on={animationsEnabled} onChange={toggleAnimations} />

@@ -55,12 +55,11 @@ const Group = ({
       borderRadius: 'var(--radius)'
     }}
   >
-    <div
-      className="px-4 py-2.5"
-      style={{ borderBottom: '1px solid var(--color-border)' }}
-    >
-      <p className="text-[10px] font-semibold uppercase tracking-widest select-none"
-        style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}>
+    <div className="px-4 py-2.5" style={{ borderBottom: '1px solid var(--color-border)' }}>
+      <p
+        className="text-[10px] font-semibold uppercase tracking-widest select-none"
+        style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
+      >
         {title}
       </p>
     </div>
@@ -101,7 +100,6 @@ const AppearanceSection = ({
 
   return (
     <div className="space-y-4">
-
       {/* ── Theme ── */}
       <Group title="Theme">
         <ThemePresets
@@ -156,7 +154,6 @@ const AppearanceSection = ({
           deleteProfile={deleteProfile}
         />
       </Group>
-
     </div>
   )
 }

@@ -30,10 +30,13 @@ export function useProjectCardHandlers(
     }
   }, [projectPath, onLaunch, setLaunching])
 
-  const handleContextMenu = useCallback((e: React.MouseEvent): void => {
-    e.preventDefault()
-    setCtxMenu({ x: e.clientX, y: e.clientY })
-  }, [setCtxMenu])
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent): void => {
+      e.preventDefault()
+      setCtxMenu({ x: e.clientX, y: e.clientY })
+    },
+    [setCtxMenu]
+  )
 
   const handleGitInit = useCallback(async (): Promise<void> => {
     if (!projectPath) return

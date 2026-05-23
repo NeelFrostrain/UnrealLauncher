@@ -12,7 +12,11 @@ import { fileURLToPath } from 'url'
 import { optimizer } from '@electron-toolkit/utils'
 import { MAIN_WINDOW_CONFIG } from './windowConfig'
 import { createSplashWindow, closeSplashWindow } from './splashWindow'
-import { setupWindowEventHandlers, setupDevToolsShortcut, setupMemoryManagement } from './windowHandlers'
+import {
+  setupWindowEventHandlers,
+  setupDevToolsShortcut,
+  setupMemoryManagement
+} from './windowHandlers'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 

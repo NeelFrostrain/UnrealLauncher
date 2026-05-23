@@ -34,13 +34,13 @@ Contributions are **not** accepted for:
 
 - New features without prior discussion and written approval from NeelFrostrain
 - Refactors that change the project's architecture without approval
-- Changes that conflict with the project's proprietary nature (e.g. adding open-source licenses to files)
+- Changes that conflict with the project's proprietary nature
 
 ---
 
 ## How to Report a Bug
 
-1. Check [existing issues](https://github.com/NeelFrostrain/UnrealLauncher/issues) first — it may already be reported.
+1. Check [existing issues](https://github.com/NeelFrostrain/UnrealLauncher/issues) first.
 2. Open a new issue with:
    - A clear title describing the problem
    - Steps to reproduce

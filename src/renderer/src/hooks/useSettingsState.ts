@@ -34,9 +34,7 @@ export function useSettingsState() {
   } = useTheme()
 
   // General settings
-  const [autoCloseOnLaunch, setAutoCloseOnLaunch] = useState(() =>
-    getSetting('autoCloseOnLaunch')
-  )
+  const [autoCloseOnLaunch, setAutoCloseOnLaunch] = useState(() => getSetting('autoCloseOnLaunch'))
 
   // Appearance settings
   const [radius, setRadius] = useState(() => loadPersistedRadius())

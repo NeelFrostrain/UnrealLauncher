@@ -37,7 +37,7 @@ export const AboutSecurity = (): React.ReactElement => (
       <button
         onClick={() =>
           window.electronAPI.openExternal(
-            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/SECURITY.md'
+            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/docs/SECURITY.md'
           )
         }
         className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 border border-red-500/50 rounded-lg text-sm transition-colors cursor-pointer"

@@ -43,7 +43,7 @@ export const AboutSupport = (): React.ReactElement => (
       <button
         onClick={() =>
           window.electronAPI.openExternal(
-            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/DONATE.md'
+            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/docs/DONATE.md'
           )
         }
         className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 border border-purple-500/50 rounded-lg text-sm transition-colors cursor-pointer"

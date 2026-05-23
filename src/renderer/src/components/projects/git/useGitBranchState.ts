@@ -28,11 +28,16 @@ export function useGitBranchState(
     setLoading(false)
   }, [projectPath])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   useEffect(() => {
     const h = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') { if (conflict) setConflict(null); else onClose() }
+      if (e.key === 'Escape') {
+        if (conflict) setConflict(null)
+        else onClose()
+      }
     }
     document.addEventListener('keydown', h)
     return () => document.removeEventListener('keydown', h)
@@ -42,7 +47,12 @@ export function useGitBranchState(
     async (branch: string, strategy: 'normal' | 'stash' | 'force' = 'normal') => {
       if (branch === currentBranch) return
       setSwitching(branch)
-      const r = await window.electronAPI.projectGitSwitchBranch(projectPath, branch, false, strategy)
+      const r = await window.electronAPI.projectGitSwitchBranch(
+        projectPath,
+        branch,
+        false,
+        strategy
+      )
       setSwitching(null)
       if (r.success) {
         addToast(`Switched to ${branch}`, 'success')
@@ -85,8 +95,17 @@ export function useGitBranchState(
   const isConflictSwitching = conflict?.strategy !== null && !!switching
 
   return {
-    loading, branches, newBranch, setNewBranch,
-    switching, creating, conflict, setConflict,
-    handleSwitch, handleConflictResolve, handleCreate, isConflictSwitching
+    loading,
+    branches,
+    newBranch,
+    setNewBranch,
+    switching,
+    creating,
+    conflict,
+    setConflict,
+    handleSwitch,
+    handleConflictResolve,
+    handleCreate,
+    isConflictSwitching
   }
 }

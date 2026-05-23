@@ -46,7 +46,6 @@ const ProjectsPage = (): React.ReactElement => {
           searchQuery={state.searchQuery}
           viewMode={state.viewMode}
           sortConfig={state.sortConfig}
-          scanEpoch={state.scanEpoch}
           favoritePaths={state.favoritePaths}
           hiddenPaths={state.hiddenPaths}
           displayStart={state.displayStart}

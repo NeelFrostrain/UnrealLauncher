@@ -20,6 +20,9 @@ if [[ "$OSTYPE" != "linux-gnu"* ]]; then
     exit 1
 fi
 
+# Navigate to project root (handles running from scripts/ subfolder)
+cd "$(dirname "$0")/.."
+
 # Parse args
 MODE="full"
 if [[ "$1" == "--unpack" || "$1" == "-u" ]]; then
@@ -34,7 +37,6 @@ if [[ "$MODE" == "unpack" ]]; then
 else
     echo -e "${CYAN}Mode: AppImage + deb${NC}"
     echo
-    # Check for required tools
     if ! command -v fuse &>/dev/null && ! ls /dev/fuse &>/dev/null 2>&1; then
         echo -e "${YELLOW}Note: FUSE may not be available. AppImage build might require:${NC}"
         echo "  sudo apt-get install fuse libfuse2"

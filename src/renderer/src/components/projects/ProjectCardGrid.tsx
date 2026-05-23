@@ -22,7 +22,10 @@ const ProjectCardGrid = memo(
     projectPath,
     isFavorite,
     isHidden,
-    scanEpoch,
+    // Use a per-project thumbnailKey so only cards with changed thumbnails re-render
+    thumbnailKey,
+    // Index used to limit entrance animations to the first few cards
+    index,
     onToggleFavorite,
     onLaunch,
     onOpenDir,
@@ -30,13 +33,15 @@ const ProjectCardGrid = memo(
   }: Project & {
     isFavorite: boolean
     isHidden: boolean
-    scanEpoch?: number
+    thumbnailKey?: string
+    index?: number
     onToggleFavorite: (p: string) => void
     onLaunch: (p: string) => void
     onOpenDir: (p: string) => void
     onHide: (p: string) => void
   }) => {
-    const state = useProjectCardState(projectPath, scanEpoch)
+    // Removed scanEpoch; git status cache handles invalidation
+    const state = useProjectCardState(projectPath)
     const handlers = useProjectCardHandlers(
       projectPath,
       onLaunch,
@@ -48,8 +53,9 @@ const ProjectCardGrid = memo(
     )
 
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
+    // Use thumbnailKey to scope thumbnail cache-busting per project
     const imageSrc = thumbnail
-      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}?t=${scanEpoch ?? 0}`
+      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}?t=${thumbnailKey ?? ''}`
       : resolveAsset(undefined)
 
     return (
@@ -62,7 +68,8 @@ const ProjectCardGrid = memo(
             borderColor: state.hovered ? 'var(--color-accent)' : 'transparent',
             transition: 'border-color 150ms ease'
           }}
-          initial={{ opacity: 0, y: 12 }}
+          // Only animate the first 8 cards to reduce simultaneous animations
+          initial={index !== undefined && index < 8 ? { opacity: 0, y: 12 } : false}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ y: -2 }}
           transition={{ duration: 0.22, ease: 'easeOut' }}

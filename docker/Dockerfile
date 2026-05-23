@@ -36,11 +36,11 @@ RUN npm install
 # Copy the rest of the project
 COPY . .
 
-# Ensure the build script is executable
-RUN chmod +x build-linux.sh
+# Ensure the Linux build script is executable
+RUN chmod +x scripts/build-linux.sh
 
-# Build the project for Linux using the provided script
-RUN ./build-linux.sh
+# Build the project for Linux
+RUN scripts/build-linux.sh
 
 # Prepare the zip file
 RUN node -e " \

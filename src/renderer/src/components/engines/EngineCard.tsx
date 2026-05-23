@@ -113,11 +113,9 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
 
         {/* ── Info panel ─────────────────────────────────────────────── */}
         <div className="flex-1 min-w-0 h-full flex flex-col px-4 py-3 justify-between">
-
           {/* Top row: alias/title + delete */}
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0 group/alias">
-
               {/* Alias — primary title, editable */}
               {editingAlias ? (
                 <input
@@ -143,7 +141,9 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                 >
                   <span
                     className="text-sm font-semibold truncate"
-                    style={{ color: alias ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}
+                    style={{
+                      color: alias ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+                    }}
                   >
                     {alias || `Unreal Engine ${version}`}
                   </span>
@@ -180,7 +180,6 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
 
           {/* Bottom row: stats + actions */}
           <div className="flex items-center justify-between">
-
             {/* Stats */}
             <div className="flex gap-5">
               <div className="flex flex-col gap-0.5">
@@ -221,7 +220,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                 {/* Path */}
                 <p
                   className="text-xs font-mono truncate"
-                  style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
+                  style={{ color: 'var(--color-text-secondary)', opacity: 0.6 }}
                   title={directoryPath}
                 >
                   {directoryPath}

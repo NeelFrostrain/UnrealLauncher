@@ -54,11 +54,11 @@ export interface SortConfig {
 }
 
 export const SORT_OPTIONS: Array<{ key: SortKey; label: string }> = [
-  { key: 'name',         label: 'Name (A–Z)' },
+  { key: 'name', label: 'Name (A–Z)' },
   { key: 'lastOpenedAt', label: 'Last Opened' },
-  { key: 'createdAt',    label: 'Date Created' },
-  { key: 'size',         label: 'Size' },
-  { key: 'version',      label: 'Engine Version' }
+  { key: 'createdAt', label: 'Date Created' },
+  { key: 'size', label: 'Size' },
+  { key: 'version', label: 'Engine Version' }
 ]
 
 /** Parse a size string like "1.2 GB", "340 MB", "~35-45 GB" into bytes for comparison */
@@ -78,16 +78,24 @@ function parseSizeBytes(size: string): number {
 
 function toBytes(val: number, unit: string): number {
   switch (unit.toUpperCase()) {
-    case 'GB': return val * 1024 ** 3
-    case 'MB': return val * 1024 ** 2
-    case 'KB': return val * 1024
-    default:   return val
+    case 'GB':
+      return val * 1024 ** 3
+    case 'MB':
+      return val * 1024 ** 2
+    case 'KB':
+      return val * 1024
+    default:
+      return val
   }
 }
 
 function toTimestamp(d: string | undefined): number {
   if (!d) return 0
-  try { return new Date(d).getTime() } catch { return 0 }
+  try {
+    return new Date(d).getTime()
+  } catch {
+    return 0
+  }
 }
 
 export function sortProjects(projects: Project[], config: SortConfig): Project[] {

@@ -4,7 +4,18 @@
 // See LICENSE in the project root for full license terms.
 import type { FC } from 'react'
 import { useRef, useState, useEffect } from 'react'
-import { Plus, RefreshCw, Search, X, LayoutGrid, LayoutList, ArrowUpDown, ArrowUp, ArrowDown, Check } from 'lucide-react'
+import {
+  Plus,
+  RefreshCw,
+  Search,
+  X,
+  LayoutGrid,
+  LayoutList,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Check
+} from 'lucide-react'
 import type { TabType } from '../../types'
 import type { SortConfig, SortKey } from './projectUtils'
 import { SORT_OPTIONS } from './projectUtils'
@@ -106,7 +117,9 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
               }}
             >
               {tab.icon && (
-                <span style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
+                <span
+                  style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
+                >
                   {tab.icon}
                 </span>
               )}
@@ -147,7 +160,6 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       <div className="flex-1" />
 
       <div className="flex items-center gap-1.5">
-
         {/* ── Sort dropdown ─────────────────────────────────────────── */}
         <div ref={sortRef} className="relative">
           <button
@@ -163,8 +175,12 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
             }}
             title="Sort projects"
           >
-            <ArrowUpDown size={12} style={{ color: sortOpen ? 'var(--color-accent)' : 'var(--color-text-muted)' }} />
-            <span className="hidden sm:inline">{activeLabel}</span>
+            <ArrowUpDown
+              size={12}
+              style={{ color: sortOpen ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
+            />
+            {/* Electron runs at large min-width; make sort label always visible */}
+            <span>{activeLabel}</span>
             <DirIcon size={10} style={{ color: 'var(--color-text-muted)' }} />
           </button>
 
@@ -230,7 +246,9 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
                     }}
                   >
                     <span>{opt.label}</span>
-                    {isActive && <Check size={11} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
+                    {isActive && (
+                      <Check size={11} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                    )}
                   </button>
                 )
               })}
@@ -247,7 +265,8 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
             onClick={() => onViewChange('list')}
             className="flex items-center p-1.5 cursor-pointer transition-colors"
             style={{
-              backgroundColor: viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+              backgroundColor:
+                viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
               color: viewMode === 'list' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
             }}
             title="List view"
@@ -258,7 +277,8 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
             onClick={() => onViewChange('grid')}
             className="flex items-center p-1.5 cursor-pointer transition-colors"
             style={{
-              backgroundColor: viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+              backgroundColor:
+                viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
               color: viewMode === 'grid' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
             }}
             title="Grid view"

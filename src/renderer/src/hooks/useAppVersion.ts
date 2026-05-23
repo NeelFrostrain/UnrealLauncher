@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react'
  * Both sources read package.json — they will always agree once the build is fresh.
  */
 export function useAppVersion(): string {
-  const [version, setVersion] = useState("")
+  const [version, setVersion] = useState('')
 
   useEffect(() => {
     window.electronAPI?.getAppVersion?.().then((v) => {

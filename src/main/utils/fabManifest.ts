@@ -35,9 +35,7 @@ export function extractManifestMetadata(manifest: Record<string, unknown>) {
     actionUrl: cf['Vault.ActionURL'] || undefined,
     tags: cf['Vault.Tags'] ? cf['Vault.Tags'].split(',').map((s) => s.trim()) : undefined,
     isCodeProject: cf['Vault.IsCodeProject'] === 'true',
-    filters: cf['Vault.Filters']
-      ? cf['Vault.Filters'].split(',').map((s) => s.trim())
-      : undefined,
+    filters: cf['Vault.Filters'] ? cf['Vault.Filters'].split(',').map((s) => s.trim()) : undefined,
     compatibleApps: cf['CompatibleApps'] ? cf['CompatibleApps'].split(',').map((s) => s.trim()) : []
   }
 }

@@ -20,7 +20,9 @@ const SystemSection = (): React.ReactElement => {
 
   useEffect(() => {
     window.electronAPI.getNativeStatus().then(setNativeLoaded)
-    window.electronAPI.getAppVersion().then((v) => { if (v) setAppVersion(v) })
+    window.electronAPI.getAppVersion().then((v) => {
+      if (v) setAppVersion(v)
+    })
     if (platform === 'win32') {
       window.electronAPI.isTracerRunning().then(setTracerRunning)
     }

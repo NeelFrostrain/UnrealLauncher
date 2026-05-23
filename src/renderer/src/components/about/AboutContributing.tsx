@@ -44,7 +44,7 @@ export const AboutContributing = (): React.ReactElement => (
       <button
         onClick={() =>
           window.electronAPI.openExternal(
-            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/CONTRIBUTING.md'
+            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/docs/CONTRIBUTING.md'
           )
         }
         className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 border border-green-500/50 rounded-lg text-sm transition-colors cursor-pointer"

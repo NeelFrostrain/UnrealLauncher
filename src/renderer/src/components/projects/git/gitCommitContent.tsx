@@ -52,10 +52,7 @@ export function GitCommitContent({
   onKeyDown
 }: GitCommitContentProps) {
   return (
-    <div
-      className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3"
-      style={{ minHeight: 0 }}
-    >
+    <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3" style={{ minHeight: 0 }}>
       {loading ? (
         <div
           className="flex items-center justify-center py-10 gap-2"
@@ -98,8 +95,7 @@ export function GitCommitContent({
                       key={i}
                       className="flex items-center gap-2.5 px-3 py-1.5 text-[11px] font-mono"
                       style={{
-                        backgroundColor:
-                          i % 2 === 0 ? 'var(--color-surface-card)' : 'transparent'
+                        backgroundColor: i % 2 === 0 ? 'var(--color-surface-card)' : 'transparent'
                       }}
                     >
                       <span
@@ -108,10 +104,7 @@ export function GitCommitContent({
                       >
                         {STATUS_LABEL[f.status] ?? f.status}
                       </span>
-                      <span
-                        className="truncate"
-                        style={{ color: 'var(--color-text-secondary)' }}
-                      >
+                      <span className="truncate" style={{ color: 'var(--color-text-secondary)' }}>
                         {f.file}
                       </span>
                     </div>

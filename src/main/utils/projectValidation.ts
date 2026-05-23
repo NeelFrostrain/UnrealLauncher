@@ -13,55 +13,63 @@ import type { Project } from '../types'
  * Scans for projects using the worker and merges with saved projects
  */
 export async function scanAndMergeProjects(): Promise<Project[]> {
-  const raw = mergeTracerProjects(loadProjects())
-  const saved = Array.isArray(raw) ? raw : []
+  // Prevent concurrent scans from running simultaneously
+  if ((scanAndMergeProjects as any)._inFlight) return [] as Project[]
+  ;(scanAndMergeProjects as any)._inFlight = true
 
-  // Run the worker scan
-  const scanned = await new Promise<Project[]>((resolve, reject) => {
-    const w = spawnWorker(PROJECT_SCAN_WORKER, {
-      saved,
-      nativePath: getNativeModulePath(),
-      customScanPaths: loadProjectScanPaths()
+  try {
+    const raw = mergeTracerProjects(loadProjects())
+    const saved = Array.isArray(raw) ? raw : []
+
+    // Run the worker scan
+    const scanned = await new Promise<Project[]>((resolve, reject) => {
+      const w = spawnWorker(PROJECT_SCAN_WORKER, {
+        saved,
+        nativePath: getNativeModulePath(),
+        customScanPaths: loadProjectScanPaths()
+      })
+      w.once('message', (msg) => resolve(msg as Project[]))
+      w.once('error', reject)
+      w.once('exit', (c: number) => {
+        if (c !== 0) reject(new Error(`Worker exited ${c}`))
+      })
     })
-    w.once('message', (msg) => resolve(msg as Project[]))
-    w.once('error', reject)
-    w.once('exit', (c: number) => {
-      if (c !== 0) reject(new Error(`Worker exited ${c}`))
-    })
-  })
 
-  // Merge: keep all saved projects, add any newly discovered ones.
-  // For existing projects, refresh all fields that can change on disk —
-  // version (EngineAssociation in .uproject), name, thumbnail, timestamps.
-  // Preserve fields that only the app manages: size (calculated), projectId.
-  const savedPaths = new Set(saved.map((p) => p.projectPath?.toLowerCase()))
-  const newProjects = scanned.filter(
-    (p) => p.projectPath && !savedPaths.has(p.projectPath.toLowerCase())
-  )
-
-  const merged = saved.map((s) => {
-    const fresh = scanned.find(
-      (p) => p.projectPath?.toLowerCase() === s.projectPath?.toLowerCase()
+    // Merge: keep all saved projects, add any newly discovered ones.
+    // For existing projects, refresh all fields that can change on disk —
+    // version (EngineAssociation in .uproject), name, thumbnail, timestamps.
+    // Preserve fields that only the app manages: size (calculated), projectId.
+    const savedPaths = new Set(saved.map((p) => p.projectPath?.toLowerCase()))
+    const newProjects = scanned.filter(
+      (p) => p.projectPath && !savedPaths.has(p.projectPath.toLowerCase())
     )
-    if (!fresh) return s
 
-    return {
-      ...s,
-      // Fields read fresh from disk on every scan
-      name: fresh.name ?? s.name,
-      version: fresh.version ?? s.version,
-      createdAt: fresh.createdAt ?? s.createdAt,
-      lastOpenedAt: fresh.lastOpenedAt ?? s.lastOpenedAt,
-      thumbnail: fresh.thumbnail ?? s.thumbnail
+    const merged = saved.map((s) => {
+      const fresh = scanned.find(
+        (p) => p.projectPath?.toLowerCase() === s.projectPath?.toLowerCase()
+      )
+      if (!fresh) return s
+
+      return {
+        ...s,
+        // Fields read fresh from disk on every scan
+        name: fresh.name ?? s.name,
+        version: fresh.version ?? s.version,
+        createdAt: fresh.createdAt ?? s.createdAt,
+        lastOpenedAt: fresh.lastOpenedAt ?? s.lastOpenedAt,
+        thumbnail: fresh.thumbnail ?? s.thumbnail
+      }
+    })
+
+    if (newProjects.length > 0) {
+      merged.push(...newProjects)
     }
-  })
 
-  if (newProjects.length > 0) {
-    merged.push(...newProjects)
+    saveProjects(merged)
+    return merged
+  } finally {
+    ;(scanAndMergeProjects as any)._inFlight = false
   }
-
-  saveProjects(merged)
-  return merged
 }
 
 /**

@@ -7,8 +7,4 @@
 export { handleSelectProjectFolder } from './projectSelection'
 export { handleLaunchProject, handleLaunchProjectGame } from './projectLaunching'
 export { calculateProjectSize, calculateAllProjectSizes } from '../utils/projectSizing'
-export {
-  scanAndMergeProjects,
-  loadSavedProjects,
-  deleteProject
-} from '../utils/projectValidation'
+export { scanAndMergeProjects, loadSavedProjects, deleteProject } from '../utils/projectValidation'

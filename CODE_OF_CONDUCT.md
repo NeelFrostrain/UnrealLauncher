@@ -31,7 +31,7 @@ The following will result in immediate removal:
 - Claiming ownership of any part of this project.
 - Submitting contributions with the intent to later claim IP rights.
 - Sharing private communications without consent.
-- Any behavior that violates the project's [LICENSE](LICENSE).
+- Any behavior that violates the project's [LICENSE](../LICENSE).
 
 ---
 

@@ -7,13 +7,13 @@
 
 ## Supported Versions
 
-Security fixes are applied to the **latest stable release only**. Older versions are not patched.
+Security fixes are applied to the **latest stable release only**.
 
 | Version | Supported |
 | ------- | --------- |
-| 2.0.x   | ✅        |
-| 1.9.x   | ❌        |
-| < 1.9   | ❌        |
+| 2.2.x   | ✅        |
+| 2.1.x   | ❌        |
+| < 2.1   | ❌        |
 
 ---
 
@@ -31,7 +31,7 @@ Include in your report:
 - Potential impact assessment
 - Any suggested fix or mitigation (optional)
 
-You will receive an acknowledgement within **72 hours**. Please allow reasonable time for a patch to be developed and released before any public disclosure.
+You will receive an acknowledgement within **72 hours**.
 
 ---
 
@@ -40,7 +40,6 @@ You will receive an acknowledgement within **72 hours**. Please allow reasonable
 - Do not exploit the vulnerability beyond what is necessary to demonstrate it.
 - Do not access, modify, or delete data that does not belong to you.
 - Do not disclose the vulnerability to any third party before a fix is publicly released.
-- Violating these terms may result in legal action under applicable law.
 
 ---
 
@@ -55,16 +54,9 @@ This policy covers:
 
 Out of scope:
 
-- Third-party npm dependencies — report those to their respective maintainers
-- Vulnerabilities in Electron, Node.js, or Chromium itself — report to those projects directly
-- Issues in user-installed Unreal Engine versions
+- Third-party npm dependencies — report to their respective maintainers
+- Vulnerabilities in Electron, Node.js, or Chromium — report to those projects directly
 
 ---
-
-## Legal
-
-Unreal Launcher is proprietary software. Researching vulnerabilities in this software
-does not grant any rights to the source code, nor does it constitute permission to
-copy, modify, or redistribute any part of the codebase. See [LICENSE](LICENSE) for full terms.
 
 Contact: **nfrostrain@gmail.com**

@@ -99,10 +99,7 @@ export function ProjectCardContent({
                 borderTopColor: 'var(--color-accent)'
               }}
             />
-            <p
-              className="text-xs tracking-wide"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
+            <p className="text-xs tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
               Launching…
             </p>
           </motion.div>

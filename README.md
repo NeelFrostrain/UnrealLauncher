@@ -12,7 +12,7 @@
 
 **Unreal Launcher** is a full replacement for the Epic Games Launcher for day-to-day Unreal Engine development. It auto-scans your drives for installed engines and `.uproject` files, lets you launch them with one click, browses your Fab marketplace assets, and stays completely out of your way. No bloat, no login, no waiting.
 
-**Version:** 2.0.1  
+**Version:** 2.2.2  
 **Stack:** TypeScript · React 19 · Electron 39 · Vite 7 · Tailwind CSS 4 · Zustand · Framer Motion · Rust (napi-rs)
 
 ---
@@ -24,12 +24,13 @@
 | #   | Feature                        | Description                                                                                              |
 | --- | ------------------------------ | -------------------------------------------------------------------------------------------------------- |
 | 1   | **Auto-Scan Engines**          | Discovers UE4 & UE5 installations across common paths (`C:\Program Files\Epic Games`, `D:\Unreal`, etc.) |
-| 2   | **Registry Discovery**         | Reads Windows registry to find Epic-installed engines automatically                                      |
+| 2   | **Registry Discovery**         | Reads Windows registry via `reg.exe` to find Epic-installed engines automatically                        |
 | 3   | **Manual Engine Add**          | Browse and validate any custom engine folder via file dialog                                             |
-| 4   | **One-Click Launch**           | Start any engine version instantly                                                                       |
-| 5   | **Engine Size Calculation**    | Background worker calculates full folder size without blocking the UI                                    |
-| 6   | **Marketplace Plugin Browser** | Lists all installed marketplace plugins per engine version                                               |
-| 7   | **Engine Deletion**            | Remove engines from the list (does not delete files)                                                     |
+| 4   | **Engine Alias**               | Set a custom nickname per engine instance to tell duplicates apart                                       |
+| 5   | **One-Click Launch**           | Start any engine version instantly                                                                       |
+| 6   | **Engine Size Calculation**    | Background worker calculates full folder size without blocking the UI                                    |
+| 7   | **Marketplace Plugin Browser** | Lists all installed marketplace plugins per engine version                                               |
+| 8   | **Engine Deletion**            | Remove engines from the list (does not delete files)                                                     |
 
 ---
 
@@ -43,12 +44,13 @@
 | 4   | **Game Mode Launch**         | Launch project directly in `-game` mode                                                    |
 | 5   | **List & Grid View**         | Toggle between flat list and thumbnail grid; preference is persisted                       |
 | 6   | **Favorites Tab**            | Pin projects with a star; dedicated Favorites tab                                          |
-| 7   | **Recent Tab**               | Projects sorted by actual last-opened timestamp                                            |
-| 8   | **Search / Filter**          | Real-time name search across all projects                                                  |
-| 9   | **Project Size Calculation** | Per-project or batch background size calculation                                           |
-| 10  | **Log Viewer**               | Tail the latest `.log` file from `Saved/Logs/` directly in the app                         |
-| 11  | **Git Integration**          | Detect git status (branch, remote URL), initialize a new repo with a UE-ready `.gitignore` |
-| 12  | **Open in Explorer**         | Jump to any project folder in Windows Explorer                                             |
+| 7   | **Hidden Tab**               | Hide projects from the main list non-destructively; restore any time                       |
+| 8   | **Sort System**              | Sort by name, last opened, date created, size, or engine version — asc/desc, persisted     |
+| 9   | **Search / Filter**          | Real-time name search across all projects                                                  |
+| 10  | **Project Size Calculation** | Per-project or batch background size calculation                                           |
+| 11  | **Log Viewer**               | Tail the latest `.log` file from `Saved/Logs/` directly in the app                         |
+| 12  | **Git Integration**          | Detect git status (branch, remote URL), initialize a new repo with a UE-ready `.gitignore` |
+| 13  | **Open in Explorer**         | Jump to any project folder in Windows Explorer                                             |
 
 ---
 
@@ -109,13 +111,13 @@
 
 | Category                | Features |
 | ----------------------- | -------- |
-| Engine Management       | 7        |
-| Project Management      | 12       |
+| Engine Management       | 8        |
+| Project Management      | 13       |
 | Fab Marketplace Browser | 4        |
 | UE Tracer               | 5        |
 | Appearance & Theming    | 7        |
 | System & UX             | 9        |
-| **Total**               | **44**   |
+| **Total**               | **46**   |
 
 ---
 
@@ -218,12 +220,11 @@ On each scan, tracer data is merged with saved data. Tracer provides `lastOpened
 
 ### Backend (Main Process)
 
-| Library          | Version | Purpose                 |
-| ---------------- | ------- | ----------------------- |
-| Electron         | 39      | Desktop shell           |
-| Node.js          | 18+     | Runtime                 |
-| electron-updater | 6.8     | Auto-updates            |
-| regedit          | 5.1     | Windows registry access |
+| Library          | Version | Purpose       |
+| ---------------- | ------- | ------------- |
+| Electron         | 39      | Desktop shell |
+| Node.js          | 18+     | Runtime       |
+| electron-updater | 6.8     | Auto-updates  |
 
 ### Build Tools
 
@@ -333,6 +334,19 @@ The main process exposes the following IPC channels to the renderer:
 
 ```
 UnrealLauncher/
+├── docker/                    # Docker build files
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   ├── build-docker.sh
+│   └── build-docker.ps1
+├── docs/                      # Documentation
+│   ├── BUILD.md
+│   ├── BUILD_INSTRUCTIONS.md
+│   ├── CONTRIBUTING.md
+│   ├── CODE_OF_CONDUCT.md
+│   ├── DONATE.md
+│   ├── SECURITY.md
+│   └── OPTIMIZATION_REPORT.md
 ├── native/                    # Rust N-API native module
 │   ├── src/lib.rs             # scan_engines, find_uproject, get_folder_size, git_status
 │   ├── Cargo.toml
@@ -340,6 +354,11 @@ UnrealLauncher/
 ├── resources/                 # Packaged assets
 │   ├── icon.ico / icon.png
 │   └── unreal_launcher_tracer.exe
+├── scripts/                   # Build helper scripts
+│   ├── build-admin.ps1        # Windows — elevate + build:win
+│   ├── build-installer.bat    # Windows — admin installer build
+│   ├── build-installer.ps1    # Windows — PowerShell installer build
+│   └── build-linux.sh         # Linux — AppImage + deb build
 ├── src/
 │   ├── main/                  # Electron main process
 │   │   ├── index.ts           # Entry, protocol, single instance, memory opts
@@ -347,58 +366,80 @@ UnrealLauncher/
 │   │   ├── store.ts           # Data persistence (engines/projects/settings)
 │   │   ├── storeTracerMerge.ts
 │   │   ├── updater.ts         # electron-updater setup
-│   │   ├── utils.ts           # Shared utilities
-│   │   ├── window.ts          # BrowserWindow creation & management
 │   │   ├── types.ts           # Shared TypeScript types
-│   │   ├── scanWorker.ts      # Worker thread entry point
-│   │   ├── ipc/
-│   │   │   ├── engines.ts     # Engine IPC handlers
-│   │   │   ├── projects.ts    # Project IPC handlers
-│   │   │   ├── projectTools.ts# Log viewer, git IPC handlers
-│   │   │   ├── fab.ts         # Fab marketplace IPC handlers
-│   │   │   ├── fabScanner.ts  # Fab asset scanning logic
-│   │   │   ├── tracer.ts      # Tracer IPC handlers
-│   │   │   ├── updates.ts     # Update IPC handlers
-│   │   │   ├── misc.ts        # Window, external links, discord
-│   │   │   ├── workers.ts     # Worker thread pool
-│   │   │   └── scanWorkers.ts # Worker scripts (engine/project scan)
-│   │   └── utils/
-│   │       ├── engines.ts     # Engine validation, gradient gen, registry
-│   │       ├── folderOps.ts   # Folder utilities
-│   │       ├── native.ts      # Rust module loader (lazy, with JS fallback)
-│   │       └── projects.ts    # Project utilities
+│   │   ├── ipc/               # IPC handler modules
+│   │   │   ├── engines.ts
+│   │   │   ├── engineAlias.ts
+│   │   │   ├── engineHandlers.ts
+│   │   │   ├── engineLaunching.ts
+│   │   │   ├── enginePlugins.ts
+│   │   │   ├── engineSelection.ts
+│   │   │   ├── projects.ts
+│   │   │   ├── projectHandlers.ts
+│   │   │   ├── projectGit.ts
+│   │   │   ├── projectLog.ts
+│   │   │   ├── projectFiles.ts
+│   │   │   ├── projectTerminal.ts
+│   │   │   ├── projectLaunching.ts
+│   │   │   ├── fab.ts
+│   │   │   ├── fabScanner.ts
+│   │   │   ├── tracer.ts
+│   │   │   ├── updates.ts
+│   │   │   └── misc.ts
+│   │   ├── utils/             # Utility modules
+│   │   │   ├── engineRegistry.ts   # reg.exe-based Windows registry scan
+│   │   │   ├── engineValidation.ts
+│   │   │   ├── engineGradient.ts
+│   │   │   ├── engineScanning.ts
+│   │   │   ├── engineSizing.ts
+│   │   │   ├── projectValidation.ts
+│   │   │   ├── projectSizing.ts
+│   │   │   ├── fabAssetDetection.ts
+│   │   │   ├── fabManifest.ts
+│   │   │   ├── folderOps.ts
+│   │   │   ├── native.ts
+│   │   │   ├── platformPaths.ts
+│   │   │   ├── processUtils.ts
+│   │   │   └── projects.ts
+│   │   ├── workers/           # Worker thread entry points
+│   │   │   ├── engineScanWorker.ts
+│   │   │   ├── projectScanWorker.ts
+│   │   │   └── workers.ts
+│   │   └── window/            # Window management
+│   │       ├── windowConfig.ts
+│   │       ├── windowHandlers.ts
+│   │       ├── windowLifecycle.ts
+│   │       └── splashWindow.ts
 │   ├── preload/
 │   │   ├── index.ts           # contextBridge — exposes electronAPI to renderer
 │   │   └── index.d.ts         # Type definitions for window.electronAPI
 │   └── renderer/
 │       └── src/
-│           ├── App.tsx         # Router setup (lazy-loaded pages)
-│           ├── main.tsx        # React entry point
+│           ├── App.tsx
+│           ├── main.tsx
 │           ├── pages/
-│           │   ├── EnginesPage.tsx
+│           │   ├── engines/   # EnginesPage + state hooks + toolbar + content
 │           │   ├── ProjectsPage.tsx
 │           │   ├── SettingsPage.tsx
 │           │   └── AboutPage.tsx
 │           ├── components/
-│           │   ├── engines/    # EngineCard, FabTab, InstalledPluginsTab, ...
-│           │   ├── projects/   # ProjectCard, ProjectCardGrid, ProjectLogDialog, ...
-│           │   ├── settings/   # AppearanceSection, TracerSection, DataSection, ...
-│           │   ├── layout/     # PageWrapper, sidebar
-│           │   └── ui/         # ErrorBoundary, ToastContext, DropdownPortal
-│           ├── hooks/
-│           │   ├── useEngineActions.ts
-│           │   ├── useProjectActions.ts
-│           │   ├── useProjectFavorites.ts
-│           │   ├── useProjectFilters.ts
-│           │   ├── useGitStatus.ts
-│           │   ├── useTracerSettings.ts
-│           │   └── useUpdateCheck.ts
-│           ├── store/          # Zustand stores
-│           └── utils/          # ThemeContext, settings helpers, theme utils
-├── electron.vite.config.ts
-├── electron-builder.yml
+│           │   ├── engines/   # EngineCard, FabTab, plugins, fab/
+│           │   ├── projects/  # ProjectCard, ProjectCardGrid, dialogs, contextMenu/, card/, git/, log/
+│           │   ├── settings/  # AppearanceSection, sections/
+│           │   ├── layout/    # PageWrapper, sidebar/
+│           │   └── ui/        # ErrorBoundary, ToastContext, DropdownPortal
+│           ├── hooks/         # useEngineActions, useProjectsPageState, useGitStatus, ...
+│           ├── types/         # Renderer-side type aliases
+│           └── utils/         # ThemeContext, settings, theme utils, resolveAsset
+├── tracer/                    # Rust tracer source
+├── build/                     # electron-builder assets (icons, entitlements)
+├── CHANGELOG.md
+├── README.md
+├── LICENSE
 ├── package.json
-└── BUILD.md
+├── electron-builder.yml
+├── electron.vite.config.ts
+└── tsconfig*.json
 ```
 
 ---
@@ -448,7 +489,7 @@ npm run build:linux  # Linux (AppImage/DEB)
 npm run build:unpack
 ```
 
-See [BUILD.md](BUILD.md) for the full build guide including native modules and the Rust tracer.
+See [docs/BUILD.md](docs/BUILD.md) for the full build guide including native modules and the Rust tracer.
 
 ---
 
@@ -487,7 +528,7 @@ Published to GitHub Releases at: [NeelFrostrain/UnrealLauncher](https://github.c
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full guide.
 
 1. Fork the repo
 2. Create a branch: `git checkout -b feature/your-feature`

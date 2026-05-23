@@ -31,8 +31,8 @@ npm install
 ### Rust N-API module (filesystem ops)
 
 ```bash
-npm run build:native      # Windows/macOS
-npm run build:native:linux # Linux
+npm run build:native        # Windows/macOS
+npm run build:native:linux  # Linux
 ```
 
 Output: `native/dist/*.node`
@@ -75,21 +75,41 @@ This runs in order:
 ```powershell
 npm run build:win    # Windows NSIS installer + unpacked dir
 npm run build:mac    # macOS DMG
-npm run build:linux  # AppImage / DEB / RPM
+npm run build:linux  # AppImage / DEB
 ```
 
 ---
 
-## 4. Build output
+## 4. Build scripts
+
+Convenience scripts live in `scripts/`:
+
+| Script                        | Platform | Description                      |
+| ----------------------------- | -------- | -------------------------------- |
+| `scripts/build-installer.bat` | Windows  | Requests admin, runs `build:win` |
+| `scripts/build-installer.ps1` | Windows  | PowerShell version of above      |
+| `scripts/build-admin.ps1`     | Windows  | Minimal admin elevation script   |
+| `scripts/build-linux.sh`      | Linux    | Builds AppImage + deb            |
+
+Docker builds live in `docker/`:
+
+| Script                    | Description                              |
+| ------------------------- | ---------------------------------------- |
+| `docker/build-docker.sh`  | Linux — builds inside Docker container   |
+| `docker/build-docker.ps1` | Windows — builds inside Docker container |
+
+---
+
+## 5. Build output
 
 After `npm run build:win`:
 
 ```
 dist/
-├── unreal-launcher-1.9.0-setup.exe   # NSIS installer
+├── unreal-launcher-2.2.2-setup.exe   # NSIS installer
 └── win-unpacked/                      # Unpacked app
     └── resources/
-        ├── app/
+        ├── app.asar
         └── unreal_launcher_tracer.exe
 ```
 
@@ -99,7 +119,7 @@ dist/
 
 ### Tracer path at runtime
 
-Both `src/main/index.ts` and `src/main/ipcHandlers.ts` resolve the tracer using:
+`src/main/index.ts` resolves the tracer using:
 
 ```ts
 path.join(app.getAppPath(), 'resources', 'unreal_launcher_tracer.exe')
@@ -107,16 +127,15 @@ path.join(app.getAppPath(), 'resources', 'unreal_launcher_tracer.exe')
 
 ### electron-builder.yml
 
-- `asar` disabled, `asarUnpack` includes `resources/**` and `native/dist/*.node`
-- `extraResources` copies `resources/**` and `native/dist/**` into the packaged app
+- `asar: true` with `asarUnpack` for `resources/**` and `native/dist/**`
 - Windows target: `nsis` + `dir`
 
 ---
 
 ## Troubleshooting
 
-**NSIS build fails with missing include file**
-Remove the `include: build/installer.nsh` line from `electron-builder.yml`.
+**NSIS build fails — "Cannot create symbolic link"**
+Run the terminal as Administrator, or use `scripts/build-installer.bat`.
 
 **Stale file locked during packaging**
 Close any running `unreallauncher.exe` or `unreal_launcher_tracer.exe`, delete `dist/`, then re-run.

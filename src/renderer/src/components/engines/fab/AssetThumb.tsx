@@ -6,8 +6,14 @@ import { useState } from 'react'
 import { Package } from 'lucide-react'
 
 export const AssetThumb = ({
-  icon, thumbnailUrl, name
-}: { icon: string | null; thumbnailUrl: string | null; name: string }): React.ReactElement => {
+  icon,
+  thumbnailUrl,
+  name
+}: {
+  icon: string | null
+  thumbnailUrl: string | null
+  name: string
+}): React.ReactElement => {
   const [failed, setFailed] = useState(false)
   const src = !failed
     ? thumbnailUrl || (icon ? `local-asset:///${icon.replace(/\\/g, '/')}` : null)
