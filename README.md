@@ -31,7 +31,7 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 
 ---
 
-## 📊 Project Stats
+## Project Stats
 
 [![GitHub Stars](https://img.shields.io/github/stars/NeelFrostrain/UnrealLauncher?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher)
 [![GitHub Forks](https://img.shields.io/github/forks/NeelFrostrain/UnrealLauncher?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/fork)
@@ -41,9 +41,9 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 
 ---
 
-## ✨ Core Features
+## Core Features
 
-### 🎮 Engine Management
+### Engine Management
 
 - **Auto-Scan Engines** — Discovers UE4 & UE5 installations across common paths
 - **Windows Registry Discovery** — Reads registry via `reg.exe` to find Epic-installed engines automatically
@@ -54,7 +54,7 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 - **Marketplace Plugin Browser** — Lists all installed marketplace plugins per engine
 - **Engine Deletion** — Remove engines from the list (files remain untouched)
 
-### 📦 Project Management
+### Project Management
 
 - **Auto-Scan Projects** — Recursively finds all `.uproject` files across your drives
 - **Batch Import** — Add up to 20 projects at once from a single folder
@@ -72,7 +72,7 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 - **Rich Context Menu** — Git tools, project tools, organize options via right-click menu
 - **Open in Explorer** — Jump to project folder or open in terminal
 
-### 🎨 Fab Marketplace Browser
+### Fab Marketplace Browser
 
 - **Auto-Detect Fab Cache** — Finds Epic/Fab vault cache in common paths
 - **Custom Folder Support** — Point to any custom Fab download directory
@@ -81,7 +81,7 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 - **Asset Thumbnails** — Browse with visual previews
 - **Direct Fab Links** — Click to open assets on Fab marketplace
 
-### 🦀 UE Tracer (Windows)
+### UE Tracer (Windows)
 
 - **Background Tracking** — Rust executable runs silently and records engine/project usage
 - **Data Merging** — Tracer data merged with saved data on every scan
@@ -89,7 +89,7 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 - **Process Detection** — Check if tracer is currently running
 - **Data Directory Access** — View and manage tracer data from Settings
 
-### 🎨 Appearance & Theming
+### Appearance & Theming
 
 - **Built-in Themes** — Dark, Darker, Midnight Blue, Warm Dark presets
 - **Per-Token Color Overrides** — Customize any individual color token
@@ -99,7 +99,7 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 - **UI Scale Adjustment** — Adjust overall UI scale factor
 - **One-Click Reset** — Reset all appearance customizations to defaults
 
-### ⚙️ System & UX
+### System & UX
 
 - **Auto-Updates** — GitHub Releases-based updates via `electron-updater`
 - **Manual Version Check** — Compare against latest GitHub release
@@ -114,7 +114,7 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 
 ---
 
-## 📊 Feature Summary
+## Feature Summary
 
 | Category                | Count |
 | ----------------------- | ----- |
@@ -128,7 +128,7 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### System Overview
 
@@ -217,7 +217,7 @@ On each scan, tracer data is merged with saved data. Tracer provides `lastOpened
 
 ---
 
-## 📚 Tech Stack
+## Tech Stack
 
 ### Frontend
 
@@ -260,7 +260,7 @@ On each scan, tracer data is merged with saved data. Tracer provides `lastOpened
 
 ---
 
-## 🔌 IPC Handler Reference
+## IPC Handler Reference
 
 The main process exposes the following IPC channels to the renderer:
 
@@ -348,7 +348,7 @@ The main process exposes the following IPC channels to the renderer:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 UnrealLauncher/
@@ -417,7 +417,7 @@ UnrealLauncher/
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -449,7 +449,7 @@ npm run start
 
 ---
 
-## 🔨 Building
+## Building
 
 ### Full Production Build
 
@@ -483,7 +483,7 @@ See [docs/BUILD.md](docs/BUILD.md) for the full build guide including native mod
 
 ---
 
-## 📋 Available Scripts
+## Available Scripts
 
 | Command                | Description                    |
 | ---------------------- | ------------------------------ |
@@ -503,20 +503,20 @@ See [docs/BUILD.md](docs/BUILD.md) for the full build guide including native mod
 
 ---
 
-## 📦 Distribution
+## Distribution
 
 | Platform | Format                | Architecture | Status      | Badge |
 | -------- | --------------------- | ------------ | ----------- | ----- |
-| Windows  | NSIS installer `.exe` | x64          | ✅ Stable   | ![Windows](https://img.shields.io/badge/Windows-x64-0078d4?style=flat-square&logo=windows) |
-| macOS    | `.dmg`                | x64, arm64   | 🔜 Coming Soon | ![macOS](https://img.shields.io/badge/macOS-Coming%20Soon-FFA500?style=flat-square&logo=apple) |
-| Linux    | AppImage              | x64          | ✅ Stable   | ![Linux](https://img.shields.io/badge/Linux-x64-FCC624?style=flat-square&logo=linux) |
-| Linux    | `.deb`                | x64          | ✅ Stable   | ![Debian](https://img.shields.io/badge/Debian-x64-A81D33?style=flat-square&logo=debian) |
+| Windows  | NSIS installer `.exe` | x64          | Stable   | ![Windows](https://img.shields.io/badge/Windows-x64-0078d4?style=flat-square&logo=windows) |
+| macOS    | `.dmg`                | x64, arm64   | Coming Soon | ![macOS](https://img.shields.io/badge/macOS-Coming%20Soon-FFA500?style=flat-square&logo=apple) |
+| Linux    | AppImage              | x64          | Stable   | ![Linux](https://img.shields.io/badge/Linux-x64-FCC624?style=flat-square&logo=linux) |
+| Linux    | `.deb`                | x64          | Stable   | ![Debian](https://img.shields.io/badge/Debian-x64-A81D33?style=flat-square&logo=debian) |
 
 Published to GitHub Releases: [NeelFrostrain/UnrealLauncher/releases](https://github.com/NeelFrostrain/UnrealLauncher/releases)
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full guide.
 
@@ -530,7 +530,7 @@ See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full guide.
 
 ---
 
-## 📄 License
+## License
 
 Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
@@ -540,13 +540,13 @@ See [LICENSE](LICENSE) for full terms.
 
 ---
 
-## 💬 Support & Community
+## Support & Community
 
-- 🐛 **Report Issues** — [GitHub Issues](https://github.com/NeelFrostrain/UnrealLauncher/issues)
-- 💬 **Discussions** — [GitHub Discussions](https://github.com/NeelFrostrain/UnrealLauncher/discussions)
-- 🎮 **Discord Community** — [Join Server](https://discord.gg/vq4UDfevG2)
-- 📧 **Email** — nfrostrain@gmail.com
-- ☕ **Support Development** — [Ko-fi](https://ko-fi.com/neelfrostrain)
+- **Report Issues** — [GitHub Issues](https://github.com/NeelFrostrain/UnrealLauncher/issues)
+- **Discussions** — [GitHub Discussions](https://github.com/NeelFrostrain/UnrealLauncher/discussions)
+- **Discord Community** — [Join Server](https://discord.gg/vq4UDfevG2)
+- **Email** — nfrostrain@gmail.com
+- **Support Development** — [Ko-fi](https://ko-fi.com/neelfrostrain)
 
 **Community Badges:**
 
@@ -556,9 +556,9 @@ See [LICENSE](LICENSE) for full terms.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-Built with ❤️ by [Neel Frostrain](https://github.com/NeelFrostrain)
+Built with by [Neel Frostrain](https://github.com/NeelFrostrain)
 
 Special thanks to the Unreal Engine community and all contributors who have helped shape this project.
 
