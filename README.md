@@ -462,7 +462,7 @@ npm run build
 
 ```bash
 npm run build:win    # Windows NSIS installer (.exe)
-npm run build:mac    # macOS DMG (.dmg)
+npm run build:mac    # macOS DMG (.dmg) — Coming Soon
 npm run build:linux  # Linux AppImage + DEB
 ```
 
@@ -508,7 +508,7 @@ See [docs/BUILD.md](docs/BUILD.md) for the full build guide including native mod
 | Platform | Format                | Architecture | Status      | Badge |
 | -------- | --------------------- | ------------ | ----------- | ----- |
 | Windows  | NSIS installer `.exe` | x64          | ✅ Stable   | ![Windows](https://img.shields.io/badge/Windows-x64-0078d4?style=flat-square&logo=windows) |
-| macOS    | `.dmg`                | x64, arm64   | ✅ Stable   | ![macOS](https://img.shields.io/badge/macOS-x64%20%7C%20arm64-000000?style=flat-square&logo=apple) |
+| macOS    | `.dmg`                | x64, arm64   | 🔜 Coming Soon | ![macOS](https://img.shields.io/badge/macOS-Coming%20Soon-FFA500?style=flat-square&logo=apple) |
 | Linux    | AppImage              | x64          | ✅ Stable   | ![Linux](https://img.shields.io/badge/Linux-x64-FCC624?style=flat-square&logo=linux) |
 | Linux    | `.deb`                | x64          | ✅ Stable   | ![Debian](https://img.shields.io/badge/Debian-x64-A81D33?style=flat-square&logo=debian) |
 
@@ -573,5 +573,3 @@ Special thanks to the Unreal Engine community and all contributors who have help
 For detailed changelog, see [CHANGELOG.md](CHANGELOG.md)
 
 ---
-
-**Last Updated:** May 24, 2026 | **Version:** 2.2.4
