@@ -120,7 +120,10 @@ export function useProjectsPageState() {
         })
         return deduped
       } catch (err) {
-        logActivity('Projects load failed', { source, error: err instanceof Error ? err.message : String(err) })
+        logActivity('Projects load failed', {
+          source,
+          error: err instanceof Error ? err.message : String(err)
+        })
         console.error(`loadProjects(${source}) failed:`, err)
         return []
       } finally {
@@ -158,7 +161,10 @@ export function useProjectsPageState() {
         })
         return filtered
       } catch (err) {
-        logActivity('Projects tab load failed', { tab, error: err instanceof Error ? err.message : String(err) })
+        logActivity('Projects tab load failed', {
+          tab,
+          error: err instanceof Error ? err.message : String(err)
+        })
         console.error('loadProjectsForTab failed:', err)
         return []
       }
@@ -187,7 +193,6 @@ export function useProjectsPageState() {
         filterForTab(tab, allProjectsRef.current, favoritePathsRef.current, hiddenPathsRef.current)
       )
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, filterForTab])
 
   // Initial load

@@ -83,7 +83,8 @@ if (process.contextIsolated) {
       clearTracerData: () => ipcRenderer.invoke('clear-tracer-data'),
       openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
       clearLogs: () => ipcRenderer.invoke('clear-logs'),
-      logActivity: (activity: Record<string, unknown>) => ipcRenderer.invoke('log-activity', activity),
+      logActivity: (activity: Record<string, unknown>) =>
+        ipcRenderer.invoke('log-activity', activity),
       getMainSettings: () => ipcRenderer.invoke('get-main-settings'),
       getRunningProjects: () => ipcRenderer.invoke('get-running-projects'),
       platform: process.platform,

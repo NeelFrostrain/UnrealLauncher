@@ -189,12 +189,33 @@ export function clearTracerData(): void {
 
 export function loadEngines(): Engine[] {
   try {
-    if (fs.existsSync(getEnginesDataPath())) {
-      const parsed = JSON.parse(fs.readFileSync(getEnginesDataPath(), 'utf8'))
+    const enginesPath = getEnginesDataPath()
+    if (fs.existsSync(enginesPath)) {
+      const content = fs.readFileSync(enginesPath, 'utf8')
+      // Check if file is empty or contains only whitespace
+      if (!content.trim()) {
+        logger.warn('store', 'Engines file is empty, initializing with empty array')
+        fs.writeFileSync(enginesPath, '[]', 'utf8')
+        return []
+      }
+      const parsed = JSON.parse(content)
       return Array.isArray(parsed) ? parsed : []
     }
   } catch (err) {
     logger.error('store', 'Error loading engines', err)
+    // Attempt recovery: backup corrupted file and create fresh one
+    try {
+      const enginesPath = getEnginesDataPath()
+      const backupPath = `${enginesPath}.backup.${Date.now()}`
+      if (fs.existsSync(enginesPath)) {
+        fs.copyFileSync(enginesPath, backupPath)
+        logger.info('store', 'Corrupted engines file backed up', { backupPath })
+        fs.writeFileSync(enginesPath, '[]', 'utf8')
+        logger.info('store', 'Engines file recovered with empty array')
+      }
+    } catch (recoveryErr) {
+      logger.error('store', 'Failed to recover corrupted engines file', recoveryErr)
+    }
   }
   return []
 }
@@ -227,12 +248,33 @@ function dedupeProjects(projects: Project[]): Project[] {
 
 export function loadProjects(): Project[] {
   try {
-    if (fs.existsSync(getProjectsDataPath())) {
-      const parsed = JSON.parse(fs.readFileSync(getProjectsDataPath(), 'utf8'))
+    const projectsPath = getProjectsDataPath()
+    if (fs.existsSync(projectsPath)) {
+      const content = fs.readFileSync(projectsPath, 'utf8')
+      // Check if file is empty or contains only whitespace
+      if (!content.trim()) {
+        logger.warn('store', 'Projects file is empty, initializing with empty array')
+        fs.writeFileSync(projectsPath, '[]', 'utf8')
+        return []
+      }
+      const parsed = JSON.parse(content)
       return Array.isArray(parsed) ? dedupeProjects(parsed) : []
     }
   } catch (err) {
     logger.error('store', 'Error loading projects', err)
+    // Attempt recovery: backup corrupted file and create fresh one
+    try {
+      const projectsPath = getProjectsDataPath()
+      const backupPath = `${projectsPath}.backup.${Date.now()}`
+      if (fs.existsSync(projectsPath)) {
+        fs.copyFileSync(projectsPath, backupPath)
+        logger.info('store', 'Corrupted projects file backed up', { backupPath })
+        fs.writeFileSync(projectsPath, '[]', 'utf8')
+        logger.info('store', 'Projects file recovered with empty array')
+      }
+    } catch (recoveryErr) {
+      logger.error('store', 'Failed to recover corrupted projects file', recoveryErr)
+    }
   }
   return []
 }

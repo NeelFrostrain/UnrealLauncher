@@ -4,11 +4,13 @@
 // See LICENSE in the project root for full license terms.
 
 export function logActivity(action: string, details: Record<string, unknown> = {}): void {
-  window.electronAPI?.logActivity?.({
-    action,
-    route: window.location.hash || window.location.pathname,
-    ...details
-  }).catch(() => {})
+  window.electronAPI
+    ?.logActivity?.({
+      action,
+      route: window.location.hash || window.location.pathname,
+      ...details
+    })
+    .catch(() => {})
 }
 
 export function installActivityLogger(): void {

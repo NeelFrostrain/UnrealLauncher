@@ -32,7 +32,9 @@ export function useEngineActions(
       setEngines(engines)
       logActivity('Engine refresh completed', { count: engines.length })
     } catch (err) {
-      logActivity('Engine refresh failed', { error: err instanceof Error ? err.message : String(err) })
+      logActivity('Engine refresh failed', {
+        error: err instanceof Error ? err.message : String(err)
+      })
       console.error('Failed to scan engines:', err)
     }
     setScanning(false)
@@ -112,7 +114,9 @@ export function useEngineActions(
         setEngines(await window.electronAPI.scanEngines())
       }
     } catch (error) {
-      logActivity('Add engine failed', { error: error instanceof Error ? error.message : String(error) })
+      logActivity('Add engine failed', {
+        error: error instanceof Error ? error.message : String(error)
+      })
       addToast('Failed to add engine. Please try again.', 'error')
     } finally {
       setAddingEngine(false)

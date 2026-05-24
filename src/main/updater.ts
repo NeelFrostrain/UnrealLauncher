@@ -143,7 +143,9 @@ export async function handleCheckForUpdates(): Promise<Record<string, unknown>> 
       logger.info('updater', 'Manual update check found no update')
       return { success: true, updateInfo: null, message: 'You are using the latest version' }
     }
-    logger.info('updater', 'Manual update check found update', { version: result.updateInfo.version })
+    logger.info('updater', 'Manual update check found update', {
+      version: result.updateInfo.version
+    })
     return { success: true, updateInfo: result.updateInfo }
   } catch (err) {
     if (
@@ -172,7 +174,9 @@ export async function checkForUpdatesOnStartup(): Promise<void> {
     const result = await autoUpdater.checkForUpdates()
 
     if (result?.updateInfo) {
-      logger.info('updater', 'Startup update check found update', { version: result.updateInfo.version })
+      logger.info('updater', 'Startup update check found update', {
+        version: result.updateInfo.version
+      })
       // The update-available event will be triggered automatically
       // and handled by the setupAutoUpdaterEvents function
     } else {

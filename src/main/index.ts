@@ -107,55 +107,58 @@ if (!gotTheLock) {
   })
 
   // ── Main startup sequence ───────────────────────────────────────────────────
-  app.whenReady().then(() => {
-    logger.info('app', 'Electron app ready')
-    // 1. Register local-asset:// protocol handler
-    protocol.handle('local-asset', (request) => {
-      let filePath = decodeURIComponent(new URL(request.url).pathname)
-      if (process.platform === 'win32' && filePath.startsWith('/')) filePath = filePath.slice(1)
-      if (!fs.existsSync(filePath)) return new Response(null, { status: 404 })
-      return net.fetch(`file:///${filePath.replace(/\\/g, '/')}`)
-    })
-
-    // 2. Register IPC handlers — synchronous, no I/O
-    registerIpcHandlers()
-    logger.info('ipc', 'IPC handlers registered')
-
-    // 3. Wire up auto-updater events — synchronous, just event listeners
-    setupAutoUpdaterEvents(getMainWindow)
-    logger.info('updater', 'Auto updater events registered')
-
-    // 4. Create window immediately — splash shows before anything else loads
-    createWindow()
-    setupAppLifecycle()
-    logger.info('window', 'Main window creation requested')
-
-    // 5. Warm up native Rust module off the critical path
-    setImmediate(() => {
-      try {
-        getNative()
-        logger.info('native', 'Native module warmed up')
-      } catch (error) {
-        logger.warn('native', 'Native module warmup failed', error)
-      }
-    })
-
-    // 6. Tracer startup — fully async, never blocks main thread
-    setImmediate(() => {
-      startTracerAsync().catch((error) => {
-        logger.error('tracer', 'Tracer startup failed', error)
+  app
+    .whenReady()
+    .then(() => {
+      logger.info('app', 'Electron app ready')
+      // 1. Register local-asset:// protocol handler
+      protocol.handle('local-asset', (request) => {
+        let filePath = decodeURIComponent(new URL(request.url).pathname)
+        if (process.platform === 'win32' && filePath.startsWith('/')) filePath = filePath.slice(1)
+        if (!fs.existsSync(filePath)) return new Response(null, { status: 404 })
+        return net.fetch(`file:///${filePath.replace(/\\/g, '/')}`)
       })
-    })
 
-    // 7. Defer update check until well after the window is visible
-    setTimeout(() => {
-      checkForUpdatesOnStartup().catch((error) => {
-        logger.error('updater', 'Startup update check failed', error)
+      // 2. Register IPC handlers — synchronous, no I/O
+      registerIpcHandlers()
+      logger.info('ipc', 'IPC handlers registered')
+
+      // 3. Wire up auto-updater events — synchronous, just event listeners
+      setupAutoUpdaterEvents(getMainWindow)
+      logger.info('updater', 'Auto updater events registered')
+
+      // 4. Create window immediately — splash shows before anything else loads
+      createWindow()
+      setupAppLifecycle()
+      logger.info('window', 'Main window creation requested')
+
+      // 5. Warm up native Rust module off the critical path
+      setImmediate(() => {
+        try {
+          getNative()
+          logger.info('native', 'Native module warmed up')
+        } catch (error) {
+          logger.warn('native', 'Native module warmup failed', error)
+        }
       })
-    }, 8000)
-  }).catch((error) => {
-    logger.error('app', 'App ready startup failed', error)
-  })
+
+      // 6. Tracer startup — fully async, never blocks main thread
+      setImmediate(() => {
+        startTracerAsync().catch((error) => {
+          logger.error('tracer', 'Tracer startup failed', error)
+        })
+      })
+
+      // 7. Defer update check until well after the window is visible
+      setTimeout(() => {
+        checkForUpdatesOnStartup().catch((error) => {
+          logger.error('updater', 'Startup update check failed', error)
+        })
+      }, 8000)
+    })
+    .catch((error) => {
+      logger.error('app', 'App ready startup failed', error)
+    })
 
   // ── Tracer startup — async, no execSync ────────────────────────────────────
   async function startTracerAsync(): Promise<void> {

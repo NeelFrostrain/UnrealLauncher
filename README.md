@@ -1,10 +1,18 @@
 # Unreal Launcher
 
-> A lightweight Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
+> A lightweight, cross-platform Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
 
----
+[![Version](https://img.shields.io/badge/version-2.2.4-blue.svg?style=flat-square)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.2.4)
+[![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg?style=flat-square)](https://github.com/NeelFrostrain/UnrealLauncher)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg?style=flat-square)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg?style=flat-square)](#-distribution)
+[![Node](https://img.shields.io/badge/node-18%2B-green.svg?style=flat-square)](https://nodejs.org/)
+[![Electron](https://img.shields.io/badge/electron-39-9feaf9.svg?style=flat-square)](https://www.electronjs.org/)
+[![React](https://img.shields.io/badge/react-19-61dafb.svg?style=flat-square)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/typescript-5.9-3178c6.svg?style=flat-square)](https://www.typescriptlang.org/)
+[![Rust](https://img.shields.io/badge/rust-napi--rs-ce422b.svg?style=flat-square)](https://napi.rs/)
 
-[Website](https://unreallauncher.vercel.app/)
+[Website](https://neelfrostrain.github.io/UnrealLauncher/) · [Releases](https://github.com/NeelFrostrain/UnrealLauncher/releases) · [Discord](https://discord.gg/vq4UDfevG2) · [Issues](https://github.com/NeelFrostrain/UnrealLauncher/issues)
 
 ---
 
@@ -12,156 +20,151 @@
 
 **Unreal Launcher** is a full replacement for the Epic Games Launcher for day-to-day Unreal Engine development. It auto-scans your drives for installed engines and `.uproject` files, lets you launch them with one click, browses your Fab marketplace assets, and stays completely out of your way. No bloat, no login, no waiting.
 
-**Version:** 2.2.2  
-**Stack:** TypeScript · React 19 · Electron 39 · Vite 7 · Tailwind CSS 4 · Zustand · Framer Motion · Rust (napi-rs)
+Supports **Windows**, **macOS**, and **Linux** with native performance optimizations and platform-specific features.
+
+**Tech Stack:** TypeScript · React 19 · Electron 39 · Vite 7 · Tailwind CSS 4 · Zustand · Framer Motion · Rust (napi-rs)
 
 ---
 
-## Core Features
+## 📊 Project Stats
 
-### Engine Management (7 features)
-
-| #   | Feature                        | Description                                                                                              |
-| --- | ------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| 1   | **Auto-Scan Engines**          | Discovers UE4 & UE5 installations across common paths (`C:\Program Files\Epic Games`, `D:\Unreal`, etc.) |
-| 2   | **Registry Discovery**         | Reads Windows registry via `reg.exe` to find Epic-installed engines automatically                        |
-| 3   | **Manual Engine Add**          | Browse and validate any custom engine folder via file dialog                                             |
-| 4   | **Engine Alias**               | Set a custom nickname per engine instance to tell duplicates apart                                       |
-| 5   | **One-Click Launch**           | Start any engine version instantly                                                                       |
-| 6   | **Engine Size Calculation**    | Background worker calculates full folder size without blocking the UI                                    |
-| 7   | **Marketplace Plugin Browser** | Lists all installed marketplace plugins per engine version                                               |
-| 8   | **Engine Deletion**            | Remove engines from the list (does not delete files)                                                     |
+[![GitHub Stars](https://img.shields.io/github/stars/NeelFrostrain/UnrealLauncher?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher)
+[![GitHub Forks](https://img.shields.io/github/forks/NeelFrostrain/UnrealLauncher?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/fork)
+[![GitHub Issues](https://img.shields.io/github/issues/NeelFrostrain/UnrealLauncher?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/issues)
+[![GitHub PRs](https://img.shields.io/github/issues-pr/NeelFrostrain/UnrealLauncher?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/pulls)
+[![Last Commit](https://img.shields.io/github/last-commit/NeelFrostrain/UnrealLauncher?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/commits/main)
 
 ---
 
-### Project Management (12 features)
+## ✨ Core Features
 
-| #   | Feature                      | Description                                                                                |
-| --- | ---------------------------- | ------------------------------------------------------------------------------------------ |
-| 1   | **Auto-Scan Projects**       | Recursively finds all `.uproject` files across your drives                                 |
-| 2   | **Batch Import**             | Add up to 20 projects at once from a single folder selection                               |
-| 3   | **One-Click Launch**         | Open any project in its matching engine editor                                             |
-| 4   | **Game Mode Launch**         | Launch project directly in `-game` mode                                                    |
-| 5   | **List & Grid View**         | Toggle between flat list and thumbnail grid; preference is persisted                       |
-| 6   | **Favorites Tab**            | Pin projects with a star; dedicated Favorites tab                                          |
-| 7   | **Hidden Tab**               | Hide projects from the main list non-destructively; restore any time                       |
-| 8   | **Sort System**              | Sort by name, last opened, date created, size, or engine version — asc/desc, persisted     |
-| 9   | **Search / Filter**          | Real-time name search across all projects                                                  |
-| 10  | **Project Size Calculation** | Per-project or batch background size calculation                                           |
-| 11  | **Log Viewer**               | Tail the latest `.log` file from `Saved/Logs/` directly in the app                         |
-| 12  | **Git Integration**          | Detect git status (branch, remote URL), initialize a new repo with a UE-ready `.gitignore` |
-| 13  | **Open in Explorer**         | Jump to any project folder in Windows Explorer                                             |
+### 🎮 Engine Management
 
----
+- **Auto-Scan Engines** — Discovers UE4 & UE5 installations across common paths
+- **Windows Registry Discovery** — Reads registry via `reg.exe` to find Epic-installed engines automatically
+- **Manual Engine Add** — Browse and validate any custom engine folder
+- **Engine Alias** — Set custom nicknames for engine instances to tell duplicates apart
+- **One-Click Launch** — Start any engine version instantly
+- **Background Size Calculation** — Folder size computed without blocking the UI
+- **Marketplace Plugin Browser** — Lists all installed marketplace plugins per engine
+- **Engine Deletion** — Remove engines from the list (files remain untouched)
 
-### Fab Marketplace Browser (4 features)
+### 📦 Project Management
 
-| #   | Feature                   | Description                                                                                                          |
-| --- | ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Auto-Detect Fab Cache** | Finds Epic/Fab vault cache in common `%APPDATA%` and `%LOCALAPPDATA%` paths                                          |
-| 2   | **Custom Folder**         | Point to any custom Fab download directory                                                                           |
-| 3   | **Asset Scanning**        | Reads manifests and `.uplugin`/`.uproject` files to extract name, version, description, icon, compatible UE versions |
-| 4   | **Asset Type Detection**  | Classifies each asset as Plugin, Content Pack, or Project                                                            |
+- **Auto-Scan Projects** — Recursively finds all `.uproject` files across your drives
+- **Batch Import** — Add up to 20 projects at once from a single folder
+- **One-Click Launch** — Open any project in its matching engine editor
+- **Game Mode Launch** — Launch projects directly in `-game` mode
+- **List & Grid View** — Toggle between flat list and thumbnail grid (preference persisted)
+- **Favorites System** — Pin projects with a star; dedicated Favorites tab
+- **Hidden Projects Tab** — Hide projects non-destructively; restore any time
+- **Advanced Sorting** — Sort by name, last opened, date created, size, or engine version (asc/desc, persisted)
+- **Real-Time Search** — Filter projects by name instantly
+- **Per-Project Size Calculation** — Background calculation with live progress
+- **Log Viewer** — Tail the latest `.log` file from `Saved/Logs/` directly in the app
+- **Git Integration** — Detect branch, remote URL, initialize repos with UE-ready `.gitignore`
+- **File Editor** — Edit `DefaultEngine.ini` and `.uproject` files in-app with find/replace
+- **Rich Context Menu** — Git tools, project tools, organize options via right-click menu
+- **Open in Explorer** — Jump to project folder or open in terminal
 
----
+### 🎨 Fab Marketplace Browser
 
-### UE Tracer (5 features)
+- **Auto-Detect Fab Cache** — Finds Epic/Fab vault cache in common paths
+- **Custom Folder Support** — Point to any custom Fab download directory
+- **Asset Scanning** — Extracts name, version, description, icon, compatible UE versions
+- **Asset Type Detection** — Classifies assets as Plugin, Content Pack, or Project
+- **Asset Thumbnails** — Browse with visual previews
+- **Direct Fab Links** — Click to open assets on Fab marketplace
 
-| #   | Feature                   | Description                                                                                   |
-| --- | ------------------------- | --------------------------------------------------------------------------------------------- |
-| 1   | **Background Tracking**   | Rust executable (`unreal_launcher_tracer.exe`) runs silently and records engine/project usage |
-| 2   | **Data Merging**          | Tracer data is merged with saved data on every scan, enriching `lastOpenedAt` timestamps      |
-| 3   | **Windows Startup**       | Optionally register tracer in the Windows registry `Run` key to auto-start with Windows       |
-| 4   | **Process Detection**     | Check if the tracer is currently running via tasklist                                         |
-| 5   | **Data Directory Access** | View and manage the tracer data folder from Settings                                          |
+### 🦀 UE Tracer (Windows)
 
----
+- **Background Tracking** — Rust executable runs silently and records engine/project usage
+- **Data Merging** — Tracer data merged with saved data on every scan
+- **Windows Startup** — Optionally auto-start tracer with Windows via registry
+- **Process Detection** — Check if tracer is currently running
+- **Data Directory Access** — View and manage tracer data from Settings
 
-### Appearance & Theming (7 features)
+### 🎨 Appearance & Theming
 
-| #   | Feature                       | Description                                                 |
-| --- | ----------------------------- | ----------------------------------------------------------- |
-| 1   | **Built-in Themes**           | Dark, Darker, Midnight Blue, Warm Dark presets              |
-| 2   | **Per-Token Color Overrides** | Override any individual color token in the theme            |
-| 3   | **Saveable Profiles**         | Save, rename, apply, and delete custom theme combinations   |
-| 4   | **Font Customization**        | Choose font family and font size for the entire UI          |
-| 5   | **Border Radius Control**     | Slider syncs border radius across all cards and UI elements |
-| 6   | **UI Scale**                  | Adjust the overall UI scale factor                          |
-| 7   | **Full Reset**                | One-click reset all appearance customizations to defaults   |
+- **Built-in Themes** — Dark, Darker, Midnight Blue, Warm Dark presets
+- **Per-Token Color Overrides** — Customize any individual color token
+- **Saveable Theme Profiles** — Save, rename, apply, and delete custom combinations
+- **Font Customization** — Choose font family and size for the entire UI
+- **Border Radius Control** — Slider syncs border radius across all UI elements
+- **UI Scale Adjustment** — Adjust overall UI scale factor
+- **One-Click Reset** — Reset all appearance customizations to defaults
 
----
+### ⚙️ System & UX
 
-### System & UX (9 features)
-
-| #   | Feature                  | Description                                                                                 |
-| --- | ------------------------ | ------------------------------------------------------------------------------------------- |
-| 1   | **Auto-Updates**         | GitHub Releases-based updates via `electron-updater` with download & install flow           |
-| 2   | **Version Check**        | Manual GitHub version check against latest release                                          |
-| 3   | **Single Instance Lock** | Second launch focuses the existing window instead of opening a duplicate                    |
-| 4   | **Splash Screen**        | Animated loading screen on startup                                                          |
-| 5   | **Resizable Sidebar**    | Drag handle to resize or fully collapse the sidebar                                         |
-| 6   | **Stacking Toasts**      | Real-time feedback notifications — auto-dismiss after 4s, max 5 visible, colored accent bar |
-| 7   | **Error Boundary**       | Recoverable crash screen instead of a blank white window                                    |
-| 8   | **Auto-Close on Launch** | Optionally close the app automatically when launching an engine or project                  |
-| 9   | **Discord Feedback**     | Send bug reports or feedback directly to Discord via webhook (with file attachments)        |
-
----
-
-## Feature Count Summary
-
-| Category                | Features |
-| ----------------------- | -------- |
-| Engine Management       | 8        |
-| Project Management      | 13       |
-| Fab Marketplace Browser | 4        |
-| UE Tracer               | 5        |
-| Appearance & Theming    | 7        |
-| System & UX             | 9        |
-| **Total**               | **46**   |
+- **Auto-Updates** — GitHub Releases-based updates via `electron-updater`
+- **Manual Version Check** — Compare against latest GitHub release
+- **Single Instance Lock** — Second launch focuses existing window
+- **Animated Splash Screen** — Loading screen on startup
+- **Resizable Sidebar** — Drag handle to resize or collapse
+- **Stacking Toasts** — Real-time notifications with auto-dismiss and close button
+- **Error Boundary** — Recoverable crash screen instead of blank window
+- **Auto-Close on Launch** — Optionally close app when launching engine/project
+- **Discord Feedback** — Send bug reports directly to Discord via webhook
+- **Cross-Platform Support** — Windows, macOS, and Linux with platform-specific optimizations
 
 ---
 
-## How the App Works
+## 📊 Feature Summary
 
-### Architecture Overview
+| Category                | Count |
+| ----------------------- | ----- |
+| Engine Management       | 8     |
+| Project Management      | 14    |
+| Fab Marketplace Browser | 6     |
+| UE Tracer               | 5     |
+| Appearance & Theming    | 7     |
+| System & UX             | 10    |
+| **Total**               | **50**|
+
+---
+
+## 🏗️ Architecture
+
+### System Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Renderer Process                      │
+│                    Renderer Process (React)                  │
 │  React 19 + TypeScript + Tailwind CSS + Zustand             │
 │  Pages: Engines · Projects · Settings · About               │
 │  Components: Cards · Toolbars · Dialogs · Toasts            │
 └────────────────────────┬────────────────────────────────────┘
-                         │  contextBridge (IPC)
+                         │  IPC (contextBridge)
 ┌────────────────────────▼────────────────────────────────────┐
-│                        Main Process                          │
-│  Electron 39 + Node.js                                      │
+│                    Main Process (Node.js)                    │
+│  Electron 39 + TypeScript                                   │
 │  IPC Handlers: engines · projects · fab · tracer · misc     │
-│  Store: engines.json · projects.json · settings.json        │
+│  Data Store: engines.json · projects.json · settings.json   │
 │  Worker Threads: scan · size calculation                     │
 └──────────┬──────────────────────────┬───────────────────────┘
            │                          │
 ┌──────────▼──────────┐   ┌──────────▼──────────────────────┐
-│   Rust N-API Module │   │   Rust Tracer Executable         │
-│   native/dist/*.node│   │   resources/unreal_launcher_     │
-│   - scan_engines    │   │   tracer.exe                     │
-│   - find_uproject   │   │   - Tracks engine/project usage  │
-│   - get_folder_size │   │   - Writes to Tracer/*.json      │
-│   - git_status      │   │   - Runs detached in background  │
+│  Rust N-API Module  │   │  Rust Tracer (Windows only)      │
+│  native/dist/*.node │   │  resources/unreal_launcher_     │
+│  - scan_engines     │   │  tracer.exe                     │
+│  - find_uproject    │   │  - Tracks engine/project usage  │
+│  - get_folder_size  │   │  - Writes to Tracer/*.json      │
+│  - git_status       │   │  - Runs detached in background  │
 └─────────────────────┘   └──────────────────────────────────┘
 ```
 
-### Startup Flow
+### Startup Sequence
 
 1. App launches → single instance lock acquired
 2. Chromium memory optimizations applied (V8 heap cap, disabled background networking)
 3. `local-asset://` custom protocol registered (serves local files to renderer)
 4. Main window created with custom frameless titlebar
 5. IPC handlers registered across 7 modules
-6. Saved data loaded from `%APPDATA%/Unreal Launcher/save/`
+6. Saved data loaded from `%APPDATA%/Unreal Launcher/save/` (or platform equivalent)
 7. Tracer data merged if `tracerMergeEnabled` is set
 8. Renderer loads → splash screen shown → React app bootstraps
 9. Default route navigates to Engines page
+10. Background tasks deferred: native module warmup, tracer startup, update check
 
 ### Scanning Flow
 
@@ -171,7 +174,7 @@ When you click **Scan** for engines or projects:
 2. Worker loads the Rust N-API native module
 3. Native module performs fast filesystem traversal
 4. Results returned to main process via `worker.once('message')`
-5. Tracer data merged into results
+5. Tracer data merged into results (if enabled)
 6. Saved to `engines.json` / `projects.json`
 7. Renderer receives the array and updates the UI
 
@@ -189,21 +192,27 @@ Size calculation runs entirely in the background:
 All data lives in Electron's `userData` directory:
 
 ```
-%APPDATA%\Unreal Launcher\
-├── save\
-│   ├── engines.json       ← saved engine list
-│   ├── projects.json      ← saved project list
-│   └── settings.json      ← app settings + fab path
-└── Tracer\
-    ├── engines.json       ← tracer-collected engine data
-    └── projects.json      ← tracer-collected project data
+Windows:  %APPDATA%\Unreal Launcher\
+macOS:    ~/Library/Application Support/Unreal Launcher/
+Linux:    ~/.config/Unreal Launcher/
+
+Structure:
+├── save/
+│   ├── engines.json           ← saved engine list
+│   ├── projects.json          ← saved project list
+│   ├── settings.json          ← app settings + fab path
+│   ├── engine-scan-paths.json ← custom engine scan paths (Linux)
+│   └── project-scan-paths.json← custom project scan paths (Linux)
+└── Tracer/
+    ├── engines.json           ← tracer-collected engine data
+    └── projects.json          ← tracer-collected project data
 ```
 
 On each scan, tracer data is merged with saved data. Tracer provides `lastOpenedAt` timestamps; saved data takes precedence for all other fields.
 
 ---
 
-## Tech Stack
+## 📚 Tech Stack
 
 ### Frontend
 
@@ -225,6 +234,7 @@ On each scan, tracer data is merged with saved data. Tracer provides `lastOpened
 | Electron         | 39      | Desktop shell |
 | Node.js          | 18+     | Runtime       |
 | electron-updater | 6.8     | Auto-updates  |
+| discord-rpc      | 4.0     | Rich presence |
 
 ### Build Tools
 
@@ -245,7 +255,7 @@ On each scan, tracer data is merged with saved data. Tracer provides `lastOpened
 
 ---
 
-## IPC Handler Reference
+## 🔌 IPC Handler Reference
 
 The main process exposes the following IPC channels to the renderer:
 
@@ -268,7 +278,7 @@ The main process exposes the following IPC channels to the renderer:
 | `select-project-folder`       | Open dialog, batch import (max 20)         |
 | `launch-project`              | Open in editor                             |
 | `launch-project-game`         | Launch in `-game` mode                     |
-| `open-directory`              | Open folder in Explorer                    |
+| `open-directory`              | Open folder in Explorer/Finder/File Manager|
 | `delete-project`              | Remove from store                          |
 | `calculate-project-size`      | Background folder size                     |
 | `calculate-all-project-sizes` | Batch size calculation with push events    |
@@ -280,6 +290,9 @@ The main process exposes the following IPC channels to the renderer:
 | `project-read-log`   | Tail latest `.log` file (64KB chunks) |
 | `project-git-status` | Read branch, remote URL from `.git/`  |
 | `project-git-init`   | `git init` + create UE `.gitignore`   |
+| `project-read-file`  | Read file content (config, uproject)  |
+| `project-write-file` | Write file content with validation    |
+| `open-terminal`      | Launch terminal in project directory  |
 
 ### Fab Marketplace
 
@@ -291,7 +304,7 @@ The main process exposes the following IPC channels to the renderer:
 | `fab-save-path`        | Persist custom path to settings     |
 | `fab-load-path`        | Load saved Fab path                 |
 
-### Tracer
+### Tracer (Windows only)
 
 | Channel                | Description                            |
 | ---------------------- | -------------------------------------- |
@@ -314,7 +327,7 @@ The main process exposes the following IPC channels to the renderer:
 | `get-app-version`      | Return current version string         |
 | `check-github-version` | Compare against latest GitHub release |
 
-### Misc
+### Window & System
 
 | Channel                | Description                          |
 | ---------------------- | ------------------------------------ |
@@ -330,7 +343,7 @@ The main process exposes the following IPC channels to the renderer:
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 UnrealLauncher/
@@ -353,7 +366,7 @@ UnrealLauncher/
 │   └── dist/                  # Compiled .node binary
 ├── resources/                 # Packaged assets
 │   ├── icon.ico / icon.png
-│   └── unreal_launcher_tracer.exe
+│   └── unreal_launcher_tracer.exe (Windows only)
 ├── scripts/                   # Build helper scripts
 │   ├── build-admin.ps1        # Windows — elevate + build:win
 │   ├── build-installer.bat    # Windows — admin installer build
@@ -367,49 +380,12 @@ UnrealLauncher/
 │   │   ├── storeTracerMerge.ts
 │   │   ├── updater.ts         # electron-updater setup
 │   │   ├── types.ts           # Shared TypeScript types
-│   │   ├── ipc/               # IPC handler modules
-│   │   │   ├── engines.ts
-│   │   │   ├── engineAlias.ts
-│   │   │   ├── engineHandlers.ts
-│   │   │   ├── engineLaunching.ts
-│   │   │   ├── enginePlugins.ts
-│   │   │   ├── engineSelection.ts
-│   │   │   ├── projects.ts
-│   │   │   ├── projectHandlers.ts
-│   │   │   ├── projectGit.ts
-│   │   │   ├── projectLog.ts
-│   │   │   ├── projectFiles.ts
-│   │   │   ├── projectTerminal.ts
-│   │   │   ├── projectLaunching.ts
-│   │   │   ├── fab.ts
-│   │   │   ├── fabScanner.ts
-│   │   │   ├── tracer.ts
-│   │   │   ├── updates.ts
-│   │   │   └── misc.ts
-│   │   ├── utils/             # Utility modules
-│   │   │   ├── engineRegistry.ts   # reg.exe-based Windows registry scan
-│   │   │   ├── engineValidation.ts
-│   │   │   ├── engineGradient.ts
-│   │   │   ├── engineScanning.ts
-│   │   │   ├── engineSizing.ts
-│   │   │   ├── projectValidation.ts
-│   │   │   ├── projectSizing.ts
-│   │   │   ├── fabAssetDetection.ts
-│   │   │   ├── fabManifest.ts
-│   │   │   ├── folderOps.ts
-│   │   │   ├── native.ts
-│   │   │   ├── platformPaths.ts
-│   │   │   ├── processUtils.ts
-│   │   │   └── projects.ts
-│   │   ├── workers/           # Worker thread entry points
-│   │   │   ├── engineScanWorker.ts
-│   │   │   ├── projectScanWorker.ts
-│   │   │   └── workers.ts
-│   │   └── window/            # Window management
-│   │       ├── windowConfig.ts
-│   │       ├── windowHandlers.ts
-│   │       ├── windowLifecycle.ts
-│   │       └── splashWindow.ts
+│   │   ├── logger.ts          # Logging system
+│   │   ├── discordPresence.ts # Discord Rich Presence
+│   │   ├── ipc/               # IPC handler modules (25+ files)
+│   │   ├── utils/             # Utility modules (15+ files)
+│   │   ├── scanWorker/        # Worker thread implementations
+│   │   └── window/            # Window management (4 files)
 │   ├── preload/
 │   │   ├── index.ts           # contextBridge — exposes electronAPI to renderer
 │   │   └── index.d.ts         # Type definitions for window.electronAPI
@@ -417,21 +393,13 @@ UnrealLauncher/
 │       └── src/
 │           ├── App.tsx
 │           ├── main.tsx
-│           ├── pages/
-│           │   ├── engines/   # EnginesPage + state hooks + toolbar + content
-│           │   ├── ProjectsPage.tsx
-│           │   ├── SettingsPage.tsx
-│           │   └── AboutPage.tsx
-│           ├── components/
-│           │   ├── engines/   # EngineCard, FabTab, plugins, fab/
-│           │   ├── projects/  # ProjectCard, ProjectCardGrid, dialogs, contextMenu/, card/, git/, log/
-│           │   ├── settings/  # AppearanceSection, sections/
-│           │   ├── layout/    # PageWrapper, sidebar/
-│           │   └── ui/        # ErrorBoundary, ToastContext, DropdownPortal
-│           ├── hooks/         # useEngineActions, useProjectsPageState, useGitStatus, ...
+│           ├── pages/         # Engines, Projects, Settings, About
+│           ├── components/    # Organized by feature (engines/, projects/, settings/, layout/, ui/)
+│           ├── hooks/         # Custom React hooks
 │           ├── types/         # Renderer-side type aliases
-│           └── utils/         # ThemeContext, settings, theme utils, resolveAsset
-├── tracer/                    # Rust tracer source
+│           ├── store/         # Zustand state management
+│           └── utils/         # Theme, settings, asset resolution
+├── tracer/                    # Rust tracer source (Windows only)
 ├── build/                     # electron-builder assets (icons, entitlements)
 ├── CHANGELOG.md
 ├── README.md
@@ -444,13 +412,13 @@ UnrealLauncher/
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 18+
-- Rust toolchain (for native modules & tracer)
-- npm
+- **Node.js** 18+ (check with `node --version`)
+- **Rust toolchain** (for native modules & tracer) — [Install](https://rustup.rs/)
+- **npm** (comes with Node.js)
 
 ### Setup
 
@@ -466,7 +434,9 @@ npm install
 npm run dev
 ```
 
-### Preview production build
+The app will launch in development mode with hot reload enabled.
+
+### Preview Production Build
 
 ```bash
 npm run start
@@ -474,26 +444,41 @@ npm run start
 
 ---
 
-## Building
+## 🔨 Building
+
+### Full Production Build
 
 ```bash
-# Full production build (tracer + app)
+# Build tracer + app for current platform
 npm run build
+```
 
-# Platform packages
-npm run build:win    # Windows installer (.exe)
-npm run build:mac    # macOS (.dmg)
-npm run build:linux  # Linux (AppImage/DEB)
+### Platform-Specific Packages
 
-# Unpacked (no installer, useful for testing)
+```bash
+npm run build:win    # Windows NSIS installer (.exe)
+npm run build:mac    # macOS DMG (.dmg)
+npm run build:linux  # Linux AppImage + DEB
+```
+
+### Unpacked Build (for testing)
+
+```bash
 npm run build:unpack
 ```
+
+**Build Status Badges:**
+
+![Build](https://img.shields.io/badge/build-passing-brightgreen?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square)
+![TypeScript](https://img.shields.io/badge/typecheck-passing-brightgreen?style=flat-square)
+![ESLint](https://img.shields.io/badge/eslint-passing-brightgreen?style=flat-square)
 
 See [docs/BUILD.md](docs/BUILD.md) for the full build guide including native modules and the Rust tracer.
 
 ---
 
-## Scripts
+## 📋 Available Scripts
 
 | Command                | Description                    |
 | ---------------------- | ------------------------------ |
@@ -507,52 +492,91 @@ See [docs/BUILD.md](docs/BUILD.md) for the full build guide including native mod
 | `npm run build:tracer` | Build Rust tracer executable   |
 | `npm run typecheck`    | TypeScript type checking       |
 | `npm run lint`         | Run ESLint                     |
+| `npm run lint:fix`     | Fix ESLint issues              |
 | `npm run format`       | Format with Prettier           |
 | `npm run clean`        | Remove build artifacts         |
 
 ---
 
-## Distribution
+## 📦 Distribution
 
-| Platform | Format                | Architecture |
-| -------- | --------------------- | ------------ |
-| Windows  | NSIS installer `.exe` | x64          |
-| Windows  | Unpacked `dir`        | x64          |
-| macOS    | `.dmg`                | x64, arm64   |
-| Linux    | AppImage              | x64          |
-| Linux    | `.deb`                | x64          |
+| Platform | Format                | Architecture | Status      | Badge |
+| -------- | --------------------- | ------------ | ----------- | ----- |
+| Windows  | NSIS installer `.exe` | x64          | ✅ Stable   | ![Windows](https://img.shields.io/badge/Windows-x64-0078d4?style=flat-square&logo=windows) |
+| macOS    | `.dmg`                | x64, arm64   | ✅ Stable   | ![macOS](https://img.shields.io/badge/macOS-x64%20%7C%20arm64-000000?style=flat-square&logo=apple) |
+| Linux    | AppImage              | x64          | ✅ Stable   | ![Linux](https://img.shields.io/badge/Linux-x64-FCC624?style=flat-square&logo=linux) |
+| Linux    | `.deb`                | x64          | ✅ Stable   | ![Debian](https://img.shields.io/badge/Debian-x64-A81D33?style=flat-square&logo=debian) |
 
-Published to GitHub Releases at: [NeelFrostrain/UnrealLauncher](https://github.com/NeelFrostrain/UnrealLauncher/releases)
+Published to GitHub Releases: [NeelFrostrain/UnrealLauncher/releases](https://github.com/NeelFrostrain/UnrealLauncher/releases)
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full guide.
 
+### Quick Contribution Steps
+
 1. Fork the repo
-2. Create a branch: `git checkout -b feature/your-feature`
-3. Run `npm run typecheck && npm run lint` before committing
-4. Open a pull request
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Run type checking and linting: `npm run typecheck && npm run lint`
+4. Commit your changes
+5. Open a pull request
 
 ---
 
-## License
+## 📄 License
 
 Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
-This project uses a proprietary license. You may download and run the compiled binary for personal use, but you may **not** copy, modify, redistribute, or use the source code in your own projects. See [LICENSE](LICENSE) for full terms.
+This project uses a **proprietary license**. You may download and run the compiled binary for personal use, but you may **not** copy, modify, redistribute, or use the source code in your own projects.
+
+See [LICENSE](LICENSE) for full terms.
 
 ---
 
-## Support
+## 💬 Support & Community
 
-- 🐛 [Open an Issue](https://github.com/NeelFrostrain/UnrealLauncher/issues)
-- 💬 [Discussions](https://github.com/NeelFrostrain/UnrealLauncher/discussions)
-- 💬 [Discord](https://discord.gg/vq4UDfevG2)
-- 📧 nfrostrain@gmail.com
-- ☕ [Ko-fi](https://ko-fi.com/neelfrostrain)
+- 🐛 **Report Issues** — [GitHub Issues](https://github.com/NeelFrostrain/UnrealLauncher/issues)
+- 💬 **Discussions** — [GitHub Discussions](https://github.com/NeelFrostrain/UnrealLauncher/discussions)
+- 🎮 **Discord Community** — [Join Server](https://discord.gg/vq4UDfevG2)
+- 📧 **Email** — nfrostrain@gmail.com
+- ☕ **Support Development** — [Ko-fi](https://ko-fi.com/neelfrostrain)
 
-<div align="left">
-  <p>Made by <a href="https://github.com/NeelFrostrain">Neel Frostrain</a></p>
-</div>
+**Community Badges:**
+
+[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)
+[![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-181717?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/discussions)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E78?style=flat-square&logo=kofi&logoColor=white)](https://ko-fi.com/neelfrostrain)
+
+---
+
+## 🙏 Acknowledgments
+
+Built with ❤️ by [Neel Frostrain](https://github.com/NeelFrostrain)
+
+Special thanks to the Unreal Engine community and all contributors who have helped shape this project.
+
+---
+
+---
+
+## 📋 Release Information
+
+**Current Version:** 2.2.4  
+**Release Date:** May 24, 2026  
+**Latest Commit:** `36897f1` — Merge pull request #15 from NeelFrostrain/linuxPre v2.2.4  
+**Merge Status:** ✅ Verified  
+**Branch:** `main`
+
+### Recent Changes
+
+- **PR #15 Merged** — Linux pre-release v2.2.4 merged into main
+- **3 files changed** in merge commit
+- **Parent commits:** `6abb82a` + `133fe34`
+
+For detailed changelog, see [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+**Last Updated:** May 24, 2026 | **Version:** 2.2.4

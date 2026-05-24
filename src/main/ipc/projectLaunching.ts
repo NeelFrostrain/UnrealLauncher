@@ -28,7 +28,8 @@ export async function locateUproject(projectPath: string): Promise<string | null
     const files = await fs.promises.readdir(projectPath)
     const uprojectFile = files.find((file) => file.endsWith('.uproject'))
     const found = uprojectFile ? path.join(projectPath, uprojectFile) : null
-    if (found) logger.debug('project', 'Found scanned uproject file', { projectPath, uprojectPath: found })
+    if (found)
+      logger.debug('project', 'Found scanned uproject file', { projectPath, uprojectPath: found })
     return found
   } catch (error) {
     logger.warn('project', 'Failed to scan project directory for uproject', { projectPath, error })
@@ -120,7 +121,10 @@ export async function handleLaunchProject(projectPath: string): Promise<Record<s
       logger.info('project', 'Project launch handed to Windows file association', { uprojectPath })
       return { success: true }
     } catch (err) {
-      logger.error('project', 'Project launch failed through file association', { uprojectPath, error: err })
+      logger.error('project', 'Project launch failed through file association', {
+        uprojectPath,
+        error: err
+      })
       return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
     }
   }

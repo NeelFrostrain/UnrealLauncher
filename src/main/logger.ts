@@ -44,7 +44,10 @@ function getTimestampForFile(date = new Date()): string {
 function getLogFilePath(): string {
   if (logFilePath) return logFilePath
 
-  logFilePath = path.join(getLogsDir(), `unreal-launcher-${getTimestampForFile()}-${process.pid}.log`)
+  logFilePath = path.join(
+    getLogsDir(),
+    `unreal-launcher-${getTimestampForFile()}-${process.pid}.log`
+  )
   return logFilePath
 }
 
@@ -139,10 +142,14 @@ export function log(level: LogLevel, scope: string, message: unknown, ...meta: u
 }
 
 export const logger = {
-  debug: (scope: string, message: unknown, ...meta: unknown[]) => log('debug', scope, message, ...meta),
-  info: (scope: string, message: unknown, ...meta: unknown[]) => log('info', scope, message, ...meta),
-  warn: (scope: string, message: unknown, ...meta: unknown[]) => log('warn', scope, message, ...meta),
-  error: (scope: string, message: unknown, ...meta: unknown[]) => log('error', scope, message, ...meta),
+  debug: (scope: string, message: unknown, ...meta: unknown[]) =>
+    log('debug', scope, message, ...meta),
+  info: (scope: string, message: unknown, ...meta: unknown[]) =>
+    log('info', scope, message, ...meta),
+  warn: (scope: string, message: unknown, ...meta: unknown[]) =>
+    log('warn', scope, message, ...meta),
+  error: (scope: string, message: unknown, ...meta: unknown[]) =>
+    log('error', scope, message, ...meta),
   getLogFilePath,
   getLogsDir,
   clearLogFiles

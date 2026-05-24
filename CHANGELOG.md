@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.4] - 2026-05-24 — `main`
+
+### ✨ Added
+
+- **Centralized logging system** — New `logger.ts` module with structured logging across all main process modules
+  - Log levels: `info`, `warn`, `error`, `debug`
+  - Categorized logs by module (app, ipc, window, native, tracer, updater, etc.)
+  - Timestamp and context information included in all logs
+  - Helps with debugging and troubleshooting across the application
+- **Discord Rich Presence** — New `discordPresence.ts` module for Discord integration
+  - Shows current activity in Discord (engine/project being used)
+  - Configurable via `DISCORD_CLIENT_ID` environment variable
+  - Graceful fallback if Discord is not available
+- **Environment configuration** — New `.env.example` template for configuration
+  - Supports `DISCORD_CLIENT_ID` and other future environment variables
+
+### 🛠️ Fixed
+
+- **Corrupted projects.json crash** — Added automatic recovery mechanism for corrupted JSON files. When `projects.json` or `engines.json` fails to parse, the app now:
+  1. Logs the error with full details
+  2. Backs up the corrupted file with timestamp (`projects.json.backup.1716547200000`)
+  3. Creates a fresh empty array in the original file
+  4. Logs the recovery action
+  - This prevents the "Unexpected token" error and allows the app to continue functioning
+  - Users can manually restore from the backup if needed
+  - Empty file detection added to prevent re-initialization on every load
+- **Project deletion showing 0KB size** — Fixed issue where deleted projects displayed incorrect size before removal
+- **Project not removing from list** — Ensured deleted projects are properly removed from all tabs (All, Favorites, Hidden)
+- **Engine card scrolling** — Improved scrolling behavior and performance on engine cards
+- **Favorites handling** — Fixed edge cases with favorite/unfavorite operations during scans
+- **Startup performance** — Optimized startup sequence with deferred background tasks
+
+### 🔧 Changed
+- **Package.json updates** — Updated dependencies and build scripts
+  - Added `discord-rpc` for Discord integration
+  - Updated Electron to 39.2.6
+  - Updated React to 19.2.1
+  - Updated Tailwind CSS to 4.2.1
+  - Updated Vite to 7.2.6
+
+---
+
 ## [2.2.3] - 2026-05-22 — `main`
 
 ### ✨ Added

@@ -44,7 +44,10 @@ export function useProjectActions({
       setCalculatingSizes(true)
       logActivity('Project refresh started', { currentTab })
       const projects = await loadProjectsForTab(currentTab)
-      logActivity('Project refresh scan completed', { currentTab, count: Array.isArray(projects) ? projects.length : 0 })
+      logActivity('Project refresh scan completed', {
+        currentTab,
+        count: Array.isArray(projects) ? projects.length : 0
+      })
       setRefreshing(false)
       await window.electronAPI.calculateAllProjectSizes()
       logActivity('Project refresh size calculation requested')
@@ -122,7 +125,9 @@ export function useProjectActions({
 
         await loadProjectsForTab(currentTab)
       } catch (error) {
-        logActivity('Add project failed', { error: error instanceof Error ? error.message : String(error) })
+        logActivity('Add project failed', {
+          error: error instanceof Error ? error.message : String(error)
+        })
         console.error('Error adding projects:', error)
         addToast('Failed to add projects. Please try again.', 'error')
       } finally {
