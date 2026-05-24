@@ -7,6 +7,7 @@
 use napi_derive::napi;
 use std::fs;
 use std::path::Path;
+use std::process::Command;
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
@@ -421,6 +422,80 @@ pub fn find_project_screenshot(project_path: String) -> Option<String> {
     .join("Saved")
     .join("AutoScreenshot.png");
   if p.exists() { Some(p.to_string_lossy().into_owned()) } else { None }
+}
+
+#[napi]
+pub fn find_running_unreal_projects() -> Vec<String> {
+  #[cfg(target_os = "windows")]
+  {
+    find_running_unreal_projects_windows()
+  }
+
+  #[cfg(any(target_os = "linux", target_os = "macos"))]
+  {
+    find_running_unreal_projects_unix()
+  }
+
+  #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+  {
+    Vec::new()
+  }
+}
+
+#[cfg(target_os = "windows")]
+fn find_running_unreal_projects_windows() -> Vec<String> {
+  let mut results = Vec::new();
+  let output = Command::new("wmic")
+    .args(["process", "where", "Name='UnrealEditor.exe' or Name='UE4Editor.exe'", "get", "CommandLine"] )
+    .output();
+
+  let text = match output.and_then(|o| Ok(String::from_utf8_lossy(&o.stdout).into_owned())) {
+    Ok(t) => t,
+    Err(_) => return Vec::new(),
+  };
+
+  for line in text.lines().skip(1) {
+    let line = line.trim();
+    if line.is_empty() { continue }
+    results.push(line.to_string())
+  }
+
+  if results.is_empty() {
+    let fallback = Command::new("tasklist")
+      .args(["/FI", "IMAGENAME eq UnrealEditor.exe", "/FI", "IMAGENAME eq UE4Editor.exe", "/NH", "/FO", "CSV"])
+      .output();
+    if let Ok(output) = fallback {
+      let text = String::from_utf8_lossy(&output.stdout);
+      for line in text.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() { continue }
+        results.push(trimmed.to_string())
+      }
+    }
+  }
+
+  results
+}
+
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+fn find_running_unreal_projects_unix() -> Vec<String> {
+  let mut results = Vec::new();
+  let output = Command::new("ps")
+    .args(["-eo", "comm,args"] )
+    .output();
+
+  let text = match output.and_then(|o| Ok(String::from_utf8_lossy(&o.stdout).into_owned())) {
+    Ok(t) => t,
+    Err(_) => return Vec::new(),
+  };
+
+  for line in text.lines().skip(1) {
+    if line.contains("UnrealEditor") || line.contains("UE4Editor") {
+      results.push(line.trim().to_string());
+    }
+  }
+
+  results
 }
 
 /// Return the mtime of the newest .log file under Saved/Logs as an ISO-8601 string.

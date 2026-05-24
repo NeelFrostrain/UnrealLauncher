@@ -51,6 +51,7 @@ export interface NativeModule {
   findLatestLogTimestamp: (projectPath: string) => string | null
   getFolderSize: (folderPath: string) => number
   scanEnginePlugins: (engineDir: string) => NativeEnginePlugin[]
+  findRunningUnrealProjects: () => string[]
 }
 
 export interface NativeEnginePlugin {
@@ -82,7 +83,10 @@ export function getNative(): NativeModule | null {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     _native = require(getNativeModulePath())
     if (!_native) throw new Error('module resolved to null')
-    console.log('[native] Rust module loaded from', getNativeModulePath())
+    // Only log in development to reduce noise in production
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[native] Rust module loaded from', getNativeModulePath())
+    }
   } catch (e) {
     console.warn(
       '[native] Rust module unavailable, using JS fallback.',

@@ -6,5 +6,10 @@
  * Re-exports window management functions from organized modules.
  */
 
-export { getMainWindow, createWindow, setupAppLifecycle } from './window/windowLifecycle'
+export {
+  getMainWindow,
+  createWindow,
+  setupAppLifecycle,
+  handleRequestedAppClose
+} from './window/windowLifecycle'
 export { getIsMaximized, handleWindowMinimize, handleWindowMaximize } from './window/windowHandlers'

@@ -12,6 +12,7 @@ import {
   handleClearTracerData,
   handleGetMainSettings,
   handleSaveMainSettings,
+  handleGetRunningProjects,
   handleSelectFolder,
   handleGetEngineScanPaths,
   handleSaveEngineScanPaths,
@@ -41,6 +42,7 @@ export function registerMiscHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('clear-tracer-data', handleClearTracerData)
   ipcMain_.handle('get-main-settings', handleGetMainSettings)
   ipcMain_.handle('save-main-settings', (_event, settings) => handleSaveMainSettings(settings))
+  ipcMain_.handle('get-running-projects', handleGetRunningProjects)
   ipcMain_.handle('select-folder', handleSelectFolder)
 
   // Scan paths

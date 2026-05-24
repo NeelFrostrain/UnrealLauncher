@@ -55,12 +55,14 @@ interface MainSettings {
   tracerMergeEnabled: boolean
   tracerStartupEnabled: boolean
   registryEnginesEnabled: boolean
+  backgroundCloseEnabled: boolean
 }
 
 const defaultMainSettings: MainSettings = {
   tracerMergeEnabled: true,
   tracerStartupEnabled: false,
-  registryEnginesEnabled: true
+  registryEnginesEnabled: true,
+  backgroundCloseEnabled: false
 }
 
 export function loadMainSettings(): MainSettings {

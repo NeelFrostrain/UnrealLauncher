@@ -82,6 +82,7 @@ if (process.contextIsolated) {
       clearAppData: () => ipcRenderer.invoke('clear-app-data'),
       clearTracerData: () => ipcRenderer.invoke('clear-tracer-data'),
       getMainSettings: () => ipcRenderer.invoke('get-main-settings'),
+      getRunningProjects: () => ipcRenderer.invoke('get-running-projects'),
       platform: process.platform,
       appVersion: '',
       electronVersion: process.versions.electron ?? '',

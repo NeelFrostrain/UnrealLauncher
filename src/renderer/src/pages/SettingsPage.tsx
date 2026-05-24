@@ -29,6 +29,10 @@ const SettingsPage = (): React.ReactElement => {
             <LaunchSection
               autoCloseOnLaunch={settingsState.autoCloseOnLaunch}
               onToggle={() => settingsState.handleAutoCloseToggle(!settingsState.autoCloseOnLaunch)}
+              backgroundCloseOnClose={settingsState.backgroundCloseOnClose}
+              onToggleBackgroundClose={() =>
+                settingsState.handleBackgroundCloseToggle(!settingsState.backgroundCloseOnClose)
+              }
             />
           </div>
         )

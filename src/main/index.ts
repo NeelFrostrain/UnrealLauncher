@@ -13,26 +13,40 @@ import { setupAutoUpdaterEvents, checkForUpdatesOnStartup } from './updater'
 import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
 import { loadMainSettings } from './store'
 import { getNative } from './utils/native'
+import { setupDiscordRichPresence } from './discordPresence'
 
-// Load .env as the very first thing
-config()
+// Suppress noisy deprecation warnings from transitive dependencies before optional modules load.
+process.noDeprecation = true
+
+function loadEnvironment(): void {
+  const envPaths = [
+    path.join(process.cwd(), '.env'),
+    path.join(app.getAppPath(), '.env'),
+    path.join(process.resourcesPath, '.env')
+  ].filter((envPath, index, paths) => paths.indexOf(envPath) === index && fs.existsSync(envPath))
+
+  config({ path: envPaths.length > 0 ? envPaths : undefined, debug: false })
+}
+
+// Load .env as the very first thing after startup noise guards are in place.
+loadEnvironment()
 
 // ── Chromium flags — must be set before app is ready ─────────────────────────
+app.disableHardwareAcceleration()
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=192')
 app.commandLine.appendSwitch('disable-http-cache')
 app.commandLine.appendSwitch('disable-background-networking')
 app.commandLine.appendSwitch('renderer-process-limit', '1')
 app.commandLine.appendSwitch('enable-smooth-scrolling')
+app.commandLine.appendSwitch('disable-direct-composition')
 app.commandLine.appendSwitch(
   'disable-features',
-  'OutOfBlinkCors,TranslateUI,AutofillServerCommunication,AutofillEnableAccountWalletStorage'
+  'OutOfBlinkCors,TranslateUI,AutofillServerCommunication,AutofillEnableAccountWalletStorage,DirectCompositionVideoOverlays'
 )
 app.commandLine.appendSwitch('disable-extensions')
 app.commandLine.appendSwitch('disable-component-extensions-with-background-pages')
 app.commandLine.appendSwitch('disable-default-apps')
 app.commandLine.appendSwitch('no-first-run')
-app.commandLine.appendSwitch('disable-background-timer-throttling')
-app.commandLine.appendSwitch('disable-renderer-backgrounding')
 
 // ── Register custom protocol scheme before app is ready ──────────────────────
 protocol.registerSchemesAsPrivileged([
@@ -47,6 +61,11 @@ const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock) {
   app.quit()
 } else {
+  // ── Discord Rich Presence ───────────────────────────────────────────────────
+  setupDiscordRichPresence({
+    clientId: process.env.DISCORD_CLIENT_ID || process.env.VITE_DISCORD_CLIENT_ID
+  })
+
   // ── Child process registry ──────────────────────────────────────────────────
   const childProcesses: ChildProcess[] = []
 

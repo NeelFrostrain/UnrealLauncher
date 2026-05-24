@@ -57,15 +57,9 @@ export function useProjectsPageState() {
   })
 
   const { favoritePaths, toggleFavoritePath: toggleFav } = useProjectFavorites()
-  const stableFavoritePaths = useMemo(
-    () => favoritePaths,
-    [JSON.stringify(favoritePaths)]
-  )
+  const stableFavoritePaths = useMemo(() => favoritePaths, [JSON.stringify(favoritePaths)])
   const [hiddenPaths, setHiddenPaths] = useState<string[]>(loadHiddenPaths)
-  const stableHiddenPaths = useMemo(
-    () => hiddenPaths,
-    [JSON.stringify(hiddenPaths)]
-  )
+  const stableHiddenPaths = useMemo(() => hiddenPaths, [JSON.stringify(hiddenPaths)])
   // Stabilize array references to avoid busting useMemo/useEffect when contents are unchanged
   // favoritePathsRef is used for stable access in async callbacks
   const { filterForTab, switchTab: switchTabFn } = useProjectFilters()
@@ -163,16 +157,22 @@ export function useProjectsPageState() {
   })
 
   // Sync tab state with URL
+  // NOTE: favoritePaths intentionally NOT in deps — we use favoritePathsRef to avoid
+  // re-running this effect (and wiping the project list) every time a favorite is toggled.
   useEffect(() => {
     const path = location.pathname
     const tab: TabType =
       path === '/projects/favorites' ? 'favorites' : path === '/projects/hidden' ? 'hidden' : 'all'
     setCurrentTab(tab)
     currentTabRef.current = tab
+    // Only re-filter if we already have data — never wipe the list on a tab switch
     if (allProjectsRef.current.length > 0) {
-      setProjects(filterForTab(tab, allProjectsRef.current, favoritePaths, hiddenPathsRef.current))
+      setProjects(
+        filterForTab(tab, allProjectsRef.current, favoritePathsRef.current, hiddenPathsRef.current)
+      )
     }
-  }, [location.pathname, favoritePaths, filterForTab])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, filterForTab])
 
   // Initial load
   useEffect(() => {
@@ -194,6 +194,8 @@ export function useProjectsPageState() {
 
   const switchTab = useCallback(
     (tab: TabType): void => {
+      // Clear git cache when switching tabs to ensure fresh git status is fetched
+      clearGitCache()
       // Pass favorites from ref to avoid reading localStorage inside the utility
       switchTabFn(
         tab,

@@ -52,6 +52,14 @@ export function handleSaveMainSettings(settings: any): void {
 }
 
 /**
+ * Handles the get-running-projects IPC event
+ */
+export function handleGetRunningProjects(): string[] {
+  const native = getNative()
+  return native?.findRunningUnrealProjects?.() ?? []
+}
+
+/**
  * Handles the select-folder IPC event
  */
 export async function handleSelectFolder(): Promise<string[] | null> {

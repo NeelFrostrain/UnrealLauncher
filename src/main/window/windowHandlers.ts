@@ -69,9 +69,9 @@ export function setupDevToolsShortcut(mainWindow: BrowserWindow): void {
   }
 }
 
-export function setupMemoryManagement(mainWindow: BrowserWindow): void {
+export function setupMemoryManagement(mainWindow: BrowserWindow): NodeJS.Timeout {
   // Periodically free unused memory when the window is not focused
-  setInterval(() => {
+  return setInterval(() => {
     if (mainWindow && !mainWindow.isFocused()) {
       mainWindow.webContents.executeJavaScript('if(typeof gc==="function")gc()').catch(() => {})
     }

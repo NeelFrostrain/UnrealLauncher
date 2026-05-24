@@ -10,9 +10,16 @@ import { getSetting, setSetting } from '../../../utils/settings'
 interface LaunchSectionProps {
   autoCloseOnLaunch: boolean
   onToggle: () => void
+  backgroundCloseOnClose: boolean
+  onToggleBackgroundClose: () => void
 }
 
-const LaunchSection = ({ autoCloseOnLaunch, onToggle }: LaunchSectionProps): React.ReactElement => {
+const LaunchSection = ({
+  autoCloseOnLaunch,
+  onToggle,
+  backgroundCloseOnClose,
+  onToggleBackgroundClose
+}: LaunchSectionProps): React.ReactElement => {
   const [registryEngines, setRegistryEngines] = useState(true)
   const { animationsEnabled, toggleAnimations } = useAnimations()
   const [showTitlebarButtons, setShowTitlebarButtons] = useState(() =>
@@ -38,6 +45,12 @@ const LaunchSection = ({ autoCloseOnLaunch, onToggle }: LaunchSectionProps): Rea
           description="Close the launcher automatically when opening a project or engine."
         >
           <Toggle on={autoCloseOnLaunch} onChange={onToggle} />
+        </SettingRow>
+        <SettingRow
+          label="Run in background on close"
+          description="Keep Unreal Launcher running in the system tray instead of quitting when the window is closed."
+        >
+          <Toggle on={backgroundCloseOnClose} onChange={onToggleBackgroundClose} />
         </SettingRow>
         {platform === 'win32' && (
           <SettingRow

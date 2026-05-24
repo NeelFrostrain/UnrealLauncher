@@ -73,7 +73,7 @@ export async function scanAndMergeProjects(): Promise<Project[]> {
 }
 
 /**
- * Loads saved projects from storage
+ * Loads saved projects from storage.
  */
 export async function loadSavedProjects(): Promise<Project[]> {
   const raw = mergeTracerProjects(loadProjects())

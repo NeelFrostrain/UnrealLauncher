@@ -156,6 +156,7 @@ declare global {
       clearAppData: () => Promise<void>
       clearTracerData: () => Promise<void>
       getMainSettings: () => Promise<any>
+      getRunningProjects: () => Promise<string[]>
       platform: string
       appVersion: string
       electronVersion: string
