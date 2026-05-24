@@ -15,8 +15,6 @@ All notable changes to this project will be documented in this file.
   - Shows current activity in Discord (engine/project being used)
   - Configurable via `DISCORD_CLIENT_ID` environment variable
   - Graceful fallback if Discord is not available
-- **Environment configuration** — New `.env.example` template for configuration
-  - Supports `DISCORD_CLIENT_ID` and other future environment variables
 
 ### 🛠️ Fixed
 

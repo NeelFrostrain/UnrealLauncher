@@ -43,6 +43,9 @@ function showOrCreateMainWindow(): void {
     logger.info('window', 'Showing existing main window')
     mainWindow.show()
     mainWindow.focus()
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore()
+    }
   } else {
     logger.info('window', 'Recreating main window from tray')
     createWindow()

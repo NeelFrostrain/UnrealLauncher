@@ -96,13 +96,20 @@ if (!gotTheLock) {
     logger.info('app', 'Before quit cleanup finished')
   })
 
-  // ── Second instance → focus existing window ─────────────────────────────────
+  // ── Second instance → focus existing window or restore from tray ────────────
   app.on('second-instance', () => {
     logger.info('app', 'Second instance requested focus')
     const win = getMainWindow()
-    if (win) {
+    if (win && !win.isDestroyed()) {
+      // Window exists — restore and focus it
       if (win.isMinimized()) win.restore()
+      if (!win.isVisible()) win.show()
       win.focus()
+      logger.info('app', 'Restored and focused existing window')
+    } else {
+      // Window doesn't exist or was destroyed — recreate it
+      logger.info('app', 'Window not found, creating new window')
+      createWindow()
     }
   })
 
