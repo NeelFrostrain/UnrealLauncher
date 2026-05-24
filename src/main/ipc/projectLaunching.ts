@@ -9,6 +9,7 @@ import { loadEngines } from '../store'
 import { openFileOrDirectory } from '../utils/processUtils'
 import { scanEnginePaths } from '../utils/engineScanning'
 import { getBinaryExtension } from '../utils/platformPaths'
+import { logger } from '../logger'
 
 /**
  * Locates the .uproject file in a project directory
@@ -18,6 +19,7 @@ export async function locateUproject(projectPath: string): Promise<string | null
   const direct = path.join(projectPath, `${projectName}.uproject`)
   try {
     await fs.promises.access(direct)
+    logger.debug('project', 'Found direct uproject file', { projectPath, uprojectPath: direct })
     return direct
   } catch {
     /* not found, scan */
@@ -25,8 +27,11 @@ export async function locateUproject(projectPath: string): Promise<string | null
   try {
     const files = await fs.promises.readdir(projectPath)
     const uprojectFile = files.find((file) => file.endsWith('.uproject'))
-    return uprojectFile ? path.join(projectPath, uprojectFile) : null
-  } catch {
+    const found = uprojectFile ? path.join(projectPath, uprojectFile) : null
+    if (found) logger.debug('project', 'Found scanned uproject file', { projectPath, uprojectPath: found })
+    return found
+  } catch (error) {
+    logger.warn('project', 'Failed to scan project directory for uproject', { projectPath, error })
     return null
   }
 }
@@ -101,15 +106,21 @@ function findEditorExecutable(engineAssociation: string): string {
  * On Linux/macOS: finds the engine executable and spawns it directly.
  */
 export async function handleLaunchProject(projectPath: string): Promise<Record<string, unknown>> {
+  logger.info('project', 'Launch project requested', { projectPath })
   const uprojectPath = await locateUproject(projectPath)
-  if (!uprojectPath) return { success: false, error: 'Project file not found' }
+  if (!uprojectPath) {
+    logger.warn('project', 'Launch failed; project file not found', { projectPath })
+    return { success: false, error: 'Project file not found' }
+  }
 
   // Windows: rely on Epic's registry file association — no engine lookup needed
   if (process.platform === 'win32') {
     try {
       openFileOrDirectory(uprojectPath)
+      logger.info('project', 'Project launch handed to Windows file association', { uprojectPath })
       return { success: true }
     } catch (err) {
+      logger.error('project', 'Project launch failed through file association', { uprojectPath, error: err })
       return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
     }
   }
@@ -117,8 +128,18 @@ export async function handleLaunchProject(projectPath: string): Promise<Record<s
   // Linux / macOS: find the engine and spawn it directly
   const engineAssociation = await getEngineAssociation(uprojectPath)
   const editorExe = findEditorExecutable(engineAssociation)
+  logger.info('project', 'Resolved project launch target', {
+    projectPath,
+    uprojectPath,
+    engineAssociation,
+    editorExe: editorExe || null
+  })
 
   if (!editorExe) {
+    logger.warn('project', 'Launch failed; no matching Unreal Engine found', {
+      projectPath,
+      engineAssociation
+    })
     return {
       success: false,
       error: engineAssociation
@@ -129,8 +150,10 @@ export async function handleLaunchProject(projectPath: string): Promise<Record<s
 
   try {
     spawn(editorExe, [uprojectPath], { detached: true, stdio: 'ignore' }).unref()
+    logger.info('project', 'Project editor process spawned', { editorExe, uprojectPath })
     return { success: true }
   } catch (err) {
+    logger.error('project', 'Project editor spawn failed', { editorExe, uprojectPath, error: err })
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
   }
 }
@@ -141,13 +164,27 @@ export async function handleLaunchProject(projectPath: string): Promise<Record<s
 export async function handleLaunchProjectGame(
   projectPath: string
 ): Promise<Record<string, unknown>> {
+  logger.info('project', 'Launch project game requested', { projectPath })
   const uprojectPath = await locateUproject(projectPath)
-  if (!uprojectPath) return { success: false, error: 'Project file not found' }
+  if (!uprojectPath) {
+    logger.warn('project', 'Game launch failed; project file not found', { projectPath })
+    return { success: false, error: 'Project file not found' }
+  }
 
   const engineAssociation = await getEngineAssociation(uprojectPath)
   const editorExe = findEditorExecutable(engineAssociation)
+  logger.info('project', 'Resolved project game launch target', {
+    projectPath,
+    uprojectPath,
+    engineAssociation,
+    editorExe: editorExe || null
+  })
 
   if (!editorExe) {
+    logger.warn('project', 'Game launch failed; no matching Unreal Engine found', {
+      projectPath,
+      engineAssociation
+    })
     return {
       success: false,
       error: `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab first.`
@@ -156,7 +193,8 @@ export async function handleLaunchProjectGame(
 
   try {
     await fs.promises.access(editorExe)
-  } catch {
+  } catch (error) {
+    logger.warn('project', 'Game launch failed; engine executable missing', { editorExe, error })
     return {
       success: false,
       error: `Engine executable not found at "${editorExe}". Re-add the engine in the Engines tab.`
@@ -165,8 +203,10 @@ export async function handleLaunchProjectGame(
 
   try {
     spawn(editorExe, [uprojectPath, '-game'], { detached: true, stdio: 'ignore' }).unref()
+    logger.info('project', 'Project game process spawned', { editorExe, uprojectPath })
     return { success: true }
   } catch (err) {
+    logger.error('project', 'Project game spawn failed', { editorExe, uprojectPath, error: err })
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
   }
 }

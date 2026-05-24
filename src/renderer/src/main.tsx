@@ -12,6 +12,9 @@ import { ToastProvider } from './components/ui/ToastContext'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import { ThemeProvider } from './utils/ThemeContext'
 import { AnimationProvider } from './utils/AnimationContext'
+import { installActivityLogger } from './utils/activityLogger'
+
+installActivityLogger()
 
 createRoot(document.getElementById('root')!).render(
   <ThemeProvider>

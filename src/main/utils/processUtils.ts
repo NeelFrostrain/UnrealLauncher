@@ -5,6 +5,7 @@
 
 import { execFileSync, spawn } from 'child_process'
 import fs from 'fs'
+import { logger } from '../logger'
 
 /**
  * Cross-platform process management utilities
@@ -49,7 +50,7 @@ export function killProcess(processName: string): void {
       if (output.length === 0 || output.toLowerCase().includes('info: no tasks are running')) return
       execFileSync('taskkill', ['/F', '/IM', processName], { stdio: 'ignore' })
     } catch (error) {
-      console.warn(`Failed to kill process ${processName}:`, error)
+      logger.warn('process', 'Failed to kill process', { processName, error })
     }
   } else {
     // pkill -f with end-anchor to avoid matching the electron process itself
@@ -63,6 +64,7 @@ export function killProcess(processName: string): void {
 }
 
 export function openFileOrDirectory(filePath: string): void {
+  logger.info('process', 'Opening file or directory', { filePath, platform: process.platform })
   if (process.platform === 'win32') {
     spawn('cmd', ['/c', 'start', '""', filePath], { detached: true, stdio: 'ignore' }).unref()
   } else if (process.platform === 'darwin') {

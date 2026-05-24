@@ -12,6 +12,7 @@ import { clearGitCache } from './useGitStatus'
 import type { ViewMode } from '../components/projects/ProjectsToolbar'
 import type { SortConfig } from '../components/projects/projectUtils'
 import { useToast } from '../components/ui/ToastContext'
+import { logActivity } from '../utils/activityLogger'
 
 const HIDDEN_KEY = 'projectHidden'
 
@@ -94,6 +95,7 @@ export function useProjectsPageState() {
       if (source === 'saved') setLoading(true)
       else setBackgroundScanning(true)
       try {
+        logActivity('Projects load started', { source })
         const raw =
           source === 'saved'
             ? await window.electronAPI.loadSavedProjects()
@@ -111,8 +113,14 @@ export function useProjectsPageState() {
           )
         )
         setScanEpoch((e) => e + 1)
+        logActivity('Projects load completed', {
+          source,
+          rawCount: raw.length,
+          dedupedCount: deduped.length
+        })
         return deduped
       } catch (err) {
+        logActivity('Projects load failed', { source, error: err instanceof Error ? err.message : String(err) })
         console.error(`loadProjects(${source}) failed:`, err)
         return []
       } finally {
@@ -130,6 +138,7 @@ export function useProjectsPageState() {
     async (tab: TabType): Promise<Project[]> => {
       if (!window.electronAPI) return []
       try {
+        logActivity('Projects tab load started', { tab })
         const raw = await window.electronAPI.scanProjects()
         clearGitCache()
         const deduped = dedupeProjectList(raw)
@@ -142,8 +151,14 @@ export function useProjectsPageState() {
         )
         setProjects(filtered)
         setScanEpoch((e) => e + 1)
+        logActivity('Projects tab load completed', {
+          tab,
+          rawCount: raw.length,
+          filteredCount: filtered.length
+        })
         return filtered
       } catch (err) {
+        logActivity('Projects tab load failed', { tab, error: err instanceof Error ? err.message : String(err) })
         console.error('loadProjectsForTab failed:', err)
         return []
       }
@@ -163,6 +178,7 @@ export function useProjectsPageState() {
     const path = location.pathname
     const tab: TabType =
       path === '/projects/favorites' ? 'favorites' : path === '/projects/hidden' ? 'hidden' : 'all'
+    logActivity('Projects tab synced from route', { path, tab })
     setCurrentTab(tab)
     currentTabRef.current = tab
     // Only re-filter if we already have data — never wipe the list on a tab switch
@@ -194,6 +210,7 @@ export function useProjectsPageState() {
 
   const switchTab = useCallback(
     (tab: TabType): void => {
+      logActivity('Projects tab switch requested', { from: currentTab, to: tab })
       // Clear git cache when switching tabs to ensure fresh git status is fetched
       clearGitCache()
       // Pass favorites from ref to avoid reading localStorage inside the utility
@@ -212,6 +229,7 @@ export function useProjectsPageState() {
 
   const toggleFavoritePath = useCallback(
     (projectPath: string): void => {
+      logActivity('Project favorite toggled', { projectPath })
       toggleFav(projectPath, (updated) => {
         if (currentTab === 'favorites') {
           setProjects(
@@ -228,6 +246,7 @@ export function useProjectsPageState() {
     (projectPath: string): void => {
       const current = hiddenPathsRef.current
       const isHidden = current.includes(projectPath)
+      logActivity('Project hidden state toggled', { projectPath, nextHidden: !isHidden })
       const updated = isHidden
         ? current.filter((p) => p !== projectPath)
         : [...current, projectPath]

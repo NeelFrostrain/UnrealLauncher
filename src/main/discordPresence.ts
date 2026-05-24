@@ -7,6 +7,7 @@ import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import { getNative } from './utils/native'
+import { logger } from './logger'
 
 const PRESENCE_POLL_MS = 10000
 const DISCORD_RECONNECT_INITIAL_MS = 5000
@@ -178,10 +179,11 @@ export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {
   const clientId = resolveClientId(options.clientId)
   if (!clientId) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('[discord] Rich Presence disabled: missing DISCORD_CLIENT_ID')
+      logger.warn('discord', 'Rich Presence disabled: missing DISCORD_CLIENT_ID')
     }
     return
   }
+  logger.info('discord', 'Rich Presence initializing', { clientId })
 
   // Load discord-rpc lazily so startup warning guards are active before transitive modules load.
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -283,16 +285,19 @@ export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {
     rpc.on('ready', () => {
       rpcReady = true
       reconnectDelayMs = DISCORD_RECONNECT_INITIAL_MS
+      logger.info('discord', 'Rich Presence connected')
       setDiscordPresenceDynamic()
       pollTimer = setInterval(setDiscordPresenceDynamic, PRESENCE_POLL_MS)
     })
 
     rpc.on('disconnected', () => {
+      logger.warn('discord', 'Rich Presence disconnected')
       resetConnectionState()
       scheduleReconnect()
     })
 
-    rpc.on('error', () => {
+    rpc.on('error', (error) => {
+      logger.warn('discord', 'Rich Presence client error', error)
       resetConnectionState()
       scheduleReconnect()
     })
@@ -300,13 +305,14 @@ export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {
     rpc.login({ clientId }).catch(() => {
       resetConnectionState()
       if (process.env.NODE_ENV === 'development') {
-        console.warn('[discord] Rich Presence waiting for Discord to start')
+        logger.warn('discord', 'Rich Presence waiting for Discord to start')
       }
       scheduleReconnect()
     })
   }
 
   app.once('before-quit', () => {
+    logger.info('discord', 'Rich Presence shutting down')
     shuttingDown = true
     clearReconnectTimer()
     resetConnectionState()

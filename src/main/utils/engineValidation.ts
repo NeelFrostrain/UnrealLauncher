@@ -17,6 +17,7 @@ import { getNativeModulePath } from './native'
 import { getInstalledEngines } from './engineRegistry'
 import { generateGradient } from './engineGradient'
 import type { Engine } from '../types'
+import { logger } from '../logger'
 
 export interface EngineValidationResult {
   valid: boolean
@@ -26,21 +27,36 @@ export interface EngineValidationResult {
 }
 
 export function validateEngineInstallation(folder: string): EngineValidationResult {
+  logger.info('engine', 'Validating engine installation', { folder })
   const native = getNative()
   if (native) {
     try {
       const r = native.validateEngineFolder(folder)
+      logger.info('engine', 'Native engine validation completed', {
+        folder,
+        valid: r.valid,
+        version: r.version,
+        reason: r.reason
+      })
       return {
         valid: r.valid,
         version: r.version,
         exePath: r.exePath,
         reason: r.reason ?? undefined
       }
-    } catch {
+    } catch (error) {
+      logger.warn('engine', 'Native engine validation failed; using JS fallback', { folder, error })
       /* fall through */
     }
   }
-  return _validateEngineJS(folder)
+  const result = _validateEngineJS(folder)
+  logger.info('engine', 'JS engine validation completed', {
+    folder,
+    valid: result.valid,
+    version: result.version,
+    reason: result.reason
+  })
+  return result
 }
 
 function _validateEngineJS(folder: string): EngineValidationResult {
@@ -107,28 +123,51 @@ function _validateEngineJS(folder: string): EngineValidationResult {
  */
 export async function scanAndMergeEngines(): Promise<Engine[]> {
   // Prevent concurrent scans from running and clobbering each other's results
-  if ((scanAndMergeEngines as any)._inFlight) return loadEngines()
+  if ((scanAndMergeEngines as any)._inFlight) {
+    logger.warn('engine-scan', 'Engine scan skipped because another scan is already running')
+    return loadEngines()
+  }
   ;(scanAndMergeEngines as any)._inFlight = true
   try {
     const saved = loadEngines()
+    const engineScanPaths = loadEngineScanPaths()
+    logger.info('engine-scan', 'Engine scan started', {
+      savedCount: saved.length,
+      scanPathCount: engineScanPaths.length
+    })
 
     // Run filesystem worker scan and Windows registry scan in parallel
     const [workerScanned, registryEngines] = await Promise.all([
       new Promise<Engine[]>((resolve, reject) => {
+        logger.debug('engine-scan', 'Starting engine scan worker')
         const w = spawnWorker(ENGINE_SCAN_WORKER, {
           saved,
           nativePath: getNativeModulePath(),
-          engineScanPaths: loadEngineScanPaths()
+          engineScanPaths
         })
-        w.once('message', (msg) => resolve(msg as Engine[]))
-        w.once('error', reject)
+        w.once('message', (msg) => {
+          logger.debug('engine-scan', 'Engine scan worker returned message')
+          resolve(msg as Engine[])
+        })
+        w.once('error', (error) => {
+          logger.error('engine-scan', 'Engine scan worker error', error)
+          reject(error)
+        })
         w.once('exit', (c: number) => {
+          logger.debug('engine-scan', 'Engine scan worker exited', { code: c })
           if (c !== 0) reject(new Error(`Worker exited ${c}`))
         })
       }),
       // Registry scan only runs on Windows — returns [] on other platforms
-      getInstalledEngines().catch(() => [] as Engine[])
+      getInstalledEngines().catch((error) => {
+        logger.warn('engine-scan', 'Registry engine scan failed', error)
+        return [] as Engine[]
+      })
     ])
+    logger.info('engine-scan', 'Engine scan sources finished', {
+      workerCount: workerScanned.length,
+      registryCount: registryEngines.length
+    })
 
     // Merge registry results into worker results — registry wins for exePath/version
     // since it's the authoritative source on Windows
@@ -182,8 +221,18 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
     }
 
     saveEngines(merged)
+    logger.info('engine-scan', 'Engine scan merged and saved', {
+      savedCount: saved.length,
+      scannedCount: scanned.length,
+      newCount: newEngines.length,
+      mergedCount: merged.length
+    })
     return merged
+  } catch (error) {
+    logger.error('engine-scan', 'Engine scan failed', error)
+    throw error
   } finally {
+    logger.info('engine-scan', 'Engine scan finished')
     ;(scanAndMergeEngines as any)._inFlight = false
   }
 }
@@ -192,5 +241,7 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
  * Loads saved engines from storage
  */
 export async function loadSavedEngines(): Promise<Engine[]> {
-  return loadEngines()
+  const engines = loadEngines()
+  logger.info('engine', 'Loaded saved engines', { count: engines.length })
+  return engines
 }

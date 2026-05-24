@@ -18,6 +18,7 @@ import {
   setupMemoryManagement
 } from './windowHandlers'
 import { loadMainSettings } from '../store'
+import { logger } from '../logger'
 
 let appTray: Tray | null = null
 let isQuiting = false
@@ -39,9 +40,11 @@ function clearMemoryManagementTimer(): void {
 
 function showOrCreateMainWindow(): void {
   if (mainWindow && !mainWindow.isDestroyed()) {
+    logger.info('window', 'Showing existing main window')
     mainWindow.show()
     mainWindow.focus()
   } else {
+    logger.info('window', 'Recreating main window from tray')
     createWindow()
   }
   destroyAppTray()
@@ -76,9 +79,11 @@ function createAppTray(): boolean {
     appTray = new Tray(icon)
   } catch {
     appTray = null
+    logger.warn('tray', 'Failed to create tray icon')
     return false
   }
 
+  logger.info('tray', 'Tray icon created')
   appTray.setToolTip('Unreal Launcher')
   appTray.setContextMenu(
     Menu.buildFromTemplate([
@@ -108,11 +113,13 @@ function destroyAppTray(): void {
   if (!appTray) return
   appTray.destroy()
   appTray = null
+  logger.info('tray', 'Tray icon destroyed')
 }
 
 export function handleRequestedAppClose(): void {
   const settings = loadMainSettings()
   if (!settings.backgroundCloseEnabled) {
+    logger.info('app', 'Close requested; quitting app')
     isQuiting = true
     app.quit()
     return
@@ -120,6 +127,7 @@ export function handleRequestedAppClose(): void {
 
   if (mainWindow && !mainWindow.isDestroyed()) {
     if (createAppTray()) {
+      logger.info('window', 'Close requested; closing window and staying in tray')
       mainWindow.close()
     }
   }
@@ -130,6 +138,7 @@ export function handleRequestedAppShow(): void {
 }
 
 export function requestQuit(): void {
+  logger.info('app', 'Quit requested')
   isQuiting = true
   destroyAppTray()
   app.quit()
@@ -148,15 +157,22 @@ export function getAppTray(): Tray | null {
 }
 
 export function createWindow(): void {
+  logger.info('window', 'Creating splash and main window')
   createSplashWindow()
 
   mainWindow = new BrowserWindow(MAIN_WINDOW_CONFIG as any)
+  logger.info('window', 'Main BrowserWindow created', {
+    width: MAIN_WINDOW_CONFIG.width,
+    height: MAIN_WINDOW_CONFIG.height,
+    frame: MAIN_WINDOW_CONFIG.frame
+  })
   setupWindowEventHandlers(mainWindow)
   setupDevToolsShortcut(mainWindow)
   clearMemoryManagementTimer()
   memoryManagementTimer = setupMemoryManagement(mainWindow)
 
   mainWindow.on('close', () => {
+    logger.info('window', 'Main window close event', { isQuiting })
     if (isQuiting) return
     const settings = loadMainSettings()
     if (settings.backgroundCloseEnabled && mainWindow && !mainWindow.isDestroyed()) {
@@ -168,35 +184,42 @@ export function createWindow(): void {
 
   mainWindow.once('ready-to-show', () => {
     if (mainWindow) {
+      logger.info('window', 'Main window ready to show')
       mainWindow.show()
       closeSplashWindow()
     }
   })
 
   mainWindow.on('closed', () => {
+    logger.info('window', 'Main window closed')
     clearMemoryManagementTimer()
     closeSplashWindow()
     mainWindow = null
   })
 
   if (process.env.NODE_ENV === 'development') {
+    logger.info('window', 'Loading development renderer URL')
     mainWindow.loadURL('http://localhost:5173')
   } else {
+    logger.info('window', 'Loading production renderer file')
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
   }
 }
 
 export function setupAppLifecycle(): void {
   app.on('window-all-closed', () => {
+    logger.info('app', 'All windows closed')
     if (process.platform === 'darwin') return
     if (!loadMainSettings().backgroundCloseEnabled) app.quit()
   })
 
   app.on('activate', () => {
+    logger.info('app', 'App activated')
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 
   app.on('browser-window-created', (_, window) => {
+    logger.debug('window', 'Browser window created event')
     optimizer.watchWindowShortcuts(window)
   })
 }

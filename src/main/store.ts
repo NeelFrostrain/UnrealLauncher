@@ -6,6 +6,7 @@ import fs from 'fs'
 import path from 'path'
 import { app } from 'electron'
 import type { Engine, Project } from './types'
+import { logger } from './logger'
 
 // ── Lazy path resolution ──────────────────────────────────────────────────────
 function getSaveDir(): string {
@@ -193,7 +194,7 @@ export function loadEngines(): Engine[] {
       return Array.isArray(parsed) ? parsed : []
     }
   } catch (err) {
-    console.error('Error loading engines:', err)
+    logger.error('store', 'Error loading engines', err)
   }
   return []
 }
@@ -231,7 +232,7 @@ export function loadProjects(): Project[] {
       return Array.isArray(parsed) ? dedupeProjects(parsed) : []
     }
   } catch (err) {
-    console.error('Error loading projects:', err)
+    logger.error('store', 'Error loading projects', err)
   }
   return []
 }

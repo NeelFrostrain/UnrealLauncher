@@ -9,6 +9,7 @@ import { loadProjects, saveProjects } from '../store'
 import { findUprojectFiles, findProjectScreenshot } from '../utils'
 import { getMainWindow } from '../window'
 import type { Project, ProjectSelectionResult } from '../types'
+import { logger } from '../logger'
 
 const BATCH_LIMIT = 20
 
@@ -74,15 +75,24 @@ export async function handleSelectProjectFolder(): Promise<ProjectSelectionResul
   const win = getMainWindow()
   if (!win) return null
 
+  logger.info('project', 'Select project folder dialog opened')
   const result = await dialog.showOpenDialog(win, {
     title: 'Select Unreal Project Folder',
     properties: ['openDirectory']
   })
 
-  if (result.canceled || result.filePaths.length === 0) return null
+  if (result.canceled || result.filePaths.length === 0) {
+    logger.info('project', 'Select project folder dialog canceled')
+    return null
+  }
 
   const folder = result.filePaths[0]
+  logger.info('project', 'Project folder selected', { folder })
   const uprojectFiles = findUprojectFiles(folder, 3, 50)
+  logger.info('project', 'Project folder scanned for uproject files', {
+    folder,
+    foundCount: uprojectFiles.length
+  })
   const response: ProjectSelectionResult = {
     addedProjects: [],
     duplicateProjects: [],
@@ -90,6 +100,7 @@ export async function handleSelectProjectFolder(): Promise<ProjectSelectionResul
   }
 
   if (uprojectFiles.length === 0) {
+    logger.warn('project', 'Selected project folder has no uproject files', { folder })
     response.invalidProjects.push({
       projectPath: folder,
       reason: 'No .uproject files were found in the selected folder.'
@@ -111,9 +122,11 @@ export async function handleSelectProjectFolder(): Promise<ProjectSelectionResul
     }
 
     const projectDir = path.dirname(uprojectPath)
+    logger.debug('project', 'Processing selected uproject file', { uprojectPath, projectDir })
     const metadata = extractProjectMetadata(uprojectPath, projectDir)
 
     if (!metadata) {
+      logger.warn('project', 'Selected project file invalid or corrupted', { uprojectPath })
       response.invalidProjects.push({
         projectPath: projectDir,
         reason: 'Invalid or corrupted .uproject file.'
@@ -123,6 +136,11 @@ export async function handleSelectProjectFolder(): Promise<ProjectSelectionResul
 
     const existing = findDuplicateProject(projectDir, metadata.projectId, known)
     if (existing) {
+      logger.warn('project', 'Selected project is duplicate', {
+        projectDir,
+        projectName: metadata.projectName,
+        reason: existing.projectPath === projectDir ? 'Already added' : 'Duplicate project ID'
+      })
       response.duplicateProjects.push({
         projectPath: projectDir,
         name: metadata.projectName,
@@ -133,6 +151,10 @@ export async function handleSelectProjectFolder(): Promise<ProjectSelectionResul
 
     const newProject = createProjectEntry(uprojectPath, projectDir, metadata)
     if (!newProject) {
+      logger.warn('project', 'Unable to create project entry from selected project', {
+        uprojectPath,
+        projectDir
+      })
       response.invalidProjects.push({
         projectPath: projectDir,
         reason: 'Unable to read project folder metadata.'
@@ -142,11 +164,26 @@ export async function handleSelectProjectFolder(): Promise<ProjectSelectionResul
 
     response.addedProjects.push(newProject)
     known.push(newProject)
+    logger.info('project', 'Project queued for manual add', {
+      name: newProject.name,
+      version: newProject.version,
+      projectPath: newProject.projectPath
+    })
   }
 
   if (response.addedProjects.length > 0) {
     saveProjects([...savedProjects, ...response.addedProjects])
+    logger.info('project', 'Manual project add saved', {
+      added: response.addedProjects.length,
+      duplicates: response.duplicateProjects.length,
+      invalid: response.invalidProjects.length
+    })
   }
 
+  logger.info('project', 'Select project folder completed', {
+    added: response.addedProjects.length,
+    duplicates: response.duplicateProjects.length,
+    invalid: response.invalidProjects.length
+  })
   return response
 }

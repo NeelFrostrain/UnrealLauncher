@@ -4,11 +4,13 @@
 // See LICENSE in the project root for full license terms.
 import { loadEngines, saveEngines } from '../store'
 import { openFileOrDirectory } from '../utils/processUtils'
+import { logger } from '../logger'
 
 /**
  * Handles the launch-engine IPC event
  */
 export async function handleLaunchEngine(exePath: string): Promise<Record<string, unknown>> {
+  logger.info('engine', 'Launch engine requested', { exePath })
   try {
     openFileOrDirectory(exePath)
 
@@ -22,10 +24,16 @@ export async function handleLaunchEngine(exePath: string): Promise<Record<string
         year: 'numeric'
       })
       saveEngines(engines)
+      logger.info('engine', 'Engine last launch date updated', {
+        version: engine.version,
+        exePath
+      })
     }
 
+    logger.info('engine', 'Engine launch handed to OS', { exePath })
     return { success: true }
   } catch (err) {
+    logger.error('engine', 'Engine launch failed', { exePath, error: err })
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
   }
 }
@@ -34,10 +42,13 @@ export async function handleLaunchEngine(exePath: string): Promise<Record<string
  * Handles the delete-engine IPC event
  */
 export function handleDeleteEngine(directoryPath: string): boolean {
+  logger.info('engine', 'Delete engine requested', { directoryPath })
   try {
     saveEngines(loadEngines().filter((e) => e.directoryPath !== directoryPath))
+    logger.info('engine', 'Engine deleted from saved list', { directoryPath })
     return true
-  } catch {
+  } catch (error) {
+    logger.error('engine', 'Engine delete failed', { directoryPath, error })
     return false
   }
 }

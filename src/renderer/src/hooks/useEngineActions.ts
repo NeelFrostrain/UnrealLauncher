@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useToast } from '../components/ui/ToastContext'
 import { getSetting } from '../utils/settings'
 import type { EngineCardProps } from '../types'
+import { logActivity } from '../utils/activityLogger'
 
 export function useEngineActions(
   setEngines: React.Dispatch<React.SetStateAction<EngineCardProps[]>>
@@ -24,10 +25,14 @@ export function useEngineActions(
   const [addingEngine, setAddingEngine] = useState(false)
 
   const handleScan = async (): Promise<void> => {
+    logActivity('Engine refresh started')
     setScanning(true)
     try {
-      setEngines(await window.electronAPI.scanEngines())
+      const engines = await window.electronAPI.scanEngines()
+      setEngines(engines)
+      logActivity('Engine refresh completed', { count: engines.length })
     } catch (err) {
+      logActivity('Engine refresh failed', { error: err instanceof Error ? err.message : String(err) })
       console.error('Failed to scan engines:', err)
     }
     setScanning(false)
@@ -76,6 +81,7 @@ export function useEngineActions(
 
   const handleAddEngine = async (): Promise<void> => {
     if (!window.electronAPI || addingEngine) return
+    logActivity('Add engine started')
     setAddingEngine(true)
     try {
       const result = await Promise.race([
@@ -83,22 +89,30 @@ export function useEngineActions(
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 30000))
       ])
       if (!result) {
+        logActivity('Add engine canceled')
         addToast('No engine folder was selected', 'info')
         return
       }
       if (result.invalid) {
+        logActivity('Add engine invalid', { message: result.message })
         addToast(result.message || 'Invalid Unreal Engine installation', 'error')
         return
       }
       if (result.duplicate) {
+        logActivity('Add engine duplicate', { message: result.message })
         addToast(result.message || 'This engine is already added', 'warning')
         return
       }
       if (result.added) {
+        logActivity('Add engine completed', {
+          version: result.added.version,
+          directoryPath: result.added.directoryPath
+        })
         addToast(`Added engine ${result.added.version}`, 'success')
         setEngines(await window.electronAPI.scanEngines())
       }
-    } catch {
+    } catch (error) {
+      logActivity('Add engine failed', { error: error instanceof Error ? error.message : String(error) })
       addToast('Failed to add engine. Please try again.', 'error')
     } finally {
       setAddingEngine(false)

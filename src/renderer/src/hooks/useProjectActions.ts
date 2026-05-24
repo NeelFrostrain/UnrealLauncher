@@ -6,6 +6,7 @@ import { useCallback } from 'react'
 import type { TabType } from '../types'
 import { getSetting } from '../utils/settings'
 import { useToast } from '../components/ui/ToastContext'
+import { logActivity } from '../utils/activityLogger'
 
 interface UseProjectActionsOptions {
   currentTab: TabType
@@ -41,9 +42,12 @@ export function useProjectActions({
     }): Promise<void> => {
       setRefreshing(true)
       setCalculatingSizes(true)
-      await loadProjectsForTab(currentTab)
+      logActivity('Project refresh started', { currentTab })
+      const projects = await loadProjectsForTab(currentTab)
+      logActivity('Project refresh scan completed', { currentTab, count: Array.isArray(projects) ? projects.length : 0 })
       setRefreshing(false)
       await window.electronAPI.calculateAllProjectSizes()
+      logActivity('Project refresh size calculation requested')
       setCalculatingSizes(false)
     },
     [currentTab, loadProjectsForTab]
@@ -77,6 +81,7 @@ export function useProjectActions({
       setAddingProject: (v: boolean) => void
     }): Promise<void> => {
       if (!window.electronAPI || addingProject) return
+      logActivity('Add project started', { currentTab })
       setAddingProject(true)
       try {
         const timeoutPromise = new Promise<never>((_, reject) => {
@@ -86,6 +91,7 @@ export function useProjectActions({
         const result = await Promise.race([selectPromise, timeoutPromise])
 
         if (!result) {
+          logActivity('Add project canceled')
           addToast('No folder was selected', 'info')
           setAddingProject(false)
           return
@@ -97,6 +103,12 @@ export function useProjectActions({
         const invalid = result.invalidProjects.filter(
           (p) => !p.reason.startsWith('Batch limit')
         ).length
+        logActivity('Add project completed', {
+          added,
+          duplicates,
+          invalid,
+          batchLimit: Boolean(batchMsg)
+        })
 
         if (added > 0) addToast(`Added ${added} new project${added === 1 ? '' : 's'}`, 'success')
         if (duplicates > 0)
@@ -110,6 +122,7 @@ export function useProjectActions({
 
         await loadProjectsForTab(currentTab)
       } catch (error) {
+        logActivity('Add project failed', { error: error instanceof Error ? error.message : String(error) })
         console.error('Error adding projects:', error)
         addToast('Failed to add projects. Please try again.', 'error')
       } finally {

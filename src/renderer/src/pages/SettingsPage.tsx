@@ -14,6 +14,7 @@ import DataSection from '../components/settings/sections/DataSection'
 import UpdatesSection from '../components/settings/sections/UpdatesSection'
 import ProjectsSection from '../components/settings/sections/ProjectsSection'
 import EnginesSection from '../components/settings/sections/EnginesSection'
+import { logActivity } from '../utils/activityLogger'
 
 const SettingsPage = (): React.ReactElement => {
   const [activeSection, setActiveSection] = useState<SectionId>('general')
@@ -91,7 +92,10 @@ const SettingsPage = (): React.ReactElement => {
       <div className="flex flex-col h-full min-h-0">
         <SettingsNavigation
           activeSection={activeSection}
-          onSectionChange={setActiveSection}
+          onSectionChange={(section) => {
+            logActivity('Settings section switched', { from: activeSection, to: section })
+            setActiveSection(section)
+          }}
           platform={platform}
         />
 

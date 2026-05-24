@@ -5,6 +5,7 @@
 import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import { logger } from '../logger'
 
 // ── Native module path ────────────────────────────────────────────────────────
 // Resolves correctly in dev, asar-packed, and asar-unpacked builds.
@@ -83,16 +84,12 @@ export function getNative(): NativeModule | null {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     _native = require(getNativeModulePath())
     if (!_native) throw new Error('module resolved to null')
-    // Only log in development to reduce noise in production
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[native] Rust module loaded from', getNativeModulePath())
-    }
+    logger.info('native', 'Rust module loaded', { modulePath: getNativeModulePath() })
   } catch (e) {
-    console.warn(
-      '[native] Rust module unavailable, using JS fallback.',
-      getNativeModulePath(),
-      (e as Error).message
-    )
+    logger.warn('native', 'Rust module unavailable; using JS fallback', {
+      modulePath: getNativeModulePath(),
+      error: e
+    })
     _native = null
   }
   return _native
