@@ -12,6 +12,7 @@ import { generateGradient } from '@renderer/utils/generateGradient'
 const MAX_ALIAS = 32
 
 interface EngineCardComponentProps extends EngineCardProps {
+  index?: number
   onLaunch: (exePath: string) => void
   onOpenDir: (dirPath: string) => void
   onDelete: (dirPath: string) => void
@@ -26,6 +27,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     folderSize,
     gradient,
     alias,
+    index,
     onLaunch,
     onOpenDir,
     onDelete,
@@ -89,12 +91,12 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     return (
       <motion.div
         className="w-full h-36 overflow-hidden flex select-text"
+        initial={index !== undefined && index < 8 ? { opacity: 0, y: 12 } : false}
         style={{
           backgroundColor: 'var(--color-surface-card)',
           border: '1px solid var(--color-border)',
           borderRadius: 'var(--radius)'
         }}
-        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -1 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}

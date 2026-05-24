@@ -2,7 +2,7 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import type { Project, TabType } from '../types'
 import { useProjectFavorites } from './useProjectFavorites'
@@ -56,9 +56,16 @@ export function useProjectsPageState() {
     return { key: 'lastOpenedAt', direction: 'desc' }
   })
 
-  const [hiddenPaths, setHiddenPaths] = useState<string[]>(loadHiddenPaths)
-
   const { favoritePaths, toggleFavoritePath: toggleFav } = useProjectFavorites()
+  const stableFavoritePaths = useMemo(
+    () => favoritePaths,
+    [JSON.stringify(favoritePaths)]
+  )
+  const [hiddenPaths, setHiddenPaths] = useState<string[]>(loadHiddenPaths)
+  const stableHiddenPaths = useMemo(
+    () => hiddenPaths,
+    [JSON.stringify(hiddenPaths)]
+  )
   // Stabilize array references to avoid busting useMemo/useEffect when contents are unchanged
   // favoritePathsRef is used for stable access in async callbacks
   const { filterForTab, switchTab: switchTabFn } = useProjectFilters()
@@ -284,8 +291,8 @@ export function useProjectsPageState() {
     searchQuery,
     displayStart,
     containerRef,
-    favoritePaths,
-    hiddenPaths,
+    favoritePaths: stableFavoritePaths,
+    hiddenPaths: stableHiddenPaths,
     allProjectsRef,
 
     switchTab,

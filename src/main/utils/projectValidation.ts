@@ -14,7 +14,7 @@ import type { Project } from '../types'
  */
 export async function scanAndMergeProjects(): Promise<Project[]> {
   // Prevent concurrent scans from running simultaneously
-  if ((scanAndMergeProjects as any)._inFlight) return [] as Project[]
+  if ((scanAndMergeProjects as any)._inFlight) return loadProjects()
   ;(scanAndMergeProjects as any)._inFlight = true
 
   try {

@@ -107,7 +107,7 @@ function _validateEngineJS(folder: string): EngineValidationResult {
  */
 export async function scanAndMergeEngines(): Promise<Engine[]> {
   // Prevent concurrent scans from running and clobbering each other's results
-  if ((scanAndMergeEngines as any)._inFlight) return [] as Engine[]
+  if ((scanAndMergeEngines as any)._inFlight) return loadEngines()
   ;(scanAndMergeEngines as any)._inFlight = true
   try {
     const saved = loadEngines()
