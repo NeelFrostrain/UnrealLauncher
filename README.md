@@ -12,7 +12,12 @@
 [![TypeScript](https://img.shields.io/badge/typescript-5.9-3178c6.svg?style=flat-square)](https://www.typescriptlang.org/)
 [![Rust](https://img.shields.io/badge/rust-napi--rs-ce422b.svg?style=flat-square)](https://napi.rs/)
 
-[Website](https://neelfrostrain.github.io/UnrealLauncher/) · [Releases](https://github.com/NeelFrostrain/UnrealLauncher/releases) · [Discord](https://discord.gg/vq4UDfevG2) · [Issues](https://github.com/NeelFrostrain/UnrealLauncher/issues)
+**Quick Links:**
+
+[![Website](https://img.shields.io/badge/Website-neelfrostrain.github.io-0078d4?style=flat-square&logo=google-chrome&logoColor=white)](https://neelfrostrain.github.io/UnrealLauncher/)
+[![Releases](https://img.shields.io/badge/Releases-GitHub-181717?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/releases)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)
+[![Issues](https://img.shields.io/badge/Issues-Report%20Bug-FF6B6B?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/issues)
 
 ---
 
@@ -558,16 +563,6 @@ Built with ❤️ by [Neel Frostrain](https://github.com/NeelFrostrain)
 Special thanks to the Unreal Engine community and all contributors who have helped shape this project.
 
 ---
-
----
-
-## 📋 Release Information
-
-**Current Version:** 2.2.4  
-**Release Date:** May 24, 2026  
-**Latest Commit:** `36897f1` — Merge pull request #15 from NeelFrostrain/linuxPre v2.2.4  
-**Merge Status:** ✅ Verified  
-**Branch:** `main`
 
 ### Recent Changes
 
