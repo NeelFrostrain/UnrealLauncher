@@ -63,10 +63,11 @@ export function EnginesPageContent({
             onScroll={onScroll}
             className="space-y-2 overflow-y-auto py-2 h-full"
           >
-            {engines.slice(displayStart, displayStart + itemsPerBatch).map((data) => (
+            {engines.slice(displayStart, displayStart + itemsPerBatch).map((data, idx) => (
               <EngineCard
                 key={data.directoryPath}
                 {...data}
+                index={displayStart + idx}
                 onLaunch={onLaunch}
                 onOpenDir={onOpenDir}
                 onDelete={onDelete}

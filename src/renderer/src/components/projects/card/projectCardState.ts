@@ -27,14 +27,17 @@ export function useProjectCardState(projectPath: string | undefined) {
     remoteUrl: ''
   })
 
-  // Load git status on mount and when projectPath changes
-  // Removed `scanEpoch` from deps to avoid refetching on every scan; cache handles invalidation
+  // Load git status on mount and when projectPath changes.
+  // Removed `scanEpoch` from deps — cache handles invalidation via clearGitCache().
+  // We intentionally re-fetch on every mount so that external changes (e.g. deleting
+  // .git folder) are picked up the next time the card is rendered fresh.
   useEffect(() => {
-    if (projectPath) {
-      getGitStatus(projectPath).then((s) =>
-        setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' })
-      )
-    }
+    if (!projectPath) return
+    // Always bust the per-path cache on mount so external .git changes are reflected
+    clearGitCacheForPath(projectPath)
+    getGitStatus(projectPath).then((s) =>
+      setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' })
+    )
   }, [projectPath])
 
   const handleBranchChanged = useCallback(

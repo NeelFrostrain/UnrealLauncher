@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### ✨ Added
 
-- **Per-project thumbnail keys** — `thumbnailKey` (``${projectPath}:${thumbnail}``) passed to project cards so only cards whose thumbnails change re-render.
+- **Per-project thumbnail keys** — `thumbnailKey` (`${projectPath}:${thumbnail}`) passed to project cards so only cards whose thumbnails change re-render.
 
 ### 🛠️ Fixed
 
@@ -23,7 +23,6 @@ All notable changes to this project will be documented in this file.
 - **Rendering performance** — Limit initial entry animations to the first ~8 project cards to reduce paint churn on large lists.
 - **ProjectsContent improvements** — Hoisted search and filtering, use `projectPath` as React key, pass `thumbnailKey` and `index` to cards, and wrapped callbacks with `useCallback` where appropriate.
 - **Window config** — Removed deprecated `backgroundThrottling: true` option from `windowConfig` to avoid platform inconsistencies.
-
 
 ## [2.2.2] - 2026-05-16 — `hotfix`
 

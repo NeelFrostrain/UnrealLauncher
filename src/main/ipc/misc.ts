@@ -12,11 +12,15 @@ import {
   handleClearTracerData,
   handleGetMainSettings,
   handleSaveMainSettings,
+  handleGetRunningProjects,
   handleSelectFolder,
   handleGetEngineScanPaths,
   handleSaveEngineScanPaths,
   handleGetProjectScanPaths,
-  handleSaveProjectScanPaths
+  handleSaveProjectScanPaths,
+  handleOpenLogsFolder,
+  handleClearLogs,
+  handleRendererActivity
 } from './appDataHandlers'
 
 /**
@@ -39,8 +43,12 @@ export function registerMiscHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('get-native-status', handleGetNativeStatus)
   ipcMain_.handle('clear-app-data', handleClearAppData)
   ipcMain_.handle('clear-tracer-data', handleClearTracerData)
+  ipcMain_.handle('open-logs-folder', handleOpenLogsFolder)
+  ipcMain_.handle('clear-logs', handleClearLogs)
+  ipcMain_.handle('log-activity', (_event, activity) => handleRendererActivity(activity))
   ipcMain_.handle('get-main-settings', handleGetMainSettings)
   ipcMain_.handle('save-main-settings', (_event, settings) => handleSaveMainSettings(settings))
+  ipcMain_.handle('get-running-projects', handleGetRunningProjects)
   ipcMain_.handle('select-folder', handleSelectFolder)
 
   // Scan paths

@@ -11,22 +11,29 @@ import path from 'path'
 import { getNative } from './native'
 import { getEngineInstallPaths, getBinaryExtension } from './platformPaths'
 import type { ScannedEngine } from './native'
+import { logger } from '../logger'
 
 export type { ScannedEngine }
 
 export function scanEnginePaths(extraPaths: string[] = []): ScannedEngine[] {
+  logger.info('scan', 'Engine scan started', { extraPaths })
   const native = getNative()
   // Merge UE_ROOT env var into extra paths (Linux only)
   const ueRoot = process.platform === 'linux' ? process.env.UE_ROOT : undefined
   const allExtra = ueRoot ? [...extraPaths, ueRoot] : extraPaths
   if (native) {
     try {
-      return native.scanEngines([...getEngineInstallPaths(), ...allExtra])
-    } catch {
+      const results = native.scanEngines([...getEngineInstallPaths(), ...allExtra])
+      logger.info('scan', 'Native engine scan finished', { count: results.length })
+      return results
+    } catch (error) {
+      logger.warn('scan', 'Native engine scan failed; falling back to JS scanner', error)
       /* fall through */
     }
   }
-  return _scanEnginesJS([...getEngineInstallPaths(), ...allExtra])
+  const results = _scanEnginesJS([...getEngineInstallPaths(), ...allExtra])
+  logger.info('scan', 'JS engine scan finished', { count: results.length })
+  return results
 }
 
 function _scanEnginesJS(basePaths: string[]): ScannedEngine[] {
@@ -63,7 +70,7 @@ function _scanEnginesJS(basePaths: string[]): ScannedEngine[] {
         tryAddEngine(path.join(basePath, item))
       }
     } catch (err) {
-      console.error('[scan] Error scanning engine path:', basePath, err)
+      logger.error('scan', 'Error scanning engine path', { basePath, error: err })
     }
   }
   return results

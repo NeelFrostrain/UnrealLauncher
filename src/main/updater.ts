@@ -7,6 +7,7 @@ const { autoUpdater } = pkg
 import { BrowserWindow, dialog } from 'electron'
 import https from 'https'
 import { compareVersions } from './utils'
+import { logger } from './logger'
 
 autoUpdater.autoDownload = false
 autoUpdater.autoInstallOnAppQuit = true
@@ -52,6 +53,7 @@ export function fetchGitHubLatestRelease(): Promise<Record<string, unknown>> {
 
 export function setupAutoUpdaterEvents(getMainWindow: () => BrowserWindow | null): void {
   autoUpdater.on('update-available', (info) => {
+    logger.info('updater', 'Update available', { version: info.version })
     const win = getMainWindow()
     if (!win || win.isDestroyed()) return
     dialog
@@ -62,11 +64,17 @@ export function setupAutoUpdaterEvents(getMainWindow: () => BrowserWindow | null
         buttons: ['Download', 'Later']
       })
       .then((result) => {
-        if (result.response === 0) autoUpdater.downloadUpdate()
+        if (result.response === 0) {
+          logger.info('updater', 'User accepted update download', { version: info.version })
+          autoUpdater.downloadUpdate()
+        } else {
+          logger.info('updater', 'User postponed update download', { version: info.version })
+        }
       })
   })
 
   autoUpdater.on('update-downloaded', () => {
+    logger.info('updater', 'Update downloaded')
     const win = getMainWindow()
     if (!win || win.isDestroyed()) return
     dialog
@@ -77,11 +85,17 @@ export function setupAutoUpdaterEvents(getMainWindow: () => BrowserWindow | null
         buttons: ['Restart Now', 'Later']
       })
       .then((result) => {
-        if (result.response === 0) autoUpdater.quitAndInstall()
+        if (result.response === 0) {
+          logger.info('updater', 'User accepted update restart')
+          autoUpdater.quitAndInstall()
+        } else {
+          logger.info('updater', 'User postponed update restart')
+        }
       })
   })
 
   autoUpdater.on('download-progress', (progressObj) => {
+    logger.debug('updater', 'Update download progress', progressObj)
     const win = getMainWindow()
     if (win && !win.isDestroyed()) {
       win.webContents.send('download-progress', progressObj)
@@ -89,7 +103,7 @@ export function setupAutoUpdaterEvents(getMainWindow: () => BrowserWindow | null
   })
 
   autoUpdater.on('error', (err) => {
-    console.error('Auto-updater error:', err)
+    logger.error('updater', 'Auto-updater error', err)
     if (err instanceof Error && (err.message.includes('404') || err.message.includes('latest.yml')))
       return
     const win = getMainWindow()
@@ -104,13 +118,18 @@ export function setupAutoUpdaterEvents(getMainWindow: () => BrowserWindow | null
 }
 
 export async function handleCheckForUpdates(): Promise<Record<string, unknown>> {
+  logger.info('updater', 'Manual update check requested')
   try {
     if (process.env.NODE_ENV === 'development') {
       try {
         const result = await autoUpdater.checkForUpdates()
+        logger.info('updater', 'Development update check completed', {
+          version: result?.updateInfo?.version || null
+        })
         if (result?.updateInfo) return { success: true, updateInfo: result.updateInfo }
         return { success: true, updateInfo: null, message: 'No updates available (Dev mode)' }
       } catch (err) {
+        logger.warn('updater', 'Development update check failed', err)
         return {
           success: true,
           updateInfo: null,
@@ -120,8 +139,11 @@ export async function handleCheckForUpdates(): Promise<Record<string, unknown>> 
     }
 
     const result = await autoUpdater.checkForUpdates()
-    if (!result?.updateInfo)
+    if (!result?.updateInfo) {
+      logger.info('updater', 'Manual update check found no update')
       return { success: true, updateInfo: null, message: 'You are using the latest version' }
+    }
+    logger.info('updater', 'Manual update check found update', { version: result.updateInfo.version })
     return { success: true, updateInfo: result.updateInfo }
   } catch (err) {
     if (
@@ -142,22 +164,22 @@ export async function checkForUpdatesOnStartup(): Promise<void> {
   try {
     // Only check for updates in production builds
     if (process.env.NODE_ENV === 'development') {
-      console.log('Skipping auto-update check in development mode')
+      logger.info('updater', 'Skipping auto-update check in development mode')
       return
     }
 
-    console.log('Checking for updates on startup...')
+    logger.info('updater', 'Checking for updates on startup')
     const result = await autoUpdater.checkForUpdates()
 
     if (result?.updateInfo) {
-      console.log(`Update available: ${result.updateInfo.version}`)
+      logger.info('updater', 'Startup update check found update', { version: result.updateInfo.version })
       // The update-available event will be triggered automatically
       // and handled by the setupAutoUpdaterEvents function
     } else {
-      console.log('No updates available')
+      logger.info('updater', 'Startup update check found no update')
     }
   } catch (err) {
-    console.error('Auto-update check failed:', err)
+    logger.error('updater', 'Auto-update check failed', err)
     // Don't show error dialog on startup - just log it
   }
 }
@@ -165,6 +187,7 @@ export async function checkForUpdatesOnStartup(): Promise<void> {
 export async function handleCheckGithubVersion(
   currentVersion: string
 ): Promise<Record<string, unknown>> {
+  logger.info('updater', 'GitHub version check requested', { currentVersion })
   try {
     const release = await fetchGitHubLatestRelease()
     const latestVersion = String(release.tag_name || release.name || '').replace(/^v/i, '')
@@ -182,6 +205,7 @@ export async function handleCheckGithubVersion(
 
     return { success: true, latestVersion, currentVersion, updateAvailable, message }
   } catch (err) {
+    logger.error('updater', 'GitHub version check failed', err)
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
   }
 }

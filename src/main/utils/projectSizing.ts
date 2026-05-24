@@ -6,7 +6,7 @@ import { loadProjects, saveProjects } from '../store'
 import { formatBytes, getFullFolderSize } from '../utils'
 import { getMainWindow } from '../window'
 
-const CONCURRENCY = 2
+const CONCURRENCY = 3
 
 /**
  * Calculates the size of a single project and updates storage

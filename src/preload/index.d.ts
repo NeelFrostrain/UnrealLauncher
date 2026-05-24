@@ -155,7 +155,11 @@ declare global {
       getNativeStatus: () => Promise<boolean>
       clearAppData: () => Promise<void>
       clearTracerData: () => Promise<void>
+      openLogsFolder: () => Promise<void>
+      clearLogs: () => Promise<{ success: boolean; removed: number }>
+      logActivity: (activity: Record<string, unknown>) => Promise<void>
       getMainSettings: () => Promise<any>
+      getRunningProjects: () => Promise<string[]>
       platform: string
       appVersion: string
       electronVersion: string

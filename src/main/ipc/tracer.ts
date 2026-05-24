@@ -9,6 +9,7 @@ import { execSync, spawn } from 'child_process'
 import { saveMainSettings, loadMainSettings } from '../store'
 import { getTracerDataDir, getTracerBinaryName } from '../utils/platformPaths'
 import { isProcessRunning, killProcess } from '../utils/processUtils'
+import { logger } from '../logger'
 
 export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
   // In production: resources/ sits inside app and dev uses the project root.
@@ -34,6 +35,7 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   ipcMain_.handle('tracer-set-startup', async (_event, enabled: boolean): Promise<void> => {
+    logger.info('tracer', 'Tracer startup setting changed', { enabled })
     saveMainSettings({ tracerStartupEnabled: enabled })
 
     // Tracer only supported on Windows
@@ -41,7 +43,10 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
 
     try {
       if (enabled) {
-        if (!fs.existsSync(tracerExe)) return
+        if (!fs.existsSync(tracerExe)) {
+          logger.warn('tracer', 'Tracer executable missing while enabling startup', { tracerExe })
+          return
+        }
 
         execSync(
           `reg add "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /t REG_SZ /d "\\"${tracerExe}\\"" /f`,
@@ -49,6 +54,7 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
         )
 
         if (!isProcessRunning(tracerBinaryName)) {
+          logger.info('tracer', 'Starting tracer from settings', { tracerExe })
           spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
         }
       } else {
@@ -60,8 +66,8 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
 
         killProcess(tracerBinaryName)
       }
-    } catch {
-      /* ignore */
+    } catch (error) {
+      logger.error('tracer', 'Failed to update tracer startup setting', { enabled, error })
     }
   })
 
@@ -80,6 +86,7 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   ipcMain_.handle('tracer-set-merge', (_event, enabled: boolean): void => {
+    logger.info('tracer', 'Tracer merge setting changed', { enabled })
     saveMainSettings({ tracerMergeEnabled: enabled })
   })
 
@@ -88,6 +95,7 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   ipcMain_.handle('engines-set-registry', (_event, enabled: boolean): void => {
+    logger.info('engine', 'Registry engines setting changed', { enabled })
     saveMainSettings({ registryEnginesEnabled: enabled })
   })
 }

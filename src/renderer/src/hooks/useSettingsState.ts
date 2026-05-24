@@ -2,7 +2,7 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { getSetting, setSetting } from '../utils/settings'
 import {
   loadPersistedRadius,
@@ -35,6 +35,7 @@ export function useSettingsState() {
 
   // General settings
   const [autoCloseOnLaunch, setAutoCloseOnLaunch] = useState(() => getSetting('autoCloseOnLaunch'))
+  const [backgroundCloseOnClose, setBackgroundCloseOnClose] = useState(false)
 
   // Appearance settings
   const [radius, setRadius] = useState(() => loadPersistedRadius())
@@ -87,6 +88,19 @@ export function useSettingsState() {
     setSetting('autoCloseOnLaunch', value)
   }, [])
 
+  const handleBackgroundCloseToggle = useCallback(async (value: boolean): Promise<void> => {
+    setBackgroundCloseOnClose(value)
+    await window.electronAPI.saveMainSettings({ backgroundCloseEnabled: value })
+  }, [])
+
+  useEffect(() => {
+    window.electronAPI.getMainSettings().then((settings) => {
+      if (settings?.backgroundCloseEnabled !== undefined) {
+        setBackgroundCloseOnClose(settings.backgroundCloseEnabled)
+      }
+    })
+  }, [])
+
   return {
     // Theme
     activeThemeId,
@@ -121,6 +135,8 @@ export function useSettingsState() {
 
     // General
     autoCloseOnLaunch,
-    handleAutoCloseToggle
+    backgroundCloseOnClose,
+    handleAutoCloseToggle,
+    handleBackgroundCloseToggle
   }
 }

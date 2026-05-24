@@ -3,8 +3,9 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 
-import { execSync, spawn } from 'child_process'
+import { execFileSync, spawn } from 'child_process'
 import fs from 'fs'
+import { logger } from '../logger'
 
 /**
  * Cross-platform process management utilities
@@ -13,17 +14,21 @@ import fs from 'fs'
 export function isProcessRunning(processName: string): boolean {
   try {
     if (process.platform === 'win32') {
-      const output = execSync(`tasklist /FI "IMAGENAME eq ${processName}" /FO CSV /NH`, {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe']
-      }).trim()
+      const output = execFileSync(
+        'tasklist',
+        ['/FI', `IMAGENAME eq ${processName}`, '/FO', 'CSV', '/NH'],
+        {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'pipe']
+        }
+      ).trim()
       return output.length > 0 && !output.toLowerCase().includes('info: no tasks are running')
     } else {
       // pgrep -f matches the full command line. To avoid false positives where the
       // electron process matches (its bundle contains the binary name as a string),
       // we anchor the pattern to only match processes where the binary IS the executable
       // (i.e., the path ends with the binary name, not just contains it).
-      execSync(`pgrep -f "/${processName}$"`, { stdio: 'ignore' })
+      execFileSync('pgrep', ['-f', `/${processName}$`], { stdio: 'ignore' })
       return true
     }
   } catch {
@@ -34,20 +39,24 @@ export function isProcessRunning(processName: string): boolean {
 export function killProcess(processName: string): void {
   if (process.platform === 'win32') {
     try {
-      const output = execSync(`tasklist /FI "IMAGENAME eq ${processName}" /FO CSV /NH`, {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe']
-      }).trim()
+      const output = execFileSync(
+        'tasklist',
+        ['/FI', `IMAGENAME eq ${processName}`, '/FO', 'CSV', '/NH'],
+        {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'pipe']
+        }
+      ).trim()
       if (output.length === 0 || output.toLowerCase().includes('info: no tasks are running')) return
-      execSync(`taskkill /F /IM ${processName}`, { stdio: 'ignore' })
+      execFileSync('taskkill', ['/F', '/IM', processName], { stdio: 'ignore' })
     } catch (error) {
-      console.warn(`Failed to kill process ${processName}:`, error)
+      logger.warn('process', 'Failed to kill process', { processName, error })
     }
   } else {
     // pkill -f with end-anchor to avoid matching the electron process itself
     // (which contains the binary name as a string in its JS bundle path).
     try {
-      execSync(`pkill -f "/${processName}$"`, { stdio: 'ignore' })
+      execFileSync('pkill', ['-f', `/${processName}$`], { stdio: 'ignore' })
     } catch {
       /* not found */
     }
@@ -55,6 +64,7 @@ export function killProcess(processName: string): void {
 }
 
 export function openFileOrDirectory(filePath: string): void {
+  logger.info('process', 'Opening file or directory', { filePath, platform: process.platform })
   if (process.platform === 'win32') {
     spawn('cmd', ['/c', 'start', '""', filePath], { detached: true, stdio: 'ignore' }).unref()
   } else if (process.platform === 'darwin') {

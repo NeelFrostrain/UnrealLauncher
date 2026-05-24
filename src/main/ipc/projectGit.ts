@@ -4,6 +4,7 @@
 // See LICENSE in the project root for full license terms.
 import path from 'path'
 import fs from 'fs'
+import { execFileSync } from 'child_process'
 
 const UE_GITIGNORE = [
   '# Visual Studio 2015 user specific files',
@@ -109,6 +110,15 @@ const UE_GITATTRIBUTES = [
   '*.exe filter=lfs diff=lfs merge=lfs -text',
   '*.zip filter=lfs diff=lfs merge=lfs -text'
 ].join('\n')
+
+function runGit(projectPath: string, args: string[]): Buffer {
+  return execFileSync('git', args, { cwd: projectPath, stdio: 'pipe' })
+}
+
+function assertValidBranchName(projectPath: string, branch: string): void {
+  if (branch.startsWith('-')) throw new Error('Invalid branch name')
+  runGit(projectPath, ['check-ref-format', '--branch', branch])
+}
 
 export function handleProjectGitStatus(projectPath: string): {
   initialized: boolean
@@ -267,9 +277,8 @@ export async function handleProjectGitCommit(
   message: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { execSync } = await import('child_process')
-    execSync('git add -A', { cwd: projectPath, stdio: 'pipe' })
-    execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { cwd: projectPath, stdio: 'pipe' })
+    runGit(projectPath, ['add', '-A'])
+    runGit(projectPath, ['commit', '-m', message])
     return { success: true }
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
@@ -311,19 +320,19 @@ export async function handleProjectGitSwitchBranch(
   strategy: 'normal' | 'stash' | 'force' = 'normal'
 ): Promise<{ success: boolean; error?: string; hasUncommitted?: boolean }> {
   try {
-    const { execSync } = await import('child_process')
+    assertValidBranchName(projectPath, branch)
     if (create) {
-      execSync(`git checkout -b "${branch}"`, { cwd: projectPath, stdio: 'pipe' })
+      runGit(projectPath, ['checkout', '-b', branch])
       return { success: true }
     }
     if (strategy === 'stash') {
-      execSync('git stash', { cwd: projectPath, stdio: 'pipe' })
+      runGit(projectPath, ['stash'])
       try {
-        execSync(`git checkout "${branch}"`, { cwd: projectPath, stdio: 'pipe' })
-        execSync('git stash pop', { cwd: projectPath, stdio: 'pipe' })
+        runGit(projectPath, ['checkout', branch])
+        runGit(projectPath, ['stash', 'pop'])
       } catch (switchErr) {
         try {
-          execSync('git stash pop', { cwd: projectPath, stdio: 'pipe' })
+          runGit(projectPath, ['stash', 'pop'])
         } catch {
           /* ignore */
         }
@@ -332,12 +341,12 @@ export async function handleProjectGitSwitchBranch(
       return { success: true }
     }
     if (strategy === 'force') {
-      execSync('git checkout -- .', { cwd: projectPath, stdio: 'pipe' })
-      execSync(`git checkout "${branch}"`, { cwd: projectPath, stdio: 'pipe' })
+      runGit(projectPath, ['checkout', '--', '.'])
+      runGit(projectPath, ['checkout', branch])
       return { success: true }
     }
     try {
-      execSync(`git checkout "${branch}"`, { cwd: projectPath, stdio: 'pipe' })
+      runGit(projectPath, ['checkout', branch])
       return { success: true }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)

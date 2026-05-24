@@ -8,32 +8,50 @@ import { PROJECT_SCAN_WORKER } from '../ipc/scanWorkers'
 import { getNativeModulePath } from '../utils/native'
 import { loadProjectScanPaths } from '../store'
 import type { Project } from '../types'
+import { logger } from '../logger'
 
 /**
  * Scans for projects using the worker and merges with saved projects
  */
 export async function scanAndMergeProjects(): Promise<Project[]> {
   // Prevent concurrent scans from running simultaneously
-  if ((scanAndMergeProjects as any)._inFlight) return [] as Project[]
+  if ((scanAndMergeProjects as any)._inFlight) {
+    logger.warn('project-scan', 'Project scan skipped because another scan is already running')
+    return loadProjects()
+  }
   ;(scanAndMergeProjects as any)._inFlight = true
 
   try {
     const raw = mergeTracerProjects(loadProjects())
     const saved = Array.isArray(raw) ? raw : []
+    const customScanPaths = loadProjectScanPaths()
+    logger.info('project-scan', 'Project scan started', {
+      savedCount: saved.length,
+      scanPathCount: customScanPaths.length
+    })
 
     // Run the worker scan
     const scanned = await new Promise<Project[]>((resolve, reject) => {
+      logger.debug('project-scan', 'Starting project scan worker')
       const w = spawnWorker(PROJECT_SCAN_WORKER, {
         saved,
         nativePath: getNativeModulePath(),
-        customScanPaths: loadProjectScanPaths()
+        customScanPaths
       })
-      w.once('message', (msg) => resolve(msg as Project[]))
-      w.once('error', reject)
+      w.once('message', (msg) => {
+        logger.debug('project-scan', 'Project scan worker returned message')
+        resolve(msg as Project[])
+      })
+      w.once('error', (error) => {
+        logger.error('project-scan', 'Project scan worker error', error)
+        reject(error)
+      })
       w.once('exit', (c: number) => {
+        logger.debug('project-scan', 'Project scan worker exited', { code: c })
         if (c !== 0) reject(new Error(`Worker exited ${c}`))
       })
     })
+    logger.info('project-scan', 'Project scan worker finished', { scannedCount: scanned.length })
 
     // Merge: keep all saved projects, add any newly discovered ones.
     // For existing projects, refresh all fields that can change on disk —
@@ -66,28 +84,43 @@ export async function scanAndMergeProjects(): Promise<Project[]> {
     }
 
     saveProjects(merged)
+    logger.info('project-scan', 'Project scan merged and saved', {
+      savedCount: saved.length,
+      scannedCount: scanned.length,
+      newCount: newProjects.length,
+      mergedCount: merged.length
+    })
     return merged
+  } catch (error) {
+    logger.error('project-scan', 'Project scan failed', error)
+    throw error
   } finally {
+    logger.info('project-scan', 'Project scan finished')
     ;(scanAndMergeProjects as any)._inFlight = false
   }
 }
 
 /**
- * Loads saved projects from storage
+ * Loads saved projects from storage.
  */
 export async function loadSavedProjects(): Promise<Project[]> {
   const raw = mergeTracerProjects(loadProjects())
-  return Array.isArray(raw) ? raw : []
+  const projects = Array.isArray(raw) ? raw : []
+  logger.info('project', 'Loaded saved projects', { count: projects.length })
+  return projects
 }
 
 /**
  * Deletes a project from saved projects
  */
 export function deleteProject(projectPath: string): boolean {
+  logger.info('project', 'Delete project requested', { projectPath })
   try {
     saveProjects(loadProjects().filter((p) => p.projectPath !== projectPath))
+    logger.info('project', 'Project deleted from saved list', { projectPath })
     return true
-  } catch {
+  } catch (error) {
+    logger.error('project', 'Project delete failed', { projectPath, error })
     return false
   }
 }

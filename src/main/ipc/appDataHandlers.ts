@@ -15,6 +15,8 @@ import {
 } from '../store'
 import { getMainWindow } from '../window'
 import { getNative } from '../utils/native'
+import { openFileOrDirectory } from '../utils/processUtils'
+import { clearLogFiles, getLogsDir, logger } from '../logger'
 
 /**
  * Handles the get-native-status IPC event
@@ -27,6 +29,7 @@ export function handleGetNativeStatus(): boolean {
  * Handles the clear-app-data IPC event
  */
 export function handleClearAppData(): void {
+  logger.warn('data', 'Clearing app data')
   clearAppData()
 }
 
@@ -34,6 +37,7 @@ export function handleClearAppData(): void {
  * Handles the clear-tracer-data IPC event
  */
 export function handleClearTracerData(): void {
+  logger.warn('data', 'Clearing tracer data')
   clearTracerData()
 }
 
@@ -48,7 +52,16 @@ export function handleGetMainSettings(): any {
  * Handles the save-main-settings IPC event
  */
 export function handleSaveMainSettings(settings: any): void {
+  logger.info('settings', 'Saving main settings', { keys: Object.keys(settings || {}) })
   saveMainSettings(settings)
+}
+
+/**
+ * Handles the get-running-projects IPC event
+ */
+export function handleGetRunningProjects(): string[] {
+  const native = getNative()
+  return native?.findRunningUnrealProjects?.() ?? []
 }
 
 /**
@@ -58,12 +71,21 @@ export async function handleSelectFolder(): Promise<string[] | null> {
   const win = getMainWindow()
   if (!win) return null
 
+  logger.info('dialog', 'Select folder dialog opened')
   const result = await dialog.showOpenDialog(win, {
     title: 'Select Folder',
     properties: ['openDirectory']
   })
 
-  return result.canceled ? null : result.filePaths
+  if (result.canceled) {
+    logger.info('dialog', 'Select folder dialog canceled')
+    return null
+  }
+  logger.info('dialog', 'Select folder dialog completed', {
+    count: result.filePaths.length,
+    firstPath: result.filePaths[0]
+  })
+  return result.filePaths
 }
 
 /**
@@ -77,6 +99,7 @@ export function handleGetEngineScanPaths(): string[] {
  * Handles the save-engine-scan-paths IPC event
  */
 export function handleSaveEngineScanPaths(paths: string[]): void {
+  logger.info('settings', 'Saving engine scan paths', { count: paths.length })
   saveEngineScanPaths(paths)
 }
 
@@ -91,5 +114,22 @@ export function handleGetProjectScanPaths(): string[] {
  * Handles the save-project-scan-paths IPC event
  */
 export function handleSaveProjectScanPaths(paths: string[]): void {
+  logger.info('settings', 'Saving project scan paths', { count: paths.length })
   saveProjectScanPaths(paths)
+}
+
+export function handleOpenLogsFolder(): void {
+  const logsDir = getLogsDir()
+  logger.info('logs', 'Opening logs folder', { logsDir })
+  openFileOrDirectory(logsDir)
+}
+
+export function handleClearLogs(): { success: boolean; removed: number } {
+  const removed = clearLogFiles()
+  logger.warn('logs', 'Cleared log files', { removed })
+  return { success: true, removed }
+}
+
+export function handleRendererActivity(event: any): void {
+  logger.info('ui', event?.action || 'Renderer activity', event || {})
 }
