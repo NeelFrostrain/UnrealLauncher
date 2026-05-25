@@ -2,15 +2,16 @@
 
 > A lightweight, cross-platform Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
 
-[![Version](https://img.shields.io/badge/version-2.2.4-blue.svg?style=flat-square)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.2.4)
-[![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg?style=flat-square)](https://github.com/NeelFrostrain/UnrealLauncher)
-[![License](https://img.shields.io/badge/license-Proprietary-red.svg?style=flat-square)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg?style=flat-square)](#-distribution)
-[![Node](https://img.shields.io/badge/node-18%2B-green.svg?style=flat-square)](https://nodejs.org/)
-[![Electron](https://img.shields.io/badge/electron-39-9feaf9.svg?style=flat-square)](https://www.electronjs.org/)
-[![React](https://img.shields.io/badge/react-19-61dafb.svg?style=flat-square)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/typescript-5.9-3178c6.svg?style=flat-square)](https://www.typescriptlang.org/)
-[![Rust](https://img.shields.io/badge/rust-napi--rs-ce422b.svg?style=flat-square)](https://napi.rs/)
+[![Version](https://img.shields.io/badge/Version-2.2.4-3178c6?style=for-the-badge)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.2.4)
+[![Status](https://img.shields.io/badge/Status-Production_Ready-2ea44f?style=for-the-badge)](https://github.com/NeelFrostrain/UnrealLauncher)
+[![License](https://img.shields.io/badge/License-Proprietary-d73a49?style=for-the-badge)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows_%7C_macOS_%7C_Linux-24292e?style=for-the-badge)](#-distribution)
+
+[![Node](https://img.shields.io/badge/Node.js-68A063?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Electron](https://img.shields.io/badge/Electron-478CBF?style=for-the-badge&logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Rust](https://img.shields.io/badge/Rust-black?style=for-the-badge&logo=rust&logoColor=E05D44)](https://napi.rs/)
 
 **Quick Links:**
 
