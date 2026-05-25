@@ -36,11 +36,11 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 
 ## Project Stats
 
-[![GitHub Stars](https://img.shields.io/github/stars/NeelFrostrain/UnrealLauncher?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher)
-[![GitHub Forks](https://img.shields.io/github/forks/NeelFrostrain/UnrealLauncher?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/fork)
-[![GitHub Issues](https://img.shields.io/github/issues/NeelFrostrain/UnrealLauncher?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/issues)
-[![GitHub PRs](https://img.shields.io/github/issues-pr/NeelFrostrain/UnrealLauncher?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/pulls)
-[![Last Commit](https://img.shields.io/github/last-commit/NeelFrostrain/UnrealLauncher?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/commits/main)
+[![GitHub Stars](https://img.shields.io/github/stars/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=9cf)](https://github.com/NeelFrostrain/UnrealLauncher)
+[![GitHub Forks](https://img.shields.io/github/forks/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=bfd4f2)](https://github.com/NeelFrostrain/UnrealLauncher/fork)
+[![GitHub Issues](https://img.shields.io/github/issues/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=fba7a7)](https://github.com/NeelFrostrain/UnrealLauncher/issues)
+[![GitHub PRs](https://img.shields.io/github/issues-pr/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=c5f2c5)](https://github.com/NeelFrostrain/UnrealLauncher/pulls)
+[![Last Commit](https://img.shields.io/github/last-commit/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=cca3ff)](https://github.com/NeelFrostrain/UnrealLauncher/commits/main)
 
 ---
 
@@ -477,10 +477,10 @@ npm run build:unpack
 
 **Build Status Badges:**
 
-![Build](https://img.shields.io/badge/build-passing-brightgreen?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square)
-![TypeScript](https://img.shields.io/badge/typecheck-passing-brightgreen?style=flat-square)
-![ESLint](https://img.shields.io/badge/eslint-passing-brightgreen?style=flat-square)
+![Build](https://img.shields.io/badge/Build-passing-2ea44f?logo=github-actions&logoColor=white)
+![Tests](https://img.shields.io/badge/Tests-passing-2ea44f?logo=vitest&logoColor=white)
+![TypeScript](https://img.shields.io/badge/Typecheck-passing-2ea44f?logo=typescript&logoColor=white)
+![ESLint](https://img.shields.io/badge/ESLint-passing-2ea44f?logo=eslint&logoColor=white)
 
 See [docs/BUILD.md](docs/BUILD.md) for the full build guide including native modules and the Rust tracer.
 
@@ -508,12 +508,12 @@ See [docs/BUILD.md](docs/BUILD.md) for the full build guide including native mod
 
 ## Distribution
 
-| Platform | Format                | Architecture | Status      | Badge |
-| -------- | --------------------- | ------------ | ----------- | ----- |
-| Windows  | NSIS installer `.exe` | x64          | Stable   | ![Windows](https://img.shields.io/badge/Windows-x64-0078d4?style=flat-square&logo=windows) |
-| macOS    | `.dmg`                | x64, arm64   | Coming Soon | ![macOS](https://img.shields.io/badge/macOS-Coming%20Soon-FFA500?style=flat-square&logo=apple) |
-| Linux    | AppImage              | x64          | Stable   | ![Linux](https://img.shields.io/badge/Linux-x64-FCC624?style=flat-square&logo=linux) |
-| Linux    | `.deb`                | x64          | Stable   | ![Debian](https://img.shields.io/badge/Debian-x64-A81D33?style=flat-square&logo=debian) |
+| Platform | Format                 | Architecture | Status      | Badge |
+| :---     | :--------------------- | :----------- | :---------- | :---- |
+| Windows  | NSIS installer `.exe` | x64          | Stable      | ![Windows](https://img.shields.io/badge/Windows-x64-0078d4?logo=windows&logoColor=white) |
+| macOS    | `.dmg`                 | x64, arm64   | Coming Soon | ![macOS](https://img.shields.io/badge/macOS-Universal-777777?logo=apple&logoColor=white) |
+| Linux    | AppImage               | x64          | Stable      | ![Linux](https://img.shields.io/badge/Linux-x64-333333?logo=linux&logoColor=FCC624) |
+| Linux    | `.deb`                 | x64          | Stable      | ![Debian](https://img.shields.io/badge/Debian-x64-A81D33?logo=debian&logoColor=white) |
 
 Published to GitHub Releases: [NeelFrostrain/UnrealLauncher/releases](https://github.com/NeelFrostrain/UnrealLauncher/releases)
 
@@ -545,17 +545,19 @@ See [LICENSE](LICENSE) for full terms.
 
 ## Support & Community
 
-- **Report Issues** — [GitHub Issues](https://github.com/NeelFrostrain/UnrealLauncher/issues)
-- **Discussions** — [GitHub Discussions](https://github.com/NeelFrostrain/UnrealLauncher/discussions)
-- **Discord Community** — [Join Server](https://discord.gg/vq4UDfevG2)
-- **Email** — nfrostrain@gmail.com
-- **Support Development** — [Ko-fi](https://ko-fi.com/neelfrostrain)
+| Channel | Contact & Support Link |
+| :--- | :--- |
+| **🐛 Bug Reports** | [![GitHub Issues](https://img.shields.io/badge/GitHub_Issues-Report_Bug-d73a49?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/issues) |
+| **💬 Q&A & Ideas** | [![GitHub Discussions](https://img.shields.io/badge/Discussions-Join_In-24292e?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/discussions) |
+| **🎮 Community** | [![Discord](https://img.shields.io/badge/Discord-Join_Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2) |
+| **✉️ Direct Mail** | [![Email](https://img.shields.io/badge/Email-nfrostrain%40gmail.com-0078d4?logo=gmail&logoColor=white)](mailto:nfrostrain@gmail.com) |
+| **☕ Support Me** | [![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy_Me_a_Coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/neelfrostrain) |
 
 **Community Badges:**
 
-[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)
-[![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-181717?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/discussions)
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E78?style=flat-square&logo=kofi&logoColor=white)](https://ko-fi.com/neelfrostrain)
+[![Discord](https://img.shields.io/badge/Discord-Join_Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)
+[![GitHub Discussions](https://img.shields.io/badge/Discussions-Join_In-24292e?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/discussions)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/neelfrostrain)
 
 ---
 
