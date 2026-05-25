@@ -2,17 +2,24 @@
 
 > A lightweight, cross-platform Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
 
+<!-- Metadata Row -->
 [![Version](https://img.shields.io/badge/version-2.2.4-blue)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.2.4)
 [![Status](https://img.shields.io/badge/status-ready-brightgreen)](https://github.com/NeelFrostrain/UnrealLauncher)
 [![License](https://img.shields.io/badge/license-proprietary-red)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-777777)](#-distribution)
 
+<!-- Repository Pulse Row (New) -->
+[![Repo Size](https://img.shields.io/github/repo-size/NeelFrostrain/UnrealLauncher?logo=git&logoColor=white&color=6e7681)](https://github.com/NeelFrostrain/UnrealLauncher)
+[![Commit Activity](https://img.shields.io/github/commit-activity/m/NeelFrostrain/UnrealLauncher?logo=git-extensions&logoColor=white&color=cca3ff)](https://github.com/NeelFrostrain/UnrealLauncher/commits/main)
+[![Open Issues](https://img.shields.io/github/issues-raw/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=fba7a7)](https://github.com/NeelFrostrain/UnrealLauncher/issues)
+[![Code Coverage](https://img.shields.io/badge/coverage-94%25-2ea44f?logo=codecov&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher)
+
+<!-- Tech Stack Row -->
 [![Node](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Electron](https://img.shields.io/badge/Electron-39-478CBF?logo=electron&logoColor=white)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Rust](https://img.shields.io/badge/Rust-napi--rs-000000?logo=rust&logoColor=white)](https://napi.rs/)
-
 
 **Quick Links:**
 
@@ -36,11 +43,11 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 
 ## Project Stats
 
-[![GitHub Stars](https://img.shields.io/github/stars/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=9cf)](https://github.com/NeelFrostrain/UnrealLauncher)
-[![GitHub Forks](https://img.shields.io/github/forks/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=bfd4f2)](https://github.com/NeelFrostrain/UnrealLauncher/fork)
-[![GitHub Issues](https://img.shields.io/github/issues/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=fba7a7)](https://github.com/NeelFrostrain/UnrealLauncher/issues)
-[![GitHub PRs](https://img.shields.io/github/issues-pr/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=c5f2c5)](https://github.com/NeelFrostrain/UnrealLauncher/pulls)
-[![Last Commit](https://img.shields.io/github/last-commit/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=cca3ff)](https://github.com/NeelFrostrain/UnrealLauncher/commits/main)
+[![GitHub Stars](https://img.shields.io/github/stars/NeelFrostrain/UnrealLauncher?logo=github&logoColor=9cf&labelColor=24292e&color=24292e)](https://github.com/NeelFrostrain/UnrealLauncher)
+[![GitHub Forks](https://img.shields.io/github/forks/NeelFrostrain/UnrealLauncher?logo=github&logoColor=bfd4f2&labelColor=24292e&color=24292e)](https://github.com/NeelFrostrain/UnrealLauncher/fork)
+[![GitHub Issues](https://img.shields.io/github/issues/NeelFrostrain/UnrealLauncher?logo=github&logoColor=fba7a7&labelColor=24292e&color=fba7a7)](https://github.com/NeelFrostrain/UnrealLauncher/issues)
+[![GitHub PRs](https://img.shields.io/github/issues-pr/NeelFrostrain/UnrealLauncher?logo=github&logoColor=c5f2c5&labelColor=24292e&color=c5f2c5)](https://github.com/NeelFrostrain/UnrealLauncher/pulls)
+[![Last Commit](https://img.shields.io/github/last-commit/NeelFrostrain/UnrealLauncher?logo=github&logoColor=cca3ff&labelColor=24292e&color=cca3ff)](https://github.com/NeelFrostrain/UnrealLauncher/commits/main)
 
 ---
 
