@@ -144,28 +144,28 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Renderer Process (React)                  │
+│                    Renderer Process (React)                 │
 │  React 19 + TypeScript + Tailwind CSS + Zustand             │
 │  Pages: Engines · Projects · Settings · About               │
 │  Components: Cards · Toolbars · Dialogs · Toasts            │
 └────────────────────────┬────────────────────────────────────┘
                          │  IPC (contextBridge)
 ┌────────────────────────▼────────────────────────────────────┐
-│                    Main Process (Node.js)                    │
+│                    Main Process (Node.js)                   │
 │  Electron 39 + TypeScript                                   │
 │  IPC Handlers: engines · projects · fab · tracer · misc     │
 │  Data Store: engines.json · projects.json · settings.json   │
-│  Worker Threads: scan · size calculation                     │
+│  Worker Threads: scan · size calculation                    │
 └──────────┬──────────────────────────┬───────────────────────┘
            │                          │
 ┌──────────▼──────────┐   ┌──────────▼──────────────────────┐
-│  Rust N-API Module  │   │  Rust Tracer (Windows only)      │
+│  Rust N-API Module  │   │  Rust Tracer (Windows only)     │
 │  native/dist/*.node │   │  resources/unreal_launcher_     │
 │  - scan_engines     │   │  tracer.exe                     │
 │  - find_uproject    │   │  - Tracks engine/project usage  │
 │  - get_folder_size  │   │  - Writes to Tracer/*.json      │
 │  - git_status       │   │  - Runs detached in background  │
-└─────────────────────┘   └──────────────────────────────────┘
+└─────────────────────┘   └─────────────────────────────────┘
 ```
 
 ### Startup Sequence
