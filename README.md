@@ -2,23 +2,25 @@
 
 > A lightweight, cross-platform Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
 
-[![Version](https://img.shields.io/badge/Version-2.2.4-3178c6?style=for-the-badge)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.2.4)
-[![Status](https://img.shields.io/badge/Status-Production_Ready-2ea44f?style=for-the-badge)](https://github.com/NeelFrostrain/UnrealLauncher)
-[![License](https://img.shields.io/badge/License-Proprietary-d73a49?style=for-the-badge)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Windows_%7C_macOS_%7C_Linux-24292e?style=for-the-badge)](#-distribution)
+[![Version](https://img.shields.io/badge/version-2.2.4-blue)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.2.4)
+[![Status](https://img.shields.io/badge/status-ready-brightgreen)](https://github.com/NeelFrostrain/UnrealLauncher)
+[![License](https://img.shields.io/badge/license-proprietary-red)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-777777)](#-distribution)
 
-[![Node](https://img.shields.io/badge/Node.js-68A063?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Electron](https://img.shields.io/badge/Electron-478CBF?style=for-the-badge&logo=electron&logoColor=white)](https://www.electronjs.org/)
-[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Rust](https://img.shields.io/badge/Rust-black?style=for-the-badge&logo=rust&logoColor=E05D44)](https://napi.rs/)
+[![Node](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Electron](https://img.shields.io/badge/Electron-39-478CBF?logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Rust](https://img.shields.io/badge/Rust-napi--rs-000000?logo=rust&logoColor=white)](https://napi.rs/)
+
 
 **Quick Links:**
 
-[![Website](https://img.shields.io/badge/Website-neelfrostrain.github.io-0078d4?style=flat-square&logo=google-chrome&logoColor=white)](https://neelfrostrain.github.io/UnrealLauncher/)
-[![Releases](https://img.shields.io/badge/Releases-GitHub-181717?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/releases)
-[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)
-[![Issues](https://img.shields.io/badge/Issues-Report%20Bug-FF6B6B?style=flat-square&logo=github)](https://github.com/NeelFrostrain/UnrealLauncher/issues)
+[![Website](https://img.shields.io/badge/Website-neelfrostrain.github.io-0078d4?logo=google-chrome&logoColor=white)](https://neelfrostrain.github.io/UnrealLauncher/)
+[![Releases](https://img.shields.io/badge/Releases-GitHub-24292e?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/releases)
+[![Discord](https://img.shields.io/badge/Discord-Join_Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)
+[![Issues](https://img.shields.io/badge/Issues-Report_Bug-d73a49?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/issues)
+
 
 ---
 
