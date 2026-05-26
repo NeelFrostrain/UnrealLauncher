@@ -146,6 +146,7 @@ export default function ProjectFileEditorDialog({
   }, [load])
 
   // ── Global keyboard shortcuts ──────────────────────────────────────────────
+  const handleSave = useCallback(...) 
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
       const ctrl = e.ctrlKey || e.metaKey
