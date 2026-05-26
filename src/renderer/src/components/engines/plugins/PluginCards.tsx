@@ -225,10 +225,7 @@ export const CategorySection = memo(
     defaultOpen: boolean
     forceOpen: boolean
   }): React.ReactElement => {
-    const [open, setOpen] = useState(defaultOpen)
-    useEffect(() => {
-      if (forceOpen) setOpen(true)
-      else setOpen(defaultOpen)
+const [openState, setOpen] = useState(defaultOpen); const open = forceOpen || openState.
     }, [forceOpen, defaultOpen])
     return (
       <div className="mb-1">
