@@ -45,7 +45,6 @@ export function useEnginesPageState() {
     const resolved = PATH_TO_TAB[tabParam ?? ''] ?? 'engines'
     setActiveTab(resolved)
   }, [tabParam])
-
   const switchTab = useCallback(
     (tab: EngineTab): void => {
       setActiveTab(tab)
