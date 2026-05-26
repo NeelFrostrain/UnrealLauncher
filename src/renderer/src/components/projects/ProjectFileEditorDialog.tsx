@@ -93,7 +93,7 @@ export default function ProjectFileEditorDialog({
   const scrollToMatch = useCallback(
     (idx: number) => {
       const ta = textareaRef.current
-      if (!ta || !matches[idx] === undefined) return
+      if (!ta || matches[idx] === undefined) return
       const pos = matches[idx]
       // Set selection to highlight the match
       ta.focus()
