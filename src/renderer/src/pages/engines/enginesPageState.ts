@@ -41,11 +41,7 @@ export function useEnginesPageState() {
   const ITEMS_PER_BATCH = 30
 
   // Sync tab state when URL param changes
-  useEffect(() => {
-    const resolved = PATH_TO_TAB[tabParam ?? ''] ?? 'engines'
-    setActiveTab(resolved)
-  }, [tabParam])
-
+  
   const switchTab = useCallback(
     (tab: EngineTab): void => {
       setActiveTab(tab)
