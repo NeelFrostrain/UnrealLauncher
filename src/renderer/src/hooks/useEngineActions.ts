@@ -72,12 +72,18 @@ export function useEngineActions(
       const success = await window.electronAPI.deleteEngine(dirPath)
       if (!success) {
         addToast('Failed to remove engine from storage', 'error')
+        logActivity('Delete engine failed', { dirPath, reason: 'API returned false' })
         return
       }
       setEngines((prev) => prev.filter((e) => e.directoryPath !== dirPath))
       addToast('Engine removed from list', 'success')
-    } catch {
+      logActivity('Delete engine completed', { dirPath })
+    } catch (error) {
       addToast('Failed to remove engine', 'error')
+      logActivity('Delete engine failed', {
+        dirPath,
+        error: error instanceof Error ? error.message : String(error)
+      })
     }
   }
 
@@ -85,10 +91,13 @@ export function useEngineActions(
     if (!window.electronAPI || addingEngine) return
     logActivity('Add engine started')
     setAddingEngine(true)
+    let timeoutId: NodeJS.Timeout | null = null
     try {
       const result = await Promise.race([
         window.electronAPI.selectEngineFolder(),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 30000))
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error('timeout')), 30000)
+        })
       ])
       if (!result) {
         logActivity('Add engine canceled')
@@ -119,6 +128,7 @@ export function useEngineActions(
       })
       addToast('Failed to add engine. Please try again.', 'error')
     } finally {
+      if (timeoutId) clearTimeout(timeoutId)
       setAddingEngine(false)
     }
   }

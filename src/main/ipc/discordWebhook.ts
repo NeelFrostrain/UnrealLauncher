@@ -3,10 +3,46 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 
+import { logger } from '../logger'
+
 interface DiscordPayload {
   webhookUrl: string
   embed: object
   files: Array<{ name: string; type: string; b64: string }>
+}
+
+/**
+ * Validates that a URL is a valid Discord webhook URL
+ * @param webhookUrl - The URL to validate
+ * @returns true if valid Discord webhook URL
+ */
+function isValidDiscordWebhookUrl(webhookUrl: string): boolean {
+  try {
+    const url = new URL(webhookUrl)
+    
+    // Must be HTTPS
+    if (url.protocol !== 'https:') {
+      logger.warn('discord', 'Webhook URL must use HTTPS', { url: webhookUrl })
+      return false
+    }
+    
+    // Must be discord.com domain
+    if (!url.hostname.endsWith('discord.com')) {
+      logger.warn('discord', 'Webhook URL must be from discord.com', { hostname: url.hostname })
+      return false
+    }
+    
+    // Must have /api/webhooks/ path
+    if (!url.pathname.includes('/api/webhooks/')) {
+      logger.warn('discord', 'Webhook URL must have /api/webhooks/ path', { pathname: url.pathname })
+      return false
+    }
+    
+    return true
+  } catch (error) {
+    logger.warn('discord', 'Invalid webhook URL format', { url: webhookUrl, error })
+    return false
+  }
 }
 
 /**
@@ -18,6 +54,12 @@ export async function sendDiscordWebhook(
   try {
     const https = await import('https')
     const { embed, webhookUrl, files } = JSON.parse(payloadJson) as DiscordPayload
+
+    // SECURITY: Validate webhook URL before making request
+    if (!isValidDiscordWebhookUrl(webhookUrl)) {
+      logger.error('discord', 'Invalid or malicious webhook URL blocked', { url: webhookUrl })
+      return { ok: false, status: 400 }
+    }
 
     const url = new URL(webhookUrl)
     const hasFiles = files && files.length > 0
@@ -86,6 +128,7 @@ export async function sendDiscordWebhook(
       req.end()
     })
   } catch (err) {
+    logger.error('discord', 'Webhook request failed', { error: err })
     throw new Error(err instanceof Error ? err.message : 'Request failed')
   }
 }

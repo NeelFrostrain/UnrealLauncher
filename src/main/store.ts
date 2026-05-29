@@ -87,8 +87,9 @@ export function saveMainSettings(settings: Partial<MainSettings>): void {
       JSON.stringify({ ...current, ...settings }, null, 2),
       'utf8'
     )
-  } catch {
-    /* ignore */
+    logger.info('store', 'Settings saved successfully')
+  } catch (error) {
+    logger.error('store', 'Failed to save settings', error)
   }
 }
 
@@ -224,8 +225,9 @@ export function saveEngines(engines: Engine[]): void {
   try {
     ensureSaveDir()
     fs.writeFileSync(getEnginesDataPath(), JSON.stringify(engines, null, 2), 'utf8')
-  } catch {
-    /* continue */
+    logger.info('store', 'Engines saved successfully', { count: engines.length })
+  } catch (error) {
+    logger.error('store', 'Failed to save engines', error)
   }
 }
 
@@ -236,14 +238,16 @@ function normalizeProjectPath(projectPath: string): string {
 }
 
 function dedupeProjects(projects: Project[]): Project[] {
-  const seen = new Set<string>()
-  return projects.filter((project) => {
-    if (!project.projectPath) return false
+  const seen = new Map<string, Project>()
+  for (const project of projects) {
+    if (!project.projectPath) continue
     const normalizedPath = normalizeProjectPath(project.projectPath)
-    if (seen.has(normalizedPath)) return false
-    seen.add(normalizedPath)
-    return true
-  })
+    // Keep first occurrence
+    if (!seen.has(normalizedPath)) {
+      seen.set(normalizedPath, project)
+    }
+  }
+  return Array.from(seen.values())
 }
 
 export function loadProjects(): Project[] {
@@ -287,8 +291,9 @@ export function saveProjects(projects: Project[]): void {
       JSON.stringify(dedupeProjects(projects), null, 2),
       'utf8'
     )
-  } catch {
-    /* continue */
+    logger.info('store', 'Projects saved successfully', { count: projects.length })
+  } catch (error) {
+    logger.error('store', 'Failed to save projects', error)
   }
 }
 

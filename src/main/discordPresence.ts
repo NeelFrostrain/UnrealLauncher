@@ -219,6 +219,7 @@ export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {
     rpcReady = false
     lastPresenceKey = ''
     clearPollTimer()
+    clearReconnectTimer()
   }
 
   function destroyRpcClient(client: InstanceType<typeof DiscordRPC.Client> | null): void {
