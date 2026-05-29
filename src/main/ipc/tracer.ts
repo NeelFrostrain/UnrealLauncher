@@ -53,7 +53,9 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
           { stdio: 'pipe' }
         )
 
-        if (!isProcessRunning(tracerBinaryName)) {
+        // Use async process check to avoid blocking main thread
+        const isRunning = await isProcessRunning(tracerBinaryName)
+        if (!isRunning) {
           logger.info('tracer', 'Starting tracer from settings', { tracerExe })
           spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
         }
@@ -64,17 +66,18 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
           /* key didn't exist */
         }
 
-        killProcess(tracerBinaryName)
+        // Use async process kill to avoid blocking main thread
+        await killProcess(tracerBinaryName)
       }
     } catch (error) {
       logger.error('tracer', 'Failed to update tracer startup setting', { enabled, error })
     }
   })
 
-  ipcMain_.handle('tracer-is-running', (): boolean => {
+  ipcMain_.handle('tracer-is-running', async (): Promise<boolean> => {
     // Tracer only supported on Windows
     if (process.platform !== 'win32') return false
-    return isProcessRunning(tracerBinaryName)
+    return await isProcessRunning(tracerBinaryName)
   })
 
   ipcMain_.handle('tracer-get-data-dir', (): string => {

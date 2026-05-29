@@ -3,6 +3,8 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 
+let activityLoggerInstalled = false
+
 export function logActivity(action: string, details: Record<string, unknown> = {}): void {
   window.electronAPI
     ?.logActivity?.({
@@ -14,9 +16,20 @@ export function logActivity(action: string, details: Record<string, unknown> = {
 }
 
 export function installActivityLogger(): void {
+  // Prevent duplicate event listeners
+  if (activityLoggerInstalled) return
+
   logActivity('Renderer initialized')
 
-  window.addEventListener('hashchange', () => {
+  const handleHashChange = (): void => {
     logActivity('Page switched', { route: window.location.hash || window.location.pathname })
-  })
+  }
+
+  window.addEventListener('hashchange', handleHashChange)
+  activityLoggerInstalled = true
+}
+
+export function uninstallActivityLogger(): void {
+  // Cleanup if needed
+  activityLoggerInstalled = false
 }

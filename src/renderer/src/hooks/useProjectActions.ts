@@ -86,9 +86,10 @@ export function useProjectActions({
       if (!window.electronAPI || addingProject) return
       logActivity('Add project started', { currentTab })
       setAddingProject(true)
+      let timeoutId: NodeJS.Timeout | null = null
       try {
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Folder selection timeout')), 30000)
+          timeoutId = setTimeout(() => reject(new Error('Folder selection timeout')), 30000)
         })
         const selectPromise = window.electronAPI.selectProjectFolder()
         const result = await Promise.race([selectPromise, timeoutPromise])
@@ -131,6 +132,7 @@ export function useProjectActions({
         console.error('Error adding projects:', error)
         addToast('Failed to add projects. Please try again.', 'error')
       } finally {
+        if (timeoutId) clearTimeout(timeoutId)
         setAddingProject(false)
       }
     },

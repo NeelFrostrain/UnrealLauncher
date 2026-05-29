@@ -10,17 +10,28 @@ import { loadProjectScanPaths } from '../store'
 import type { Project } from '../types'
 import { logger } from '../logger'
 
+// Prevent concurrent scans using a promise-based approach
+let scanPromise: Promise<Project[]> | null = null
+
 /**
  * Scans for projects using the worker and merges with saved projects
  */
 export async function scanAndMergeProjects(): Promise<Project[]> {
-  // Prevent concurrent scans from running simultaneously
-  if ((scanAndMergeProjects as any)._inFlight) {
-    logger.warn('project-scan', 'Project scan skipped because another scan is already running')
-    return loadProjects()
+  // If a scan is already in progress, return the existing promise
+  if (scanPromise) {
+    logger.warn('project-scan', 'Project scan already in progress, returning existing promise')
+    return scanPromise
   }
-  ;(scanAndMergeProjects as any)._inFlight = true
 
+  scanPromise = _doScanAndMergeProjects()
+  try {
+    return await scanPromise
+  } finally {
+    scanPromise = null
+  }
+}
+
+async function _doScanAndMergeProjects(): Promise<Project[]> {
   try {
     const raw = mergeTracerProjects(loadProjects())
     const saved = Array.isArray(raw) ? raw : []
@@ -96,7 +107,6 @@ export async function scanAndMergeProjects(): Promise<Project[]> {
     throw error
   } finally {
     logger.info('project-scan', 'Project scan finished')
-    ;(scanAndMergeProjects as any)._inFlight = false
   }
 }
 

@@ -3,8 +3,10 @@
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import fs from 'fs'
+import { promises as fsPromises } from 'fs'
 import path from 'path'
 import { getNative } from '../utils/native'
+import { logger } from '../logger'
 
 interface EnginePlugin {
   name: string
@@ -19,9 +21,9 @@ interface EnginePlugin {
 }
 
 /**
- * Scans engine plugins using native module or JS fallback
+ * Scans engine plugins using native module or JS fallback (async, non-blocking)
  */
-export function scanEnginePlugins(engineDir: string): EnginePlugin[] {
+export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin[]> {
   // Try native Rust module first (fast, parallel I/O)
   const native = getNative()
   if (native?.scanEnginePlugins) {
@@ -38,31 +40,41 @@ export function scanEnginePlugins(engineDir: string): EnginePlugin[] {
         icon: p.icon ?? null,
         createdBy: p.createdBy
       }))
-    } catch {
+    } catch (error) {
+      logger.warn('engine-plugins', 'Native plugin scan failed, falling back to JS', { error })
       /* fall through to JS implementation */
     }
   }
 
-  // JS fallback — same logic as the Rust implementation
+  // JS fallback — same logic as the Rust implementation (async to avoid blocking)
   return scanEnginePluginsJS(engineDir)
 }
 
 /**
- * JavaScript fallback for scanning engine plugins
+ * JavaScript fallback for scanning engine plugins (async, non-blocking)
+ * Uses async file operations to prevent main thread blocking
  */
-function scanEnginePluginsJS(engineDir: string): EnginePlugin[] {
+async function scanEnginePluginsJS(engineDir: string): Promise<EnginePlugin[]> {
   const pluginsRoot = path.join(engineDir, 'Engine', 'Plugins')
-  if (!fs.existsSync(pluginsRoot)) return []
+  
+  try {
+    await fsPromises.access(pluginsRoot)
+  } catch {
+    return []
+  }
 
   const results: EnginePlugin[] = []
   const SKIP_FOLDERS = new Set(['FabLibrary', 'Manifests', '.cache', 'temp', 'Temp'])
 
-  function scanDir(dir: string, categoryHint: string, depth: number): void {
+  async function scanDir(dir: string, categoryHint: string, depth: number): Promise<void> {
     if (depth > 3) return
+
+    // Yield to event loop to prevent blocking
+    await new Promise((resolve) => setImmediate(resolve))
 
     let entries: fs.Dirent[]
     try {
-      entries = fs.readdirSync(dir, { withFileTypes: true })
+      entries = await fsPromises.readdir(dir, { withFileTypes: true })
     } catch {
       return
     }
@@ -80,7 +92,8 @@ function scanEnginePluginsJS(engineDir: string): EnginePlugin[] {
       let createdBy = ''
 
       try {
-        const meta = JSON.parse(fs.readFileSync(upluginPath, 'utf8'))
+        const content = await fsPromises.readFile(upluginPath, 'utf8')
+        const meta = JSON.parse(content)
         name = meta.FriendlyName || meta.Name || name
         description = meta.Description || ''
         version = meta.VersionName || String(meta.Version || '')
@@ -102,7 +115,12 @@ function scanEnginePluginsJS(engineDir: string): EnginePlugin[] {
       }
 
       const iconPath = path.join(dir, 'Resources', 'Icon128.png')
-      if (fs.existsSync(iconPath)) icon = iconPath
+      try {
+        await fsPromises.access(iconPath)
+        icon = iconPath
+      } catch {
+        /* icon doesn't exist */
+      }
 
       results.push({
         name,
@@ -118,15 +136,16 @@ function scanEnginePluginsJS(engineDir: string): EnginePlugin[] {
       return
     }
 
+    // Process subdirectories sequentially with yields to prevent blocking
     for (const entry of entries) {
       if (!entry.isDirectory()) continue
       if (SKIP_FOLDERS.has(entry.name)) continue
       const childCategory = depth === 0 ? entry.name : categoryHint
-      scanDir(path.join(dir, entry.name), childCategory, depth + 1)
+      await scanDir(path.join(dir, entry.name), childCategory, depth + 1)
     }
   }
 
-  scanDir(pluginsRoot, 'Other', 0)
+  await scanDir(pluginsRoot, 'Other', 0)
   results.sort((a, b) => {
     const cat = a.category.localeCompare(b.category)
     return cat !== 0 ? cat : a.name.localeCompare(b.name)
