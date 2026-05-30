@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import PageWrapper from '../layout/PageWrapper'
 import { AboutFooter } from '../components/about/AboutFooter'
 import { AboutHero } from '../components/about/AboutHero'
@@ -12,6 +9,7 @@ import { AboutIpcModules } from '../components/about/AboutIpcModules'
 import { AboutDataStorage } from '../components/about/AboutDataStorage'
 import { AboutTechStack } from '../components/about/AboutTechStack'
 import { useAppVersion } from '../hooks/useAppVersion'
+// import AboutChangelog from '@renderer/components/about/AboutChangelog'
 
 const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement => {
   const appVersion = useAppVersion()
@@ -26,6 +24,7 @@ const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement =
         <AboutIpcModules />
         <AboutDataStorage />
         <AboutTechStack />
+        {/* <AboutChangelog /> */}
         <AboutFooter />
       </div>
     </>

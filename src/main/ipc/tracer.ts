@@ -1,16 +1,15 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { ipcMain, app } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import { execSync, spawn } from 'child_process'
+import { execFile, spawn } from 'child_process'
+import { promisify } from 'util'
 import { saveMainSettings, loadMainSettings } from '../store'
+
+const execFileAsync = promisify(execFile)
 import { getTracerDataDir, getTracerBinaryName } from '../utils/platformPaths'
 import { isProcessRunning, killProcess } from '../utils/processUtils'
 import { logger } from '../logger'
-
 export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
   // In production: resources/ sits inside app and dev uses the project root.
   const tracerBinaryName = getTracerBinaryName()
@@ -19,19 +18,17 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
   const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
   const TRACER_KEY_NAME = 'Unreal Launcher Tracer'
 
-  ipcMain_.handle('tracer-get-startup', (): boolean => {
-    if (process.platform === 'win32') {
-      try {
-        const out = execSync(`reg query "${RUN_KEY}" /v "${TRACER_KEY_NAME}" 2>nul`, {
-          encoding: 'utf8',
-          stdio: ['pipe', 'pipe', 'pipe']
-        })
-        return out.includes(TRACER_KEY_NAME)
-      } catch {
-        return false
-      }
+  ipcMain_.handle('tracer-get-startup', async (): Promise<boolean> => {
+    if (process.platform !== 'win32') return false
+    try {
+      const { stdout } = await execFileAsync('reg', ['query', RUN_KEY, '/v', TRACER_KEY_NAME], {
+        encoding: 'utf8',
+        timeout: 3000
+      })
+      return stdout.includes(TRACER_KEY_NAME)
+    } catch {
+      return false
     }
-    return false
   })
 
   ipcMain_.handle('tracer-set-startup', async (_event, enabled: boolean): Promise<void> => {
@@ -48,9 +45,10 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
           return
         }
 
-        execSync(
-          `reg add "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /t REG_SZ /d "\\"${tracerExe}\\"" /f`,
-          { stdio: 'pipe' }
+        await execFileAsync(
+          'reg',
+          ['add', RUN_KEY, '/v', TRACER_KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
+          { timeout: 5000 }
         )
 
         // Use async process check to avoid blocking main thread
@@ -61,7 +59,9 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
         }
       } else {
         try {
-          execSync(`reg delete "${RUN_KEY}" /v "${TRACER_KEY_NAME}" /f`, { stdio: 'pipe' })
+          await execFileAsync('reg', ['delete', RUN_KEY, '/v', TRACER_KEY_NAME, '/f'], {
+            timeout: 5000
+          })
         } catch {
           /* key didn't exist */
         }

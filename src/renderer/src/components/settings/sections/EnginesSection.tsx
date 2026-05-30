@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { useState, useEffect, useRef } from 'react'
 import { FolderOpen, Plus, X, AlertCircle, Info } from 'lucide-react'
 import { Card, SettingRow } from '../SectionHelpers'

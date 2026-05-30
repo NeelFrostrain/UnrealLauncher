@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { AlertTriangle } from 'lucide-react'
 
 const knownIssues = [
@@ -13,7 +10,10 @@ const knownIssues = [
 
 export const AboutKnownIssues = (): React.ReactElement => (
   <div>
-    <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
+    <h2
+      className="text-xl font-bold mb-4 flex items-center gap-2"
+      style={{ color: 'var(--color-text-primary)' }}
+    >
       <AlertTriangle size={20} className="text-yellow-400" />
       Known Issues &amp; Notes
     </h2>
@@ -27,8 +27,10 @@ export const AboutKnownIssues = (): React.ReactElement => (
     >
       {knownIssues.map((issue) => (
         <div key={issue} className="flex gap-3">
-          <span className="text-yellow-400 mt-0.5">•</span>
-          <p className="text-xs text-white/50">{issue}</p>
+          <span className="text-yellow-400 mt-0.5 shrink-0">•</span>
+          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            {issue}
+          </p>
         </div>
       ))}
     </div>

@@ -1,17 +1,16 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { ipcMain } from 'electron'
 import {
   handleSelectEngineFolder,
   handleLaunchEngine,
+  handleLaunchEngineWithConfig,
   handleDeleteEngine,
   calculateEngineSize,
   scanAndMergeEngines,
   scanEnginePlugins,
   handleUpdateEngineAlias
 } from './engineHandlers'
+import type { LaunchConfig } from '../utils/launchConfigArgs'
 
 /**
  * Registers all engine-related IPC handlers
@@ -22,6 +21,12 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('select-engine-folder', handleSelectEngineFolder)
 
   ipcMain_.handle('launch-engine', async (_event, exePath) => handleLaunchEngine(exePath))
+
+  ipcMain_.handle(
+    'launch-engine-with-config',
+    async (_event, exePath: string, config: LaunchConfig) =>
+      handleLaunchEngineWithConfig(exePath, config)
+  )
 
   ipcMain_.handle('delete-engine', (_event, directoryPath) => handleDeleteEngine(directoryPath))
 

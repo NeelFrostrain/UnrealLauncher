@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { BookOpen } from 'lucide-react'
 
 const steps = [
@@ -33,7 +30,10 @@ const steps = [
 
 const AboutUsage = (): React.ReactElement => (
   <div>
-    <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
+    <h2
+      className="text-xl font-bold mb-4 flex items-center gap-2"
+      style={{ color: 'var(--color-text-primary)' }}
+    >
       <BookOpen size={20} className="text-green-400" />
       How to Use
     </h2>
@@ -47,8 +47,12 @@ const AboutUsage = (): React.ReactElement => (
     >
       {steps.map(({ title, desc }) => (
         <div key={title} className="space-y-2">
-          <h3 className="text-sm font-semibold text-white/90">{title}</h3>
-          <p className="text-xs text-white/50">{desc}</p>
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+            {title}
+          </h3>
+          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            {desc}
+          </p>
         </div>
       ))}
     </div>

@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { useState, useEffect, useRef } from 'react'
 import { setSetting } from '../utils/settings'
 
@@ -58,7 +55,7 @@ export function useTracerSettings(): UseTracerSettingsReturn {
         .catch(() => {
           /* ignore */
         })
-    }, 5000)
+    }, 30000) // 30s — tracer state rarely changes, no need to spawn tasklist every 5s
 
     return () => {
       clearInterval(interval)

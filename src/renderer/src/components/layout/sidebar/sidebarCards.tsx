@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { motion, AnimatePresence } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import { Zap, Package, Settings } from 'lucide-react'
@@ -98,7 +95,7 @@ export function SidebarCards({ collapsed, currentPath, onNavClick }: SidebarCard
     <div
       className={`flex-1 overflow-hidden ${collapsed ? 'flex flex-col items-center gap-1.5 pt-3 px-1.5' : 'p-3'}`}
     >
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence mode="sync" initial={false}>
         {collapsed ? (
           <motion.div
             key="collapsed"

@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import path from 'path'
@@ -56,7 +53,7 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
  */
 async function scanEnginePluginsJS(engineDir: string): Promise<EnginePlugin[]> {
   const pluginsRoot = path.join(engineDir, 'Engine', 'Plugins')
-  
+
   try {
     await fsPromises.access(pluginsRoot)
   } catch {
@@ -68,9 +65,6 @@ async function scanEnginePluginsJS(engineDir: string): Promise<EnginePlugin[]> {
 
   async function scanDir(dir: string, categoryHint: string, depth: number): Promise<void> {
     if (depth > 3) return
-
-    // Yield to event loop to prevent blocking
-    await new Promise((resolve) => setImmediate(resolve))
 
     let entries: fs.Dirent[]
     try {
@@ -136,11 +130,12 @@ async function scanEnginePluginsJS(engineDir: string): Promise<EnginePlugin[]> {
       return
     }
 
-    // Process subdirectories sequentially with yields to prevent blocking
+    // Process subdirectories — yield once per top-level category to keep event loop alive
     for (const entry of entries) {
       if (!entry.isDirectory()) continue
       if (SKIP_FOLDERS.has(entry.name)) continue
       const childCategory = depth === 0 ? entry.name : categoryHint
+      if (depth === 0) await new Promise((resolve) => setImmediate(resolve))
       await scanDir(path.join(dir, entry.name), childCategory, depth + 1)
     }
   }
