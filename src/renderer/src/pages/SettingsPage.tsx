@@ -2,7 +2,7 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import PageWrapper from '../layout/PageWrapper'
 import { SettingsNavigation, type SectionId } from '../components/settings/SettingsNavigation'
 import { AboutSection } from '../components/settings/AboutSection'
@@ -22,7 +22,7 @@ const SettingsPage = (): React.ReactElement => {
 
   const settingsState = useSettingsState()
 
-  const renderSection = (): React.ReactNode => {
+  const sectionContent = useMemo((): React.ReactNode => {
     switch (activeSection) {
       case 'general':
         return (
@@ -85,23 +85,29 @@ const SettingsPage = (): React.ReactElement => {
       default:
         return null
     }
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection, settingsState, platform])
+
+  const handleSectionChange = useCallback(
+    (section: SectionId): void => {
+      logActivity('Settings section switched', { from: activeSection, to: section })
+      setActiveSection(section)
+    },
+    [activeSection]
+  )
 
   return (
     <PageWrapper>
       <div className="flex flex-col h-full min-h-0">
         <SettingsNavigation
           activeSection={activeSection}
-          onSectionChange={(section) => {
-            logActivity('Settings section switched', { from: activeSection, to: section })
-            setActiveSection(section)
-          }}
+          onSectionChange={handleSectionChange}
           platform={platform}
         />
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto min-h-0">
-          <div className="py-5">{renderSection()}</div>
+          <div className="py-5">{sectionContent}</div>
         </div>
       </div>
     </PageWrapper>

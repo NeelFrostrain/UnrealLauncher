@@ -232,6 +232,7 @@ const ProjectCard = memo(
           gitRemoteUrl={state.git.remoteUrl}
           onLaunch={handlers.handleClick}
           onLaunchGame={handlers.handleLaunchGame}
+          onLaunchWithConfig={() => {}}
           onFavorite={() => projectPath && onToggleFavorite(projectPath)}
           onOpenDir={() => projectPath && onOpenDir(projectPath)}
           onHide={() => projectPath && onHide(projectPath)}

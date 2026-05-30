@@ -11,7 +11,10 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
   useNavigationPersist()
 
   return (
-    <div className="w-screen h-screen bg-black text-white p-px overflow-hidden select-none">
+    <div
+      className="w-screen h-screen p-px overflow-hidden select-none"
+      style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
+    >
       <div
         id="app-scale-root"
         className="w-full h-full flex flex-col"

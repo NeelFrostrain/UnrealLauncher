@@ -2,7 +2,7 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { useMemo, useCallback } from 'react'
+import { useMemo } from 'react'
 import ProjectCard from './ProjectCard'
 import ProjectCardGrid from './ProjectCardGrid'
 import type { Project, TabType } from '../../types'
@@ -63,9 +63,8 @@ export const ProjectsContent = ({
     return sortProjects(filtered, sortConfig) as ProjectWithFlags[]
   }, [projects, q, favoritePaths, hiddenPaths, sortConfig])
 
-  // Stabilize handlers so child memo'd cards don't receive new function refs each render
-  const stableLaunch = useCallback((p: string) => onLaunch(p), [onLaunch])
-  const stableOpenDir = useCallback((p: string) => onOpenDir(p), [onOpenDir])
+  // Stabilize handlers — pass props directly, no identity wrapper needed
+  // (onLaunch/onOpenDir are already stable useCallback refs from the parent)
 
   if (loading) {
     return (
@@ -83,8 +82,8 @@ export const ProjectsContent = ({
 
   if (visibleProjects.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center text-white/50">
-        <p className="text-lg mb-2">
+      <div className="flex flex-col items-center justify-center h-full text-center">
+        <p className="text-lg mb-2" style={{ color: 'var(--color-text-secondary)' }}>
           {searchQuery.trim()
             ? 'No projects match your search'
             : currentTab === 'favorites'
@@ -93,7 +92,7 @@ export const ProjectsContent = ({
                 ? 'No hidden projects'
                 : 'No projects found'}
         </p>
-        <p className="text-sm text-white/30 mb-4">
+        <p className="text-sm mb-4" style={{ color: 'var(--color-text-muted)' }}>
           {searchQuery.trim()
             ? 'Try a different project name or clear the search.'
             : currentTab === 'favorites'
@@ -122,8 +121,8 @@ export const ProjectsContent = ({
               thumbnailKey={`${data.projectPath}:${data.thumbnail}`}
               onToggleFavorite={onToggleFavorite}
               onHide={onHide}
-              onLaunch={stableLaunch}
-              onOpenDir={stableOpenDir}
+              onLaunch={onLaunch}
+              onOpenDir={onOpenDir}
             />
           ))}
       </div>
@@ -141,7 +140,6 @@ export const ProjectsContent = ({
         .filter((p) => !!p.projectPath)
         .map((data, idx) => (
           <ProjectCard
-            // Use projectPath as stable, unique key
             key={data.projectPath}
             {...data}
             index={displayStart + idx}
@@ -150,8 +148,8 @@ export const ProjectsContent = ({
             thumbnailKey={`${data.projectPath}:${data.thumbnail}`}
             onToggleFavorite={onToggleFavorite}
             onHide={onHide}
-            onLaunch={stableLaunch}
-            onOpenDir={stableOpenDir}
+            onLaunch={onLaunch}
+            onOpenDir={onOpenDir}
           />
         ))}
     </div>

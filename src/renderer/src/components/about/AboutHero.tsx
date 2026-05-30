@@ -41,8 +41,8 @@ export const AboutHero = ({ version }: { version: string }): React.ReactElement 
       <div className="flex flex-wrap items-center justify-center gap-2">
         {[
           { label: 'Version', value: `v${version}` },
-          { label: 'Features', value: '44' },
-          { label: 'IPC Channels', value: '30+' },
+          { label: 'Features', value: '58' },
+          { label: 'IPC Channels', value: '34+' },
           { label: 'License', value: 'Proprietary' }
         ].map(({ label, value }) => (
           <div

@@ -4,7 +4,23 @@
 // See LICENSE in the project root for full license terms.
 import path from 'path'
 import fs from 'fs'
-import { execFileSync } from 'child_process'
+import { execFile } from 'child_process'
+import { promisify } from 'util'
+
+const execFileAsync = promisify(execFile)
+
+async function runGitAsync(projectPath: string, args: string[]): Promise<Buffer> {
+  const { stdout } = await execFileAsync('git', args, { cwd: projectPath, encoding: 'buffer' })
+  return stdout
+}
+
+function assertValidBranchName(branch: string): void {
+  if (branch.startsWith('-')) throw new Error('Invalid branch name')
+  // Validate without spawning a process — covers the main git check-ref-format rules
+  if (/[\x00-\x1f\x7f ~^:?*[\\\]]/.test(branch) || branch.includes('..') || branch.endsWith('.lock')) {
+    throw new Error('Invalid branch name')
+  }
+}
 
 const UE_GITIGNORE = [
   '# Visual Studio 2015 user specific files',
@@ -111,15 +127,6 @@ const UE_GITATTRIBUTES = [
   '*.zip filter=lfs diff=lfs merge=lfs -text'
 ].join('\n')
 
-function runGit(projectPath: string, args: string[]): Buffer {
-  return execFileSync('git', args, { cwd: projectPath, stdio: 'pipe' })
-}
-
-function assertValidBranchName(projectPath: string, branch: string): void {
-  if (branch.startsWith('-')) throw new Error('Invalid branch name')
-  runGit(projectPath, ['check-ref-format', '--branch', branch])
-}
-
 export function handleProjectGitStatus(projectPath: string): {
   initialized: boolean
   branch: string
@@ -161,18 +168,17 @@ export async function handleProjectGitInit(
   projectPath: string
 ): Promise<{ success: boolean; lfsAvailable: boolean; error?: string }> {
   try {
-    const { execSync } = await import('child_process')
-    execSync('git init', { cwd: projectPath, stdio: 'pipe' })
+    await runGitAsync(projectPath, ['init'])
     if (!fs.existsSync(path.join(projectPath, '.gitignore')))
       fs.writeFileSync(path.join(projectPath, '.gitignore'), UE_GITIGNORE, 'utf8')
     if (!fs.existsSync(path.join(projectPath, '.gitattributes')))
       fs.writeFileSync(path.join(projectPath, '.gitattributes'), UE_GITATTRIBUTES, 'utf8')
     let lfsAvailable = false
     try {
-      execSync('git lfs install', { cwd: projectPath, stdio: 'pipe' })
+      await runGitAsync(projectPath, ['lfs', 'install'])
       lfsAvailable = true
     } catch {
-      /* ignore */
+      /* lfs not installed */
     }
     return { success: true, lfsAvailable }
   } catch (err) {
@@ -198,8 +204,7 @@ export async function handleProjectGitReinit(
   projectPath: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { execSync } = await import('child_process')
-    execSync('git init', { cwd: projectPath, stdio: 'pipe' })
+    await runGitAsync(projectPath, ['init'])
     return { success: true }
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
@@ -225,8 +230,7 @@ export async function handleProjectGitInitLfs(
   projectPath: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { execSync } = await import('child_process')
-    execSync('git lfs install', { cwd: projectPath, stdio: 'pipe' })
+    await runGitAsync(projectPath, ['lfs', 'install'])
     fs.writeFileSync(path.join(projectPath, '.gitattributes'), UE_GITATTRIBUTES, 'utf8')
     return { success: true }
   } catch (err) {
@@ -245,10 +249,8 @@ export async function handleProjectGitHasChanges(projectPath: string): Promise<{
   error?: string
 }> {
   try {
-    const { execSync } = await import('child_process')
-    const status = execSync('git status --porcelain', { cwd: projectPath, stdio: 'pipe' })
-      .toString()
-      .trim()
+    const stdout = await runGitAsync(projectPath, ['status', '--porcelain'])
+    const status = stdout.toString().trim()
     const lines = status ? status.split('\n').filter(Boolean) : []
     const fileList = lines.map((line) => ({
       status: line.slice(0, 2).trim() || '?',
@@ -277,8 +279,8 @@ export async function handleProjectGitCommit(
   message: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    runGit(projectPath, ['add', '-A'])
-    runGit(projectPath, ['commit', '-m', message])
+    await runGitAsync(projectPath, ['add', '-A'])
+    await runGitAsync(projectPath, ['commit', '-m', message])
     return { success: true }
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
@@ -291,11 +293,10 @@ export async function handleProjectGitBranches(
   projectPath: string
 ): Promise<{ branches: string[]; current: string; error?: string }> {
   try {
-    const { execSync } = await import('child_process')
-    const raw = execSync('git branch', { cwd: projectPath, stdio: 'pipe' }).toString()
+    const stdout = await runGitAsync(projectPath, ['branch'])
     const branches: string[] = []
     let current = ''
-    for (const line of raw.split('\n')) {
+    for (const line of stdout.toString().split('\n')) {
       const trimmed = line.trim()
       if (!trimmed) continue
       if (trimmed.startsWith('* ')) {
@@ -320,33 +321,29 @@ export async function handleProjectGitSwitchBranch(
   strategy: 'normal' | 'stash' | 'force' = 'normal'
 ): Promise<{ success: boolean; error?: string; hasUncommitted?: boolean }> {
   try {
-    assertValidBranchName(projectPath, branch)
+    assertValidBranchName(branch)
     if (create) {
-      runGit(projectPath, ['checkout', '-b', branch])
+      await runGitAsync(projectPath, ['checkout', '-b', branch])
       return { success: true }
     }
     if (strategy === 'stash') {
-      runGit(projectPath, ['stash'])
+      await runGitAsync(projectPath, ['stash'])
       try {
-        runGit(projectPath, ['checkout', branch])
-        runGit(projectPath, ['stash', 'pop'])
+        await runGitAsync(projectPath, ['checkout', branch])
+        await runGitAsync(projectPath, ['stash', 'pop'])
       } catch (switchErr) {
-        try {
-          runGit(projectPath, ['stash', 'pop'])
-        } catch {
-          /* ignore */
-        }
+        try { await runGitAsync(projectPath, ['stash', 'pop']) } catch { /* ignore */ }
         throw switchErr
       }
       return { success: true }
     }
     if (strategy === 'force') {
-      runGit(projectPath, ['checkout', '--', '.'])
-      runGit(projectPath, ['checkout', branch])
+      await runGitAsync(projectPath, ['checkout', '--', '.'])
+      await runGitAsync(projectPath, ['checkout', branch])
       return { success: true }
     }
     try {
-      runGit(projectPath, ['checkout', branch])
+      await runGitAsync(projectPath, ['checkout', branch])
       return { success: true }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)

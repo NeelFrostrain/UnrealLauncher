@@ -18,7 +18,7 @@ export const AboutTechnical = (): React.ReactElement => {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-white/90 mb-4">Technical Details</h2>
+      <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>Technical Details</h2>
       <div
         className="p-6 space-y-3"
         style={{
@@ -29,8 +29,8 @@ export const AboutTechnical = (): React.ReactElement => {
       >
         {techDetails.map(({ label, value, mono }) => (
           <div key={label} className="flex items-center justify-between">
-            <span className="text-sm text-white/50">{label}</span>
-            <span className={`text-sm ${mono ? 'font-mono' : ''} text-white/90`}>{value}</span>
+            <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>{label}</span>
+            <span className={`text-sm ${mono ? 'font-mono' : ''}`} style={{ color: 'var(--color-text-primary)' }}>{value}</span>
           </div>
         ))}
       </div>

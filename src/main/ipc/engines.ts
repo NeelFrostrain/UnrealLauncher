@@ -6,12 +6,14 @@ import { ipcMain } from 'electron'
 import {
   handleSelectEngineFolder,
   handleLaunchEngine,
+  handleLaunchEngineWithConfig,
   handleDeleteEngine,
   calculateEngineSize,
   scanAndMergeEngines,
   scanEnginePlugins,
   handleUpdateEngineAlias
 } from './engineHandlers'
+import type { LaunchConfig } from '../utils/launchConfigArgs'
 
 /**
  * Registers all engine-related IPC handlers
@@ -22,6 +24,10 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('select-engine-folder', handleSelectEngineFolder)
 
   ipcMain_.handle('launch-engine', async (_event, exePath) => handleLaunchEngine(exePath))
+
+  ipcMain_.handle('launch-engine-with-config', async (_event, exePath: string, config: LaunchConfig) =>
+    handleLaunchEngineWithConfig(exePath, config)
+  )
 
   ipcMain_.handle('delete-engine', (_event, directoryPath) => handleDeleteEngine(directoryPath))
 

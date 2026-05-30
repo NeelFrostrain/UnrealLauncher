@@ -2,6 +2,7 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
+import { useMemo } from 'react'
 import type { FC } from 'react'
 
 interface TypeMeta {
@@ -23,12 +24,16 @@ const FabFilterBar: FC<FabFilterBarProps> = ({
   typeLabels,
   onFilterChange
 }) => {
-  const counts = assets.reduce(
-    (acc, a) => {
-      acc[a.type] = (acc[a.type] || 0) + 1
-      return acc
-    },
-    {} as Record<string, number>
+  const counts = useMemo(
+    () =>
+      assets.reduce(
+        (acc, a) => {
+          acc[a.type] = (acc[a.type] || 0) + 1
+          return acc
+        },
+        {} as Record<string, number>
+      ),
+    [assets]
   )
 
   return (

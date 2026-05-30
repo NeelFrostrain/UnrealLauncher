@@ -8,12 +8,14 @@ import {
   handleSelectProjectFolder,
   handleLaunchProject,
   handleLaunchProjectGame,
+  handleLaunchProjectWithConfig,
   calculateProjectSize,
   calculateAllProjectSizes,
   scanAndMergeProjects,
   loadSavedProjects,
   deleteProject
 } from './projectHandlers'
+import type { LaunchConfig } from '../utils/launchConfigArgs'
 
 /**
  * Registers all project-related IPC handlers
@@ -29,6 +31,12 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
 
   ipcMain_.handle('launch-project-game', async (_event, projectPath) =>
     handleLaunchProjectGame(projectPath)
+  )
+
+  ipcMain_.handle(
+    'launch-project-with-config',
+    async (_event, projectPath: string, config: LaunchConfig) =>
+      handleLaunchProjectWithConfig(projectPath, config)
   )
 
   ipcMain_.handle('open-directory', (_event, dirPath): void => {

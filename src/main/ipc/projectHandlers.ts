@@ -5,6 +5,10 @@
 
 // Re-export all project handlers from their respective modules
 export { handleSelectProjectFolder } from './projectSelection'
-export { handleLaunchProject, handleLaunchProjectGame } from './projectLaunching'
+export {
+  handleLaunchProject,
+  handleLaunchProjectGame,
+  handleLaunchProjectWithConfig
+} from './projectLaunching'
 export { calculateProjectSize, calculateAllProjectSizes } from '../utils/projectSizing'
 export { scanAndMergeProjects, loadSavedProjects, deleteProject } from '../utils/projectValidation'

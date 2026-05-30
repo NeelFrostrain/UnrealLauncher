@@ -5,9 +5,10 @@
 import { motion } from 'framer-motion'
 import type { FC, ReactElement, KeyboardEvent } from 'react'
 import { useState, useRef, memo, useCallback } from 'react'
-import { Play, FolderOpen, XCircle, Pencil } from 'lucide-react'
+import { Play, FolderOpen, XCircle, Pencil, Settings2 } from 'lucide-react'
 import type { EngineCardProps } from '../../types'
 import { generateGradient } from '@renderer/utils/generateGradient'
+import LaunchConfigDialog from './LaunchConfigDialog'
 
 const MAX_ALIAS = 32
 
@@ -37,6 +38,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     const [launching, setLaunching] = useState(false)
     const [calculating, setCalculating] = useState(false)
     const [currentSize, setCurrentSize] = useState(folderSize)
+    const [showConfigDialog, setShowConfigDialog] = useState(false)
 
     // Alias editing state
     const [editingAlias, setEditingAlias] = useState(false)
@@ -89,6 +91,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     }
 
     return (
+      <>
       <motion.div
         className="w-full h-36 overflow-hidden flex select-text"
         initial={index !== undefined && index < 8 ? { opacity: 0, y: 12 } : false}
@@ -263,13 +266,34 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                 <Play size={13} className={launching ? 'animate-pulse' : ''} />
                 {launching ? 'Launching...' : 'Launch'}
               </button>
+              <button
+                onClick={() => setShowConfigDialog(true)}
+                className="flex items-center justify-center p-1.5 transition-all cursor-pointer hover:scale-105 ease-in-out duration-100"
+                style={{
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'var(--color-surface-elevated)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-muted)'
+                }}
+                title="Launch with config profile"
+              >
+                <Settings2 size={13} />
+              </button>
             </div>
           </div>
         </div>
       </motion.div>
-    )
-  }
-)
+
+      {showConfigDialog && (
+        <LaunchConfigDialog
+          exePath={exePath}
+          displayName={alias || `Unreal Engine ${version}`}
+          onClose={() => setShowConfigDialog(false)}
+        />
+      )}
+    </>
+  )
+})
 
 EngineCard.displayName = 'EngineCard'
 export default EngineCard

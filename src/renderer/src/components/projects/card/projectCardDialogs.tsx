@@ -8,6 +8,7 @@ import ProjectLogDialog from '../ProjectLogDialog'
 import GitCommitDialog from '../GitCommitDialog'
 import GitBranchDialog from '../GitBranchDialog'
 import ProjectFileEditorDialog from '../ProjectFileEditorDialog'
+import LaunchConfigDialog from '../../engines/LaunchConfigDialog'
 
 interface ProjectCardDialogsProps {
   ctxMenu: { x: number; y: number } | null
@@ -24,6 +25,7 @@ interface ProjectCardDialogsProps {
   gitRemoteUrl: string
   onLaunch: () => Promise<void>
   onLaunchGame: () => Promise<void>
+  onLaunchWithConfig: () => void
   onFavorite: () => void
   onOpenDir: () => void
   onHide: () => void
@@ -57,6 +59,7 @@ export function ProjectCardDialogs({
   gitRemoteUrl,
   onLaunch,
   onLaunchGame,
+  onLaunchWithConfig,
   onFavorite,
   onOpenDir,
   onHide,
@@ -72,6 +75,7 @@ export function ProjectCardDialogs({
 }: ProjectCardDialogsProps) {
   // File editor state lives here — survives context menu close
   const [fileEditorMode, setFileEditorMode] = useState<'config' | 'uproject' | null>(null)
+  const [showLaunchConfig, setShowLaunchConfig] = useState(false)
 
   return (
     <>
@@ -89,6 +93,10 @@ export function ProjectCardDialogs({
           gitRemoteUrl={gitRemoteUrl}
           onLaunch={onLaunch}
           onLaunchGame={onLaunchGame}
+          onLaunchWithConfig={() => {
+            onLaunchWithConfig()
+            setShowLaunchConfig(true)
+          }}
           onFavorite={onFavorite}
           onOpenDir={onOpenDir}
           onHide={onHide}
@@ -134,6 +142,15 @@ export function ProjectCardDialogs({
           projectPath={projectPath}
           projectName={projectName ?? ''}
           onClose={() => setFileEditorMode(null)}
+        />
+      )}
+
+      {/* Launch config dialog */}
+      {showLaunchConfig && projectPath && (
+        <LaunchConfigDialog
+          projectPath={projectPath}
+          displayName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+          onClose={() => setShowLaunchConfig(false)}
         />
       )}
     </>

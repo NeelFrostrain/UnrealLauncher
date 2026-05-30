@@ -58,7 +58,7 @@ export function useTracerSettings(): UseTracerSettingsReturn {
         .catch(() => {
           /* ignore */
         })
-    }, 5000)
+    }, 30000) // 30s — tracer state rarely changes, no need to spawn tasklist every 5s
 
     return () => {
       clearInterval(interval)

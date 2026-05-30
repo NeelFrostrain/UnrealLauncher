@@ -2,7 +2,7 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { FolderOpen, Package, FileCode, Box, HelpCircle } from 'lucide-react'
 import { AssetThumb } from './AssetThumb'
 
@@ -145,7 +145,7 @@ const AssetTags = ({ asset }: { asset: FabAsset }) => {
 }
 
 // ── List card ─────────────────────────────────────────────────────────────────
-export const AssetListCard = ({ asset }: { asset: FabAsset }): React.ReactElement => {
+export const AssetListCard = memo(({ asset }: { asset: FabAsset }): React.ReactElement => {
   const [hovered, setHovered] = useState(false)
   const { label, color } = TYPE_LABELS[asset.type]
   const recentApps = asset.compatibleApps.slice(-3).reverse()
@@ -232,10 +232,10 @@ export const AssetListCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
       <AssetActions asset={asset} hovered={hovered} />
     </div>
   )
-}
+})
 
 // ── Grid card ─────────────────────────────────────────────────────────────────
-export const AssetGridCard = ({ asset }: { asset: FabAsset }): React.ReactElement => {
+export const AssetGridCard = memo(({ asset }: { asset: FabAsset }): React.ReactElement => {
   const [hovered, setHovered] = useState(false)
   const { label, color } = TYPE_LABELS[asset.type]
   const recentApps = asset.compatibleApps.slice(-3).reverse()
@@ -333,7 +333,7 @@ export const AssetGridCard = ({ asset }: { asset: FabAsset }): React.ReactElemen
       </div>
     </div>
   )
-}
+})
 
 const AssetCard = AssetListCard
 export default AssetCard

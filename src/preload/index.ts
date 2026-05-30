@@ -38,6 +38,18 @@ if (process.contextIsolated) {
           ipcRenderer.removeListener('size-calculated', listener)
         }
       },
+      onProjectRemoved: (
+        callback: (data: { projectPath: string }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          data: { projectPath: string }
+        ): void => callback(data)
+        ipcRenderer.on('project-removed', listener)
+        return (): void => {
+          ipcRenderer.removeListener('project-removed', listener)
+        }
+      },
       calculateEngineSize: (directoryPath) =>
         ipcRenderer.invoke('calculate-engine-size', directoryPath),
       updateEngineAlias: (directoryPath: string, alias: string) =>
@@ -164,7 +176,15 @@ if (process.contextIsolated) {
       // Project scan paths
       getProjectScanPaths: () => ipcRenderer.invoke('get-project-scan-paths'),
       saveProjectScanPaths: (paths: string[]) =>
-        ipcRenderer.invoke('save-project-scan-paths', paths)
+        ipcRenderer.invoke('save-project-scan-paths', paths),
+      // Launch configs
+      launchConfigsGet: () => ipcRenderer.invoke('launch-configs-get'),
+      launchConfigsSave: (configs: unknown[]) =>
+        ipcRenderer.invoke('launch-configs-save', configs),
+      launchEngineWithConfig: (exePath: string, config: unknown) =>
+        ipcRenderer.invoke('launch-engine-with-config', exePath, config),
+      launchProjectWithConfig: (projectPath: string, config: unknown) =>
+        ipcRenderer.invoke('launch-project-with-config', projectPath, config)
     })
   } catch (error) {
     console.error(error)

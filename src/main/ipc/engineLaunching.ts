@@ -2,9 +2,12 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
+import { spawn } from 'child_process'
 import { loadEngines, saveEngines } from '../store'
 import { openFileOrDirectory } from '../utils/processUtils'
 import { logger } from '../logger'
+import type { LaunchConfig } from '../utils/launchConfigArgs'
+import { buildLaunchArgs } from '../utils/launchConfigArgs'
 
 /**
  * Handles the launch-engine IPC event
@@ -34,6 +37,39 @@ export async function handleLaunchEngine(exePath: string): Promise<Record<string
     return { success: true }
   } catch (err) {
     logger.error('engine', 'Engine launch failed', { exePath, error: err })
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  }
+}
+
+/**
+ * Handles the launch-engine-with-config IPC event.
+ * Spawns the engine executable directly with the given config's CLI args.
+ */
+export async function handleLaunchEngineWithConfig(
+  exePath: string,
+  config: LaunchConfig
+): Promise<Record<string, unknown>> {
+  logger.info('engine', 'Launch engine with config requested', { exePath, configId: config.id })
+  try {
+    const args = buildLaunchArgs(config)
+    logger.info('engine', 'Engine launch args built', { exePath, args })
+    spawn(exePath, args, { detached: true, stdio: 'ignore' }).unref()
+
+    const engines = loadEngines()
+    const engine = engines.find((e) => e.exePath === exePath)
+    if (engine) {
+      engine.lastLaunch = new Date().toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })
+      saveEngines(engines)
+    }
+
+    logger.info('engine', 'Engine launched with config', { exePath, configId: config.id })
+    return { success: true }
+  } catch (err) {
+    logger.error('engine', 'Engine launch with config failed', { exePath, error: err })
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
   }
 }

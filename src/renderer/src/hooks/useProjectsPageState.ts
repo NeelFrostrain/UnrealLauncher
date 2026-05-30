@@ -58,11 +58,7 @@ export function useProjectsPageState() {
   })
 
   const { favoritePaths, toggleFavoritePath: toggleFav } = useProjectFavorites()
-  const stableFavoritePaths = useMemo(() => favoritePaths, [JSON.stringify(favoritePaths)])
   const [hiddenPaths, setHiddenPaths] = useState<string[]>(loadHiddenPaths)
-  const stableHiddenPaths = useMemo(() => hiddenPaths, [JSON.stringify(hiddenPaths)])
-  // Stabilize array references to avoid busting useMemo/useEffect when contents are unchanged
-  // favoritePathsRef is used for stable access in async callbacks
   const { filterForTab, switchTab: switchTabFn } = useProjectFilters()
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -74,15 +70,10 @@ export function useProjectsPageState() {
   const hiddenPathsRef = useRef<string[]>(hiddenPaths)
   const favoritePathsRef = useRef<string[]>(favoritePaths)
 
-  useEffect(() => {
-    currentTabRef.current = currentTab
-  }, [currentTab])
-  useEffect(() => {
-    hiddenPathsRef.current = hiddenPaths
-  }, [hiddenPaths])
-  useEffect(() => {
-    favoritePathsRef.current = favoritePaths
-  }, [favoritePaths])
+  // Sync refs immediately (no useEffect delay — avoids one-render stale window)
+  currentTabRef.current = currentTab
+  hiddenPathsRef.current = hiddenPaths
+  favoritePathsRef.current = favoritePaths
 
   const handleListScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const scrollTop = e.currentTarget.scrollTop
@@ -201,16 +192,29 @@ export function useProjectsPageState() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Live size updates
+  // Live size updates + missing-project removal
   useEffect(() => {
     if (!window.electronAPI) return
-    return window.electronAPI.onSizeCalculated((data) => {
+    const unsubSize = window.electronAPI.onSizeCalculated((data) => {
       if (data.type === 'project') {
+        allProjectsRef.current = allProjectsRef.current.map((p) =>
+          p.projectPath === data.path ? { ...p, size: data.size } : p
+        )
         setProjects((prev) =>
           prev.map((p) => (p.projectPath === data.path ? { ...p, size: data.size } : p))
         )
       }
     })
+    const unsubRemoved = window.electronAPI.onProjectRemoved((data) => {
+      allProjectsRef.current = allProjectsRef.current.filter(
+        (p) => p.projectPath !== data.projectPath
+      )
+      setProjects((prev) => prev.filter((p) => p.projectPath !== data.projectPath))
+    })
+    return () => {
+      unsubSize()
+      unsubRemoved()
+    }
   }, [])
 
   const switchTab = useCallback(
@@ -317,8 +321,8 @@ export function useProjectsPageState() {
     searchQuery,
     displayStart,
     containerRef,
-    favoritePaths: stableFavoritePaths,
-    hiddenPaths: stableHiddenPaths,
+    favoritePaths,
+    hiddenPaths,
     allProjectsRef,
 
     switchTab,

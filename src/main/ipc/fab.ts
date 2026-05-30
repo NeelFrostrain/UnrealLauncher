@@ -26,7 +26,7 @@ export function registerFabHandlers(ipcMain_: typeof ipcMain): void {
     return result.canceled || result.filePaths.length === 0 ? null : result.filePaths[0]
   })
 
-  ipcMain_.handle('fab-scan-folder', (_event, folderPath: string): FabAsset[] => {
+  ipcMain_.handle('fab-scan-folder', async (_event, folderPath: string): Promise<FabAsset[]> => {
     return scanFabFolder(folderPath)
   })
 

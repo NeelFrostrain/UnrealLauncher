@@ -98,7 +98,7 @@ export function SidebarCards({ collapsed, currentPath, onNavClick }: SidebarCard
     <div
       className={`flex-1 overflow-hidden ${collapsed ? 'flex flex-col items-center gap-1.5 pt-3 px-1.5' : 'p-3'}`}
     >
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence mode="sync" initial={false}>
         {collapsed ? (
           <motion.div
             key="collapsed"

@@ -297,6 +297,60 @@ export function saveProjects(projects: Project[]): void {
   }
 }
 
+// ── Launch configs ────────────────────────────────────────────────────────────
+
+import type { LaunchConfig } from './utils/launchConfigArgs'
+import { SKELETON_CONFIG, DEFAULT_CONFIG } from './utils/launchConfigArgs'
+
+function getLaunchConfigsPath(): string {
+  return path.join(getSaveDir(), 'launch-configs.json')
+}
+
+const builtInConfigs: LaunchConfig[] = [
+  {
+    id: 'builtin-default',
+    name: 'Default',
+    description: 'Launch with Unreal Engine defaults — no overrides applied.',
+    ...DEFAULT_CONFIG
+  },
+  {
+    id: 'builtin-skeleton',
+    name: 'Skeleton (Lowest)',
+    description:
+      'Bare-minimum startup: DX11, scalability Low, all heavy features disabled. Great for first boot on modest hardware.',
+    ...SKELETON_CONFIG
+  }
+]
+
+export function loadLaunchConfigs(): LaunchConfig[] {
+  try {
+    if (fs.existsSync(getLaunchConfigsPath())) {
+      const content = fs.readFileSync(getLaunchConfigsPath(), 'utf8')
+      if (!content.trim()) return [...builtInConfigs]
+      const parsed: LaunchConfig[] = JSON.parse(content)
+      if (!Array.isArray(parsed)) return [...builtInConfigs]
+
+      // Always replace built-in entries with the current source-of-truth so
+      // changes to built-in presets (like fixing noSplash) take effect immediately.
+      const customConfigs = parsed.filter((c) => !c.id.startsWith('builtin-'))
+      return [...builtInConfigs, ...customConfigs]
+    }
+  } catch (err) {
+    logger.error('store', 'Error loading launch configs', err)
+  }
+  return [...builtInConfigs]
+}
+
+export function saveLaunchConfigs(configs: LaunchConfig[]): void {
+  try {
+    ensureSaveDir()
+    fs.writeFileSync(getLaunchConfigsPath(), JSON.stringify(configs, null, 2), 'utf8')
+    logger.info('store', 'Launch configs saved', { count: configs.length })
+  } catch (error) {
+    logger.error('store', 'Failed to save launch configs', error)
+  }
+}
+
 // ── Tracer merge (re-exported from storeTracerMerge) ─────────────────────────
 
 import {

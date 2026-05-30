@@ -10,6 +10,8 @@ import { openFileOrDirectory } from '../utils/processUtils'
 import { scanEnginePaths } from '../utils/engineScanning'
 import { getBinaryExtension } from '../utils/platformPaths'
 import { logger } from '../logger'
+import type { LaunchConfig } from '../utils/launchConfigArgs'
+import { buildLaunchArgs } from '../utils/launchConfigArgs'
 
 /**
  * Locates the .uproject file in a project directory
@@ -158,6 +160,68 @@ export async function handleLaunchProject(projectPath: string): Promise<Record<s
     return { success: true }
   } catch (err) {
     logger.error('project', 'Project editor spawn failed', { editorExe, uprojectPath, error: err })
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  }
+}
+
+/**
+ * Handles the launch-project-with-config IPC event.
+ * Always spawns the editor directly (bypasses Windows file association) so
+ * we can pass CLI arguments.
+ */
+export async function handleLaunchProjectWithConfig(
+  projectPath: string,
+  config: LaunchConfig
+): Promise<Record<string, unknown>> {
+  logger.info('project', 'Launch project with config requested', {
+    projectPath,
+    configId: config.id
+  })
+  const uprojectPath = await locateUproject(projectPath)
+  if (!uprojectPath) {
+    logger.warn('project', 'Config launch failed; project file not found', { projectPath })
+    return { success: false, error: 'Project file not found' }
+  }
+
+  const engineAssociation = await getEngineAssociation(uprojectPath)
+  const editorExe = findEditorExecutable(engineAssociation)
+  logger.info('project', 'Resolved project config launch target', {
+    projectPath,
+    uprojectPath,
+    engineAssociation,
+    editorExe: editorExe || null
+  })
+
+  if (!editorExe) {
+    logger.warn('project', 'Config launch failed; no matching Unreal Engine found', {
+      projectPath,
+      engineAssociation
+    })
+    return {
+      success: false,
+      error: engineAssociation
+        ? `No Unreal Engine found for version "${engineAssociation}". Add the engine in the Engines tab or set UE_ROOT.`
+        : 'No Unreal Engine found. Add an engine in the Engines tab or set UE_ROOT.'
+    }
+  }
+
+  try {
+    const configArgs = buildLaunchArgs(config)
+    const args = [uprojectPath, ...configArgs]
+    logger.info('project', 'Project config launch args built', { editorExe, args })
+    spawn(editorExe, args, { detached: true, stdio: 'ignore' }).unref()
+    logger.info('project', 'Project editor process spawned with config', {
+      editorExe,
+      uprojectPath,
+      configId: config.id
+    })
+    return { success: true }
+  } catch (err) {
+    logger.error('project', 'Project config launch spawn failed', {
+      editorExe,
+      uprojectPath,
+      error: err
+    })
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
   }
 }
