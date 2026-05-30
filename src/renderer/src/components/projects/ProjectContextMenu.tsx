@@ -5,7 +5,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Play, Gamepad2, Star, GitMerge, Wrench, AlertTriangle, GitBranch, Settings2 } from 'lucide-react'
+import {
+  Play,
+  Gamepad2,
+  Star,
+  GitMerge,
+  Wrench,
+  AlertTriangle,
+  GitBranch,
+  Settings2
+} from 'lucide-react'
 import { useToast } from '../ui/ToastContext'
 import {
   MenuItem,

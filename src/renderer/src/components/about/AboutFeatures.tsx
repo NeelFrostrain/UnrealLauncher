@@ -70,7 +70,10 @@ const features = [
 
 const AboutFeatures = (): React.ReactElement => (
   <div>
-    <h2 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+    <h2
+      className="text-xl font-bold mb-4 flex items-center gap-2"
+      style={{ color: 'var(--color-text-primary)' }}
+    >
       <Zap size={20} className="text-blue-400" />
       Features
     </h2>
@@ -84,14 +87,22 @@ const AboutFeatures = (): React.ReactElement => (
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius)'
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-card)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-elevated)')}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = 'var(--color-surface-card)')
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor = 'var(--color-surface-elevated)')
+          }
         >
           <div className="flex items-center gap-2">
             {icon}
-            <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>{title}</h3>
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              {title}
+            </h3>
           </div>
-          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{desc}</p>
+          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            {desc}
+          </p>
         </div>
       ))}
     </div>

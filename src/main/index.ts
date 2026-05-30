@@ -118,34 +118,39 @@ if (!gotTheLock) {
       protocol.handle('local-asset', (request) => {
         let filePath = decodeURIComponent(new URL(request.url).pathname)
         if (process.platform === 'win32' && filePath.startsWith('/')) filePath = filePath.slice(1)
-        
+
         // SECURITY: Validate path is within allowed directories
         const resolved = path.resolve(filePath)
         const allowedDirs = [
           path.resolve(path.join(app.getAppPath(), 'resources')),
           path.resolve(path.join(app.getAppPath(), 'out', 'renderer'))
         ]
-        
+
         // Check if path is in allowed app directories
-        const isInAppDir = allowedDirs.some(dir => resolved.startsWith(dir))
-        
+        const isInAppDir = allowedDirs.some((dir) => resolved.startsWith(dir))
+
         // Normalize path for checking (use forward slashes for consistency)
         const normalizedPath = resolved.replace(/\\/g, '/')
-        
+
         // Also allow project thumbnails and screenshots (Saved/AutoScreenshot.png, Saved/Thumbnail.png)
-        const isProjectThumbnail = normalizedPath.includes('/Saved/') && 
-                                   (resolved.endsWith('AutoScreenshot.png') || resolved.endsWith('Thumbnail.png'))
-        
+        const isProjectThumbnail =
+          normalizedPath.includes('/Saved/') &&
+          (resolved.endsWith('AutoScreenshot.png') || resolved.endsWith('Thumbnail.png'))
+
         // Also allow engine plugin icons (Engine/Plugins/*/Resources/Icon128.png)
-        const isEnginePluginIcon = normalizedPath.includes('/Engine/Plugins/') &&
-                                   normalizedPath.includes('/Resources/') &&
-                                   resolved.endsWith('Icon128.png')
-        
+        const isEnginePluginIcon =
+          normalizedPath.includes('/Engine/Plugins/') &&
+          normalizedPath.includes('/Resources/') &&
+          resolved.endsWith('Icon128.png')
+
         if (!isInAppDir && !isProjectThumbnail && !isEnginePluginIcon) {
-          logger.warn('protocol', 'Path traversal attempt blocked', { attempted: filePath, resolved })
+          logger.warn('protocol', 'Path traversal attempt blocked', {
+            attempted: filePath,
+            resolved
+          })
           return new Response(null, { status: 403 })
         }
-        
+
         if (!fs.existsSync(filePath)) return new Response(null, { status: 404 })
         return net.fetch(`file:///${filePath.replace(/\\/g, '/')}`)
       })
@@ -222,9 +227,13 @@ if (!gotTheLock) {
 
     // Update registry key asynchronously
     logger.info('tracer', 'Ensuring tracer startup registry entry')
-    const regProcess = spawn('reg', ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'], {
-      stdio: 'ignore'
-    })
+    const regProcess = spawn(
+      'reg',
+      ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
+      {
+        stdio: 'ignore'
+      }
+    )
     childProcesses.push(regProcess)
 
     // Check if tracer is already running — async via spawn instead of execSync
@@ -235,7 +244,7 @@ if (!gotTheLock) {
         { stdio: ['ignore', 'pipe', 'ignore'] }
       )
       childProcesses.push(check)
-      
+
       let output = ''
       check.stdout?.on('data', (d: Buffer) => {
         output += d.toString()

@@ -138,10 +138,7 @@ export default function ProjectLogDialog({
                 {counts.warning.toLocaleString()}
               </button>
             )}
-            <span
-              className="text-xs font-mono px-2"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
+            <span className="text-xs font-mono px-2" style={{ color: 'var(--color-text-muted)' }}>
               {sizeKb.toFixed(1)} KB
             </span>
 
@@ -292,7 +289,10 @@ export default function ProjectLogDialog({
               onClick={() => setFontSizeIdx((i) => Math.max(i - 1, 0))}
               disabled={fontSizeIdx === 0}
               className="px-2.5 py-1.5 text-xs cursor-pointer disabled:opacity-30 transition-colors"
-              style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)' }}
+              style={{
+                backgroundColor: 'var(--color-surface-card)',
+                color: 'var(--color-text-muted)'
+              }}
               title="Zoom out (Ctrl -)"
             >
               A−
@@ -312,7 +312,10 @@ export default function ProjectLogDialog({
               onClick={() => setFontSizeIdx((i) => Math.min(i + 1, FONT_SIZES.length - 1))}
               disabled={fontSizeIdx === FONT_SIZES.length - 1}
               className="px-2.5 py-1.5 text-xs cursor-pointer disabled:opacity-30 transition-colors"
-              style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)' }}
+              style={{
+                backgroundColor: 'var(--color-surface-card)',
+                color: 'var(--color-text-muted)'
+              }}
               title="Zoom in (Ctrl +)"
             >
               A+
@@ -341,7 +344,10 @@ export default function ProjectLogDialog({
         {loading ? (
           <div
             className="flex-1 flex items-center justify-center gap-2"
-            style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)' }}
+            style={{
+              backgroundColor: 'var(--color-surface-card)',
+              color: 'var(--color-text-muted)'
+            }}
           >
             <RefreshCw size={16} className="animate-spin" />
             <span className="text-sm">Loading log…</span>
@@ -349,7 +355,10 @@ export default function ProjectLogDialog({
         ) : filtered.length === 0 ? (
           <div
             className="flex-1 flex flex-col items-center justify-center gap-3"
-            style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)' }}
+            style={{
+              backgroundColor: 'var(--color-surface-card)',
+              color: 'var(--color-text-muted)'
+            }}
           >
             <FileText size={32} style={{ opacity: 0.3 }} />
             <span className="text-sm">

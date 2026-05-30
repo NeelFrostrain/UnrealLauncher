@@ -8,7 +8,7 @@
  *
  * A generation counter ensures that in-flight requests from a previous scan
  * never write stale results into the cache after clearGitCache() is called.
- * 
+ *
  * AbortController is used to cancel in-flight requests when a new scan starts,
  * preventing memory leaks from pending promises.
  */
@@ -64,12 +64,12 @@ export async function getGitStatus(projectPath: string): Promise<GitStatus> {
 /** Call when projects list is refreshed to clear stale entries and abort in-flight requests */
 export function clearGitCache(): void {
   generation++
-  
+
   // Abort all in-flight requests to prevent memory leaks
   for (const controller of abortControllers.values()) {
     controller.abort()
   }
-  
+
   cache.clear()
   pending.clear()
   abortControllers.clear()
@@ -79,7 +79,7 @@ export function clearGitCache(): void {
 export function clearGitCacheForPath(projectPath: string): void {
   cache.delete(projectPath)
   pending.delete(projectPath)
-  
+
   // Abort in-flight request for this path
   const controller = abortControllers.get(projectPath)
   if (controller) {

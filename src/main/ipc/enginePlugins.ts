@@ -56,7 +56,7 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
  */
 async function scanEnginePluginsJS(engineDir: string): Promise<EnginePlugin[]> {
   const pluginsRoot = path.join(engineDir, 'Engine', 'Plugins')
-  
+
   try {
     await fsPromises.access(pluginsRoot)
   } catch {

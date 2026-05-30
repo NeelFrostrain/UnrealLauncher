@@ -12,6 +12,7 @@ import { AboutIpcModules } from '../components/about/AboutIpcModules'
 import { AboutDataStorage } from '../components/about/AboutDataStorage'
 import { AboutTechStack } from '../components/about/AboutTechStack'
 import { useAppVersion } from '../hooks/useAppVersion'
+// import AboutChangelog from '@renderer/components/about/AboutChangelog'
 
 const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement => {
   const appVersion = useAppVersion()
@@ -26,6 +27,7 @@ const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement =
         <AboutIpcModules />
         <AboutDataStorage />
         <AboutTechStack />
+        {/* <AboutChangelog /> */}
         <AboutFooter />
       </div>
     </>

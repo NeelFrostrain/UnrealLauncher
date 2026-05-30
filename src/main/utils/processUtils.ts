@@ -11,7 +11,17 @@ import path from 'path'
 import { logger } from '../logger'
 
 // Security: Allowed file extensions for opening
-const ALLOWED_EXTENSIONS = ['.exe', '.app', '.sh', '.uproject', '.ini', '.json', '.txt', '.md', '.log']
+const ALLOWED_EXTENSIONS = [
+  '.exe',
+  '.app',
+  '.sh',
+  '.uproject',
+  '.ini',
+  '.json',
+  '.txt',
+  '.md',
+  '.log'
+]
 
 // Security: Forbidden directories that should never be opened
 const FORBIDDEN_DIRS = [
@@ -48,7 +58,9 @@ export async function isProcessRunning(processName: string): Promise<boolean> {
           timeout: 5000
         }
       )
-      return stdout.trim().length > 0 && !stdout.toLowerCase().includes('info: no tasks are running')
+      return (
+        stdout.trim().length > 0 && !stdout.toLowerCase().includes('info: no tasks are running')
+      )
     } else {
       // pgrep -f matches the full command line. To avoid false positives where the
       // electron process matches (its bundle contains the binary name as a string),
@@ -78,7 +90,10 @@ export async function killProcess(processName: string): Promise<void> {
           timeout: 5000
         }
       )
-      if (stdout.trim().length === 0 || stdout.toLowerCase().includes('info: no tasks are running')) {
+      if (
+        stdout.trim().length === 0 ||
+        stdout.toLowerCase().includes('info: no tasks are running')
+      ) {
         logger.debug('process', 'Process not found', { processName })
         return
       }
@@ -101,13 +116,16 @@ export function openFileOrDirectory(filePath: string): void {
     const resolved = path.resolve(filePath)
 
     // Check if it's a forbidden directory
-    const isForbidden = FORBIDDEN_DIRS.some(forbidden => {
+    const isForbidden = FORBIDDEN_DIRS.some((forbidden) => {
       const normalizedForbidden = path.normalize(forbidden)
       return resolved.toLowerCase().startsWith(normalizedForbidden.toLowerCase())
     })
 
     if (isForbidden) {
-      logger.warn('process', 'Attempt to open forbidden directory blocked', { path: filePath, resolved })
+      logger.warn('process', 'Attempt to open forbidden directory blocked', {
+        path: filePath,
+        resolved
+      })
       return
     }
 
@@ -117,7 +135,10 @@ export function openFileOrDirectory(filePath: string): void {
       if (stats.isFile()) {
         const ext = path.extname(resolved).toLowerCase()
         if (!ALLOWED_EXTENSIONS.includes(ext)) {
-          logger.warn('process', 'Attempt to open disallowed file type blocked', { path: filePath, ext })
+          logger.warn('process', 'Attempt to open disallowed file type blocked', {
+            path: filePath,
+            ext
+          })
           return
         }
       }

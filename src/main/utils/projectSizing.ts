@@ -97,9 +97,11 @@ export async function calculateAllProjectSizes(): Promise<void> {
   // Single batched write after all sizes are calculated
   if (sizeMap.size > 0) {
     const all = loadProjects()
-    saveProjects(all.map((p) => {
-      const size = sizeMap.get(p.projectPath)
-      return size ? { ...p, size } : p
-    }))
+    saveProjects(
+      all.map((p) => {
+        const size = sizeMap.get(p.projectPath)
+        return size ? { ...p, size } : p
+      })
+    )
   }
 }

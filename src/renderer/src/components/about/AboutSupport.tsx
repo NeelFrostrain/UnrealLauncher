@@ -6,7 +6,10 @@ import { BookOpen, Zap } from 'lucide-react'
 
 export const AboutSupport = (): React.ReactElement => (
   <div>
-    <h2 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+    <h2
+      className="text-xl font-bold mb-4 flex items-center gap-2"
+      style={{ color: 'var(--color-text-primary)' }}
+    >
       <Zap size={20} className="text-purple-400" />
       Support the Project
     </h2>
@@ -25,14 +28,24 @@ export const AboutSupport = (): React.ReactElement => (
         <button
           onClick={() => window.electronAPI.openExternal('https://ko-fi.com/neelfrostrain')}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer"
-          style={{ backgroundColor: '#ea580c', color: 'white', border: '1px solid rgba(234,88,12,0.5)' }}
+          style={{
+            backgroundColor: '#ea580c',
+            color: 'white',
+            border: '1px solid rgba(234,88,12,0.5)'
+          }}
         >
           <span>☕</span> Ko-fi
         </button>
         <button
-          onClick={() => window.electronAPI.openExternal('https://github.com/sponsors/NeelFrostrain')}
+          onClick={() =>
+            window.electronAPI.openExternal('https://github.com/sponsors/NeelFrostrain')
+          }
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer"
-          style={{ backgroundColor: '#db2777', color: 'white', border: '1px solid rgba(219,39,119,0.5)' }}
+          style={{
+            backgroundColor: '#db2777',
+            color: 'white',
+            border: '1px solid rgba(219,39,119,0.5)'
+          }}
         >
           <span>💖</span> GitHub Sponsors
         </button>
@@ -41,9 +54,17 @@ export const AboutSupport = (): React.ReactElement => (
         Also consider starring ⭐ the repo and sharing it with your friends!
       </p>
       <button
-        onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain/UnrealLauncher/blob/main/docs/DONATE.md')}
+        onClick={() =>
+          window.electronAPI.openExternal(
+            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/docs/DONATE.md'
+          )
+        }
         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer"
-        style={{ backgroundColor: '#7c3aed', color: 'white', border: '1px solid rgba(124,58,237,0.5)' }}
+        style={{
+          backgroundColor: '#7c3aed',
+          color: 'white',
+          border: '1px solid rgba(124,58,237,0.5)'
+        }}
       >
         <BookOpen size={16} />
         More Ways to Support

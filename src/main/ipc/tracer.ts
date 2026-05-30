@@ -24,11 +24,10 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('tracer-get-startup', async (): Promise<boolean> => {
     if (process.platform !== 'win32') return false
     try {
-      const { stdout } = await execFileAsync(
-        'reg',
-        ['query', RUN_KEY, '/v', TRACER_KEY_NAME],
-        { encoding: 'utf8', timeout: 3000 }
-      )
+      const { stdout } = await execFileAsync('reg', ['query', RUN_KEY, '/v', TRACER_KEY_NAME], {
+        encoding: 'utf8',
+        timeout: 3000
+      })
       return stdout.includes(TRACER_KEY_NAME)
     } catch {
       return false
@@ -63,11 +62,9 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
         }
       } else {
         try {
-          await execFileAsync(
-            'reg',
-            ['delete', RUN_KEY, '/v', TRACER_KEY_NAME, '/f'],
-            { timeout: 5000 }
-          )
+          await execFileAsync('reg', ['delete', RUN_KEY, '/v', TRACER_KEY_NAME, '/f'], {
+            timeout: 5000
+          })
         } catch {
           /* key didn't exist */
         }

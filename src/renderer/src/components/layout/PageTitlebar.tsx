@@ -31,8 +31,12 @@ const PageTitleBar: FC<PageTitleBarProps> = ({
   return (
     <div className="w-full h-fit mt-1 px-2 flex justify-between items-center">
       <div>
-        <h1 className="font-semibold text-xl" style={{ color: 'var(--color-text-primary)' }}>{title}</h1>
-        <p className="text-sm mt-px" style={{ color: 'var(--color-text-muted)' }}>{description}</p>
+        <h1 className="font-semibold text-xl" style={{ color: 'var(--color-text-primary)' }}>
+          {title}
+        </h1>
+        <p className="text-sm mt-px" style={{ color: 'var(--color-text-muted)' }}>
+          {description}
+        </p>
       </div>
       <div className="flex gap-2">
         {showScanButton && (

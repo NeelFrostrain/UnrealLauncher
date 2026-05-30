@@ -33,7 +33,10 @@ const steps = [
 
 const AboutUsage = (): React.ReactElement => (
   <div>
-    <h2 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+    <h2
+      className="text-xl font-bold mb-4 flex items-center gap-2"
+      style={{ color: 'var(--color-text-primary)' }}
+    >
       <BookOpen size={20} className="text-green-400" />
       How to Use
     </h2>
@@ -47,8 +50,12 @@ const AboutUsage = (): React.ReactElement => (
     >
       {steps.map(({ title, desc }) => (
         <div key={title} className="space-y-2">
-          <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>{title}</h3>
-          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{desc}</p>
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+            {title}
+          </h3>
+          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            {desc}
+          </p>
         </div>
       ))}
     </div>

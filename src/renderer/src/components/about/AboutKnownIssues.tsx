@@ -13,7 +13,10 @@ const knownIssues = [
 
 export const AboutKnownIssues = (): React.ReactElement => (
   <div>
-    <h2 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+    <h2
+      className="text-xl font-bold mb-4 flex items-center gap-2"
+      style={{ color: 'var(--color-text-primary)' }}
+    >
       <AlertTriangle size={20} className="text-yellow-400" />
       Known Issues &amp; Notes
     </h2>
@@ -28,7 +31,9 @@ export const AboutKnownIssues = (): React.ReactElement => (
       {knownIssues.map((issue) => (
         <div key={issue} className="flex gap-3">
           <span className="text-yellow-400 mt-0.5 shrink-0">•</span>
-          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{issue}</p>
+          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            {issue}
+          </p>
         </div>
       ))}
     </div>

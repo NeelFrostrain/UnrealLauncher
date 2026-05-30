@@ -96,7 +96,10 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+      <h2
+        className="text-xl font-bold mb-4 flex items-center gap-2"
+        style={{ color: 'var(--color-text-primary)' }}
+      >
         <RefreshCw size={20} className="text-blue-400" />
         Updates
       </h2>
@@ -111,7 +114,9 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
         {/* Auto-Update */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <p className="text-sm mb-1" style={{ color: 'var(--color-text-primary)' }}>Auto-Update Check</p>
+            <p className="text-sm mb-1" style={{ color: 'var(--color-text-primary)' }}>
+              Auto-Update Check
+            </p>
             {updateMessage && (
               <p
                 className="text-xs"
@@ -131,18 +136,27 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
             )}
           </div>
           <div className="flex gap-2 shrink-0">
-            {(updateStatus === 'idle' || updateStatus === 'no-update' || updateStatus === 'error') && (
+            {(updateStatus === 'idle' ||
+              updateStatus === 'no-update' ||
+              updateStatus === 'error') && (
               <button
                 onClick={handleCheckForUpdates}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer"
-                style={{ backgroundColor: 'var(--color-accent)', color: 'white', border: '1px solid color-mix(in srgb, var(--color-accent) 50%, transparent)' }}
+                style={{
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'white',
+                  border: '1px solid color-mix(in srgb, var(--color-accent) 50%, transparent)'
+                }}
               >
                 <RefreshCw size={16} /> Check Updates
               </button>
             )}
             {updateStatus === 'checking' && (
-              <button disabled className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm cursor-not-allowed opacity-60"
-                style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>
+              <button
+                disabled
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm cursor-not-allowed opacity-60"
+                style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
+              >
                 <RefreshCw size={16} className="animate-spin" /> Checking...
               </button>
             )}
@@ -150,14 +164,21 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
               <button
                 onClick={handleDownloadUpdate}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer"
-                style={{ backgroundColor: '#16a34a', color: 'white', border: '1px solid rgba(22,163,74,0.5)' }}
+                style={{
+                  backgroundColor: '#16a34a',
+                  color: 'white',
+                  border: '1px solid rgba(22,163,74,0.5)'
+                }}
               >
                 <Download size={16} /> Download v{updateVersion}
               </button>
             )}
             {updateStatus === 'downloading' && (
-              <button disabled className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm cursor-not-allowed opacity-60"
-                style={{ backgroundColor: '#16a34a', color: 'white' }}>
+              <button
+                disabled
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm cursor-not-allowed opacity-60"
+                style={{ backgroundColor: '#16a34a', color: 'white' }}
+              >
                 <Download size={16} className="animate-pulse" /> Downloading...
               </button>
             )}
@@ -165,7 +186,11 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
               <button
                 onClick={() => window.electronAPI?.installUpdate?.()}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer"
-                style={{ backgroundColor: '#7c3aed', color: 'white', border: '1px solid rgba(124,58,237,0.5)' }}
+                style={{
+                  backgroundColor: '#7c3aed',
+                  color: 'white',
+                  border: '1px solid rgba(124,58,237,0.5)'
+                }}
               >
                 <CheckCircle size={16} /> Install &amp; Restart
               </button>
@@ -177,16 +202,24 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
         <div className="pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <p className="text-sm mb-1" style={{ color: 'var(--color-text-primary)' }}>GitHub Version Check</p>
+              <p className="text-sm mb-1" style={{ color: 'var(--color-text-primary)' }}>
+                GitHub Version Check
+              </p>
               {githubVersion && (
-                <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Latest on GitHub: v{githubVersion}</p>
+                <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  Latest on GitHub: v{githubVersion}
+                </p>
               )}
               {githubMessage && (
-                <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>{githubMessage}</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                  {githubMessage}
+                </p>
               )}
             </div>
             <div className="flex gap-2 shrink-0">
-              {(githubStatus === 'idle' || githubStatus === 'success' || githubStatus === 'error') && (
+              {(githubStatus === 'idle' ||
+                githubStatus === 'success' ||
+                githubStatus === 'error') && (
                 <button
                   onClick={checkGitHubVersion}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer"
@@ -197,12 +230,19 @@ const AboutUpdates = ({ appVersion }: { appVersion: string }): React.ReactElemen
                   }}
                 >
                   {githubStatus === 'error' ? <RefreshCw size={16} /> : <GitBranch size={16} />}
-                  {githubStatus === 'success' ? 'Recheck' : githubStatus === 'error' ? 'Retry' : 'Check GitHub'}
+                  {githubStatus === 'success'
+                    ? 'Recheck'
+                    : githubStatus === 'error'
+                      ? 'Retry'
+                      : 'Check GitHub'}
                 </button>
               )}
               {githubStatus === 'checking' && (
-                <button disabled className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm cursor-not-allowed opacity-60"
-                  style={{ backgroundColor: '#7c3aed', color: 'white' }}>
+                <button
+                  disabled
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm cursor-not-allowed opacity-60"
+                  style={{ backgroundColor: '#7c3aed', color: 'white' }}
+                >
                   <RefreshCw size={16} className="animate-spin" /> Checking...
                 </button>
               )}

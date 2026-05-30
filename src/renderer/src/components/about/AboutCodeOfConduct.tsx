@@ -6,7 +6,10 @@ import { AlertTriangle, BookOpen } from 'lucide-react'
 
 export const AboutCodeOfConduct = (): React.ReactElement => (
   <div>
-    <h2 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+    <h2
+      className="text-xl font-bold mb-4 flex items-center gap-2"
+      style={{ color: 'var(--color-text-primary)' }}
+    >
       <AlertTriangle size={20} className="text-blue-400" />
       Code of Conduct
     </h2>
@@ -19,10 +22,13 @@ export const AboutCodeOfConduct = (): React.ReactElement => (
       }}
     >
       <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-        This project is governed by a Code of Conduct to ensure a welcoming environment for everyone.
+        This project is governed by a Code of Conduct to ensure a welcoming environment for
+        everyone.
       </p>
       <div className="space-y-2">
-        <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>Our Standards</h3>
+        <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+          Our Standards
+        </h3>
         <ul className="text-xs space-y-1 ml-4" style={{ color: 'var(--color-text-muted)' }}>
           <li>• Use welcoming and inclusive language</li>
           <li>• Be respectful of differing viewpoints</li>
@@ -31,9 +37,17 @@ export const AboutCodeOfConduct = (): React.ReactElement => (
         </ul>
       </div>
       <button
-        onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain/UnrealLauncher/blob/main/docs/CODE_OF_CONDUCT.md')}
+        onClick={() =>
+          window.electronAPI.openExternal(
+            'https://github.com/NeelFrostrain/UnrealLauncher/blob/main/docs/CODE_OF_CONDUCT.md'
+          )
+        }
         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer"
-        style={{ backgroundColor: 'var(--color-accent)', color: 'white', border: '1px solid color-mix(in srgb, var(--color-accent) 50%, transparent)' }}
+        style={{
+          backgroundColor: 'var(--color-accent)',
+          color: 'white',
+          border: '1px solid color-mix(in srgb, var(--color-accent) 50%, transparent)'
+        }}
       >
         <BookOpen size={16} />
         Read Code of Conduct

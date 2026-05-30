@@ -85,7 +85,7 @@ const SettingsPage = (): React.ReactElement => {
       default:
         return null
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSection, settingsState, platform])
 
   const handleSectionChange = useCallback(

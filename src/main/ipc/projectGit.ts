@@ -17,7 +17,11 @@ async function runGitAsync(projectPath: string, args: string[]): Promise<Buffer>
 function assertValidBranchName(branch: string): void {
   if (branch.startsWith('-')) throw new Error('Invalid branch name')
   // Validate without spawning a process — covers the main git check-ref-format rules
-  if (/[\x00-\x1f\x7f ~^:?*[\\\]]/.test(branch) || branch.includes('..') || branch.endsWith('.lock')) {
+  if (
+    /[\x00-\x1f\x7f ~^:?*[\\\]]/.test(branch) ||
+    branch.includes('..') ||
+    branch.endsWith('.lock')
+  ) {
     throw new Error('Invalid branch name')
   }
 }
@@ -332,7 +336,11 @@ export async function handleProjectGitSwitchBranch(
         await runGitAsync(projectPath, ['checkout', branch])
         await runGitAsync(projectPath, ['stash', 'pop'])
       } catch (switchErr) {
-        try { await runGitAsync(projectPath, ['stash', 'pop']) } catch { /* ignore */ }
+        try {
+          await runGitAsync(projectPath, ['stash', 'pop'])
+        } catch {
+          /* ignore */
+        }
         throw switchErr
       }
       return { success: true }

@@ -25,8 +25,10 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
 
   ipcMain_.handle('launch-engine', async (_event, exePath) => handleLaunchEngine(exePath))
 
-  ipcMain_.handle('launch-engine-with-config', async (_event, exePath: string, config: LaunchConfig) =>
-    handleLaunchEngineWithConfig(exePath, config)
+  ipcMain_.handle(
+    'launch-engine-with-config',
+    async (_event, exePath: string, config: LaunchConfig) =>
+      handleLaunchEngineWithConfig(exePath, config)
   )
 
   ipcMain_.handle('delete-engine', (_event, directoryPath) => handleDeleteEngine(directoryPath))

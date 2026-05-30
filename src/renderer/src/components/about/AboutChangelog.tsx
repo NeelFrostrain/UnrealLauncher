@@ -6,22 +6,57 @@ import { GitBranch, GitCommit, Plus, Wrench } from 'lucide-react'
 
 // ── v2.2.8 — launch config profiles + theme sync ─────────────────────────────
 const v228commits = [
-  { type: 'feat', msg: 'Launch Configuration Profiles — per-engine and per-project launch profiles with RHI, scalability, rendering feature toggles, startup flags, and extra args' },
-  { type: 'feat', msg: 'Built-in profiles: Default (no overrides) and Skeleton (DX11, Low scalability, all heavy features off)' },
-  { type: 'feat', msg: 'Custom profiles — create, rename, clone, delete; persisted to launch-configs.json' },
+  {
+    type: 'feat',
+    msg: 'Launch Configuration Profiles — per-engine and per-project launch profiles with RHI, scalability, rendering feature toggles, startup flags, and extra args'
+  },
+  {
+    type: 'feat',
+    msg: 'Built-in profiles: Default (no overrides) and Skeleton (DX11, Low scalability, all heavy features off)'
+  },
+  {
+    type: 'feat',
+    msg: 'Custom profiles — create, rename, clone, delete; persisted to launch-configs.json'
+  },
   { type: 'feat', msg: 'launch-engine-with-config and launch-project-with-config IPC channels' },
   { type: 'feat', msg: 'launch-configs-get / launch-configs-save IPC for full profile CRUD' },
-  { type: 'feat', msg: 'project-removed push event — deleted project cards removed from UI in real time without manual refresh' },
-  { type: 'fix', msg: 'Splash screen suppressed when launching from Skeleton preset — noSplash was true by default' },
-  { type: 'fix', msg: 'Deleted project folder shows 0 B — calculateProjectSize now checks fs.existsSync before walking' },
-  { type: 'fix', msg: 'Deleted project card stays in UI — calculateAllProjectSizes removes missing projects from store and notifies renderer' },
-  { type: 'fix', msg: 'onSizeCalculated now also updates allProjectsRef so tab switches no longer revert to stale sizes' },
-  { type: 'refactor', msg: 'Launch Config dialog fully redesigned — correct surface tokens, 980px width, 86vh height, readable font sizes, colour-coded scalability pills' },
-  { type: 'refactor', msg: 'Project Log dialog sizing fixed — 1100px width, 88vh height, all fonts bumped to text-xs/text-sm' },
-  { type: 'refactor', msg: 'Full theme sync — eliminated all text-white/x and bg-white/x hardcoded classes across layout, about, and UI components' },
-  { type: 'refactor', msg: 'main.css — global override rules mapping text-white/x, bg-white/x, border-white/x to CSS theme tokens' }
+  {
+    type: 'feat',
+    msg: 'project-removed push event — deleted project cards removed from UI in real time without manual refresh'
+  },
+  {
+    type: 'fix',
+    msg: 'Splash screen suppressed when launching from Skeleton preset — noSplash was true by default'
+  },
+  {
+    type: 'fix',
+    msg: 'Deleted project folder shows 0 B — calculateProjectSize now checks fs.existsSync before walking'
+  },
+  {
+    type: 'fix',
+    msg: 'Deleted project card stays in UI — calculateAllProjectSizes removes missing projects from store and notifies renderer'
+  },
+  {
+    type: 'fix',
+    msg: 'onSizeCalculated now also updates allProjectsRef so tab switches no longer revert to stale sizes'
+  },
+  {
+    type: 'refactor',
+    msg: 'Launch Config dialog fully redesigned — correct surface tokens, 980px width, 86vh height, readable font sizes, colour-coded scalability pills'
+  },
+  {
+    type: 'refactor',
+    msg: 'Project Log dialog sizing fixed — 1100px width, 88vh height, all fonts bumped to text-xs/text-sm'
+  },
+  {
+    type: 'refactor',
+    msg: 'Full theme sync — eliminated all text-white/x and bg-white/x hardcoded classes across layout, about, and UI components'
+  },
+  {
+    type: 'refactor',
+    msg: 'main.css — global override rules mapping text-white/x, bg-white/x, border-white/x to CSS theme tokens'
+  }
 ]
-
 
 const v221commits = [
   {
