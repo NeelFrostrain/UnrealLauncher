@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
@@ -24,6 +21,34 @@ import { useToast } from '../ui/ToastContext'
 
 type RHI = 'default' | 'dx11' | 'dx12' | 'vulkan' | 'opengl'
 type Scalability = 'default' | 0 | 1 | 2 | 3 | 4
+
+// Platform detected from the preload-exposed value
+const PLATFORM = window.electronAPI?.platform ?? 'win32'
+
+// RHI options filtered by platform
+const RHI_OPTIONS: { value: RHI; label: string }[] = [
+  { value: 'default', label: 'Default (no override)' },
+  ...(PLATFORM === 'win32'
+    ? [
+        { value: 'dx11' as RHI, label: 'DirectX 11' },
+        { value: 'dx12' as RHI, label: 'DirectX 12' },
+        { value: 'vulkan' as RHI, label: 'Vulkan' },
+        { value: 'opengl' as RHI, label: 'OpenGL' }
+      ]
+    : PLATFORM === 'linux'
+      ? [
+          { value: 'vulkan' as RHI, label: 'Vulkan (recommended)' },
+          { value: 'opengl' as RHI, label: 'OpenGL (legacy)' }
+        ]
+      : [] // macOS — Metal only, no flag needed
+  )
+]
+
+const RHI_HINT: Record<string, string> = {
+  win32: 'DX11 is safest for older / low-end GPUs',
+  linux: 'Vulkan is the recommended API on Linux',
+  darwin: 'Metal is the only supported API on macOS — no override needed'
+}
 
 const UE_DEFAULTS: Omit<LaunchConfig, 'id' | 'name' | 'description'> = {
   rhi: 'default',
@@ -63,13 +88,17 @@ const SCAL_LABELS: Record<string, string> = {
   '3': 'Epic',
   '4': 'Cinematic'
 }
+
+// Derive RHI labels from the platform-aware options list so pills always match
 const RHI_LABELS: Record<RHI, string> = {
   default: 'Default',
   dx11: 'DirectX 11',
   dx12: 'DirectX 12',
   vulkan: 'Vulkan',
-  opengl: 'OpenGL'
-}
+  opengl: 'OpenGL',
+  // Override with platform-specific label if present (e.g. "Vulkan (recommended)" on Linux)
+  ...Object.fromEntries(RHI_OPTIONS.filter((o) => o.value !== 'default').map((o) => [o.value, o.label]))
+} as Record<RHI, string>
 
 // ── Pill ──────────────────────────────────────────────────────────────────────
 function Pill({ label, color = 'var(--color-accent)' }: { label: string; color?: string }) {
@@ -719,20 +748,24 @@ export default function LaunchConfigDialog({
                         className="text-xs mt-1 font-mono"
                         style={{ color: 'var(--color-text-muted)' }}
                       >
-                        DX11 is safest for older / low-end GPUs
+                        {RHI_HINT[PLATFORM] ?? RHI_HINT.win32}
                       </p>
                     </div>
-                    <StyledSelect
-                      value={editing ? editing.rhi : display.rhi}
-                      onChange={(v) => patch({ rhi: v as RHI })}
-                      disabled={!editing}
-                    >
-                      <option value="default">Default (no override)</option>
-                      <option value="dx11">DirectX 11</option>
-                      <option value="dx12">DirectX 12</option>
-                      <option value="vulkan">Vulkan</option>
-                      <option value="opengl">OpenGL</option>
-                    </StyledSelect>
+                    {PLATFORM === 'darwin' ? (
+                      <p className="text-xs italic shrink-0" style={{ color: 'var(--color-text-muted)' }}>
+                        No override available
+                      </p>
+                    ) : (
+                      <StyledSelect
+                        value={editing ? editing.rhi : display.rhi}
+                        onChange={(v) => patch({ rhi: v as RHI })}
+                        disabled={!editing}
+                      >
+                        {RHI_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </StyledSelect>
+                    )}
                   </div>
                 </div>
 

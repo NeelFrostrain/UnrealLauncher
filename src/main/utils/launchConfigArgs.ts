@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 
 /**
  * A launch configuration profile that controls which Unreal Engine features
@@ -63,9 +60,23 @@ export interface LaunchConfig {
   extraArgs: string
 }
 
-/** A sensible "skeleton" preset — everything off, DX11, lowest scalability */
+/**
+ * Returns the safest low-end RHI for the current platform.
+ * - Windows → dx11 (broadest driver support)
+ * - Linux   → vulkan (only real option; OpenGL is deprecated in UE5)
+ * - macOS   → default (Metal is the only supported API; no flag needed)
+ */
+export function getSkeletonRhi(): 'dx11' | 'vulkan' | 'default' {
+  if (typeof process !== 'undefined') {
+    if (process.platform === 'linux') return 'vulkan'
+    if (process.platform === 'darwin') return 'default'
+  }
+  return 'dx11'
+}
+
+/** A sensible "skeleton" preset — everything off, lowest scalability, platform-safe RHI */
 export const SKELETON_CONFIG: Omit<LaunchConfig, 'id' | 'name' | 'description'> = {
-  rhi: 'dx11',
+  rhi: getSkeletonRhi(),
   scalability: 0,
   lumen: false,
   nanite: false,
@@ -110,23 +121,44 @@ export const DEFAULT_CONFIG: Omit<LaunchConfig, 'id' | 'name' | 'description'> =
 }
 
 /**
+ * Returns true if a given RHI flag is valid/meaningful on the current platform.
+ * Used to filter the UI options and skip invalid flags at build time.
+ */
+export function isRhiAvailable(rhi: LaunchConfig['rhi']): boolean {
+  if (rhi === 'default') return true
+  if (typeof process === 'undefined') return true
+  switch (process.platform) {
+    case 'win32':
+      return rhi === 'dx11' || rhi === 'dx12' || rhi === 'vulkan' || rhi === 'opengl'
+    case 'linux':
+      return rhi === 'vulkan' || rhi === 'opengl'
+    case 'darwin':
+      // Metal is the only supported API on macOS — no RHI flag is meaningful
+      return false
+    default:
+      return true
+  }
+}
+
+/**
  * Converts a LaunchConfig into an array of Unreal Engine CLI arguments.
  * These are passed directly to the editor executable.
+ * Platform-invalid RHI flags are silently skipped.
  */
 export function buildLaunchArgs(config: LaunchConfig): string[] {
   const args: string[] = []
 
   // ── RHI ──────────────────────────────────────────────────────────────────
-  if (config.rhi !== 'default') {
+  // Only emit the flag if it's valid on the current platform
+  if (config.rhi !== 'default' && isRhiAvailable(config.rhi)) {
     args.push(`-${config.rhi}`)
   }
 
   // ── Scalability ───────────────────────────────────────────────────────────
   if (config.scalability !== 'default') {
-    // sg.* console variables set all scalability groups at once
     const level = config.scalability
     args.push(
-      `-ExecCmds=sg.ResolutionQuality ${level === 0 ? 50 : level === 1 ? 75 : level === 2 ? 100 : 100},sg.ViewDistanceQuality ${level},sg.AntiAliasingQuality ${level},sg.ShadowQuality ${level},sg.GlobalIlluminationQuality ${level},sg.ReflectionQuality ${level},sg.PostProcessQuality ${level},sg.TextureQuality ${level},sg.EffectsQuality ${level},sg.FoliageQuality ${level},sg.ShadingQuality ${level}`
+      `-ExecCmds=sg.ResolutionQuality ${level === 0 ? 50 : level === 1 ? 75 : 100},sg.ViewDistanceQuality ${level},sg.AntiAliasingQuality ${level},sg.ShadowQuality ${level},sg.GlobalIlluminationQuality ${level},sg.ReflectionQuality ${level},sg.PostProcessQuality ${level},sg.TextureQuality ${level},sg.EffectsQuality ${level},sg.FoliageQuality ${level},sg.ShadingQuality ${level}`
     )
   }
 
@@ -154,7 +186,6 @@ export function buildLaunchArgs(config: LaunchConfig): string[] {
   }
 
   if (!config.taa) {
-    // Fall back to FXAA
     args.push('-ini:Engine:[/Script/Engine.RendererSettings]:r.AntiAliasingMethod=1')
   }
 
@@ -190,7 +221,6 @@ export function buildLaunchArgs(config: LaunchConfig): string[] {
 
   // ── Extra raw args ────────────────────────────────────────────────────────
   if (config.extraArgs.trim()) {
-    // Split on whitespace but respect quoted strings
     const extra = config.extraArgs.trim().match(/(?:[^\s"]+|"[^"]*")+/g) ?? []
     args.push(...extra)
   }
