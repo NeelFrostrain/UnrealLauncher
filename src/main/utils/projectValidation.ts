@@ -2,6 +2,8 @@
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
+import path from 'path'
+import { app } from 'electron'
 import { loadProjects, saveProjects, mergeTracerProjects } from '../store'
 import { spawnWorker } from '../workers/workers'
 import { PROJECT_SCAN_WORKER } from '../ipc/scanWorkers'
@@ -9,6 +11,10 @@ import { getNativeModulePath } from '../utils/native'
 import { loadProjectScanPaths } from '../store'
 import type { Project } from '../types'
 import { logger } from '../logger'
+
+function getScanCachePath(): string {
+  return path.join(app.getPath('userData'), 'save', 'project-scan-cache.json')
+}
 
 // Prevent concurrent scans using a promise-based approach
 let scanPromise: Promise<Project[]> | null = null
@@ -47,7 +53,8 @@ async function _doScanAndMergeProjects(): Promise<Project[]> {
       const w = spawnWorker(PROJECT_SCAN_WORKER, {
         saved,
         nativePath: getNativeModulePath(),
-        customScanPaths
+        customScanPaths,
+        scanCachePath: getScanCachePath()
       })
       w.once('message', (msg) => {
         logger.debug('project-scan', 'Project scan worker returned message')

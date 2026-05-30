@@ -69,9 +69,6 @@ async function scanEnginePluginsJS(engineDir: string): Promise<EnginePlugin[]> {
   async function scanDir(dir: string, categoryHint: string, depth: number): Promise<void> {
     if (depth > 3) return
 
-    // Yield to event loop to prevent blocking
-    await new Promise((resolve) => setImmediate(resolve))
-
     let entries: fs.Dirent[]
     try {
       entries = await fsPromises.readdir(dir, { withFileTypes: true })
@@ -136,11 +133,12 @@ async function scanEnginePluginsJS(engineDir: string): Promise<EnginePlugin[]> {
       return
     }
 
-    // Process subdirectories sequentially with yields to prevent blocking
+    // Process subdirectories — yield once per top-level category to keep event loop alive
     for (const entry of entries) {
       if (!entry.isDirectory()) continue
       if (SKIP_FOLDERS.has(entry.name)) continue
       const childCategory = depth === 0 ? entry.name : categoryHint
+      if (depth === 0) await new Promise((resolve) => setImmediate(resolve))
       await scanDir(path.join(dir, entry.name), childCategory, depth + 1)
     }
   }

@@ -42,16 +42,12 @@ loadEnvironment()
 logger.info('app', 'Environment loaded')
 
 // ── Chromium flags — must be set before app is ready ─────────────────────────
-app.disableHardwareAcceleration()
-app.commandLine.appendSwitch('js-flags', '--max-old-space-size=192')
-app.commandLine.appendSwitch('disable-http-cache')
-app.commandLine.appendSwitch('disable-background-networking')
-app.commandLine.appendSwitch('renderer-process-limit', '1')
+// NOTE: Hardware acceleration is intentionally kept ON — disabling it forces
+// CPU-only rendering which makes every animation and scroll choppy.
 app.commandLine.appendSwitch('enable-smooth-scrolling')
-app.commandLine.appendSwitch('disable-direct-composition')
 app.commandLine.appendSwitch(
   'disable-features',
-  'OutOfBlinkCors,TranslateUI,AutofillServerCommunication,AutofillEnableAccountWalletStorage,DirectCompositionVideoOverlays'
+  'OutOfBlinkCors,TranslateUI,AutofillServerCommunication,AutofillEnableAccountWalletStorage'
 )
 app.commandLine.appendSwitch('disable-extensions')
 app.commandLine.appendSwitch('disable-component-extensions-with-background-pages')

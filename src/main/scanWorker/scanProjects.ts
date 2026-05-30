@@ -14,8 +14,8 @@ import type { Project, NativeModule } from './scanWorkerTypes'
 function findUprojectFiles(
   dir: string,
   native: NativeModule | null,
-  maxDepth = 5,
-  maxFiles = 1000
+  maxDepth = 3,
+  maxFiles = 500
 ): string[] {
   if (native) {
     try {

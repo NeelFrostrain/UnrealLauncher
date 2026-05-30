@@ -1,6 +1,23 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [2.2.6] - 2026-05-30 — `performance`
+
+### ⚡ Performance Fixes
+
+- **Restored hardware acceleration** — Removed `app.disableHardwareAcceleration()` that was introduced in 2.2.5. Disabling GPU acceleration forced all rendering to CPU, causing choppy animations, laggy scrolling, and a generally unresponsive UI. Hardware-accelerated compositing is now active again.
+- **Removed V8 heap cap** — Removed `--max-old-space-size=192` flag. 192MB is too tight for Electron; hitting the cap triggered aggressive garbage collection cycles that caused visible freezes, especially during startup.
+- **Restored Direct Composition** — Removed `disable-direct-composition` and `DirectCompositionVideoOverlays` from disabled Chromium features. These are Windows' GPU compositing layers — disabling them degraded window rendering quality on Windows.
+- **Fixed plugin scanner performance regression** — Removed per-directory `setImmediate` yield in the JS engine plugin scanner fallback. With 200+ plugin directories in a typical UE install, yielding on every entry added 200+ event loop round-trips per scan. Now yields only once per top-level plugin category (~15 yields total), which keeps the event loop alive without the overhead.
+
+### ⚡ Project Scanning Optimizations
+
+- **Scan result cache** — Project scan roots are now cached by folder `mtime` and persisted to `project-scan-cache.json` in userData. If a folder hasn't changed since the last scan, results are returned instantly without any filesystem walk. Repeated app launches on unchanged project folders are near-instant.
+- **Reduced scan depth** — `maxDepth` reduced from 5 to 3. UE projects are never more than 2-3 levels deep inside a projects folder; depth 5 was unnecessarily descending into engine and plugin subdirectories.
+- **Reduced max file cap** — `maxFiles` reduced from 1000 to 500. More realistic limit that avoids scanning runaway directory trees.
+- **Lazy `lastOpenedAt` for new projects** — `findLatestLogTimestamp` (reads `Saved/Logs/`) is now skipped for newly discovered projects during a cold scan. It's only called for projects already in the saved list where the value is actually displayed. Eliminates one filesystem hit per new project.
+- **Deduplicated search paths** — Scan roots are normalised and deduplicated before scanning. Duplicate paths (e.g. a custom path matching a default) no longer cause the same directory to be walked twice.
+
 ## [2.2.5] - 2026-05-24 — `hotfix`
 
 ### � Security Fixes
