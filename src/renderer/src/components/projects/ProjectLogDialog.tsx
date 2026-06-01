@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   ChevronDown,
   Search,
-  Terminal,
   Pause
 } from 'lucide-react'
 import { useProjectLogState, FONT_SIZES, type Filter } from './log/useProjectLogState'

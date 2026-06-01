@@ -11,6 +11,7 @@ import DataSection from '../components/settings/sections/DataSection'
 import UpdatesSection from '../components/settings/sections/UpdatesSection'
 import ProjectsSection from '../components/settings/sections/ProjectsSection'
 import EnginesSection from '../components/settings/sections/EnginesSection'
+import ExclusionsSection from '../components/settings/sections/ExclusionsSection'
 import { logActivity } from '../utils/activityLogger'
 
 const SettingsPage = (): React.ReactElement => {
@@ -69,6 +70,7 @@ const SettingsPage = (): React.ReactElement => {
           <div className="space-y-6">
             <ProjectsSection />
             {platform === 'linux' && <EnginesSection />}
+            <ExclusionsSection />
           </div>
         )
       case 'tracer':

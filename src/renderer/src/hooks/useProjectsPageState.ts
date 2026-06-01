@@ -1,5 +1,5 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import type { Project, TabType } from '../types'
 import { useProjectFavorites } from './useProjectFavorites'
