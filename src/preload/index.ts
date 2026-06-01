@@ -5,7 +5,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
-// Custom APIs for renderer
 const api = {}
 
 if (process.contextIsolated) {
@@ -36,6 +35,30 @@ if (process.contextIsolated) {
         ipcRenderer.on('size-calculated', listener)
         return (): void => {
           ipcRenderer.removeListener('size-calculated', listener)
+        }
+      },
+      onScanProgress: (
+        callback: (data: { percentage: number; currentPath: string }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          data: { percentage: number; currentPath: string }
+        ): void => callback(data)
+        ipcRenderer.on('on-scan-progress', listener)
+        return (): void => {
+          ipcRenderer.removeListener('on-scan-progress', listener)
+        }
+      },
+      onScanErrors: (
+        callback: (data: { errors: string[] }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          data: { errors: string[] }
+        ): void => callback(data)
+        ipcRenderer.on('on-scan-errors', listener)
+        return (): void => {
+          ipcRenderer.removeListener('on-scan-errors', listener)
         }
       },
       calculateEngineSize: (directoryPath) =>
@@ -158,10 +181,8 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-resolve-config-path', projectPath),
       projectResolveUprojectPath: (projectPath: string) =>
         ipcRenderer.invoke('project-resolve-uproject-path', projectPath),
-      // Engine scan paths (Linux)
       getEngineScanPaths: () => ipcRenderer.invoke('get-engine-scan-paths'),
       saveEngineScanPaths: (paths: string[]) => ipcRenderer.invoke('save-engine-scan-paths', paths),
-      // Project scan paths
       getProjectScanPaths: () => ipcRenderer.invoke('get-project-scan-paths'),
       saveProjectScanPaths: (paths: string[]) =>
         ipcRenderer.invoke('save-project-scan-paths', paths)

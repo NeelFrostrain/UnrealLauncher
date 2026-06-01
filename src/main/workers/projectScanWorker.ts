@@ -13,6 +13,8 @@ const fs = require('fs'), path = require('path'), os = require('os');
 let native = null;
 try { native = require(workerData.nativePath); } catch {}
 
+parentPort.postMessage({ type: 'progress', percentage: 0, currentPath: 'Starting scan...' });
+
 function findUprojectFiles(dir, maxDepth, maxFiles) {
   if (native) { try { return native.findUprojectFiles(dir, maxDepth, maxFiles); } catch {} }
   const files = []; let count = 0;
@@ -54,14 +56,12 @@ function findLogTimestamp(p) {
 const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
 const searchPaths = [path.join(os.homedir(), 'Documents', 'Unreal Projects')];
 
-// Add platform-specific default paths
 const platform = os.platform();
 if (platform === 'win32') {
   searchPaths.push('C:\\\\Users\\\\Public\\\\Documents\\\\Unreal Projects', 'D:\\\\Unreal\\\\Projects');
 } else if (platform === 'darwin') {
   searchPaths.push(path.join(os.homedir(), 'Library', 'Application Support', 'Unreal Projects'));
 } else {
-  // Linux
   searchPaths.push(path.join(os.homedir(), '.local', 'share', 'Unreal Projects'), '/opt/Unreal Projects');
 }
 
@@ -72,9 +72,13 @@ if (Array.isArray(workerData.customScanPaths)) {
     }
   }
 }
+
+parentPort.postMessage({ type: 'progress', percentage: 20, currentPath: 'Scanning directories...' });
+
 const scanned = [];
 for (const sp of searchPaths) {
   if (!fs.existsSync(sp)) continue;
+  parentPort.postMessage({ type: 'progress', percentage: 30, currentPath: sp });
   for (const up of findUprojectFiles(sp, 5, 1000)) {
     try {
       const dir = path.dirname(up)
@@ -90,15 +94,20 @@ for (const sp of searchPaths) {
     } catch {}
   }
 }
+
+parentPort.postMessage({ type: 'progress', percentage: 60, currentPath: 'Processing found projects...' });
+
 const merged = [];
 for (const s of scanned) {
   const ex = saved.find(p => p.projectPath === s.projectPath);
   if (ex?.size && !ex.size.startsWith('~')) s.size = ex.size;
   merged.push(s);
 }
+
+parentPort.postMessage({ type: 'progress', percentage: 75, currentPath: 'Merging saved projects...' });
+
 for (const p of saved) {
   if (!merged.find(m => m.projectPath === p.projectPath)) {
-    // Project not found in scan paths — re-read disk metadata directly
     let freshVersion = p.version;
     let freshName = p.name;
     let freshThumbnail = p.thumbnail;
@@ -129,14 +138,21 @@ for (const p of saved) {
     });
   }
 }
-parentPort.postMessage(merged.filter((p) => {
+
+parentPort.postMessage({ type: 'progress', percentage: 90, currentPath: 'Validating projects...' });
+
+const scanErrors = [];
+const finalResults = merged.filter((p) => {
   if (!p.projectPath) return false;
   const expected = path.join(p.projectPath, p.name + '.uproject');
   if (fs.existsSync(expected)) return true;
   try {
-    return fs.readdirSync(p.projectPath).some((file) => file.endsWith('.uproject'))
-  } catch {
+    return fs.readdirSync(p.projectPath).some((file) => file.endsWith('.uproject'));
+  } catch (err) {
+    scanErrors.push('Access Denied: ' + p.projectPath);
     return false;
   }
-}));
+});
+
+parentPort.postMessage({ type: 'result', data: finalResults, errors: scanErrors });
 `

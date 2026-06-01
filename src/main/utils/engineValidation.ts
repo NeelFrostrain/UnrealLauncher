@@ -16,6 +16,7 @@ import { ENGINE_SCAN_WORKER } from '../ipc/scanWorkers'
 import { getNativeModulePath } from './native'
 import { getInstalledEngines } from './engineRegistry'
 import { generateGradient } from './engineGradient'
+import { getMainWindow } from '../window'
 import type { Engine } from '../types'
 import { logger } from '../logger'
 
@@ -46,7 +47,6 @@ export function validateEngineInstallation(folder: string): EngineValidationResu
       }
     } catch (error) {
       logger.warn('engine', 'Native engine validation failed; using JS fallback', { folder, error })
-      /* fall through */
     }
   }
   const result = _validateEngineJS(folder)
@@ -81,7 +81,6 @@ function _validateEngineJS(folder: string): EngineValidationResult {
   const exeName = `UnrealEditor${getBinaryExtension()}`
   let exePath = path.join(binPath, exeName)
   if (!fs.existsSync(exePath)) {
-    // Try UE4Editor for older versions
     const ue4ExeName = `UE4Editor${getBinaryExtension()}`
     exePath = path.join(binPath, ue4ExeName)
   }
@@ -122,7 +121,6 @@ function _validateEngineJS(folder: string): EngineValidationResult {
  * Scans for engines using the worker + Windows registry, merges with saved engines.
  */
 export async function scanAndMergeEngines(): Promise<Engine[]> {
-  // Prevent concurrent scans from running and clobbering each other's results
   if ((scanAndMergeEngines as any)._inFlight) {
     logger.warn('engine-scan', 'Engine scan skipped because another scan is already running')
     return loadEngines()
@@ -136,7 +134,6 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
       scanPathCount: engineScanPaths.length
     })
 
-    // Run filesystem worker scan and Windows registry scan in parallel
     const [workerScanned, registryEngines] = await Promise.all([
       new Promise<Engine[]>((resolve, reject) => {
         logger.debug('engine-scan', 'Starting engine scan worker')
@@ -145,9 +142,21 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
           nativePath: getNativeModulePath(),
           engineScanPaths
         })
-        w.once('message', (msg) => {
-          logger.debug('engine-scan', 'Engine scan worker returned message')
-          resolve(msg as Engine[])
+        w.on('message', (msg) => {
+          if (msg.type === 'progress') {
+            getMainWindow()?.webContents.send('on-scan-progress', {
+              percentage: msg.percentage,
+              currentPath: msg.currentPath
+            })
+            return
+          }
+          if (msg.type === 'result') {
+            logger.debug('engine-scan', 'Engine scan worker returned result')
+            if (msg.errors?.length > 0) {
+              getMainWindow()?.webContents.send('on-scan-errors', { errors: msg.errors })
+            }
+            resolve(msg.data as Engine[])
+          }
         })
         w.once('error', (error) => {
           logger.error('engine-scan', 'Engine scan worker error', error)
@@ -158,7 +167,6 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
           if (c !== 0) reject(new Error(`Worker exited ${c}`))
         })
       }),
-      // Registry scan only runs on Windows — returns [] on other platforms
       getInstalledEngines().catch((error) => {
         logger.warn('engine-scan', 'Registry engine scan failed', error)
         return [] as Engine[]
@@ -169,8 +177,6 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
       registryCount: registryEngines.length
     })
 
-    // Merge registry results into worker results — registry wins for exePath/version
-    // since it's the authoritative source on Windows
     const scannedMap = new Map<string, Engine>()
     for (const e of workerScanned) {
       if (e.directoryPath) scannedMap.set(e.directoryPath.toLowerCase(), e)
@@ -180,10 +186,8 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
       const key = e.directoryPath.toLowerCase()
       const existing = scannedMap.get(key)
       if (existing) {
-        // Registry has authoritative version/exePath — update
         scannedMap.set(key, { ...existing, version: e.version, exePath: e.exePath })
       } else {
-        // New engine found only in registry — add it with defaults
         scannedMap.set(key, {
           version: e.version,
           exePath: e.exePath,
@@ -197,7 +201,6 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
     }
     const scanned = Array.from(scannedMap.values())
 
-    // Merge: preserve app-managed fields (gradient, folderSize, lastLaunch)
     const savedPaths = new Set(saved.map((e) => e.directoryPath?.toLowerCase()))
     const newEngines = scanned.filter(
       (e) => e.directoryPath && !savedPaths.has(e.directoryPath.toLowerCase())
@@ -212,7 +215,6 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
         ...s,
         version: fresh.version ?? s.version,
         exePath: fresh.exePath ?? s.exePath
-        // alias, gradient, folderSize, lastLaunch preserved via ...s spread
       }
     })
 
@@ -227,6 +229,9 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
       newCount: newEngines.length,
       mergedCount: merged.length
     })
+
+    getMainWindow()?.webContents.send('on-scan-progress', { percentage: 100, currentPath: 'Done' })
+
     return merged
   } catch (error) {
     logger.error('engine-scan', 'Engine scan failed', error)

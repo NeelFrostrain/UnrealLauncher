@@ -118,6 +118,8 @@ declare global {
       windowIsMaximized: () => Promise<boolean>
       // Size events
       onSizeCalculated: (callback: (data: SizeCalculatedData) => void) => () => void
+      onScanProgress: (callback: (data: { percentage: number; currentPath: string }) => void) => () => void
+      onScanErrors: (callback: (data: { errors: string[] }) => void) => () => void
       // Updates
       getAppVersion: () => Promise<string>
       checkForUpdates: () => Promise<UpdateCheckResult>
