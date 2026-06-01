@@ -54,13 +54,15 @@ interface MainSettings {
   tracerStartupEnabled: boolean
   registryEnginesEnabled: boolean
   backgroundCloseEnabled: boolean
+  excludedScannerPaths: string[]
 }
 
 const defaultMainSettings: MainSettings = {
   tracerMergeEnabled: true,
   tracerStartupEnabled: false,
   registryEnginesEnabled: true,
-  backgroundCloseEnabled: false
+  backgroundCloseEnabled: false,
+  excludedScannerPaths: ['.git', 'Binaries', 'Intermediate', 'Saved', 'node_modules']
 }
 
 export function loadMainSettings(): MainSettings {
