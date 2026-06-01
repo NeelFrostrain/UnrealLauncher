@@ -577,13 +577,3 @@ Built with by [Neel Frostrain](https://github.com/NeelFrostrain)
 Special thanks to the Unreal Engine community and all contributors who have helped shape this project.
 
 ---
-
-### Recent Changes
-
-- **PR #15 Merged** — Linux pre-release v2.2.4 merged into main
-- **3 files changed** in merge commit
-- **Parent commits:** `6abb82a` + `133fe34`
-
-For detailed changelog, see [CHANGELOG.md](CHANGELOG.md)
-
----
