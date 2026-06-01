@@ -1,4 +1,5 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
+ feature/scan-progress-reporting
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
@@ -9,6 +10,11 @@
 import fs from 'fs'
 import path from 'path'
 import { loadProjects, saveProjects, loadProjectScanPaths } from '../store'
+=======
+import path from 'path'
+import { app } from 'electron'
+import { loadProjects, saveProjects, mergeTracerProjects } from '../store'
+ main
 import { spawnWorker } from '../workers/workers'
 import { PROJECT_SCAN_WORKER } from '../ipc/scanWorkers'
 import { getNativeModulePath } from './native'
@@ -16,6 +22,16 @@ import { getMainWindow } from '../window'
 import type { Project } from '../types'
 import { logger } from '../logger'
 
+ feature/scan-progress-reporting
+
+function getScanCachePath(): string {
+  return path.join(app.getPath('userData'), 'save', 'project-scan-cache.json')
+}
+
+// Prevent concurrent scans using a promise-based approach
+let scanPromise: Promise<Project[]> | null = null
+
+ main
 /**
  * Scans for projects using the worker, merges with saved projects.
  */
@@ -38,7 +54,8 @@ export async function scanAndMergeProjects(): Promise<Project[]> {
       const w = spawnWorker(PROJECT_SCAN_WORKER, {
         saved,
         nativePath: getNativeModulePath(),
-        customScanPaths
+        customScanPaths,
+        scanCachePath: getScanCachePath()
       })
       w.on('message', (msg) => {
         if (msg.type === 'progress') {

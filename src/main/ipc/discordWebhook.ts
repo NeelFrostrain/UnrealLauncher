@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 
 import { logger } from '../logger'
 
@@ -19,25 +16,27 @@ interface DiscordPayload {
 function isValidDiscordWebhookUrl(webhookUrl: string): boolean {
   try {
     const url = new URL(webhookUrl)
-    
+
     // Must be HTTPS
     if (url.protocol !== 'https:') {
       logger.warn('discord', 'Webhook URL must use HTTPS', { url: webhookUrl })
       return false
     }
-    
+
     // Must be discord.com domain
     if (!url.hostname.endsWith('discord.com')) {
       logger.warn('discord', 'Webhook URL must be from discord.com', { hostname: url.hostname })
       return false
     }
-    
+
     // Must have /api/webhooks/ path
     if (!url.pathname.includes('/api/webhooks/')) {
-      logger.warn('discord', 'Webhook URL must have /api/webhooks/ path', { pathname: url.pathname })
+      logger.warn('discord', 'Webhook URL must have /api/webhooks/ path', {
+        pathname: url.pathname
+      })
       return false
     }
-    
+
     return true
   } catch (error) {
     logger.warn('discord', 'Invalid webhook URL format', { url: webhookUrl, error })

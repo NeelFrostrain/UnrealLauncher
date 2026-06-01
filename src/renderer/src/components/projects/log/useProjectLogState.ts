@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { getSetting } from '../../../utils/settings'
 
@@ -19,6 +16,9 @@ export interface LogLine {
 
 export const MAX_LINES = 5000
 export const FONT_SIZES = [10, 11, 12, 13, 14]
+
+// Reuse a single encoder instance — avoids allocating a new one on every log poll
+const _encoder = new TextEncoder()
 
 let _seq = 0
 export function parseLine(raw: string): LogLine {
@@ -78,7 +78,7 @@ export function useProjectLogState(projectPath: string, onClose: () => void) {
       }
       if (result.logPath !== logPathRef.current || reset) {
         logPathRef.current = result.logPath
-        nextByteRef.current = result.startByte + new TextEncoder().encode(result.content).length
+        nextByteRef.current = result.startByte + _encoder.encode(result.content).length
         setLogPath(result.logPath)
         setSizeKb(result.sizeBytes / 1024)
         setLines(result.content.split('\n').filter(Boolean).map(parseLine).slice(-maxLines))
@@ -90,7 +90,7 @@ export function useProjectLogState(projectPath: string, onClose: () => void) {
         setLoading(false)
         return
       }
-      nextByteRef.current = result.startByte + new TextEncoder().encode(result.content).length
+      nextByteRef.current = result.startByte + _encoder.encode(result.content).length
       setSizeKb(result.sizeBytes / 1024)
       const newLines = result.content.split('\n').filter(Boolean).map(parseLine)
       setLines((prev) => {

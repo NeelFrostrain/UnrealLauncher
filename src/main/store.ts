@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import fs from 'fs'
 import path from 'path'
 import { app } from 'electron'
@@ -294,6 +291,68 @@ export function saveProjects(projects: Project[]): void {
     logger.info('store', 'Projects saved successfully', { count: projects.length })
   } catch (error) {
     logger.error('store', 'Failed to save projects', error)
+  }
+}
+
+// ── Launch configs ────────────────────────────────────────────────────────────
+
+import type { LaunchConfig } from './utils/launchConfigArgs'
+import { SKELETON_CONFIG, DEFAULT_CONFIG, getSkeletonRhi } from './utils/launchConfigArgs'
+
+function getLaunchConfigsPath(): string {
+  return path.join(getSaveDir(), 'launch-configs.json')
+}
+
+function getSkeletonDescription(): string {
+  const rhi = getSkeletonRhi()
+  const rhiLabel = rhi === 'vulkan' ? 'Vulkan' : rhi === 'default' ? 'platform default' : 'DX11'
+  return `Bare-minimum startup: ${rhiLabel}, scalability Low, all heavy features disabled. Great for first boot on modest hardware.`
+}
+
+function makeBuiltInConfigs(): LaunchConfig[] {
+  return [
+    {
+      id: 'builtin-default',
+      name: 'Default',
+      description: 'Launch with Unreal Engine defaults — no overrides applied.',
+      ...DEFAULT_CONFIG
+    },
+    {
+      id: 'builtin-skeleton',
+      name: 'Skeleton (Lowest)',
+      description: getSkeletonDescription(),
+      ...SKELETON_CONFIG
+    }
+  ]
+}
+
+export function loadLaunchConfigs(): LaunchConfig[] {
+  const builtInConfigs = makeBuiltInConfigs()
+  try {
+    if (fs.existsSync(getLaunchConfigsPath())) {
+      const content = fs.readFileSync(getLaunchConfigsPath(), 'utf8')
+      if (!content.trim()) return builtInConfigs
+      const parsed: LaunchConfig[] = JSON.parse(content)
+      if (!Array.isArray(parsed)) return builtInConfigs
+
+      // Always replace built-in entries with the current source-of-truth so
+      // changes to built-in presets take effect immediately on any platform.
+      const customConfigs = parsed.filter((c) => !c.id.startsWith('builtin-'))
+      return [...builtInConfigs, ...customConfigs]
+    }
+  } catch (err) {
+    logger.error('store', 'Error loading launch configs', err)
+  }
+  return builtInConfigs
+}
+
+export function saveLaunchConfigs(configs: LaunchConfig[]): void {
+  try {
+    ensureSaveDir()
+    fs.writeFileSync(getLaunchConfigsPath(), JSON.stringify(configs, null, 2), 'utf8')
+    logger.info('store', 'Launch configs saved', { count: configs.length })
+  } catch (error) {
+    logger.error('store', 'Failed to save launch configs', error)
   }
 }
 

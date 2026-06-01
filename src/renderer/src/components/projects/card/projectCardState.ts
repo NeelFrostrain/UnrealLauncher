@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { useState, useCallback, useEffect } from 'react'
 import { getGitStatus, clearGitCacheForPath } from '../../../hooks/useGitStatus'
 
@@ -28,13 +25,12 @@ export function useProjectCardState(projectPath: string | undefined) {
   })
 
   // Load git status on mount and when projectPath changes.
-  // Removed `scanEpoch` from deps — cache handles invalidation via clearGitCache().
-  // We intentionally re-fetch on every mount so that external changes (e.g. deleting
-  // .git folder) are picked up the next time the card is rendered fresh.
+  // Uses the shared cache — only fires a fresh IPC call if this path
+  // hasn't been fetched yet (or was explicitly cleared via clearGitCache).
+  // Do NOT bust the cache on every mount — that defeats the shared cache
+  // and fires N IPC calls when N cards mount simultaneously.
   useEffect(() => {
     if (!projectPath) return
-    // Always bust the per-path cache on mount so external .git changes are reflected
-    clearGitCacheForPath(projectPath)
     getGitStatus(projectPath).then((s) =>
       setGit({ initialized: s.initialized, branch: s.branch, remoteUrl: s.remoteUrl ?? '' })
     )

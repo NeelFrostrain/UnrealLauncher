@@ -1,8 +1,12 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
+feature/scan-progress-reporting
 // Proprietary and confidential. Unauthorized copying, modification,
 // distribution, or use of this source code is strictly prohibited.
 // See LICENSE in the project root for full license terms.
 import React, { useEffect, useState } from 'react'
+
+import { useEffect } from 'react'
+main
 import PageWrapper from '@renderer/layout/PageWrapper'
 import { useEngineActions } from '../../hooks/useEngineActions'
 import { useEnginesPageState } from './enginesPageState'

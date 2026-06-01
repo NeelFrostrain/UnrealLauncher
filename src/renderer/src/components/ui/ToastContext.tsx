@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import React, { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
@@ -89,23 +86,23 @@ export const ToastProvider = ({ children }: { children: ReactNode }): ReactNode 
 
   const addToast = useCallback((message: string, type: ToastType): void => {
     const id = String(++counter.current)
-    
+
     // Add toast and limit to 5 maximum
     setToasts((prev) => [...prev, { id, message, type }].slice(-5))
-    
+
     // Set timeout for auto-removal
     const timeoutId = setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
       timeoutRefs.current.delete(id)
     }, 4000)
-    
+
     // Track timeout for cleanup
     timeoutRefs.current.set(id, timeoutId)
   }, [])
 
   const removeToast = useCallback((id: string): void => {
     setToasts((prev) => prev.filter((t) => t.id !== id))
-    
+
     // Clear timeout if still pending
     const timeoutId = timeoutRefs.current.get(id)
     if (timeoutId) {

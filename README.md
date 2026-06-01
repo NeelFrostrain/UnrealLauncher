@@ -3,18 +3,20 @@
 > A lightweight, cross-platform Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
 
 <!-- Metadata Row -->
-[![Version](https://img.shields.io/badge/version-2.2.5-blue)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.2.4)
+[![Version](https://img.shields.io/badge/version-2.3.0-blue)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.2.4)
 [![Status](https://img.shields.io/badge/status-ready-brightgreen)](https://github.com/NeelFrostrain/UnrealLauncher)
 [![License](https://img.shields.io/badge/license-proprietary-red)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-777777)](#-distribution)
 
 <!-- Repository Pulse Row (New) -->
+
 [![Repo Size](https://img.shields.io/github/repo-size/NeelFrostrain/UnrealLauncher?logo=git&logoColor=white&color=6e7681)](https://github.com/NeelFrostrain/UnrealLauncher)
 [![Commit Activity](https://img.shields.io/github/commit-activity/m/NeelFrostrain/UnrealLauncher?logo=git-extensions&logoColor=white&color=cca3ff)](https://github.com/NeelFrostrain/UnrealLauncher/commits/main)
 [![Open Issues](https://img.shields.io/github/issues-raw/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=fba7a7)](https://github.com/NeelFrostrain/UnrealLauncher/issues)
 [![Code Coverage](https://img.shields.io/badge/coverage-94%25-2ea44f?logo=codecov&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher)
 
 <!-- Tech Stack Row -->
+
 [![Node](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Electron](https://img.shields.io/badge/Electron-39-478CBF?logo=electron&logoColor=white)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
@@ -27,7 +29,6 @@
 [![Releases](https://img.shields.io/badge/Releases-GitHub-24292e?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/releases)
 [![Discord](https://img.shields.io/badge/Discord-Join_Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)
 [![Issues](https://img.shields.io/badge/Issues-Report_Bug-d73a49?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/issues)
-
 
 ---
 
@@ -126,15 +127,15 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 
 ## Feature Summary
 
-| Category                | Count |
-| ----------------------- | ----- |
-| Engine Management       | 8     |
-| Project Management      | 14    |
-| Fab Marketplace Browser | 6     |
-| UE Tracer               | 5     |
-| Appearance & Theming    | 7     |
-| System & UX             | 10    |
-| **Total**               | **50**|
+| Category                | Count  |
+| ----------------------- | ------ |
+| Engine Management       | 8      |
+| Project Management      | 14     |
+| Fab Marketplace Browser | 6      |
+| UE Tracer               | 5      |
+| Appearance & Theming    | 7      |
+| System & UX             | 10     |
+| **Total**               | **50** |
 
 ---
 
@@ -287,16 +288,16 @@ The main process exposes the following IPC channels to the renderer:
 
 ### Projects
 
-| Channel                       | Description                                |
-| ----------------------------- | ------------------------------------------ |
-| `scan-projects`               | Find `.uproject` files + merge tracer data |
-| `select-project-folder`       | Open dialog, batch import (max 20)         |
-| `launch-project`              | Open in editor                             |
-| `launch-project-game`         | Launch in `-game` mode                     |
-| `open-directory`              | Open folder in Explorer/Finder/File Manager|
-| `delete-project`              | Remove from store                          |
-| `calculate-project-size`      | Background folder size                     |
-| `calculate-all-project-sizes` | Batch size calculation with push events    |
+| Channel                       | Description                                 |
+| ----------------------------- | ------------------------------------------- |
+| `scan-projects`               | Find `.uproject` files + merge tracer data  |
+| `select-project-folder`       | Open dialog, batch import (max 20)          |
+| `launch-project`              | Open in editor                              |
+| `launch-project-game`         | Launch in `-game` mode                      |
+| `open-directory`              | Open folder in Explorer/Finder/File Manager |
+| `delete-project`              | Remove from store                           |
+| `calculate-project-size`      | Background folder size                      |
+| `calculate-all-project-sizes` | Batch size calculation with push events     |
 
 ### Project Tools
 
@@ -515,12 +516,12 @@ See [docs/BUILD.md](docs/BUILD.md) for the full build guide including native mod
 
 ## Distribution
 
-| Platform | Format                 | Architecture | Status      | Badge |
-| :---     | :--------------------- | :----------- | :---------- | :---- |
+| Platform | Format                | Architecture | Status      | Badge                                                                                    |
+| :------- | :-------------------- | :----------- | :---------- | :--------------------------------------------------------------------------------------- |
 | Windows  | NSIS installer `.exe` | x64          | Stable      | ![Windows](https://img.shields.io/badge/Windows-x64-0078d4?logo=windows&logoColor=white) |
-| macOS    | `.dmg`                 | x64, arm64   | Coming Soon | ![macOS](https://img.shields.io/badge/macOS-Universal-777777?logo=apple&logoColor=white) |
-| Linux    | AppImage               | x64          | Stable      | ![Linux](https://img.shields.io/badge/Linux-x64-333333?logo=linux&logoColor=FCC624) |
-| Linux    | `.deb`                 | x64          | Stable      | ![Debian](https://img.shields.io/badge/Debian-x64-A81D33?logo=debian&logoColor=white) |
+| macOS    | `.dmg`                | x64, arm64   | Coming Soon | ![macOS](https://img.shields.io/badge/macOS-Universal-777777?logo=apple&logoColor=white) |
+| Linux    | AppImage              | x64          | Stable      | ![Linux](https://img.shields.io/badge/Linux-x64-333333?logo=linux&logoColor=FCC624)      |
+| Linux    | `.deb`                | x64          | Stable      | ![Debian](https://img.shields.io/badge/Debian-x64-A81D33?logo=debian&logoColor=white)    |
 
 Published to GitHub Releases: [NeelFrostrain/UnrealLauncher/releases](https://github.com/NeelFrostrain/UnrealLauncher/releases)
 
@@ -552,13 +553,13 @@ See [LICENSE](LICENSE) for full terms.
 
 ## Support & Community
 
-| Channel | Contact & Support Link |
-| :--- | :--- |
-| **🐛 Bug Reports** | [![GitHub Issues](https://img.shields.io/badge/GitHub_Issues-Report_Bug-d73a49?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/issues) |
+| Channel            | Contact & Support Link                                                                                                                                                    |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **🐛 Bug Reports** | [![GitHub Issues](https://img.shields.io/badge/GitHub_Issues-Report_Bug-d73a49?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/issues)      |
 | **💬 Q&A & Ideas** | [![GitHub Discussions](https://img.shields.io/badge/Discussions-Join_In-24292e?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/discussions) |
-| **🎮 Community** | [![Discord](https://img.shields.io/badge/Discord-Join_Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2) |
-| **✉️ Direct Mail** | [![Email](https://img.shields.io/badge/Email-nfrostrain%40gmail.com-0078d4?logo=gmail&logoColor=white)](mailto:nfrostrain@gmail.com) |
-| **☕ Support Me** | [![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy_Me_a_Coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/neelfrostrain) |
+| **🎮 Community**   | [![Discord](https://img.shields.io/badge/Discord-Join_Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)                                         |
+| **✉️ Direct Mail** | [![Email](https://img.shields.io/badge/Email-nfrostrain%40gmail.com-0078d4?logo=gmail&logoColor=white)](mailto:nfrostrain@gmail.com)                                      |
+| **☕ Support Me**  | [![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy_Me_a_Coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/neelfrostrain)                                        |
 
 **Community Badges:**
 

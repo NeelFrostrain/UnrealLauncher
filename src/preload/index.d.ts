@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { ElectronAPI } from '@electron-toolkit/preload'
 
 declare global {
@@ -87,6 +84,31 @@ declare global {
     createdBy: string
   }
 
+  interface LaunchConfig {
+    id: string
+    name: string
+    description?: string
+    rhi: 'default' | 'dx11' | 'dx12' | 'vulkan' | 'opengl'
+    scalability: 'default' | 0 | 1 | 2 | 3 | 4
+    lumen: boolean
+    nanite: boolean
+    vsm: boolean
+    rayTracing: boolean
+    ssr: boolean
+    taa: boolean
+    bloom: boolean
+    ambientOcclusion: boolean
+    motionBlur: boolean
+    lensFlare: boolean
+    autoExposure: boolean
+    depthOfField: boolean
+    noSplash: boolean
+    noLoadingScreen: boolean
+    noShaderCompile: boolean
+    unattended: boolean
+    extraArgs: string
+  }
+
   interface Window {
     electron: ElectronAPI
     electronAPI: {
@@ -117,9 +139,13 @@ declare global {
       windowClose: () => void
       windowIsMaximized: () => Promise<boolean>
       // Size events
-      onSizeCalculated: (callback: (data: SizeCalculatedData) => void) => () => void
+      onSizeCalculated: (callback: (data: SizeCalculatedData) => void) => () => voi
+      feature/scan-progress-reporting
       onScanProgress: (callback: (data: { percentage: number; currentPath: string }) => void) => () => void
       onScanErrors: (callback: (data: { errors: string[] }) => void) => () => void
+
+      onProjectRemoved: (callback: (data: { projectPath: string }) => void) => () => void
+      main
       // Updates
       getAppVersion: () => Promise<string>
       checkForUpdates: () => Promise<UpdateCheckResult>
@@ -258,6 +284,17 @@ declare global {
       // Project scan paths
       getProjectScanPaths: () => Promise<string[]>
       saveProjectScanPaths: (paths: string[]) => Promise<void>
+      // Launch configs
+      launchConfigsGet: () => Promise<LaunchConfig[]>
+      launchConfigsSave: (configs: LaunchConfig[]) => Promise<boolean>
+      launchEngineWithConfig: (
+        exePath: string,
+        config: LaunchConfig
+      ) => Promise<{ success: boolean; error?: string }>
+      launchProjectWithConfig: (
+        projectPath: string,
+        config: LaunchConfig
+      ) => Promise<{ success: boolean; error?: string }>
     }
   }
 }

@@ -1,8 +1,5 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import type { FabAsset } from './AssetCard'
 
 type ViewMode = 'list' | 'grid'
@@ -14,7 +11,15 @@ export function useFabTabState() {
   const [folderPath, setFolderPath] = useState('')
   const [assets, setAssets] = useState<FabAsset[]>([])
   const [loading, setLoading] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQueryRaw] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  const setSearchQuery = useCallback((q: string): void => {
+    setSearchQueryRaw(q)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => setDebouncedQuery(q), 200)
+  }, [])
   const [typeFilter, setTypeFilter] = useState<FabAsset['type'] | 'all'>('all')
   const [viewMode, setViewMode] = useState<ViewMode>(
     () => (localStorage.getItem('fabViewMode') as ViewMode) ?? 'list'
@@ -62,12 +67,14 @@ export function useFabTabState() {
     localStorage.setItem('fabViewMode', mode)
   }
 
-  const filtered = assets.filter((a) => {
-    const matchType = typeFilter === 'all' || a.type === typeFilter
-    const matchSearch =
-      !searchQuery.trim() || a.name.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchType && matchSearch
-  })
+  const filtered = useMemo(() => {
+    const q = debouncedQuery.trim().toLowerCase()
+    return assets.filter((a) => {
+      const matchType = typeFilter === 'all' || a.type === typeFilter
+      const matchSearch = !q || a.name.toLowerCase().includes(q)
+      return matchType && matchSearch
+    })
+  }, [assets, typeFilter, debouncedQuery])
 
   return {
     folderPath,

@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import fs from 'fs'
 import path from 'path'
 import { getProjectScanPaths } from '../utils/platformPaths'
@@ -14,8 +11,8 @@ import type { Project, NativeModule } from './scanWorkerTypes'
 function findUprojectFiles(
   dir: string,
   native: NativeModule | null,
-  maxDepth = 5,
-  maxFiles = 1000
+  maxDepth = 3,
+  maxFiles = 500
 ): string[] {
   if (native) {
     try {

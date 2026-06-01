@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import {
   Zap,
   FolderOpen,
@@ -70,7 +67,10 @@ const features = [
 
 const AboutFeatures = (): React.ReactElement => (
   <div>
-    <h2 className="text-xl font-bold text-white/90 mb-4 flex items-center gap-2">
+    <h2
+      className="text-xl font-bold mb-4 flex items-center gap-2"
+      style={{ color: 'var(--color-text-primary)' }}
+    >
       <Zap size={20} className="text-blue-400" />
       Features
     </h2>
@@ -78,18 +78,28 @@ const AboutFeatures = (): React.ReactElement => (
       {features.map(({ icon, title, desc }) => (
         <div
           key={title}
-          className="border hover:bg-white/10 transition-colors p-4 space-y-2"
+          className="p-4 space-y-2 transition-colors"
           style={{
             backgroundColor: 'var(--color-surface-elevated)',
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius)'
           }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = 'var(--color-surface-card)')
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor = 'var(--color-surface-elevated)')
+          }
         >
           <div className="flex items-center gap-2">
             {icon}
-            <h3 className="text-sm font-semibold text-white/90">{title}</h3>
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              {title}
+            </h3>
           </div>
-          <p className="text-xs text-white/50">{desc}</p>
+          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            {desc}
+          </p>
         </div>
       ))}
     </div>

@@ -1,6 +1,87 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [2.3.0] - 2026-05-30 — `feature · performance · ui`
+
+### ✨ Added — Launch Configuration Profiles
+
+- **Launch Config dialog** — New per-engine and per-project launch profile system. Access via the `⚙` icon on engine cards or "Launch with Config" in the project context menu
+  - **Built-in profiles** — Two presets ship out of the box:
+    - _Default_ — no overrides, UE launches exactly as normal
+    - _Skeleton (Lowest)_ — DX11, scalability Low, all heavy rendering features disabled; ideal for first boot on modest hardware
+  - **Custom profiles** — Create, rename, clone, and delete your own profiles. Saved to `userData/save/launch-configs.json` and persist across restarts
+  - **Graphics API (RHI)** — Force DirectX 11, DirectX 12, Vulkan, or OpenGL at launch via `-dx11`, `-dx12`, `-vulkan`, `-opengl` flags
+  - **Scalability preset** — Set all `sg.*` quality groups at startup (Low / Medium / High / Epic / Cinematic)
+  - **Rendering feature toggles** — Individual on/off switches for Lumen GI, Nanite, Virtual Shadow Maps, Ray Tracing, SSR, TAA/TSR, Bloom, Ambient Occlusion, Motion Blur, Lens Flare, Auto Exposure, Depth of Field — each mapped to the correct `r.*` console variable via `-ini:Engine:` args
+  - **Startup flags** — `-nosplash`, `-noloadingscreen`, `-noshadercompile`, `-unattended`
+  - **Extra arguments** — Free-form field for any additional CLI flags
+  - **Live summary pills** — Footer and panel header show active RHI and scalability level at a glance
+  - **Built-in profiles are read-only** — Clone to customise; built-in values always reflect the latest source-of-truth on load, stale saved values are overridden automatically
+- **`launch-engine-with-config` IPC** — Spawns the engine executable directly with built CLI args, bypasses OS file association so args are actually passed
+- **`launch-project-with-config` IPC** — Resolves the engine from `.uproject` `EngineAssociation`, then spawns with config args; works on all platforms
+- **`launch-configs-get` / `launch-configs-save` IPC** — Full CRUD for the config list
+- **`project-removed` push event** — Emitted by `calculateAllProjectSizes` when a project folder is found missing. Renderer subscribes via `onProjectRemoved` and removes the card immediately without a manual refresh
+
+### 🐛 Fixed
+
+- **Splash screen suppressed when launching from Skeleton preset** — `SKELETON_CONFIG.noSplash` was `true` by default, passing `-nosplash` and hiding the UE loading screen. Changed to `false`
+- **Deleted project folder shows 0 B size** — `calculateProjectSize` and `calculateAllProjectSizes` now check `fs.existsSync` before walking the folder. Missing folders no longer write `0 B` to the store
+- **Deleted project card stays in UI** — `calculateAllProjectSizes` now separates existing from missing projects before the size walk. Missing projects are removed from the store and the renderer is notified in real time
+
+### 🎨 UI / Theme
+
+- **Launch Config dialog** — Full rewrite matching the app's design language:
+  - Correct surface tokens (`var(--color-surface)` / `var(--color-surface-elevated)` / `var(--color-surface-card)`)
+  - Modal shadow matches `ProjectLogDialog` / `GitCommitDialog` pattern
+  - Two-panel layout: sidebar profile list with active indicator bar and hover-reveal rename/delete actions; settings editor on the right
+  - Colour-coded scalability pills (red → Low, orange → Medium, yellow → High, green → Epic, indigo → Cinematic)
+  - Inline save/discard bar appears only when editing; Escape key closes the dialog
+  - Sized correctly: `980px` wide, `86vh` fixed height, sidebar `w-64`, all fonts `text-sm`, feature rows `py-3.5`, toggles `w-11 h-6`
+- **Project Log dialog** — Widened to `1100px`, height `88vh`, title bar `px-5 py-4`, all toolbar fonts bumped to `text-xs`, filter tabs `px-3 py-1.5`, status bar `text-xs px-5 py-2`
+- **Full theme sync** — Eliminated all hardcoded `text-white/x` and `bg-white/x` Tailwind classes that broke non-dark themes:
+  - `layout/index.tsx` — root wrapper `bg-black text-white` replaced with CSS variable equivalents
+  - `PageTitlebar.tsx` — scan/add buttons now use `var(--color-surface-card)`, `var(--color-border)`, `var(--color-text-muted)`
+  - `ProjectsContent.tsx` — empty-state text uses `var(--color-text-secondary)` / `var(--color-text-muted)`
+  - `ErrorBoundary.tsx` — error message and button use CSS variables
+  - `AboutFeatures`, `AboutTechnical`, `AboutSupport`, `AboutKnownIssues`, `AboutContributing`, `AboutUsage`, `AboutSecurity`, `AboutCodeOfConduct`, `AboutUpdates` — all `text-white/90`, `text-white/50`, `text-white/40`, `bg-white/5`, `border-white/10` replaced with CSS variable equivalents
+  - `main.css` — Global override rules added mapping `text-white/x`, `bg-white/x`, `border-white/x` Tailwind classes to theme tokens so any remaining instances are automatically corrected
+
+### ⚡ Performance — Main Process
+
+- **All git operations fully async** — Replaced every `execSync`/`execFileSync` in `projectGit.ts` with a shared `runGitAsync` helper. Git operations on large repos (1–3s) no longer freeze the main thread
+- **Tracer IPC fully async** — `tracer-get-startup` and `tracer-set-startup` replaced `execSync('reg query/add/delete ...')` with async `execFileAsync`. Registry reads no longer freeze the IPC loop
+- **Branch name validation zero-cost** — `assertValidBranchName` replaced `git check-ref-format` spawn with an inline regex. Zero process spawns
+- **`fab-scan-folder` async** — `scanFabFolder` converted from `fs.readdirSync` to `fs.promises.readdir` with parallel `Promise.all`. Large Fab libraries no longer block the main thread
+- **Project size calculation batches store writes** — `calculateAllProjectSizes` now collects all results in memory and does a single `loadProjects()` + `saveProjects()` at the end. For 50 projects: 100 disk ops → 2
+- **Restored hardware acceleration** — Removed `app.disableHardwareAcceleration()` introduced in 2.2.5. Hardware-accelerated compositing is active again
+- **Removed V8 heap cap** — Removed `--max-old-space-size=192`. 192 MB was too tight; hitting the cap triggered aggressive GC cycles causing visible freezes
+- **Restored Direct Composition** — Removed `disable-direct-composition` and `DirectCompositionVideoOverlays` from disabled Chromium features
+- **Fixed plugin scanner regression** — Removed per-directory `setImmediate` yield in the JS plugin scanner fallback. Now yields once per top-level category (~15 total) instead of once per directory (200+)
+
+### ⚡ Performance — Project Scanning
+
+- **Scan result cache** — Scan roots cached by folder `mtime`, persisted to `project-scan-cache.json`. Unchanged folders return results instantly on relaunch
+- **Reduced scan depth** — `maxDepth` 5 → 3. UE projects are never more than 2–3 levels deep
+- **Reduced max file cap** — `maxFiles` 1000 → 500
+- **Lazy `lastOpenedAt`** — `findLatestLogTimestamp` skipped for newly discovered projects during cold scan; only called for projects already in the saved list
+- **Deduplicated search paths** — Scan roots normalised and deduplicated before scanning
+
+### ⚡ Performance — Renderer
+
+- **Removed broken `JSON.stringify` in `useMemo` deps** — `stableFavoritePaths` / `stableHiddenPaths` ran O(n) serialization on every render. Removed; raw arrays passed directly
+- **3 `useEffect` ref syncs replaced with direct assignment** — `currentTabRef`, `hiddenPathsRef`, `favoritePathsRef` now assigned in the render body — always current, zero overhead
+- **Removed redundant `useCallback` identity wrappers** — `stableLaunch` / `stableOpenDir` in `ProjectsContent` added allocation with no stability benefit. Removed
+- **Git status cache no longer busted on every card mount** — `projectCardState` was calling `clearGitCacheForPath` on every mount. IPC is now called once per path per scan cycle as intended
+- **Fab asset filter memoized with debounce** — `filtered` array in `fabTabState` now wrapped in `useMemo` with 200ms debounce on search input
+- **`FabFilterBar` counts memoized** — `assets.reduce()` for type counts now memoized on `[assets]`
+- **`AssetListCard` / `AssetGridCard` wrapped in `memo`** — Skip re-rendering when `asset` prop hasn't changed
+- **`SettingsPage` section content memoized** — `renderSection()` now `useMemo([activeSection, settingsState, platform])`
+- **Tracer status polling 5s → 30s** — `isTracerRunning` spawns a `tasklist` process; polling every 5s was excessive
+- **Sidebar collapse animation** — `AnimatePresence mode="wait"` → `mode="sync"`. Enter and exit now run simultaneously instead of sequentially
+- **`TextEncoder` instance reused** — Single module-level instance instead of `new TextEncoder()` on every log poll tick
+- **`onSizeCalculated` also updates `allProjectsRef`** — Tab switches no longer revert to stale sizes
+
 ## [2.2.5] - 2026-05-24 — `hotfix`
 
 ### � Security Fixes
@@ -89,6 +170,7 @@ All notable changes to this project will be documented in this file.
 - **Startup performance** — Optimized startup sequence with deferred background tasks
 
 ### 🔧 Changed
+
 - **Package.json updates** — Updated dependencies and build scripts
   - Added `discord-rpc` for Discord integration
   - Updated Electron to 39.2.6

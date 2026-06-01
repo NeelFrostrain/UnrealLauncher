@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 
 export const AboutHero = ({ version }: { version: string }): React.ReactElement => (
   <div
@@ -41,8 +38,8 @@ export const AboutHero = ({ version }: { version: string }): React.ReactElement 
       <div className="flex flex-wrap items-center justify-center gap-2">
         {[
           { label: 'Version', value: `v${version}` },
-          { label: 'Features', value: '44' },
-          { label: 'IPC Channels', value: '30+' },
+          { label: 'Features', value: '58' },
+          { label: 'IPC Channels', value: '34+' },
           { label: 'License', value: 'Proprietary' }
         ].map(({ label, value }) => (
           <div

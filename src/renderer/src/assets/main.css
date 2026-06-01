@@ -124,6 +124,51 @@
   background-color: var(--color-surface-card) !important;
 }
 
+/* ── White-opacity text → theme text tokens ──────────────────────────────── */
+/* These Tailwind classes are used throughout the app with hardcoded white     */
+/* opacity values. Mapping them to CSS variables makes them theme-aware.       */
+.text-white\/90,
+.text-white\/95 {
+  color: var(--color-text-primary) !important;
+}
+.text-white\/70,
+.text-white\/60 {
+  color: var(--color-text-secondary) !important;
+}
+.text-white\/50,
+.text-white\/40,
+.text-white\/30 {
+  color: var(--color-text-muted) !important;
+}
+/* Plain text-white should follow primary text */
+.text-white {
+  color: var(--color-text-primary) !important;
+}
+
+/* ── White-opacity backgrounds → theme surface tokens ────────────────────── */
+.bg-white\/5,
+.bg-white\/\[0\.05\] {
+  background-color: var(--color-surface-elevated) !important;
+}
+.bg-white\/10,
+.bg-white\/\[0\.1\] {
+  background-color: var(--color-surface-card) !important;
+}
+.hover\:bg-white\/10:hover,
+.hover\:bg-white\/20:hover {
+  background-color: color-mix(in srgb, var(--color-border) 60%, transparent) !important;
+}
+
+/* ── White-opacity borders → theme border token ──────────────────────────── */
+.border-white\/10,
+.border-white\/\[0\.1\] {
+  border-color: var(--color-border) !important;
+}
+.border-white\/20,
+.hover\:border-white\/30:hover {
+  border-color: color-mix(in srgb, var(--color-border) 150%, transparent) !important;
+}
+
 /* ── Border radius — all rounded-* classes follow --radius ───────────────── */
 .rounded-sm {
   border-radius: calc(var(--radius) * 0.5) !important;

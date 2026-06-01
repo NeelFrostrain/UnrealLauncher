@@ -1,7 +1,4 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { memo } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../../types'
@@ -232,6 +229,7 @@ const ProjectCard = memo(
           gitRemoteUrl={state.git.remoteUrl}
           onLaunch={handlers.handleClick}
           onLaunchGame={handlers.handleLaunchGame}
+          onLaunchWithConfig={() => {}}
           onFavorite={() => projectPath && onToggleFavorite(projectPath)}
           onOpenDir={() => projectPath && onOpenDir(projectPath)}
           onHide={() => projectPath && onHide(projectPath)}

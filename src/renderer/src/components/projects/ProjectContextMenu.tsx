@@ -1,11 +1,17 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-// Proprietary and confidential. Unauthorized copying, modification,
-// distribution, or use of this source code is strictly prohibited.
-// See LICENSE in the project root for full license terms.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Play, Gamepad2, Star, GitMerge, Wrench, AlertTriangle, GitBranch } from 'lucide-react'
+import {
+  Play,
+  Gamepad2,
+  Star,
+  GitMerge,
+  Wrench,
+  AlertTriangle,
+  GitBranch,
+  Settings2
+} from 'lucide-react'
 import { useToast } from '../ui/ToastContext'
 import {
   MenuItem,
@@ -31,6 +37,7 @@ export interface ProjectContextMenuProps {
   gitRemoteUrl: string
   onLaunch: () => void
   onLaunchGame: () => void
+  onLaunchWithConfig: () => void
   onFavorite: () => void
   onOpenDir: () => void
   onHide: () => void
@@ -164,6 +171,14 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             label="Launch as Game"
             sub="Run in -game mode"
             onClick={p.onLaunchGame}
+            onClose={p.onClose}
+          />
+          <MenuItem
+            icon={<Settings2 size={11} style={{ color: 'var(--color-text-muted)' }} />}
+            label="Launch with Config"
+            sub="Choose rendering profile"
+            onClick={p.onLaunchWithConfig}
+            noClose
             onClose={p.onClose}
           />
 
