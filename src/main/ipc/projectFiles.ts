@@ -3,6 +3,7 @@ import { shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { spawn } from 'child_process'
+import { sanitizePath } from '../utils/pathSanitization'
 
 export function findUprojectFile(projectPath: string): string | null {
   try {
@@ -160,9 +161,15 @@ export function handleProjectReadTextFile(filePath: string): {
   content: string
   error?: string
 } {
+  const sanitization = sanitizePath(filePath)
+  if (!sanitization.success) {
+    return { success: false, content: '', error: sanitization.error || 'Access denied' }
+  }
+  const safePath = sanitization.resolvedPath!
+
   try {
-    if (!fs.existsSync(filePath)) return { success: false, content: '', error: 'File not found' }
-    const content = fs.readFileSync(filePath, 'utf8')
+    if (!fs.existsSync(safePath)) return { success: false, content: '', error: 'File not found' }
+    const content = fs.readFileSync(safePath, 'utf8')
     return { success: true, content }
   } catch (err) {
     return {
@@ -181,10 +188,16 @@ export function handleProjectWriteTextFile(
   filePath: string,
   content: string
 ): { success: boolean; error?: string } {
+  const sanitization = sanitizePath(filePath)
+  if (!sanitization.success) {
+    return { success: false, error: sanitization.error || 'Access denied' }
+  }
+  const safePath = sanitization.resolvedPath!
+
   try {
-    const dir = path.dirname(filePath)
+    const dir = path.dirname(safePath)
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-    fs.writeFileSync(filePath, content, 'utf8')
+    fs.writeFileSync(safePath, content, 'utf8')
     return { success: true }
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
