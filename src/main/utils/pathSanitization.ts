@@ -150,3 +150,87 @@ export function sanitizePath(filePath: string): {
   const allowedDirs = getAppAllowedDirectories()
   return validatePath(filePath, allowedDirs)
 }
+
+/**
+ * Validates, normalizes, and restricts all directory paths passed over the IPC bridge.
+ */
+export function validateDirectory(
+  dirPath: string,
+  allowedDirs: string[]
+): { success: boolean; resolvedPath?: string; error?: string } {
+  try {
+    if (!dirPath || typeof dirPath !== 'string') {
+      return { success: false, error: 'Directory path is empty or invalid' }
+    }
+
+    let resolved = path.resolve(dirPath)
+
+    try {
+      if (fs.existsSync(resolved)) {
+        resolved = fs.realpathSync(resolved)
+      } else {
+        let dir = path.dirname(resolved)
+        while (dir && dir !== path.dirname(dir)) {
+          if (fs.existsSync(dir)) {
+            const realDir = fs.realpathSync(dir)
+            const relativePart = path.relative(dir, resolved)
+            resolved = path.join(realDir, relativePart)
+            break
+          }
+          dir = path.dirname(dir)
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    resolved = path.normalize(resolved)
+
+    const resolvedLower = resolved.toLowerCase()
+    const normalizedAllowedDirs = allowedDirs.map((dir) => {
+      let resolvedDir = path.normalize(path.resolve(dir))
+      try {
+        if (fs.existsSync(resolvedDir)) {
+          resolvedDir = path.normalize(fs.realpathSync(resolvedDir))
+        }
+      } catch {
+        // ignore
+      }
+      return resolvedDir
+    })
+
+    const isAllowed = normalizedAllowedDirs.some((allowedDir) => {
+      const allowedLower = allowedDir.toLowerCase()
+      if (resolvedLower.startsWith(allowedLower)) {
+        if (resolvedLower.length === allowedLower.length) return true
+        const nextChar = resolved.charAt(allowedDir.length)
+        if (nextChar === path.sep || nextChar === '/' || nextChar === '\\') return true
+      }
+      return false
+    })
+
+    if (!isAllowed) {
+      return { success: false, error: 'Path traversal or unauthorized directory access detected' }
+    }
+
+    return { success: true, resolvedPath: resolved }
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'An error occurred during directory sanitization'
+    }
+  }
+}
+
+/**
+ * Sanitizes a directory path using dynamic authorized directories.
+ */
+export function sanitizeDirectory(dirPath: string): {
+  success: boolean
+  resolvedPath?: string
+  error?: string
+} {
+  const allowedDirs = getAppAllowedDirectories()
+  return validateDirectory(dirPath, allowedDirs)
+}
+

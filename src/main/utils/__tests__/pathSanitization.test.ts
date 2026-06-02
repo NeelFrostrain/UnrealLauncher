@@ -1,64 +1,85 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import test from 'node:test'
-import assert from 'node:assert'
+import { describe, it, expect } from 'vitest'
 import path from 'path'
-import { validatePath } from '../pathSanitization'
+import { validatePath, validateDirectory } from '../pathSanitization'
 
-test('Path Sanitizer Tests', async (t) => {
+describe('Path Sanitizer Tests', () => {
   // Define mock authorized directories for testing
   const mockAllowedDirs = [
     path.resolve('/users/hp/workspace/UnrealLauncher'),
     path.resolve('/users/hp/AppData/Roaming/UnrealLauncher')
   ]
 
-  await t.test('✅ Safe paths inside the workspace', () => {
+  it('✅ Safe paths inside the workspace', () => {
     const safeConfig = path.join(mockAllowedDirs[0], 'Config/DefaultEngine.ini')
     const safeProject = path.join(mockAllowedDirs[0], 'MyProject.uproject')
 
     const res1 = validatePath(safeConfig, mockAllowedDirs)
-    assert.strictEqual(res1.success, true)
-    assert.strictEqual(res1.resolvedPath, path.resolve(safeConfig))
+    expect(res1.success).toBe(true)
+    expect(res1.resolvedPath).toBe(path.resolve(safeConfig))
 
     const res2 = validatePath(safeProject, mockAllowedDirs)
-    assert.strictEqual(res2.success, true)
-    assert.strictEqual(res2.resolvedPath, path.resolve(safeProject))
+    expect(res2.success).toBe(true)
+    expect(res2.resolvedPath).toBe(path.resolve(safeProject))
   })
 
-  await t.test('❌ Traversal attempts ("..")', () => {
+  it('❌ Traversal attempts ("..")', () => {
     // Attempt traversal out of allowed workspace to another path
     const traversalPath = path.join(mockAllowedDirs[0], '../../outside/secret.ini')
     const res = validatePath(traversalPath, mockAllowedDirs)
-    assert.strictEqual(res.success, false)
-    assert.ok(res.error?.includes('Path traversal or unauthorized file access detected'))
+    expect(res.success).toBe(false)
+    expect(res.error).toContain('Path traversal or unauthorized file access detected')
   })
 
-  await t.test('❌ Arbitrary absolute paths outside defined projects', () => {
+  it('❌ Arbitrary absolute paths outside defined projects', () => {
     const outsidePath = path.resolve('/outside/secret.ini')
     const res = validatePath(outsidePath, mockAllowedDirs)
-    assert.strictEqual(res.success, false)
-    assert.ok(res.error?.includes('Path traversal or unauthorized file access detected'))
+    expect(res.success).toBe(false)
+    expect(res.error).toContain('Path traversal or unauthorized file access detected')
   })
 
-  await t.test('❌ Unapproved extensions', () => {
+  it('❌ Unapproved extensions', () => {
     // Valid directory, but unapproved extension (e.g., .exe)
     const executablePath = path.join(mockAllowedDirs[0], 'Config/runner.exe')
     const res1 = validatePath(executablePath, mockAllowedDirs)
-    assert.strictEqual(res1.success, false)
-    assert.ok(res1.error?.includes('Access blocked: file type .exe is not permitted'))
+    expect(res1.success).toBe(false)
+    expect(res1.error).toContain('Access blocked: file type .exe is not permitted')
 
     // Valid directory, but arbitrary other unapproved extension (e.g., .png)
     const imagePath = path.join(mockAllowedDirs[0], 'Config/image.png')
     const res2 = validatePath(imagePath, mockAllowedDirs)
-    assert.strictEqual(res2.success, false)
-    assert.ok(res2.error?.includes('Access blocked: file type .png is not permitted'))
+    expect(res2.success).toBe(false)
+    expect(res2.error).toContain('Access blocked: file type .png is not permitted')
   })
 
-  await t.test('❌ Prefix bypass injection prevention', () => {
+  it('❌ Prefix bypass injection prevention', () => {
     // This tests that "/users/hp/workspace/UnrealLauncher-hacker/Config/DefaultEngine.ini"
     // is NOT allowed even though it starts with the string "/users/hp/workspace/UnrealLauncher"
     const bypassPath = path.resolve('/users/hp/workspace/UnrealLauncher-hacker/Config/DefaultEngine.ini')
     const res = validatePath(bypassPath, mockAllowedDirs)
-    assert.strictEqual(res.success, false)
-    assert.ok(res.error?.includes('Path traversal or unauthorized file access detected'))
+    expect(res.success).toBe(false)
+    expect(res.error).toContain('Path traversal or unauthorized file access detected')
+  })
+
+  describe('validateDirectory', () => {
+    it('✅ Safe directory path inside the workspace', () => {
+      const safeDir = path.join(mockAllowedDirs[0], 'Config')
+      const res = validateDirectory(safeDir, mockAllowedDirs)
+      expect(res.success).toBe(true)
+      expect(res.resolvedPath).toBe(path.resolve(safeDir))
+    })
+
+    it('❌ Traversal attempts in directory path', () => {
+      const traversalDir = path.join(mockAllowedDirs[0], '../../outside/secret_dir')
+      const res = validateDirectory(traversalDir, mockAllowedDirs)
+      expect(res.success).toBe(false)
+      expect(res.error).toContain('Path traversal or unauthorized directory access detected')
+    })
+
+    it('❌ Prefix bypass in directory path', () => {
+      const bypassDir = path.resolve('/users/hp/workspace/UnrealLauncher-hacker')
+      const res = validateDirectory(bypassDir, mockAllowedDirs)
+      expect(res.success).toBe(false)
+      expect(res.error).toContain('Path traversal or unauthorized directory access detected')
+    })
   })
 })

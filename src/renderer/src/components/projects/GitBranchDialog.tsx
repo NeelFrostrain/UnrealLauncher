@@ -2,6 +2,7 @@
 import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 import {
   X,
   GitBranch,
@@ -31,6 +32,10 @@ export default function GitBranchDialog({
   onBranchChanged
 }: Props): React.ReactElement {
   const newBranchRef = useRef<HTMLInputElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
+
+  useFocusTrap(dialogRef, true)
+
   const {
     loading,
     branches,
@@ -57,6 +62,7 @@ export default function GitBranchDialog({
       }}
     >
       <motion.div
+        ref={dialogRef}
         className="flex flex-col w-full max-w-md"
         style={{
           backgroundColor: 'var(--color-surface)',

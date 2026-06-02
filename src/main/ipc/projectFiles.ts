@@ -3,7 +3,7 @@ import { shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { spawn } from 'child_process'
-import { sanitizePath } from '../utils/pathSanitization'
+import { sanitizePath, sanitizeDirectory } from '../utils/pathSanitization'
 
 export function findUprojectFile(projectPath: string): string | null {
   try {
@@ -19,9 +19,14 @@ export function handleProjectOpenDefaultConfig(projectPath: string): {
   success: boolean
   error?: string
 } {
+  const sanitization = sanitizeDirectory(projectPath)
+  if (!sanitization.success) {
+    return { success: false, error: sanitization.error || 'Access denied' }
+  }
+  const safeProjectPath = sanitization.resolvedPath!
   const candidates = ['DefaultEngine.ini', 'DefaultGame.ini', 'DefaultInput.ini']
   for (const file of candidates) {
-    const full = path.join(projectPath, 'Config', file)
+    const full = path.join(safeProjectPath, 'Config', file)
     if (fs.existsSync(full)) {
       try {
         shell.openPath(full)
@@ -31,7 +36,7 @@ export function handleProjectOpenDefaultConfig(projectPath: string): {
       }
     }
   }
-  const configDir = path.join(projectPath, 'Config')
+  const configDir = path.join(safeProjectPath, 'Config')
   if (!fs.existsSync(configDir)) fs.mkdirSync(configDir, { recursive: true })
   shell.openPath(configDir)
   return { success: true }
@@ -41,7 +46,12 @@ export function handleProjectOpenUproject(projectPath: string): {
   success: boolean
   error?: string
 } {
-  const uproject = findUprojectFile(projectPath)
+  const sanitization = sanitizeDirectory(projectPath)
+  if (!sanitization.success) {
+    return { success: false, error: sanitization.error || 'Access denied' }
+  }
+  const safeProjectPath = sanitization.resolvedPath!
+  const uproject = findUprojectFile(safeProjectPath)
   if (!uproject) return { success: false, error: 'No .uproject file found' }
   try {
     shell.openPath(uproject)
@@ -55,16 +65,26 @@ export function handleProjectOpenSubfolder(
   projectPath: string,
   subfolder: string
 ): { success: boolean; error?: string } {
-  const target = path.join(projectPath, subfolder)
-  if (!fs.existsSync(target)) {
+  const sanitization = sanitizeDirectory(projectPath)
+  if (!sanitization.success) {
+    return { success: false, error: sanitization.error || 'Access denied' }
+  }
+  const safeProjectPath = sanitization.resolvedPath!
+  const target = path.join(safeProjectPath, subfolder)
+  const targetSanitization = sanitizeDirectory(target)
+  if (!targetSanitization.success) {
+    return { success: false, error: targetSanitization.error || 'Access denied' }
+  }
+  const safeTarget = targetSanitization.resolvedPath!
+  if (!fs.existsSync(safeTarget)) {
     try {
-      fs.mkdirSync(target, { recursive: true })
+      fs.mkdirSync(safeTarget, { recursive: true })
     } catch {
       return { success: false, error: `Folder not found: ${subfolder}` }
     }
   }
   try {
-    shell.openPath(target)
+    shell.openPath(safeTarget)
     return { success: true }
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
@@ -74,16 +94,21 @@ export function handleProjectOpenSubfolder(
 export async function handleProjectGenerateFiles(
   projectPath: string
 ): Promise<{ success: boolean; error?: string }> {
-  const uproject = findUprojectFile(projectPath)
+  const sanitization = sanitizeDirectory(projectPath)
+  if (!sanitization.success) {
+    return { success: false, error: sanitization.error || 'Access denied' }
+  }
+  const safeProjectPath = sanitization.resolvedPath!
+  const uproject = findUprojectFile(safeProjectPath)
   if (!uproject) return { success: false, error: 'No .uproject file found' }
-  const scriptWin = path.join(projectPath, 'GenerateProjectFiles.bat')
-  const scriptUnix = path.join(projectPath, 'GenerateProjectFiles.sh')
+  const scriptWin = path.join(safeProjectPath, 'GenerateProjectFiles.bat')
+  const scriptUnix = path.join(safeProjectPath, 'GenerateProjectFiles.sh')
   let script: string | null = null
   if (process.platform === 'win32' && fs.existsSync(scriptWin)) script = scriptWin
   else if (process.platform !== 'win32' && fs.existsSync(scriptUnix)) script = scriptUnix
   if (script) {
     try {
-      spawn(script, [], { cwd: projectPath, detached: true, stdio: 'ignore' }).unref()
+      spawn(script, [], { cwd: safeProjectPath, detached: true, stdio: 'ignore' }).unref()
       return { success: true }
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
@@ -100,6 +125,11 @@ export async function handleProjectGenerateFiles(
 export async function handleProjectCleanIntermediate(
   projectPath: string
 ): Promise<{ success: boolean; cleaned: string[]; error?: string }> {
+  const sanitization = sanitizeDirectory(projectPath)
+  if (!sanitization.success) {
+    return { success: false, cleaned: [], error: sanitization.error || 'Access denied' }
+  }
+  const safeProjectPath = sanitization.resolvedPath!
   const targetDirs = [
     'Intermediate',
     'Build',
@@ -114,7 +144,7 @@ export async function handleProjectCleanIntermediate(
   const targetExts = ['.sln', '.suo', '.opensdf', '.sdf', '.VC.db', '.VC.opendb', '.ncb', '.user']
   const cleaned: string[] = []
   for (const dir of targetDirs) {
-    const full = path.join(projectPath, dir)
+    const full = path.join(safeProjectPath, dir)
     if (fs.existsSync(full)) {
       try {
         fs.rmSync(full, { recursive: true, force: true })
@@ -125,7 +155,7 @@ export async function handleProjectCleanIntermediate(
     }
   }
   for (const file of targetFiles) {
-    const full = path.join(projectPath, file)
+    const full = path.join(safeProjectPath, file)
     if (fs.existsSync(full)) {
       try {
         fs.rmSync(full, { force: true })
@@ -136,10 +166,10 @@ export async function handleProjectCleanIntermediate(
     }
   }
   try {
-    for (const entry of fs.readdirSync(projectPath)) {
+    for (const entry of fs.readdirSync(safeProjectPath)) {
       if (targetExts.includes(path.extname(entry).toLowerCase())) {
         try {
-          fs.rmSync(path.join(projectPath, entry), { force: true })
+          fs.rmSync(path.join(safeProjectPath, entry), { force: true })
           cleaned.push(entry)
         } catch {
           /* skip */
@@ -212,13 +242,18 @@ export function handleProjectResolveConfigPath(projectPath: string): {
   filePath: string
   error?: string
 } {
+  const sanitization = sanitizeDirectory(projectPath)
+  if (!sanitization.success) {
+    return { success: false, filePath: '', error: sanitization.error || 'Access denied' }
+  }
+  const safeProjectPath = sanitization.resolvedPath!
   const candidates = ['DefaultEngine.ini', 'DefaultGame.ini', 'DefaultInput.ini']
   for (const file of candidates) {
-    const full = path.join(projectPath, 'Config', file)
+    const full = path.join(safeProjectPath, 'Config', file)
     if (fs.existsSync(full)) return { success: true, filePath: full }
   }
   // Return the DefaultEngine.ini path even if it doesn't exist yet — editor will create it
-  return { success: true, filePath: path.join(projectPath, 'Config', 'DefaultEngine.ini') }
+  return { success: true, filePath: path.join(safeProjectPath, 'Config', 'DefaultEngine.ini') }
 }
 
 /**
@@ -229,7 +264,12 @@ export function handleProjectResolveUprojectPath(projectPath: string): {
   filePath: string
   error?: string
 } {
-  const uproject = findUprojectFile(projectPath)
+  const sanitization = sanitizeDirectory(projectPath)
+  if (!sanitization.success) {
+    return { success: false, filePath: '', error: sanitization.error || 'Access denied' }
+  }
+  const safeProjectPath = sanitization.resolvedPath!
+  const uproject = findUprojectFile(safeProjectPath)
   if (!uproject) return { success: false, filePath: '', error: 'No .uproject file found' }
   return { success: true, filePath: uproject }
 }
