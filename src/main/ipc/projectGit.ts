@@ -3,11 +3,17 @@ import path from 'path'
 import fs from 'fs'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
+import { sanitizeDirectory } from '../utils/pathSanitization'
 
 const execFileAsync = promisify(execFile)
 
 async function runGitAsync(projectPath: string, args: string[]): Promise<Buffer> {
-  const { stdout } = await execFileAsync('git', args, { cwd: projectPath, encoding: 'buffer' })
+  const sanitization = sanitizeDirectory(projectPath)
+  if (!sanitization.success) {
+    throw new Error(sanitization.error || 'Access denied')
+  }
+  const safeProjectPath = sanitization.resolvedPath!
+  const { stdout } = await execFileAsync('git', args, { cwd: safeProjectPath, encoding: 'buffer' })
   return stdout
 }
 
@@ -136,7 +142,19 @@ export function handleProjectGitStatus(projectPath: string): {
   behind: number
   remoteUrl: string
 } {
-  const gitDir = path.join(projectPath, '.git')
+  const sanitization = sanitizeDirectory(projectPath)
+  if (!sanitization.success) {
+    return {
+      initialized: false,
+      branch: '',
+      hasUncommitted: false,
+      ahead: 0,
+      behind: 0,
+      remoteUrl: ''
+    }
+  }
+  const safeProjectPath = sanitization.resolvedPath!
+  const gitDir = path.join(safeProjectPath, '.git')
   if (!fs.existsSync(gitDir))
     return {
       initialized: false,
@@ -195,9 +213,14 @@ export function handleProjectGitFileStatus(projectPath: string): {
   hasGitignore: boolean
   hasGitattributes: boolean
 } {
+  const sanitization = sanitizeDirectory(projectPath)
+  if (!sanitization.success) {
+    return { hasGitignore: false, hasGitattributes: false }
+  }
+  const safeProjectPath = sanitization.resolvedPath!
   return {
-    hasGitignore: fs.existsSync(path.join(projectPath, '.gitignore')),
-    hasGitattributes: fs.existsSync(path.join(projectPath, '.gitattributes'))
+    hasGitignore: fs.existsSync(path.join(safeProjectPath, '.gitignore')),
+    hasGitattributes: fs.existsSync(path.join(safeProjectPath, '.gitattributes'))
   }
 }
 
@@ -217,7 +240,12 @@ export function handleProjectGitWriteGitignore(projectPath: string): {
   existed: boolean
   error?: string
 } {
-  const gitignore = path.join(projectPath, '.gitignore')
+  const sanitization = sanitizeDirectory(projectPath)
+  if (!sanitization.success) {
+    return { success: false, existed: false, error: sanitization.error || 'Access denied' }
+  }
+  const safeProjectPath = sanitization.resolvedPath!
+  const gitignore = path.join(safeProjectPath, '.gitignore')
   const existed = fs.existsSync(gitignore)
   try {
     fs.writeFileSync(gitignore, UE_GITIGNORE, 'utf8')
