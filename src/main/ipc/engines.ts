@@ -1,5 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
+import { isRegisteredEnginePath } from '../utils/pathSanitization'
 import {
   handleSelectEngineFolder,
   handleLaunchEngine,
@@ -30,13 +31,23 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
 
   ipcMain_.handle('delete-engine', (_event, directoryPath) => handleDeleteEngine(directoryPath))
 
-  ipcMain_.handle('calculate-engine-size', async (_event, directoryPath) =>
-    calculateEngineSize(directoryPath)
-  )
+  ipcMain_.handle('calculate-engine-size', async (_event, directoryPath) => {
+    // SECURITY: Validate path is a registered engine
+    const validatedPath = isRegisteredEnginePath(directoryPath)
+    if (!validatedPath) {
+      return { error: 'Engine path is not registered' }
+    }
+    return calculateEngineSize(validatedPath)
+  })
 
-  ipcMain_.handle('scan-engine-plugins', (_event, engineDir: string) =>
-    scanEnginePlugins(engineDir)
-  )
+  ipcMain_.handle('scan-engine-plugins', (_event, engineDir: string) => {
+    // SECURITY: Validate path is a registered engine
+    const validatedPath = isRegisteredEnginePath(engineDir)
+    if (!validatedPath) {
+      return []
+    }
+    return scanEnginePlugins(validatedPath)
+  })
 
   ipcMain_.handle('update-engine-alias', (_event, directoryPath: string, alias: string) =>
     handleUpdateEngineAlias(directoryPath, alias)

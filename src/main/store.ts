@@ -4,6 +4,7 @@ import path from 'path'
 import { app } from 'electron'
 import type { Engine, Project } from './types'
 import { logger } from './logger'
+import { getTracerDataDir } from './utils/platformPaths'
 
 // ── Lazy path resolution ──────────────────────────────────────────────────────
 function getSaveDir(): string {
@@ -19,7 +20,18 @@ function getSettingsPath(): string {
   return path.join(getSaveDir(), 'settings.json')
 }
 function getTracerDir(): string {
-  return path.join(app.getPath('userData'), 'Tracer')
+  const tracerDir = getTracerDataDir()
+  const oldDir = path.join(app.getPath('userData'), 'Tracer')
+  if (oldDir !== tracerDir && fs.existsSync(oldDir) && !fs.existsSync(tracerDir)) {
+    try {
+      fs.mkdirSync(path.dirname(tracerDir), { recursive: true })
+      fs.renameSync(oldDir, tracerDir)
+    } catch {
+      /* ignore migration failure */
+    }
+  }
+  if (!fs.existsSync(tracerDir)) fs.mkdirSync(tracerDir, { recursive: true })
+  return tracerDir
 }
 export function getTracerEnginesPath(): string {
   return path.join(getTracerDir(), 'engines.json')

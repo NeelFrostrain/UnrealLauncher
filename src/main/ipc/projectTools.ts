@@ -1,8 +1,10 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
+import { logger } from '../logger'
 import { handleProjectReadLog } from './projectLog'
 import {
   handleProjectGitStatus,
+  handleProjectGitStatusBulk,
   handleProjectGitInit,
   handleProjectGitFileStatus,
   handleProjectGitReinit,
@@ -31,8 +33,23 @@ import {
 } from './projectTerminal'
 
 export function registerProjectToolHandlers(ipcMain_: typeof ipcMain): void {
-  ipcMain_.handle('project-read-log', (_e, p: string, from = 0) => handleProjectReadLog(p, from))
-  ipcMain_.handle('project-git-status', (_e, p: string) => handleProjectGitStatus(p))
+  ipcMain_.handle('project-read-log', (_e, p: string, from = 0) => {
+    const result = handleProjectReadLog(p, from)
+    if (!result) {
+      logger.warn('project-tools', 'Failed to read project log', { projectPath: p })
+    }
+    return result
+  })
+  ipcMain_.handle('project-git-status', (_e, p: string) => {
+    const result = handleProjectGitStatus(p)
+    if (!result.initialized) {
+      logger.debug('project-tools', 'Project git status check', { projectPath: p, result })
+    }
+    return result
+  })
+  ipcMain_.handle('project-git-status-bulk', (_e, paths: string[]) => {
+    return handleProjectGitStatusBulk(paths)
+  })
   ipcMain_.handle('project-git-init', (_e, p: string) => handleProjectGitInit(p))
   ipcMain_.handle('project-git-file-status', (_e, p: string) => handleProjectGitFileStatus(p))
   ipcMain_.handle('project-git-reinit', (_e, p: string) => handleProjectGitReinit(p))
@@ -61,11 +78,11 @@ export function registerProjectToolHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('project-clean-intermediate', (_e, p: string) =>
     handleProjectCleanIntermediate(p)
   )
-  ipcMain_.handle('project-read-text-file', (_e, filePath: string) =>
-    handleProjectReadTextFile(filePath)
+  ipcMain_.handle('project-read-text-file', (_e, filePath: string, projectPath: string) =>
+    handleProjectReadTextFile(filePath, projectPath)
   )
-  ipcMain_.handle('project-write-text-file', (_e, filePath: string, content: string) =>
-    handleProjectWriteTextFile(filePath, content)
+  ipcMain_.handle('project-write-text-file', (_e, filePath: string, content: string, projectPath: string) =>
+    handleProjectWriteTextFile(filePath, content, projectPath)
   )
   ipcMain_.handle('project-resolve-config-path', (_e, p: string) =>
     handleProjectResolveConfigPath(p)

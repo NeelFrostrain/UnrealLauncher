@@ -20,7 +20,7 @@ export const MAIN_WINDOW_CONFIG = {
     spellcheck: false,
     enableWebSQL: false,
     v8CacheOptions: 'bypassHeatCheck' as const,
-    webSecurity: false
+    webSecurity: true
   },
   icon: path.join(__dirname, '../../resources/icon.png'),
   frame: false,

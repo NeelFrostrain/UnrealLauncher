@@ -3,7 +3,7 @@ import { shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { spawn } from 'child_process'
-import { sanitizePath, sanitizeDirectory } from '../utils/pathSanitization'
+import { validatePathForGitRead } from '../utils/pathSanitization'
 
 export function findUprojectFile(projectPath: string): string | null {
   try {
@@ -19,11 +19,10 @@ export function handleProjectOpenDefaultConfig(projectPath: string): {
   success: boolean
   error?: string
 } {
-  const sanitization = sanitizeDirectory(projectPath)
-  if (!sanitization.success) {
-    return { success: false, error: sanitization.error || 'Access denied' }
+  const safeProjectPath = validatePathForGitRead(projectPath)
+  if (!safeProjectPath) {
+    return { success: false, error: 'Project path not found or invalid' }
   }
-  const safeProjectPath = sanitization.resolvedPath!
   const candidates = ['DefaultEngine.ini', 'DefaultGame.ini', 'DefaultInput.ini']
   for (const file of candidates) {
     const full = path.join(safeProjectPath, 'Config', file)
@@ -46,11 +45,10 @@ export function handleProjectOpenUproject(projectPath: string): {
   success: boolean
   error?: string
 } {
-  const sanitization = sanitizeDirectory(projectPath)
-  if (!sanitization.success) {
-    return { success: false, error: sanitization.error || 'Access denied' }
+  const safeProjectPath = validatePathForGitRead(projectPath)
+  if (!safeProjectPath) {
+    return { success: false, error: 'Project path not found or invalid' }
   }
-  const safeProjectPath = sanitization.resolvedPath!
   const uproject = findUprojectFile(safeProjectPath)
   if (!uproject) return { success: false, error: 'No .uproject file found' }
   try {
@@ -65,26 +63,26 @@ export function handleProjectOpenSubfolder(
   projectPath: string,
   subfolder: string
 ): { success: boolean; error?: string } {
-  const sanitization = sanitizeDirectory(projectPath)
-  if (!sanitization.success) {
-    return { success: false, error: sanitization.error || 'Access denied' }
+  const safeProjectPath = validatePathForGitRead(projectPath)
+  if (!safeProjectPath) {
+    return { success: false, error: 'Project path not found or invalid' }
   }
-  const safeProjectPath = sanitization.resolvedPath!
   const target = path.join(safeProjectPath, subfolder)
-  const targetSanitization = sanitizeDirectory(target)
-  if (!targetSanitization.success) {
-    return { success: false, error: targetSanitization.error || 'Access denied' }
+  // Verify target is within project path
+  const normTarget = path.normalize(target)
+  const normProject = path.normalize(safeProjectPath)
+  if (!normTarget.startsWith(normProject)) {
+    return { success: false, error: 'Access denied' }
   }
-  const safeTarget = targetSanitization.resolvedPath!
-  if (!fs.existsSync(safeTarget)) {
+  if (!fs.existsSync(normTarget)) {
     try {
-      fs.mkdirSync(safeTarget, { recursive: true })
+      fs.mkdirSync(normTarget, { recursive: true })
     } catch {
       return { success: false, error: `Folder not found: ${subfolder}` }
     }
   }
   try {
-    shell.openPath(safeTarget)
+    shell.openPath(normTarget)
     return { success: true }
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
@@ -94,11 +92,10 @@ export function handleProjectOpenSubfolder(
 export async function handleProjectGenerateFiles(
   projectPath: string
 ): Promise<{ success: boolean; error?: string }> {
-  const sanitization = sanitizeDirectory(projectPath)
-  if (!sanitization.success) {
-    return { success: false, error: sanitization.error || 'Access denied' }
+  const safeProjectPath = validatePathForGitRead(projectPath)
+  if (!safeProjectPath) {
+    return { success: false, error: 'Project path not found or invalid' }
   }
-  const safeProjectPath = sanitization.resolvedPath!
   const uproject = findUprojectFile(safeProjectPath)
   if (!uproject) return { success: false, error: 'No .uproject file found' }
   const scriptWin = path.join(safeProjectPath, 'GenerateProjectFiles.bat')
@@ -125,11 +122,10 @@ export async function handleProjectGenerateFiles(
 export async function handleProjectCleanIntermediate(
   projectPath: string
 ): Promise<{ success: boolean; cleaned: string[]; error?: string }> {
-  const sanitization = sanitizeDirectory(projectPath)
-  if (!sanitization.success) {
-    return { success: false, cleaned: [], error: sanitization.error || 'Access denied' }
+  const safeProjectPath = validatePathForGitRead(projectPath)
+  if (!safeProjectPath) {
+    return { success: false, cleaned: [], error: 'Project path not found or invalid' }
   }
-  const safeProjectPath = sanitization.resolvedPath!
   const targetDirs = [
     'Intermediate',
     'Build',
@@ -186,20 +182,40 @@ export async function handleProjectCleanIntermediate(
  * Reads a text file and returns its content.
  * Used by the in-app file editor dialog.
  */
-export function handleProjectReadTextFile(filePath: string): {
+export function handleProjectReadTextFile(filePath: string, projectPath: string): {
   success: boolean
   content: string
   error?: string
 } {
-  const sanitization = sanitizePath(filePath)
-  if (!sanitization.success) {
-    return { success: false, content: '', error: sanitization.error || 'Access denied' }
-  }
-  const safePath = sanitization.resolvedPath!
-
   try {
-    if (!fs.existsSync(safePath)) return { success: false, content: '', error: 'File not found' }
-    const content = fs.readFileSync(safePath, 'utf8')
+    // Validate the project path first
+    const validatedProjectPath = validatePathForGitRead(projectPath)
+    if (!validatedProjectPath) {
+      return { success: false, content: '', error: 'Project path not accessible' }
+    }
+
+    // Normalize and validate the file path exists
+    let resolved = path.resolve(filePath)
+    try {
+      if (fs.existsSync(resolved)) {
+        resolved = fs.realpathSync(resolved)
+      }
+    } catch {
+      // ignore
+    }
+    resolved = path.normalize(resolved)
+
+    // Verify file is within the validated project path
+    if (!resolved.toLowerCase().startsWith(validatedProjectPath.toLowerCase())) {
+      return { success: false, content: '', error: 'File is outside project directory' }
+    }
+
+    // Check file exists and is readable
+    if (!fs.existsSync(resolved)) {
+      return { success: false, content: '', error: 'File not found' }
+    }
+
+    const content = fs.readFileSync(resolved, 'utf8')
     return { success: true, content }
   } catch (err) {
     return {
@@ -216,18 +232,39 @@ export function handleProjectReadTextFile(filePath: string): {
  */
 export function handleProjectWriteTextFile(
   filePath: string,
-  content: string
+  content: string,
+  projectPath: string
 ): { success: boolean; error?: string } {
-  const sanitization = sanitizePath(filePath)
-  if (!sanitization.success) {
-    return { success: false, error: sanitization.error || 'Access denied' }
-  }
-  const safePath = sanitization.resolvedPath!
-
   try {
-    const dir = path.dirname(safePath)
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-    fs.writeFileSync(safePath, content, 'utf8')
+    // Validate the project path first
+    const validatedProjectPath = validatePathForGitRead(projectPath)
+    if (!validatedProjectPath) {
+      return { success: false, error: 'Project path not accessible' }
+    }
+
+    // Normalize and validate the file path
+    let resolved = path.resolve(filePath)
+    try {
+      if (fs.existsSync(resolved)) {
+        resolved = fs.realpathSync(resolved)
+      }
+    } catch {
+      // ignore
+    }
+    resolved = path.normalize(resolved)
+
+    // Verify file would be within the validated project path
+    if (!resolved.toLowerCase().startsWith(validatedProjectPath.toLowerCase())) {
+      return { success: false, error: 'File is outside project directory' }
+    }
+
+    // Create directory if needed
+    const fileDir = path.dirname(resolved)
+    if (!fs.existsSync(fileDir)) {
+      fs.mkdirSync(fileDir, { recursive: true })
+    }
+
+    fs.writeFileSync(resolved, content, 'utf8')
     return { success: true }
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
@@ -242,11 +279,10 @@ export function handleProjectResolveConfigPath(projectPath: string): {
   filePath: string
   error?: string
 } {
-  const sanitization = sanitizeDirectory(projectPath)
-  if (!sanitization.success) {
-    return { success: false, filePath: '', error: sanitization.error || 'Access denied' }
+  const safeProjectPath = validatePathForGitRead(projectPath)
+  if (!safeProjectPath) {
+    return { success: false, filePath: '', error: 'Project path not found or invalid' }
   }
-  const safeProjectPath = sanitization.resolvedPath!
   const candidates = ['DefaultEngine.ini', 'DefaultGame.ini', 'DefaultInput.ini']
   for (const file of candidates) {
     const full = path.join(safeProjectPath, 'Config', file)
@@ -264,11 +300,10 @@ export function handleProjectResolveUprojectPath(projectPath: string): {
   filePath: string
   error?: string
 } {
-  const sanitization = sanitizeDirectory(projectPath)
-  if (!sanitization.success) {
-    return { success: false, filePath: '', error: sanitization.error || 'Access denied' }
+  const safeProjectPath = validatePathForGitRead(projectPath)
+  if (!safeProjectPath) {
+    return { success: false, filePath: '', error: 'Project path not found or invalid' }
   }
-  const safeProjectPath = sanitization.resolvedPath!
   const uproject = findUprojectFile(safeProjectPath)
   if (!uproject) return { success: false, filePath: '', error: 'No .uproject file found' }
   return { success: true, filePath: uproject }

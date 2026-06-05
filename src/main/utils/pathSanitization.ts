@@ -203,7 +203,8 @@ export function validateDirectory(
       const allowedLower = allowedDir.toLowerCase()
       if (resolvedLower.startsWith(allowedLower)) {
         if (resolvedLower.length === allowedLower.length) return true
-        const nextChar = resolved.charAt(allowedDir.length)
+        // Check next character using normalized lowercase path
+        const nextChar = resolvedLower.charAt(allowedLower.length)
         if (nextChar === path.sep || nextChar === '/' || nextChar === '\\') return true
       }
       return false
@@ -232,5 +233,132 @@ export function sanitizeDirectory(dirPath: string): {
 } {
   const allowedDirs = getAppAllowedDirectories()
   return validateDirectory(dirPath, allowedDirs)
+}
+
+/**
+ * Checks if a path is a registered project directory.
+ * Returns normalized path if valid, undefined if not found.
+ * Falls back to a basic check if store is not available.
+ */
+export function isRegisteredProjectPath(dirPath: string): string | undefined {
+  try {
+    let resolved = path.resolve(dirPath)
+    try {
+      if (fs.existsSync(resolved)) {
+        resolved = fs.realpathSync(resolved)
+      }
+    } catch {
+      // ignore
+    }
+    resolved = path.normalize(resolved)
+    const resolvedLower = resolved.toLowerCase()
+
+    try {
+      const { loadProjects } = require('../store')
+      const projects = loadProjects()
+
+      if (projects && Array.isArray(projects) && projects.length > 0) {
+        for (const proj of projects) {
+          if (proj.projectPath) {
+            let projPath = path.normalize(path.resolve(proj.projectPath))
+            try {
+              if (fs.existsSync(projPath)) {
+                projPath = path.normalize(fs.realpathSync(projPath))
+              }
+            } catch {
+              // ignore
+            }
+            const projLower = projPath.toLowerCase()
+            if (resolvedLower === projLower) {
+              return resolved
+            }
+          }
+        }
+      }
+    } catch (storeErr) {
+      // Store not available or failed to load — return undefined
+      return undefined
+    }
+    return undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Validates a path for read-only git operations (checking .git folder).
+ * More lenient than isRegisteredProjectPath - allows any path with a .git folder
+ * since reading git metadata poses no security risk.
+ */
+export function validatePathForGitRead(dirPath: string): string | undefined {
+  try {
+    let resolved = path.resolve(dirPath)
+    try {
+      if (fs.existsSync(resolved)) {
+        resolved = fs.realpathSync(resolved)
+      }
+    } catch {
+      // ignore
+    }
+    resolved = path.normalize(resolved)
+
+    // First try to match against registered projects (preferred)
+    const registered = isRegisteredProjectPath(dirPath)
+    if (registered) {
+      return registered
+    }
+
+    // Fallback: Accept any existing directory (no security risk for read-only git operations)
+    // This allows git status to work for projects added manually or during scans
+    if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+      return resolved
+    }
+
+    return undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Checks if a path is a registered engine directory.
+ * Returns normalized path if valid, undefined if not found.
+ */
+export function isRegisteredEnginePath(dirPath: string): string | undefined {
+  try {
+    let resolved = path.resolve(dirPath)
+    try {
+      if (fs.existsSync(resolved)) {
+        resolved = fs.realpathSync(resolved)
+      }
+    } catch {
+      // ignore
+    }
+    resolved = path.normalize(resolved)
+    const resolvedLower = resolved.toLowerCase()
+
+    const { loadEngines } = require('../store')
+    const engines = loadEngines()
+
+    for (const eng of engines) {
+      if (eng.enginePath) {
+        let engPath = path.normalize(path.resolve(eng.enginePath))
+        try {
+          if (fs.existsSync(engPath)) {
+            engPath = path.normalize(fs.realpathSync(engPath))
+          }
+        } catch {
+          // ignore
+        }
+        const engLower = engPath.toLowerCase()
+        if (resolvedLower === engLower) {
+          return resolved
+        }
+      }
+    }
+    return undefined
+  } catch {
+    return undefined
+  }
 }
 

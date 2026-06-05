@@ -109,6 +109,8 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-read-log', projectPath, fromByte ?? 0),
       projectGitStatus: (projectPath: string) =>
         ipcRenderer.invoke('project-git-status', projectPath),
+      projectGitStatusBulk: (projectPaths: string[]) =>
+        ipcRenderer.invoke('project-git-status-bulk', projectPaths),
       projectGitInit: (projectPath: string) => ipcRenderer.invoke('project-git-init', projectPath),
       projectLaunchGame: (projectPath: string) =>
         ipcRenderer.invoke('launch-project-game', projectPath),
@@ -155,10 +157,10 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-open-terminal', projectPath),
       projectOpenGithub: (projectPath: string) =>
         ipcRenderer.invoke('project-open-github', projectPath),
-      projectReadTextFile: (filePath: string) =>
-        ipcRenderer.invoke('project-read-text-file', filePath),
-      projectWriteTextFile: (filePath: string, content: string) =>
-        ipcRenderer.invoke('project-write-text-file', filePath, content),
+      projectReadTextFile: (filePath: string, projectPath: string) =>
+        ipcRenderer.invoke('project-read-text-file', filePath, projectPath),
+      projectWriteTextFile: (filePath: string, content: string, projectPath: string) =>
+        ipcRenderer.invoke('project-write-text-file', filePath, content, projectPath),
       projectResolveConfigPath: (projectPath: string) =>
         ipcRenderer.invoke('project-resolve-config-path', projectPath),
       projectResolveUprojectPath: (projectPath: string) =>

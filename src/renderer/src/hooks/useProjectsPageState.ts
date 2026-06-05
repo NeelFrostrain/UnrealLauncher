@@ -112,7 +112,11 @@ export function useProjectsPageState() {
           source,
           error: err instanceof Error ? err.message : String(err)
         })
-        console.error(`loadProjects(${source}) failed:`, err)
+          console.error(`loadProjects(${source}) failed:`, err)
+          addToast(
+            `Failed to load projects (${source}): ${err instanceof Error ? err.message : String(err)}`,
+            'error'
+          )
         return []
       } finally {
         if (source === 'saved') setLoading(false)
@@ -154,6 +158,10 @@ export function useProjectsPageState() {
           error: err instanceof Error ? err.message : String(err)
         })
         console.error('loadProjectsForTab failed:', err)
+        addToast(
+          `Failed to load projects (${tab}): ${err instanceof Error ? err.message : String(err)}`,
+          'error'
+        )
         return []
       }
     },
@@ -194,12 +202,19 @@ export function useProjectsPageState() {
     if (!window.electronAPI) return
     const unsubSize = window.electronAPI.onSizeCalculated((data) => {
       if (data.type === 'project') {
-        allProjectsRef.current = allProjectsRef.current.map((p) =>
-          p.projectPath === data.path ? { ...p, size: data.size } : p
-        )
-        setProjects((prev) =>
-          prev.map((p) => (p.projectPath === data.path ? { ...p, size: data.size } : p))
-        )
+        // Update allProjectsRef in place to avoid unnecessary re-renders
+        const idx = allProjectsRef.current.findIndex((p) => p.projectPath === data.path)
+        if (idx >= 0) {
+          allProjectsRef.current[idx] = { ...allProjectsRef.current[idx], size: data.size }
+        }
+        // Update only the specific project in the displayed list
+        setProjects((prev) => {
+          const idx = prev.findIndex((p) => p.projectPath === data.path)
+          if (idx < 0) return prev // Project not in current filtered list
+          const updated = [...prev]
+          updated[idx] = { ...prev[idx], size: data.size }
+          return updated
+        })
       }
     })
     const unsubRemoved = window.electronAPI.onProjectRemoved((data) => {

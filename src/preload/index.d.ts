@@ -214,6 +214,16 @@ declare global {
         behind: number
         remoteUrl: string
       }>
+      projectGitStatusBulk: (projectPaths: string[]) => Promise<{
+        [projectPath: string]: {
+          initialized: boolean
+          branch: string
+          hasUncommitted: boolean
+          ahead: number
+          behind: number
+          remoteUrl: string
+        }
+      }>
       projectGitInit: (
         projectPath: string
       ) => Promise<{ success: boolean; lfsAvailable: boolean; error?: string }>
@@ -259,11 +269,13 @@ declare global {
         projectPath: string
       ) => Promise<{ hasGitignore: boolean; hasGitattributes: boolean }>
       projectReadTextFile: (
-        filePath: string
+        filePath: string,
+        projectPath: string
       ) => Promise<{ success: boolean; content: string; error?: string }>
       projectWriteTextFile: (
         filePath: string,
-        content: string
+        content: string,
+        projectPath: string
       ) => Promise<{ success: boolean; error?: string }>
       projectResolveConfigPath: (
         projectPath: string

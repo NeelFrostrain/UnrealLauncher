@@ -107,7 +107,10 @@ const ProjectCardGrid = memo(
           gitRemoteUrl={state.git.remoteUrl}
           onLaunch={handlers.handleClick}
           onLaunchGame={handlers.handleLaunchGame}
-          onLaunchWithConfig={() => {}}
+          onLaunchWithConfig={() => {
+            const e = new CustomEvent('open-project-launch-config', { detail: { projectPath } })
+            window.dispatchEvent(e)
+          }}
           onFavorite={() => projectPath && onToggleFavorite(projectPath)}
           onOpenDir={() => projectPath && onOpenDir(projectPath)}
           onHide={() => projectPath && onHide(projectPath)}

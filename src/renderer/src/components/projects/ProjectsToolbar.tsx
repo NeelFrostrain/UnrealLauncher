@@ -46,6 +46,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
   searchQuery,
   refreshing,
   backgroundScanning,
+  calculatingSizes,
   addingProject,
   viewMode,
   sortConfig,
@@ -302,20 +303,40 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         </button>
 
         {/* Refresh */}
-        <button
-          onClick={onRefresh}
-          disabled={refreshing}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-          style={{
-            borderRadius: 'var(--radius)',
-            backgroundColor: 'var(--color-surface-card)',
-            color: 'var(--color-text-secondary)',
-            border: '1px solid var(--color-border)'
-          }}
-        >
-          <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
-          {refreshing ? 'Refreshing…' : backgroundScanning ? 'Scanning…' : 'Refresh'}
-        </button>
+        <div className="relative">
+          <button
+            onClick={onRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            style={{
+              borderRadius: 'var(--radius)',
+              backgroundColor: 'var(--color-surface-card)',
+              color: 'var(--color-text-secondary)',
+              border: '1px solid var(--color-border)'
+            }}
+          >
+            <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
+            {refreshing
+              ? 'Refreshing…'
+              : calculatingSizes
+                ? 'Calculating sizes…'
+                : backgroundScanning
+                  ? 'Scanning…'
+                  : 'Refresh'}
+          </button>
+          {calculatingSizes && (
+            <span
+              className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-semibold rounded-full"
+              style={{
+                backgroundColor: 'var(--color-accent)',
+                color: 'var(--color-text-primary)',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.35)'
+              }}
+            >
+              Sizes
+            </span>
+          )}
+        </div>
 
         {/* Add Project */}
         <button

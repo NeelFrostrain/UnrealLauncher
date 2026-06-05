@@ -3,16 +3,16 @@ import path from 'path'
 import fs from 'fs'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
-import { sanitizeDirectory } from '../utils/pathSanitization'
+import { isRegisteredProjectPath, validatePathForGitRead } from '../utils/pathSanitization'
+import { logger } from '../logger'
 
 const execFileAsync = promisify(execFile)
 
 async function runGitAsync(projectPath: string, args: string[]): Promise<Buffer> {
-  const sanitization = sanitizeDirectory(projectPath)
-  if (!sanitization.success) {
-    throw new Error(sanitization.error || 'Access denied')
+  const safeProjectPath = isRegisteredProjectPath(projectPath)
+  if (!safeProjectPath) {
+    throw new Error('Project path is not registered')
   }
-  const safeProjectPath = sanitization.resolvedPath!
   const { stdout } = await execFileAsync('git', args, { cwd: safeProjectPath, encoding: 'buffer' })
   return stdout
 }
@@ -142,8 +142,9 @@ export function handleProjectGitStatus(projectPath: string): {
   behind: number
   remoteUrl: string
 } {
-  const sanitization = sanitizeDirectory(projectPath)
-  if (!sanitization.success) {
+  const safeProjectPath = validatePathForGitRead(projectPath)
+  if (!safeProjectPath) {
+    logger.debug('projectGit', 'Git status check: path not valid', { projectPath })
     return {
       initialized: false,
       branch: '',
@@ -153,9 +154,8 @@ export function handleProjectGitStatus(projectPath: string): {
       remoteUrl: ''
     }
   }
-  const safeProjectPath = sanitization.resolvedPath!
   const gitDir = path.join(safeProjectPath, '.git')
-  if (!fs.existsSync(gitDir))
+  if (!fs.existsSync(gitDir)) {
     return {
       initialized: false,
       branch: '',
@@ -164,6 +164,7 @@ export function handleProjectGitStatus(projectPath: string): {
       behind: 0,
       remoteUrl: ''
     }
+  }
   let branch = 'unknown'
   try {
     branch = fs
@@ -183,18 +184,50 @@ export function handleProjectGitStatus(projectPath: string): {
   return { initialized: true, branch, hasUncommitted: false, ahead: 0, behind: 0, remoteUrl }
 }
 
+/**
+ * Bulk fetch git status for multiple projects.
+ * More efficient than calling handleProjectGitStatus per project.
+ */
+export function handleProjectGitStatusBulk(
+  projectPaths: string[]
+): {
+  [projectPath: string]: {
+    initialized: boolean
+    branch: string
+    hasUncommitted: boolean
+    ahead: number
+    behind: number
+    remoteUrl: string
+  }
+} {
+  const results: Record<
+    string,
+    { initialized: boolean; branch: string; hasUncommitted: boolean; ahead: number; behind: number; remoteUrl: string }
+  > = {}
+
+  for (const projectPath of projectPaths) {
+    results[projectPath] = handleProjectGitStatus(projectPath)
+  }
+
+  return results
+}
+
 export async function handleProjectGitInit(
   projectPath: string
 ): Promise<{ success: boolean; lfsAvailable: boolean; error?: string }> {
   try {
-    await runGitAsync(projectPath, ['init'])
-    if (!fs.existsSync(path.join(projectPath, '.gitignore')))
-      fs.writeFileSync(path.join(projectPath, '.gitignore'), UE_GITIGNORE, 'utf8')
-    if (!fs.existsSync(path.join(projectPath, '.gitattributes')))
-      fs.writeFileSync(path.join(projectPath, '.gitattributes'), UE_GITATTRIBUTES, 'utf8')
+    const safeProjectPath = validatePathForGitRead(projectPath)
+    if (!safeProjectPath) {
+      throw new Error('Project path not found or invalid')
+    }
+    await runGitAsync(safeProjectPath, ['init'])
+    if (!fs.existsSync(path.join(safeProjectPath, '.gitignore')))
+      fs.writeFileSync(path.join(safeProjectPath, '.gitignore'), UE_GITIGNORE, 'utf8')
+    if (!fs.existsSync(path.join(safeProjectPath, '.gitattributes')))
+      fs.writeFileSync(path.join(safeProjectPath, '.gitattributes'), UE_GITATTRIBUTES, 'utf8')
     let lfsAvailable = false
     try {
-      await runGitAsync(projectPath, ['lfs', 'install'])
+      await runGitAsync(safeProjectPath, ['lfs', 'install'])
       lfsAvailable = true
     } catch {
       /* lfs not installed */
@@ -213,11 +246,10 @@ export function handleProjectGitFileStatus(projectPath: string): {
   hasGitignore: boolean
   hasGitattributes: boolean
 } {
-  const sanitization = sanitizeDirectory(projectPath)
-  if (!sanitization.success) {
+  const safeProjectPath = validatePathForGitRead(projectPath)
+  if (!safeProjectPath) {
     return { hasGitignore: false, hasGitattributes: false }
   }
-  const safeProjectPath = sanitization.resolvedPath!
   return {
     hasGitignore: fs.existsSync(path.join(safeProjectPath, '.gitignore')),
     hasGitattributes: fs.existsSync(path.join(safeProjectPath, '.gitattributes'))
@@ -240,11 +272,10 @@ export function handleProjectGitWriteGitignore(projectPath: string): {
   existed: boolean
   error?: string
 } {
-  const sanitization = sanitizeDirectory(projectPath)
-  if (!sanitization.success) {
-    return { success: false, existed: false, error: sanitization.error || 'Access denied' }
+  const safeProjectPath = validatePathForGitRead(projectPath)
+  if (!safeProjectPath) {
+    return { success: false, existed: false, error: 'Project path not found or invalid' }
   }
-  const safeProjectPath = sanitization.resolvedPath!
   const gitignore = path.join(safeProjectPath, '.gitignore')
   const existed = fs.existsSync(gitignore)
   try {
@@ -259,8 +290,12 @@ export async function handleProjectGitInitLfs(
   projectPath: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    await runGitAsync(projectPath, ['lfs', 'install'])
-    fs.writeFileSync(path.join(projectPath, '.gitattributes'), UE_GITATTRIBUTES, 'utf8')
+    const safeProjectPath = validatePathForGitRead(projectPath)
+    if (!safeProjectPath) {
+      throw new Error('Project path not found or invalid')
+    }
+    await runGitAsync(safeProjectPath, ['lfs', 'install'])
+    fs.writeFileSync(path.join(safeProjectPath, '.gitattributes'), UE_GITATTRIBUTES, 'utf8')
     return { success: true }
   } catch (err) {
     return {
@@ -278,7 +313,12 @@ export async function handleProjectGitHasChanges(projectPath: string): Promise<{
   error?: string
 }> {
   try {
-    const stdout = await runGitAsync(projectPath, ['status', '--porcelain'])
+    // Git read is allowed for any valid directory path
+    const safeProjectPath = validatePathForGitRead(projectPath)
+    if (!safeProjectPath) {
+      return { hasChanges: false, summary: '', fileList: [] }
+    }
+    const stdout = await runGitAsync(safeProjectPath, ['status', '--porcelain'])
     const status = stdout.toString().trim()
     const lines = status ? status.split('\n').filter(Boolean) : []
     const fileList = lines.map((line) => ({

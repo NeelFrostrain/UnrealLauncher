@@ -128,7 +128,7 @@ export default function ProjectFileEditorDialog({
         return
       }
       setFilePath(resolved.filePath)
-      const result = await window.electronAPI.projectReadTextFile(resolved.filePath)
+      const result = await window.electronAPI.projectReadTextFile(resolved.filePath, projectPath)
       const text = result.success ? result.content : ''
       setContent(text)
       setOriginal(text)
@@ -192,7 +192,7 @@ export default function ProjectFileEditorDialog({
       }
     }
     setSaving(true)
-    const result = await window.electronAPI.projectWriteTextFile(filePath, content)
+    const result = await window.electronAPI.projectWriteTextFile(filePath, content, projectPath)
     setSaving(false)
     if (result.success) {
       setOriginal(content)

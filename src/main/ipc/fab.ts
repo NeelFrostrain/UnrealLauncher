@@ -2,6 +2,7 @@
 import { ipcMain, dialog, app } from 'electron'
 import path from 'path'
 import fs from 'fs'
+import { sanitizeDirectory } from '../utils/pathSanitization'
 import { getMainWindow } from '../window'
 import { getDefaultFabPaths, findFirstExisting, scanFabFolder } from './fabScanner'
 import type { FabAsset } from '../utils/fabAssetDetection'
@@ -24,7 +25,12 @@ export function registerFabHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   ipcMain_.handle('fab-scan-folder', async (_event, folderPath: string): Promise<FabAsset[]> => {
-    return scanFabFolder(folderPath)
+    // SECURITY: Sanitize path to prevent directory traversal
+    const sanitized = sanitizeDirectory(folderPath)
+    if (!sanitized.success || !sanitized.resolvedPath) {
+      return []
+    }
+    return scanFabFolder(sanitized.resolvedPath)
   })
 
   ipcMain_.handle('fab-save-path', (_event, folderPath: string): void => {

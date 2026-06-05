@@ -7,8 +7,8 @@
   "author": "NeelFrostrain",
   "license": "PROPRIETARY SOURCE LICENSE",
   "homepage": "https://neelfrostrain.github.io/UnrealLauncher/",
-  "download:win": "https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v2.2.3/unreal-launcher-2.2.3-setup.exe",
-  "download:linux": "https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v2.2.3/unreal-launcher-2.2.3-linux.AppImage",
+  "download:win": "https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v2.3.0/unreal-launcher-2.3.0-setup.exe",
+  "download:linux": "https://github.com/NeelFrostrain/UnrealLauncher/releases/download/v2.3.0/unreal-launcher-2.3.0-linux.AppImage",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
@@ -56,8 +56,7 @@
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",
     "@electron-toolkit/tsconfig": "^2.0.0",
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
+    
     "@napi-rs/cli": "^3.6.1",
     "@tailwindcss/vite": "^4.2.1",
     "@testing-library/jest-dom": "^6.9.1",

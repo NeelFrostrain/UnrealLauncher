@@ -229,7 +229,14 @@ const ProjectCard = memo(
           gitRemoteUrl={state.git.remoteUrl}
           onLaunch={handlers.handleClick}
           onLaunchGame={handlers.handleLaunchGame}
-          onLaunchWithConfig={() => {}}
+          onLaunchWithConfig={() => {
+            // open dialog via parent handlers if provided; fallback to sending IPC
+            setTimeout(() => {
+              // Trigger the same dialog used elsewhere by emitting a window event
+              const e = new CustomEvent('open-project-launch-config', { detail: { projectPath } })
+              window.dispatchEvent(e)
+            }, 0)
+          }}
           onFavorite={() => projectPath && onToggleFavorite(projectPath)}
           onOpenDir={() => projectPath && onOpenDir(projectPath)}
           onHide={() => projectPath && onHide(projectPath)}

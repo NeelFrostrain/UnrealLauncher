@@ -66,8 +66,13 @@ export function useFeedbackState(onClose: () => void) {
     try {
       const files = await Promise.all(
         attachments.map(async (a) => {
-          const buf = await a.file.arrayBuffer()
-          const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
+          const dataUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result as string)
+            reader.onerror = () => reject(reader.error)
+            reader.readAsDataURL(a.file)
+          })
+          const b64 = dataUrl.split(',')[1] ?? ''
           return { name: a.file.name, type: a.file.type, b64 }
         })
       )
