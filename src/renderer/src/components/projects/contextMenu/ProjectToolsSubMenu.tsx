@@ -58,6 +58,8 @@ export const ProjectToolsSubMenu = ({
     <motion.div
       ref={subRef}
       data-menu-panel
+      role="menu"
+      aria-label="Project Tools"
       className="fixed z-10000 select-none"
       style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 230 }}
       onMouseEnter={onMouseEnter}

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import fs from 'fs'
+import { validatePathForGitRead } from '../utils/pathSanitization'
 
 const TAIL_BYTES = 64 * 1024
 
@@ -25,7 +26,12 @@ export function handleProjectReadLog(
   projectPath: string,
   fromByte = 0
 ): { logPath: string; content: string; sizeBytes: number; startByte: number } | null {
-  const logPath = findLatestLog(projectPath)
+  // SECURITY: Validate path - use lenient check for read-only log operations
+  const validatedPath = validatePathForGitRead(projectPath)
+  if (!validatedPath) {
+    return null
+  }
+  const logPath = findLatestLog(validatedPath)
   if (!logPath) return null
   let sizeBytes = 0
   try {

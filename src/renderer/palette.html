@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Command Palette</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: local-asset:"
+    />
+    <style>
+      /* ── Hard reset ── */
+      *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+      }
+
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #1f1f1f;
+        color: rgba(255, 255, 255, 0.9);
+        overscroll-behavior: none;
+      }
+
+      #palette-root {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.045);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="palette-root"></div>
+    <script type="module" src="/src/palette.tsx"></script>
+  </body>
+</html>

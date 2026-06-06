@@ -2,19 +2,20 @@
 
 > A lightweight, cross-platform Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
 
-
 <!-- Metadata Row -->
-[![Version](https://img.shields.io/badge/version-2.3.0-blue)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.2.4)
+
+[![Version](https://img.shields.io/badge/version-2.3.1-blue)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.3.0)
 [![Status](https://img.shields.io/badge/status-ready-brightgreen)](https://github.com/NeelFrostrain/UnrealLauncher)
 [![License](https://img.shields.io/badge/license-proprietary-red)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-777777)](#-distribution)
+[![CI](https://github.com/NeelFrostrain/UnrealLauncher/actions/workflows/ci.yml/badge.svg)](https://github.com/NeelFrostrain/UnrealLauncher/actions/workflows/ci.yml)
 
 <!-- Repository Pulse Row (New) -->
 
 [![Repo Size](https://img.shields.io/github/repo-size/NeelFrostrain/UnrealLauncher?logo=git&logoColor=white&color=6e7681)](https://github.com/NeelFrostrain/UnrealLauncher)
 [![Commit Activity](https://img.shields.io/github/commit-activity/m/NeelFrostrain/UnrealLauncher?logo=git-extensions&logoColor=white&color=cca3ff)](https://github.com/NeelFrostrain/UnrealLauncher/commits/main)
 [![Open Issues](https://img.shields.io/github/issues-raw/NeelFrostrain/UnrealLauncher?logo=github&logoColor=white&color=fba7a7)](https://github.com/NeelFrostrain/UnrealLauncher/issues)
-[![Code Coverage](https://img.shields.io/badge/coverage-94%25-2ea44f?logo=codecov&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher)
+[![Code Coverage](https://img.shields.io/badge/tests-58%20passing-2ea44f?logo=vitest&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher)
 
 <!-- Tech Stack Row -->
 
@@ -123,6 +124,12 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 - **Auto-Close on Launch** — Optionally close app when launching engine/project
 - **Discord Feedback** — Send bug reports directly to Discord via webhook
 - **Cross-Platform Support** — Windows, macOS, and Linux with platform-specific optimizations
+- **Global Command Palette** — `Ctrl+K` anywhere to search and run any action; works even when the app is minimized to tray (opens a standalone mini-window)
+- **Keyboard Shortcuts Reference** — Settings → Shortcuts tab lists every shortcut with copy-to-clipboard buttons
+- **Recent Projects tab** — Shows up to 20 most recently opened projects sorted by last-opened timestamp
+- **Engine Compatibility Badges** — Each project card shows a green/yellow/red indicator for whether a matching engine is installed
+- **Running Projects Banner** — Live indicator above the project list when Unreal Editor processes are detected
+- **Bulk Git Status** — Git status pre-fetched for all projects in one call after each scan; no per-card IPC waterfall
 
 ---
 
@@ -135,8 +142,8 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 | Fab Marketplace Browser | 6      |
 | UE Tracer               | 5      |
 | Appearance & Theming    | 7      |
-| System & UX             | 10     |
-| **Total**               | **50** |
+| System & UX             | 16     |
+| **Total**               | **56** |
 
 ---
 
@@ -238,11 +245,11 @@ On each scan, tracer data is merged with saved data. Tracer provides `lastOpened
 | React         | 19      | UI framework                           |
 | TypeScript    | 5.9     | Type safety                            |
 | Tailwind CSS  | 4       | Styling                                |
-| Zustand       | 5       | State management (navigation)          |
+| Zustand       | 5       | State management                       |
 | Framer Motion | 12      | Animations                             |
 | Lucide React  | 1.8     | Icons                                  |
 | React Router  | 7       | Page routing                           |
-| React Window  | 2       | Virtualized lists (large project sets) |
+| React Window  | 2       | Virtualized lists (large project sets) — planned |
 
 ### Backend (Main Process)
 
@@ -401,20 +408,21 @@ UnrealLauncher/
 │   │   ├── discordPresence.ts # Discord Rich Presence
 │   │   ├── ipc/               # IPC handler modules (25+ files)
 │   │   ├── utils/             # Utility modules (15+ files)
-│   │   ├── scanWorker/        # Worker thread implementations
+│   │   ├── workers/           # Inline worker thread scripts
 │   │   └── window/            # Window management (4 files)
 │   ├── preload/
 │   │   ├── index.ts           # contextBridge — exposes electronAPI to renderer
+│   │   ├── palette.ts         # Minimal contextBridge for the palette window
 │   │   └── index.d.ts         # Type definitions for window.electronAPI
 │   └── renderer/
 │       └── src/
 │           ├── App.tsx
 │           ├── main.tsx
+│           ├── palette.tsx        # Entry point for the standalone palette window
 │           ├── pages/         # Engines, Projects, Settings, About
 │           ├── components/    # Organized by feature (engines/, projects/, settings/, layout/, ui/)
 │           ├── hooks/         # Custom React hooks
 │           ├── types/         # Renderer-side type aliases
-│           ├── store/         # Zustand state management
 │           └── utils/         # Theme, settings, asset resolution
 ├── tracer/                    # Rust tracer source (Windows only)
 ├── build/                     # electron-builder assets (icons, entitlements)
@@ -510,6 +518,7 @@ See [docs/BUILD.md](docs/BUILD.md) for the full build guide including native mod
 | `npm run typecheck`    | TypeScript type checking       |
 | `npm run lint`         | Run ESLint                     |
 | `npm run lint:fix`     | Fix ESLint issues              |
+| `npm run test:run`     | Run unit tests (single pass)   |
 | `npm run format`       | Format with Prettier           |
 | `npm run clean`        | Remove build artifacts         |
 

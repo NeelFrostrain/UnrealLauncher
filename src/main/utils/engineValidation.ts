@@ -118,23 +118,25 @@ function _validateEngineJS(folder: string): EngineValidationResult {
 /**
  * Scans for engines using the worker + Windows registry, merges with saved engines.
  */
-export async function scanAndMergeEngines(): Promise<Engine[]> {
-  // Prevent concurrent scans from running and clobbering each other's results
-  if ((scanAndMergeEngines as any)._inFlight) {
-    logger.warn('engine-scan', 'Engine scan skipped because another scan is already running')
-    return loadEngines()
-  }
-  ;(scanAndMergeEngines as any)._inFlight = true
-  try {
-    const saved = loadEngines()
-    const engineScanPaths = loadEngineScanPaths()
-    logger.info('engine-scan', 'Engine scan started', {
-      savedCount: saved.length,
-      scanPathCount: engineScanPaths.length
-    })
+let scanAndMergeEnginesPromise: Promise<Engine[]> | null = null
 
-    // Run filesystem worker scan and Windows registry scan in parallel
-    const [workerScanned, registryEngines] = await Promise.all([
+export async function scanAndMergeEngines(): Promise<Engine[]> {
+  if (scanAndMergeEnginesPromise) {
+    logger.warn('engine-scan', 'Engine scan already in progress; waiting for existing scan')
+    return scanAndMergeEnginesPromise
+  }
+
+  scanAndMergeEnginesPromise = (async () => {
+    try {
+      const saved = loadEngines()
+      const engineScanPaths = loadEngineScanPaths()
+      logger.info('engine-scan', 'Engine scan started', {
+        savedCount: saved.length,
+        scanPathCount: engineScanPaths.length
+      })
+
+      // Run filesystem worker scan and Windows registry scan in parallel
+      const [workerScanned, registryEngines] = await Promise.all([
       new Promise<Engine[]>((resolve, reject) => {
         logger.debug('engine-scan', 'Starting engine scan worker')
         const w = spawnWorker(ENGINE_SCAN_WORKER, {
@@ -230,8 +232,11 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
     throw error
   } finally {
     logger.info('engine-scan', 'Engine scan finished')
-    ;(scanAndMergeEngines as any)._inFlight = false
+    scanAndMergeEnginesPromise = null
   }
+})()
+
+  return scanAndMergeEnginesPromise
 }
 
 /**

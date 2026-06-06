@@ -12,6 +12,7 @@ import UpdatesSection from '../components/settings/sections/UpdatesSection'
 import ProjectsSection from '../components/settings/sections/ProjectsSection'
 import EnginesSection from '../components/settings/sections/EnginesSection'
 import ExclusionsSection from '../components/settings/sections/ExclusionsSection'
+import { KeyboardShortcutsSection } from '../components/settings/sections/KeyboardShortcutsSection'
 import { logActivity } from '../utils/activityLogger'
 
 const SettingsPage = (): React.ReactElement => {
@@ -79,6 +80,8 @@ const SettingsPage = (): React.ReactElement => {
         return <DataSection />
       case 'updates':
         return <UpdatesSection />
+      case 'shortcuts':
+        return <KeyboardShortcutsSection />
       case 'about':
         return <AboutSection />
       default:

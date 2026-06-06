@@ -124,7 +124,12 @@ export const ToastProvider = ({ children }: { children: ReactNode }): ReactNode 
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-9999 flex flex-col gap-2 items-end select-auto pointer-events-auto">
+      <div
+        role="status"
+        aria-live="polite"
+        aria-label="Notifications"
+        className="fixed bottom-4 right-4 z-9999 flex flex-col gap-2 items-end select-auto pointer-events-auto"
+      >
         <AnimatePresence mode="popLayout">
           {toasts.map((t) => (
             <ToastItem key={t.id} toast={t} onRemove={removeToast} />

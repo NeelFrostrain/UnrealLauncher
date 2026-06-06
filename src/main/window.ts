@@ -7,6 +7,7 @@ export {
   getMainWindow,
   createWindow,
   setupAppLifecycle,
-  handleRequestedAppClose
+  handleRequestedAppClose,
+  requestQuit
 } from './window/windowLifecycle'
 export { getIsMaximized, handleWindowMinimize, handleWindowMaximize } from './window/windowHandlers'

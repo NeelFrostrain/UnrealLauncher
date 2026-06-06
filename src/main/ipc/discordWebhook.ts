@@ -3,7 +3,6 @@
 import { logger } from '../logger'
 
 interface DiscordPayload {
-  webhookUrl: string
   embed: object
   files: Array<{ name: string; type: string; b64: string }>
 }
@@ -13,7 +12,7 @@ interface DiscordPayload {
  * @param webhookUrl - The URL to validate
  * @returns true if valid Discord webhook URL
  */
-function isValidDiscordWebhookUrl(webhookUrl: string): boolean {
+export function isValidDiscordWebhookUrl(webhookUrl: string): boolean {
   try {
     const url = new URL(webhookUrl)
 
@@ -23,8 +22,9 @@ function isValidDiscordWebhookUrl(webhookUrl: string): boolean {
       return false
     }
 
-    // Must be discord.com domain
-    if (!url.hostname.endsWith('discord.com')) {
+    // Must be discord.com domain (exact match or *.discord.com subdomain only)
+    const host = url.hostname.toLowerCase()
+    if (host !== 'discord.com' && !host.endsWith('.discord.com')) {
       logger.warn('discord', 'Webhook URL must be from discord.com', { hostname: url.hostname })
       return false
     }
@@ -46,13 +46,22 @@ function isValidDiscordWebhookUrl(webhookUrl: string): boolean {
 
 /**
  * Sends a Discord webhook message with optional file attachments
+ * SECURITY: Webhook URL is injected server-side from environment, not from renderer
  */
 export async function sendDiscordWebhook(
   payloadJson: string
 ): Promise<{ ok: boolean; status: number }> {
   try {
     const https = await import('https')
-    const { embed, webhookUrl, files } = JSON.parse(payloadJson) as DiscordPayload
+    const { embed, files } = JSON.parse(payloadJson) as Omit<DiscordPayload, 'webhookUrl'>
+
+    // SECURITY: Get webhook URL from environment only, ignore any URL in the payload
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL || process.env.VITE_DISCORD_WEBHOOK_URL
+    
+    if (!webhookUrl) {
+      logger.warn('discord', 'No Discord webhook URL configured in environment')
+      return { ok: false, status: 400 }
+    }
 
     // SECURITY: Validate webhook URL before making request
     if (!isValidDiscordWebhookUrl(webhookUrl)) {

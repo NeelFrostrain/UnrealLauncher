@@ -3,7 +3,7 @@
  * App lifecycle and window management.
  */
 
-import { app, BrowserWindow, Tray, Menu, nativeImage } from 'electron'
+import { app, BrowserWindow, Tray, Menu, nativeImage, globalShortcut } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { optimizer } from '@electron-toolkit/utils'
@@ -20,6 +20,29 @@ import { logger } from '../logger'
 let appTray: Tray | null = null
 let isQuiting = false
 let memoryManagementTimer: NodeJS.Timeout | null = null
+
+// ── Background global shortcut ────────────────────────────────────────────────
+// Registered only when the window is hidden (tray mode). Unregistered when the
+// window is shown so the renderer can handle Ctrl+K normally while focused.
+const PALETTE_SHORTCUT = 'CommandOrControl+K'
+
+function registerBackgroundShortcut(): void {
+  if (globalShortcut.isRegistered(PALETTE_SHORTCUT)) return
+  globalShortcut.register(PALETTE_SHORTCUT, () => {
+    logger.info('shortcut', 'Background Ctrl+K triggered — opening palette window')
+    // Import lazily to avoid circular dependency at module load time
+    import('./paletteWindow').then(({ openPaletteWindow }) => {
+      openPaletteWindow()
+    }).catch((err) => logger.error('shortcut', 'Failed to open palette window', err))
+  })
+  logger.info('shortcut', 'Background Ctrl+K registered')
+}
+
+function unregisterBackgroundShortcut(): void {
+  if (!globalShortcut.isRegistered(PALETTE_SHORTCUT)) return
+  globalShortcut.unregister(PALETTE_SHORTCUT)
+  logger.info('shortcut', 'Background Ctrl+K unregistered')
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -47,6 +70,8 @@ function showOrCreateMainWindow(): void {
     logger.info('window', 'Recreating main window from tray')
     createWindow()
   }
+  // Window is now visible — renderer handles Ctrl+K, so release the global shortcut
+  unregisterBackgroundShortcut()
   destroyAppTray()
 }
 
@@ -128,6 +153,8 @@ export function handleRequestedAppClose(): void {
   if (mainWindow && !mainWindow.isDestroyed()) {
     if (createAppTray()) {
       logger.info('window', 'Close requested; closing window and staying in tray')
+      // Register background shortcut before closing so it's active immediately
+      registerBackgroundShortcut()
       mainWindow.close()
     }
   }
@@ -140,6 +167,7 @@ export function handleRequestedAppShow(): void {
 export function requestQuit(): void {
   logger.info('app', 'Quit requested')
   isQuiting = true
+  unregisterBackgroundShortcut()
   destroyAppTray()
   app.quit()
 }
@@ -177,6 +205,8 @@ export function createWindow(): void {
     const settings = loadMainSettings()
     if (settings.backgroundCloseEnabled && mainWindow && !mainWindow.isDestroyed()) {
       if (createAppTray()) {
+        // Window is going to tray — register background shortcut
+        registerBackgroundShortcut()
         return
       }
     }

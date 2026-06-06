@@ -1,6 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { config } from 'dotenv'
-import { app, protocol, net } from 'electron'
+import { app, protocol, net, globalShortcut } from 'electron'
 import { spawn } from 'child_process'
 import type { ChildProcess } from 'child_process'
 import path from 'path'
@@ -8,7 +8,7 @@ import fs from 'fs'
 import { setupAppLifecycle, createWindow, getMainWindow } from './window'
 import { setupAutoUpdaterEvents, checkForUpdatesOnStartup } from './updater'
 import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
-import { loadMainSettings } from './store'
+import { loadMainSettings, loadProjects, loadEngines } from './store'
 import { getNative } from './utils/native'
 import { setupDiscordRichPresence } from './discordPresence'
 import { initializeLogging, logger } from './logger'
@@ -77,6 +77,8 @@ if (!gotTheLock) {
   // ── before-quit cleanup ─────────────────────────────────────────────────────
   app.on('before-quit', () => {
     logger.info('app', 'Before quit cleanup started', { childProcesses: childProcesses.length })
+    // Release any registered global shortcuts (e.g. background Ctrl+K palette)
+    try { globalShortcut.unregisterAll() } catch { /* ignore */ }
     for (const cp of childProcesses) {
       try {
         cp.kill()
@@ -112,36 +114,66 @@ if (!gotTheLock) {
     .then(() => {
       logger.info('app', 'Electron app ready')
       // 1. Register local-asset:// protocol handler with path traversal protection
+      // Only allow thumbnails/icons from registered projects and engines
       protocol.handle('local-asset', (request) => {
         let filePath = decodeURIComponent(new URL(request.url).pathname)
         if (process.platform === 'win32' && filePath.startsWith('/')) filePath = filePath.slice(1)
 
-        // SECURITY: Validate path is within allowed directories
+        // SECURITY: Validate path is within allowed directories or registered in engines/projects
         const resolved = path.resolve(filePath)
+        const normalizedResolved = resolved.replace(/\\/g, '/').toLowerCase()
+        
         const allowedDirs = [
           path.resolve(path.join(app.getAppPath(), 'resources')),
           path.resolve(path.join(app.getAppPath(), 'out', 'renderer'))
-        ]
+        ].map(p => p.replace(/\\/g, '/').toLowerCase())
 
         // Check if path is in allowed app directories
-        const isInAppDir = allowedDirs.some((dir) => resolved.startsWith(dir))
+        const isInAppDir = allowedDirs.some((dir) => normalizedResolved.startsWith(dir))
 
-        // Normalize path for checking (use forward slashes for consistency)
-        const normalizedPath = resolved.replace(/\\/g, '/')
+        // Validate thumbnails/icons: must be in /Saved/ or /Engine/Plugins/ AND match registered projects/engines
+        let isProjectThumbnail = false
+        let isEnginePluginIcon = false
 
-        // Also allow project thumbnails and screenshots (Saved/AutoScreenshot.png, Saved/Thumbnail.png)
-        const isProjectThumbnail =
-          normalizedPath.includes('/Saved/') &&
-          (resolved.endsWith('AutoScreenshot.png') || resolved.endsWith('Thumbnail.png'))
+        if (normalizedResolved.includes('/saved/') && 
+            (normalizedResolved.endsWith('autoscreenshot.png') || normalizedResolved.endsWith('thumbnail.png'))) {
+          // Extract project directory (parent of Saved folder)
+          const savedIndex = normalizedResolved.lastIndexOf('/saved/')
+          if (savedIndex > 0) {
+            const projectDir = resolved.substring(0, resolved.length - normalizedResolved.length + savedIndex)
+            const normalizedProjectDir = projectDir.replace(/\\/g, '/').toLowerCase()
+            try {
+              const projects = loadProjects()
+              isProjectThumbnail = projects.some(p => 
+                p.projectPath && p.projectPath.replace(/\\/g, '/').toLowerCase() === normalizedProjectDir
+              )
+            } catch {
+              // ignore load errors
+            }
+          }
+        }
 
-        // Also allow engine plugin icons (Engine/Plugins/*/Resources/Icon128.png)
-        const isEnginePluginIcon =
-          normalizedPath.includes('/Engine/Plugins/') &&
-          normalizedPath.includes('/Resources/') &&
-          resolved.endsWith('Icon128.png')
+        if (normalizedResolved.includes('/engine/plugins/') && 
+            normalizedResolved.includes('/resources/') &&
+            normalizedResolved.endsWith('icon128.png')) {
+          // Extract engine directory (parent of Engine folder)
+          const engineIndex = normalizedResolved.lastIndexOf('/engine/')
+          if (engineIndex > 0) {
+            const engineDir = resolved.substring(0, resolved.length - normalizedResolved.length + engineIndex)
+            const normalizedEngineDir = engineDir.replace(/\\/g, '/').toLowerCase()
+            try {
+              const engines = loadEngines()
+              isEnginePluginIcon = engines.some(e => 
+                e.directoryPath && e.directoryPath.replace(/\\/g, '/').toLowerCase() === normalizedEngineDir
+              )
+            } catch {
+              // ignore load errors
+            }
+          }
+        }
 
         if (!isInAppDir && !isProjectThumbnail && !isEnginePluginIcon) {
-          logger.warn('protocol', 'Path traversal attempt blocked', {
+          logger.warn('protocol', 'Path access blocked — not in allowed directories', {
             attempted: filePath,
             resolved
           })

@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+# Cancel in-flight runs for the same branch/PR to save minutes
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── 1. Typecheck ────────────────────────────────────────────────────────────
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck (node)
+        run: npm run typecheck:node
+
+      - name: Typecheck (web)
+        run: npm run typecheck:web
+
+  # ── 2. Lint ─────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+  # ── 3. Unit tests ───────────────────────────────────────────────────────────
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test:run
+
+      - name: Upload coverage (if generated)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          if-no-files-found: ignore
+
+  # ── 4. Build (renderer + main, no native, no Rust) ─────────────────────────
+  # Validates that electron-vite can bundle both entry points cleanly.
+  # The native Rust module and Tracer binary are skipped here — those need
+  # platform-specific runners and are covered by the release workflow.
+  build:
+    name: Build (vite bundle)
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint, test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Provide a stub native module so electron-vite build doesn't fail when
+      # the Rust .node file is absent
+      - name: Stub native module
+        run: |
+          mkdir -p native/dist
+          echo "module.exports = {};" > native/dist/index.js
+          echo "{}" > native/dist/index.d.ts
+
+      # Stub tracer binary so copy:tracer doesn't error
+      - name: Stub tracer binary
+        run: touch resources/unreal_launcher_tracer
+
+      - name: Build (electron-vite only — no Rust/Tracer)
+        run: npx electron-vite build
+        env:
+          NODE_ENV: production

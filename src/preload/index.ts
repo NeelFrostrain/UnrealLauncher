@@ -2,13 +2,9 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
-// Custom APIs for renderer
-const api = {}
-
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
     contextBridge.exposeInMainWorld('electronAPI', {
       scanEngines: () => ipcRenderer.invoke('scan-engines'),
       scanProjects: () => ipcRenderer.invoke('scan-projects'),
@@ -109,6 +105,8 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-read-log', projectPath, fromByte ?? 0),
       projectGitStatus: (projectPath: string) =>
         ipcRenderer.invoke('project-git-status', projectPath),
+      projectGitStatusBulk: (projectPaths: string[]) =>
+        ipcRenderer.invoke('project-git-status-bulk', projectPaths),
       projectGitInit: (projectPath: string) => ipcRenderer.invoke('project-git-init', projectPath),
       projectLaunchGame: (projectPath: string) =>
         ipcRenderer.invoke('launch-project-game', projectPath),
@@ -155,10 +153,10 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-open-terminal', projectPath),
       projectOpenGithub: (projectPath: string) =>
         ipcRenderer.invoke('project-open-github', projectPath),
-      projectReadTextFile: (filePath: string) =>
-        ipcRenderer.invoke('project-read-text-file', filePath),
-      projectWriteTextFile: (filePath: string, content: string) =>
-        ipcRenderer.invoke('project-write-text-file', filePath, content),
+      projectReadTextFile: (filePath: string, projectPath: string) =>
+        ipcRenderer.invoke('project-read-text-file', filePath, projectPath),
+      projectWriteTextFile: (filePath: string, content: string, projectPath: string) =>
+        ipcRenderer.invoke('project-write-text-file', filePath, content, projectPath),
       projectResolveConfigPath: (projectPath: string) =>
         ipcRenderer.invoke('project-resolve-config-path', projectPath),
       projectResolveUprojectPath: (projectPath: string) =>
@@ -176,7 +174,25 @@ if (process.contextIsolated) {
       launchEngineWithConfig: (exePath: string, config: unknown) =>
         ipcRenderer.invoke('launch-engine-with-config', exePath, config),
       launchProjectWithConfig: (projectPath: string, config: unknown) =>
-        ipcRenderer.invoke('launch-project-with-config', projectPath, config)
+        ipcRenderer.invoke('launch-project-with-config', projectPath, config),
+      onOpenCommandPalette: (callback: () => void): (() => void) => {
+        const listener = (): void => callback()
+        ipcRenderer.on('open-command-palette', listener)
+        return (): void => {
+          ipcRenderer.removeListener('open-command-palette', listener)
+        }
+      },
+      // Push events from the palette window (routed via main process)
+      onPaletteNavigate: (callback: (route: string) => void): (() => void) => {
+        const listener = (_event: Electron.IpcRendererEvent, route: string): void => callback(route)
+        ipcRenderer.on('palette-navigate', listener)
+        return (): void => { ipcRenderer.removeListener('palette-navigate', listener) }
+      },
+      onPaletteAction: (callback: (commandId: string) => void): (() => void) => {
+        const listener = (_event: Electron.IpcRendererEvent, commandId: string): void => callback(commandId)
+        ipcRenderer.on('palette-action', listener)
+        return (): void => { ipcRenderer.removeListener('palette-action', listener) }
+      }
     })
   } catch (error) {
     console.error(error)

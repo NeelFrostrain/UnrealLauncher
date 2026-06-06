@@ -28,6 +28,7 @@ function getInitialPath(): string {
     '/projects',
     '/projects/hidden',
     '/projects/favorites',
+    '/projects/recent',
     '/settings'
   ]
   if (saved && valid.includes(saved)) return saved

@@ -87,7 +87,9 @@ export const ProjectsContent = ({
               ? 'No favorite projects'
               : currentTab === 'hidden'
                 ? 'No hidden projects'
-                : 'No projects found'}
+                : currentTab === 'recent'
+                  ? 'No recently opened projects'
+                  : 'No projects found'}
         </p>
         <p className="text-sm mb-4" style={{ color: 'var(--color-text-muted)' }}>
           {searchQuery.trim()
@@ -96,7 +98,9 @@ export const ProjectsContent = ({
               ? 'Add projects to favorites from the All Projects tab'
               : currentTab === 'hidden'
                 ? 'Hide projects using the context menu or the hide button on each card'
-                : 'Use Add Project to add one manually.'}
+                : currentTab === 'recent'
+                  ? 'Open a project at least once to see it here'
+                  : 'Use Add Project to add one manually.'}
         </p>
       </div>
     )

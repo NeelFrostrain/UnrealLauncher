@@ -16,7 +16,15 @@ const AnimationContext = createContext<AnimationContextType>({
 export const useAnimations = (): AnimationContextType => useContext(AnimationContext)
 
 export const AnimationProvider = ({ children }: { children: ReactNode }): React.ReactElement => {
-  const [animationsEnabled, setAnimationsEnabled] = useState(() => getSetting('animationsEnabled'))
+  const [animationsEnabled, setAnimationsEnabled] = useState(() => {
+    // Honour OS prefers-reduced-motion when the user hasn't explicitly set a preference
+    const saved = getSetting('animationsEnabled')
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    // If the user explicitly saved a preference, use it; otherwise default to off when OS asks
+    return prefersReduced && saved === true ? false : saved
+  })
 
   const toggleAnimations = useCallback((): void => {
     const next = !animationsEnabled

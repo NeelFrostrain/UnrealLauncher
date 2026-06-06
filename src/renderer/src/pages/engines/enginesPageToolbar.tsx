@@ -53,6 +53,8 @@ export function EnginesPageToolbar({
     >
       {/* Tabs */}
       <div
+        role="tablist"
+        aria-label="Engine tabs"
         className="flex items-center gap-0.5 px-1 py-1 rounded-lg"
         style={{
           backgroundColor: 'var(--color-surface-card)',
@@ -62,6 +64,8 @@ export function EnginesPageToolbar({
         {TABS.map((tab) => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
             onClick={() => onTabChange(tab.id)}
             className="flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer"
             style={{

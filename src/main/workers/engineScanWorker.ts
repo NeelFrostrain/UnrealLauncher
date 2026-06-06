@@ -31,7 +31,11 @@ function scanEnginePaths() {
   const bases = [];
   
   if (platform === 'win32') {
-    bases.push('D:\\\\Engine\\\\UnrealEditors','C:\\\\Program Files\\\\Epic Games','C:\\\\Program Files (x86)\\\\Epic Games','D:\\\\Unreal');
+    // Only include well-known Epic Games Launcher install locations — not developer-specific paths
+    bases.push(
+      'C:\\\\Program Files\\\\Epic Games',
+      'C:\\\\Program Files (x86)\\\\Epic Games'
+    );
   } else if (platform === 'darwin') {
     bases.push('/Applications', path.join(os.homedir()));
   } else {

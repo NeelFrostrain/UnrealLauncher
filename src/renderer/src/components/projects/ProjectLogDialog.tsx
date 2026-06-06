@@ -1,4 +1,5 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import {
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useProjectLogState, FONT_SIZES, type Filter } from './log/useProjectLogState'
 import { LogRows } from './log/LogRows'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 interface Props {
   projectName: string
@@ -34,10 +36,13 @@ export default function ProjectLogDialog({
   projectPath,
   onClose
 }: Props): React.ReactElement {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(dialogRef)
   const {
     lines,
     logPath,
     loading,
+    logNotFound,
     filter,
     setFilter,
     search,
@@ -67,6 +72,7 @@ export default function ProjectLogDialog({
       }}
     >
       <motion.div
+        ref={dialogRef}
         className="flex flex-col w-full"
         style={{
           maxWidth: 1100,
@@ -105,6 +111,8 @@ export default function ProjectLogDialog({
             {counts.error > 0 && (
               <button
                 onClick={() => setFilter((f) => (f === 'error' ? 'all' : 'error'))}
+                aria-label={`${counts.error} errors — ${filter === 'error' ? 'clear filter' : 'filter by errors'}`}
+                aria-pressed={filter === 'error'}
                 className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors"
                 style={{
                   borderRadius: 'calc(var(--radius) * 0.5)',
@@ -121,6 +129,8 @@ export default function ProjectLogDialog({
             {counts.warning > 0 && (
               <button
                 onClick={() => setFilter((f) => (f === 'warning' ? 'all' : 'warning'))}
+                aria-label={`${counts.warning} warnings — ${filter === 'warning' ? 'clear filter' : 'filter by warnings'}`}
+                aria-pressed={filter === 'warning'}
                 className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors"
                 style={{
                   borderRadius: 'calc(var(--radius) * 0.5)',
@@ -165,6 +175,7 @@ export default function ProjectLogDialog({
             <button
               onClick={() => poll(true)}
               className="p-2 cursor-pointer"
+              aria-label="Refresh log"
               style={{
                 borderRadius: 'calc(var(--radius) * 0.5)',
                 color: 'var(--color-text-muted)',
@@ -177,6 +188,7 @@ export default function ProjectLogDialog({
             <button
               onClick={onClose}
               className="p-2 cursor-pointer"
+              aria-label="Close log viewer"
               style={{
                 borderRadius: 'calc(var(--radius) * 0.5)',
                 color: 'var(--color-text-muted)',
@@ -340,21 +352,26 @@ export default function ProjectLogDialog({
         {loading ? (
           <div
             className="flex-1 flex items-center justify-center gap-2"
-            style={{
-              backgroundColor: 'var(--color-surface-card)',
-              color: 'var(--color-text-muted)'
-            }}
+            style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)' }}
           >
             <RefreshCw size={16} className="animate-spin" />
             <span className="text-sm">Loading log…</span>
           </div>
+        ) : logNotFound ? (
+          <div
+            className="flex-1 flex flex-col items-center justify-center gap-3"
+            style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)' }}
+          >
+            <FileText size={32} style={{ opacity: 0.25 }} />
+            <p className="text-sm font-medium">No log file found</p>
+            <p className="text-xs text-center max-w-xs" style={{ color: 'var(--color-text-muted)' }}>
+              Launch the project at least once to generate a log file.
+            </p>
+          </div>
         ) : filtered.length === 0 ? (
           <div
             className="flex-1 flex flex-col items-center justify-center gap-3"
-            style={{
-              backgroundColor: 'var(--color-surface-card)',
-              color: 'var(--color-text-muted)'
-            }}
+            style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)' }}
           >
             <FileText size={32} style={{ opacity: 0.3 }} />
             <span className="text-sm">

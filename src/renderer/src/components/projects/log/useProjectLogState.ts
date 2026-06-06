@@ -56,6 +56,7 @@ export function useProjectLogState(projectPath: string, onClose: () => void) {
   const [lines, setLines] = useState<LogLine[]>([])
   const [logPath, setLogPath] = useState('')
   const [loading, setLoading] = useState(true)
+  const [logNotFound, setLogNotFound] = useState(false)
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
   const [autoScroll, setAutoScroll] = useState(true)
@@ -73,9 +74,12 @@ export function useProjectLogState(projectPath: string, onClose: () => void) {
       const fromByte = reset ? 0 : nextByteRef.current
       const result = await window.electronAPI.projectReadLog(projectPath, fromByte)
       if (!result) {
+        // null result means the log file was not found (project hasn't been run yet)
+        setLogNotFound(true)
         setLoading(false)
         return
       }
+      setLogNotFound(false)
       if (result.logPath !== logPathRef.current || reset) {
         logPathRef.current = result.logPath
         nextByteRef.current = result.startByte + _encoder.encode(result.content).length
@@ -172,6 +176,7 @@ export function useProjectLogState(projectPath: string, onClose: () => void) {
     logScrollRef,
     counts,
     filtered,
+    logNotFound,
     poll
   }
 }

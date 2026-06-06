@@ -1,5 +1,5 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ProjectContextMenu from '../ProjectContextMenu'
 import ProjectLogDialog from '../ProjectLogDialog'
 import GitCommitDialog from '../GitCommitDialog'
@@ -35,6 +35,8 @@ interface ProjectCardDialogsProps {
   onCloseLogs: () => void
   onCloseCommitDialog: () => void
   onCloseBranchDialog: () => void
+  externalShowLaunchConfig?: boolean
+  externalSetShowLaunchConfig?: (v: boolean) => void
 }
 
 /**
@@ -68,11 +70,31 @@ export function ProjectCardDialogs({
   onCloseCtxMenu,
   onCloseLogs,
   onCloseCommitDialog,
-  onCloseBranchDialog
+  onCloseBranchDialog,
+  externalShowLaunchConfig,
+  externalSetShowLaunchConfig
 }: ProjectCardDialogsProps) {
   // File editor state lives here — survives context menu close
   const [fileEditorMode, setFileEditorMode] = useState<'config' | 'uproject' | null>(null)
-  const [showLaunchConfig, setShowLaunchConfig] = useState(false)
+  const [internalShowLaunchConfig, internalSetShowLaunchConfig] = useState(false)
+  const showLaunchConfig =
+    externalShowLaunchConfig !== undefined ? externalShowLaunchConfig : internalShowLaunchConfig
+  const setShowLaunchConfig = externalSetShowLaunchConfig ?? internalSetShowLaunchConfig
+
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      try {
+        const detail = (ev as CustomEvent).detail
+        if (!detail) return
+        if (!projectPath) return
+        if (detail.projectPath === projectPath) setShowLaunchConfig(true)
+      } catch {
+        /* ignore */
+      }
+    }
+    window.addEventListener('open-project-launch-config', handler as EventListener)
+    return () => window.removeEventListener('open-project-launch-config', handler as EventListener)
+  }, [projectPath, setShowLaunchConfig])
 
   return (
     <>

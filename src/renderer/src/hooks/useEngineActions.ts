@@ -33,6 +33,7 @@ export function useEngineActions(
         error: err instanceof Error ? err.message : String(err)
       })
       console.error('Failed to scan engines:', err)
+      addToast('Engine scan failed: ' + (err instanceof Error ? err.message : String(err)), 'error')
     }
     setScanning(false)
   }

@@ -141,11 +141,41 @@ export function isRhiAvailable(rhi: LaunchConfig['rhi']): boolean {
 }
 
 /**
+ * SECURITY: Validates extraArgs string to prevent injection attacks.
+ * Allows standard UE CLI arguments but blocks suspicious patterns.
+ */
+function validateExtraArgs(extraArgs: string): { valid: boolean; error?: string } {
+  if (!extraArgs || !extraArgs.trim()) return { valid: true }
+  
+  // Whitelist of dangerous patterns that should not appear in extra args
+  const deniedPatterns = [
+    /[;&|`$()]/,           // Shell metacharacters
+    /\.\./,                // Path traversal
+    /^-(?:exec|system)/i,  // Commands that break out of normal UE flow
+  ]
+  
+  for (const pattern of deniedPatterns) {
+    if (pattern.test(extraArgs)) {
+      return { valid: false, error: `Extra args contain forbidden characters or patterns` }
+    }
+  }
+  
+  return { valid: true }
+}
+
+/**
  * Converts a LaunchConfig into an array of Unreal Engine CLI arguments.
  * These are passed directly to the editor executable.
  * Platform-invalid RHI flags are silently skipped.
+ * SECURITY: Validates extraArgs server-side before building args.
  */
 export function buildLaunchArgs(config: LaunchConfig): string[] {
+  // Validate extraArgs server-side before use
+  const validation = validateExtraArgs(config.extraArgs)
+  if (!validation.valid) {
+    throw new Error(`Invalid launch config extraArgs: ${validation.error}`)
+  }
+  
   const args: string[] = []
 
   // ── RHI ──────────────────────────────────────────────────────────────────

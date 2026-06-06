@@ -71,8 +71,33 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
     }
   }, [p.x, p.y])
 
-  // Close menu on outside click
+  // Close menu on outside click or Escape key; Arrow keys navigate items
   useEffect(() => {
+    const keyHandler = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') {
+        p.onClose()
+        return
+      }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        const menu = ref.current
+        if (!menu) return
+        const items = Array.from(
+          menu.querySelectorAll<HTMLButtonElement>('button:not([disabled])')
+        )
+        const current = document.activeElement as HTMLElement
+        const idx = items.indexOf(current as HTMLButtonElement)
+        if (e.key === 'ArrowDown') {
+          const next = items[(idx + 1) % items.length]
+          next?.focus()
+        } else {
+          const prev = items[(idx - 1 + items.length) % items.length]
+          prev?.focus()
+        }
+      }
+    }
+    document.addEventListener('keydown', keyHandler)
+
     const t = setTimeout(() => {
       const handler = (e: PointerEvent): void => {
         const target = e.target as Element | null
@@ -83,7 +108,17 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
       document.addEventListener('pointerdown', handler)
       return () => document.removeEventListener('pointerdown', handler)
     }, 50)
-    return () => clearTimeout(t)
+
+    // Focus first item on mount
+    setTimeout(() => {
+      const first = ref.current?.querySelector<HTMLButtonElement>('button:not([disabled])')
+      first?.focus()
+    }, 60)
+
+    return () => {
+      document.removeEventListener('keydown', keyHandler)
+      clearTimeout(t)
+    }
   }, [p.onClose])
 
   const openSub = useCallback((sub: 'organize' | 'tools' | 'git') => {
@@ -119,6 +154,8 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
       <motion.div
         ref={ref}
         data-menu-panel
+        role="menu"
+        aria-label={`${p.name} context menu`}
         className="fixed z-9999 select-none"
         style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 220 }}
         initial={{ opacity: 0, scale: 0.95, y: -4 }}

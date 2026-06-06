@@ -1,6 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import type { FabAsset } from './AssetCard'
+import { useToast } from '../../../components/ui/ToastContext'
 
 type ViewMode = 'list' | 'grid'
 
@@ -8,6 +9,7 @@ type ViewMode = 'list' | 'grid'
  * Custom hook for managing FabTab state
  */
 export function useFabTabState() {
+  const { addToast } = useToast()
   const [folderPath, setFolderPath] = useState('')
   const [assets, setAssets] = useState<FabAsset[]>([])
   const [loading, setLoading] = useState(false)
@@ -48,11 +50,15 @@ export function useFabTabState() {
     setLoading(true)
     try {
       setAssets(await window.electronAPI.fabScanFolder(dir))
-    } catch {
+    } catch (err) {
       setAssets([])
+      addToast(
+        'Fab scan failed: ' + (err instanceof Error ? err.message : String(err)),
+        'error'
+      )
     }
     setLoading(false)
-  }, [])
+  }, [addToast])
 
   const handlePickFolder = async (): Promise<void> => {
     const picked = await window.electronAPI.fabSelectFolder()

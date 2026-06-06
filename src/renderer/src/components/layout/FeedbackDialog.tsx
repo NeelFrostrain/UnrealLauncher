@@ -1,10 +1,14 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { useRef } from 'react'
 import { motion } from 'framer-motion'
 import { X, Paperclip, Send, Loader2, CheckCircle, AlertCircle, Trash2 } from 'lucide-react'
 import { useFeedbackState } from './useFeedbackState'
 import type { Mode } from './useFeedbackState'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 export default function FeedbackDialog({ onClose }: { onClose: () => void }): React.ReactElement {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(dialogRef)
   const {
     mode,
     setMode,
@@ -38,6 +42,7 @@ export default function FeedbackDialog({ onClose }: { onClose: () => void }): Re
       }}
     >
       <motion.div
+        ref={dialogRef}
         className="w-full max-w-lg mx-4 flex flex-col overflow-hidden"
         style={{
           borderRadius: 'var(--radius)',

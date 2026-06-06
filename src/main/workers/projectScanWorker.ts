@@ -79,7 +79,7 @@ const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
 const rawPaths = [path.join(os.homedir(), 'Documents', 'Unreal Projects')];
 const platform = os.platform();
 if (platform === 'win32') {
-  rawPaths.push('C:\\\\Users\\\\Public\\\\Documents\\\\Unreal Projects', 'D:\\\\Unreal\\\\Projects');
+  rawPaths.push('C:\\\\Users\\\\Public\\\\Documents\\\\Unreal Projects');
 } else if (platform === 'darwin') {
   rawPaths.push(path.join(os.homedir(), 'Library', 'Application Support', 'Unreal Projects'));
 } else {
