@@ -341,7 +341,7 @@ export function isRegisteredEnginePath(dirPath: string): string | undefined {
     const engines = loadEngines()
 
     for (const eng of engines) {
-      const rawPath = eng.directoryPath ?? eng.enginePath
+      const rawPath = eng.directoryPath
       if (rawPath) {
         let engPath = path.normalize(path.resolve(rawPath))
         try {

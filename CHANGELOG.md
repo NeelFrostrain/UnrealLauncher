@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased] — `ux · features · arch · testing`
+## [2.3.1] — `ux · features · arch · testing`
 
 ### ✨ Added — UX & Accessibility (Section 4)
 

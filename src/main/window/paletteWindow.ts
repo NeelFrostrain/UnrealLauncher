@@ -39,7 +39,6 @@ export function openPaletteWindow(): void {
   // high-DPI displays (125%, 150%, 200% Windows scaling)
   const display = screen.getPrimaryDisplay()
   const { width: sw, height: sh } = display.workAreaSize
-  const scale = display.scaleFactor || 1
 
   // Window dimensions in logical pixels — Electron handles DPI scaling internally
   const W = Math.round(Math.min(600, sw * 0.5))

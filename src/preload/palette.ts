@@ -26,7 +26,9 @@ contextBridge.exposeInMainWorld('paletteAPI', {
   ready: (): void => {
     ipcRenderer.send('palette-ready')
   },
-  /** Fetch engines + projects from the store (no scan — instant) */
-  getData: (): Promise<{ engines: EngineData[]; projects: ProjectData[] }> =>
-    ipcRenderer.invoke('palette-get-data')
+  /** Fetch engines + projects from store (no scan — instant) */
+  getData: (): Promise<{
+    engines: { version: string; exePath: string; directoryPath: string; folderSize: string; lastLaunch: string; gradient?: string; alias?: string }[]
+    projects: { name: string; version: string; size: string; createdAt: string; lastOpenedAt?: string; thumbnail?: string; projectPath?: string }[]
+  }> => ipcRenderer.invoke('palette-get-data')
 })

@@ -1,7 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
 import { useEffect } from 'react'
-import { FolderOpen, EyeOff, Star, Clock } from 'lucide-react'
+import { FolderOpen, EyeOff, Star } from 'lucide-react'
 import PageWrapper from '../layout/PageWrapper'
 import ProjectsToolbar from '../components/projects/ProjectsToolbar'
 import { ProjectsContent } from '../components/projects/ProjectsContent'
@@ -35,7 +35,6 @@ const ProjectsPage = (): React.ReactElement => {
       <ProjectsToolbar
         tabs={[
           { id: 'all', label: 'All', icon: <FolderOpen size={11} /> },
-          { id: 'recent', label: 'Recent', icon: <Clock size={11} /> },
           { id: 'favorites', label: 'Favorites', icon: <Star size={11} /> },
           { id: 'hidden', label: 'Hidden', icon: <EyeOff size={11} /> }
         ]}
