@@ -5,6 +5,8 @@ import { useEngineActions } from '../../hooks/useEngineActions'
 import { useEnginesPageState } from './enginesPageState'
 import { EnginesPageToolbar } from './enginesPageToolbar'
 import { EnginesPageContent } from './enginesPageContent'
+import { useGlobalShortcuts } from '../../hooks/useGlobalShortcuts'
+import { setEnginesCache, clearEngineCompatibilityCache } from '../../hooks/useEngineCompatibility'
 
 const EnginesPage = (): React.ReactElement => {
   const state = useEnginesPageState()
@@ -19,6 +21,22 @@ const EnginesPage = (): React.ReactElement => {
     handleUpdateAlias
   } = useEngineActions(state.setEngines)
 
+  useGlobalShortcuts({
+    onRefresh: handleScan,
+    onNew: handleAddEngine
+  })
+
+  // Receive action commands dispatched from the mini palette window
+  useEffect(() => {
+    const handler = (e: Event): void => {
+      const { commandId } = (e as CustomEvent<{ commandId: string }>).detail
+      if (commandId === 'action-refresh') handleScan()
+      else if (commandId === 'action-add-engine') handleAddEngine()
+    }
+    window.addEventListener('palette-action', handler)
+    return () => window.removeEventListener('palette-action', handler)
+  }, [handleScan, handleAddEngine])
+
   // Load engines on mount
   useEffect(() => {
     const load = async (): Promise<void> => {
@@ -27,7 +45,11 @@ const EnginesPage = (): React.ReactElement => {
         return
       }
       try {
-        state.setEngines(await window.electronAPI.scanEngines())
+        const engines = await window.electronAPI.scanEngines()
+        state.setEngines(engines)
+        // Keep the compatibility badge cache in sync — free since data is already loaded
+        setEnginesCache(engines)
+        clearEngineCompatibilityCache()
       } catch (err) {
         console.error('Failed to load engines:', err)
       } finally {

@@ -1,10 +1,12 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { X, GitCommit, RefreshCw } from 'lucide-react'
 import { useGitCommitState } from './git/gitCommitState'
 import { useGitCommitHandlers } from './git/gitCommitHandlers'
 import { GitCommitContent } from './git/gitCommitContent'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 interface Props {
   projectName: string
@@ -17,6 +19,8 @@ export default function GitCommitDialog({
   projectPath,
   onClose
 }: Props): React.ReactElement {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(dialogRef)
   const state = useGitCommitState(projectPath, onClose)
   const { handleCommit } = useGitCommitHandlers(
     projectPath,
@@ -37,6 +41,7 @@ export default function GitCommitDialog({
       }}
     >
       <motion.div
+        ref={dialogRef}
         className="flex flex-col w-full max-w-lg"
         style={{
           backgroundColor: 'var(--color-surface)',

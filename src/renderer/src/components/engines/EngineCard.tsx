@@ -34,8 +34,11 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     const [currentGradient] = useState(gradient || generateGradient())
     const [launching, setLaunching] = useState(false)
     const [calculating, setCalculating] = useState(false)
-    const [currentSize, setCurrentSize] = useState(folderSize)
     const [showConfigDialog, setShowConfigDialog] = useState(false)
+
+    // Derive display size: show folderSize from props (kept in sync by parent via onSizeCalculated)
+    // While calculating show a spinner label
+    const displaySize = calculating ? 'Calculating…' : folderSize
 
     // Alias editing state
     const [editingAlias, setEditingAlias] = useState(false)
@@ -52,10 +55,8 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     const handleCalculateSize = async (): Promise<void> => {
       if (calculating) return
       setCalculating(true)
-      setCurrentSize('Calculating...')
       if (window.electronAPI) {
-        const result = await window.electronAPI.calculateEngineSize(directoryPath)
-        setCurrentSize(result.success && result.size ? result.size : 'Error')
+        await window.electronAPI.calculateEngineSize(directoryPath)
       }
       setCalculating(false)
     }
@@ -194,15 +195,14 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                     >
                       Size
                     </span>
-                    {currentSize.startsWith('~') && (
+                    {/* Show calc button when size is approximate and not currently calculating */}
+                    {!calculating && folderSize.startsWith('~') && (
                       <button
                         onClick={handleCalculateSize}
-                        disabled={calculating}
-                        className="text-[8px] px-1 py-0.5 rounded cursor-pointer disabled:opacity-50 transition-colors"
+                        className="text-[8px] px-1 py-0.5 rounded cursor-pointer transition-colors"
                         style={{
                           color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
-                          backgroundColor:
-                            'color-mix(in srgb, var(--color-accent) 10%, transparent)'
+                          backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
                         }}
                         title="Calculate exact size"
                       >
@@ -210,8 +210,13 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                       </button>
                     )}
                   </div>
-                  <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                    {currentSize}
+                  <span
+                    className="text-xs"
+                    style={{
+                      color: calculating ? 'var(--color-text-muted)' : 'var(--color-text-secondary)'
+                    }}
+                  >
+                    {displaySize}
                   </span>
                 </div>
 

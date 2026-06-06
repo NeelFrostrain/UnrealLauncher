@@ -35,6 +35,22 @@ export function useProjectFilters(): UseProjectFiltersReturn {
             p.projectPath && favorites.includes(p.projectPath) && !hidden.includes(p.projectPath)
         )
       }
+      if (tab === 'recent') {
+        // Show the 20 most recently opened projects (have a lastOpenedAt), excluding hidden
+        return source
+          .filter(
+            (p) =>
+              p.lastOpenedAt != null &&
+              p.lastOpenedAt !== '' &&
+              (!p.projectPath || !hidden.includes(p.projectPath))
+          )
+          .sort((a, b) => {
+            const ta = a.lastOpenedAt ? new Date(a.lastOpenedAt).getTime() : 0
+            const tb = b.lastOpenedAt ? new Date(b.lastOpenedAt).getTime() : 0
+            return tb - ta
+          })
+          .slice(0, 20)
+      }
       // 'all' — exclude hidden
       return source.filter((p) => !p.projectPath || !hidden.includes(p.projectPath))
     },
@@ -56,7 +72,8 @@ export function useProjectFilters(): UseProjectFiltersReturn {
       // Use provided favorites array instead of reading localStorage directly
       setProjects(filterForTab(tab, allProjects, favorites, hidden))
 
-      if (tab === 'favorites') navigate('/projects/favorites')
+      if (tab === 'recent') navigate('/projects/recent')
+      else if (tab === 'favorites') navigate('/projects/favorites')
       else if (tab === 'hidden') navigate('/projects/hidden')
       else navigate('/projects')
     },

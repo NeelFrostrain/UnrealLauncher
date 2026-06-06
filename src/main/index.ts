@@ -1,11 +1,11 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { config } from 'dotenv'
-import { app, protocol, net } from 'electron'
+import { app, protocol, net, globalShortcut } from 'electron'
 import { spawn } from 'child_process'
 import type { ChildProcess } from 'child_process'
 import path from 'path'
 import fs from 'fs'
-import { setupAppLifecycle, createWindow, getMainWindow } from './window'
+import { setupAppLifecycle, createWindow, getMainWindow, requestQuit } from './window'
 import { setupAutoUpdaterEvents, checkForUpdatesOnStartup } from './updater'
 import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
 import { loadMainSettings, loadProjects, loadEngines } from './store'
@@ -77,6 +77,8 @@ if (!gotTheLock) {
   // ── before-quit cleanup ─────────────────────────────────────────────────────
   app.on('before-quit', () => {
     logger.info('app', 'Before quit cleanup started', { childProcesses: childProcesses.length })
+    // Release any registered global shortcuts (e.g. background Ctrl+K palette)
+    try { globalShortcut.unregisterAll() } catch { /* ignore */ }
     for (const cp of childProcesses) {
       try {
         cp.kill()

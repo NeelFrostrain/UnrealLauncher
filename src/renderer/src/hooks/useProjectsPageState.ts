@@ -5,7 +5,7 @@ import type { Project, TabType } from '../types'
 import { useProjectFavorites } from './useProjectFavorites'
 import { useProjectFilters } from './useProjectFilters'
 import { useProjectActions } from './useProjectActions'
-import { clearGitCache } from './useGitStatus'
+import { clearGitCache, primeGitCache } from './useGitStatus'
 import type { ViewMode } from '../components/projects/ProjectsToolbar'
 import type { SortConfig } from '../components/projects/projectUtils'
 import { useToast } from '../components/ui/ToastContext'
@@ -34,6 +34,7 @@ export function useProjectsPageState() {
     const path = location.pathname
     if (path === '/projects/favorites') return 'favorites'
     if (path === '/projects/hidden') return 'hidden'
+    if (path === '/projects/recent') return 'recent'
     return 'all'
   })
   const [refreshing, setRefreshing] = useState(false)
@@ -106,6 +107,9 @@ export function useProjectsPageState() {
           rawCount: raw.length,
           dedupedCount: deduped.length
         })
+        // Fire-and-forget: bulk-prime git cache so cards read from cache synchronously
+        const paths = deduped.map((p) => p.projectPath).filter(Boolean) as string[]
+        primeGitCache(paths)
         return deduped
       } catch (err) {
         logActivity('Projects load failed', {
@@ -151,6 +155,9 @@ export function useProjectsPageState() {
           rawCount: raw.length,
           filteredCount: filtered.length
         })
+        // Bulk-prime git cache to avoid per-card IPC waterfalls
+        const paths = deduped.map((p) => p.projectPath).filter(Boolean) as string[]
+        primeGitCache(paths)
         return filtered
       } catch (err) {
         logActivity('Projects tab load failed', {
@@ -179,7 +186,7 @@ export function useProjectsPageState() {
   useEffect(() => {
     const path = location.pathname
     const tab: TabType =
-      path === '/projects/favorites' ? 'favorites' : path === '/projects/hidden' ? 'hidden' : 'all'
+      path === '/projects/favorites' ? 'favorites' : path === '/projects/hidden' ? 'hidden' : path === '/projects/recent' ? 'recent' : 'all'
     logActivity('Projects tab synced from route', { path, tab })
     setCurrentTab(tab)
     currentTabRef.current = tab

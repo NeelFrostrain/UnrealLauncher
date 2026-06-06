@@ -2,11 +2,37 @@
 import { memo } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../../types'
-import { Play, Gamepad2, MoreVertical, Clock, Database, GitBranch } from 'lucide-react'
+import { Play, Gamepad2, MoreVertical, Clock, Database, GitBranch, CheckCircle2, AlertTriangle, XCircle, HelpCircle } from 'lucide-react'
 import { formatVersion, formatDate } from './projectUtils'
 import { useProjectCardState } from './card/projectCardState'
 import { useProjectCardHandlers } from './card/projectCardHandlers'
 import { ProjectCardDialogs } from './card/projectCardDialogs'
+import { useEngineCompatibility } from '../../hooks/useEngineCompatibility'
+import type { CompatibilityStatus } from '../../hooks/useEngineCompatibility'
+
+// ── Compatibility badge ───────────────────────────────────────────────────────
+const COMPAT_STYLES: Record<CompatibilityStatus, { color: string; bg: string; border: string; Icon: React.FC<{ size?: number }> }> = {
+  matched: { color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.25)', Icon: CheckCircle2 },
+  partial: { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.25)', Icon: AlertTriangle },
+  missing: { color: '#f87171', bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.25)', Icon: XCircle },
+  unknown: { color: 'var(--color-text-muted)', bg: 'transparent', border: 'transparent', Icon: HelpCircle },
+}
+
+function CompatBadge({ version }: { version: string }): React.ReactElement | null {
+  const { status, tooltip } = useEngineCompatibility(version)
+  if (status === 'unknown') return null
+  const { color, bg, border, Icon } = COMPAT_STYLES[status]
+  return (
+    <span
+      className="flex items-center shrink-0"
+      title={tooltip}
+      aria-label={tooltip}
+      style={{ color, background: bg, border: `1px solid ${border}`, borderRadius: 'calc(var(--radius) * 0.4)', padding: '1px 5px' }}
+    >
+      <Icon size={10} />
+    </span>
+  )
+}
 
 // ── Card ──────────────────────────────────────────────────────────────────────
 
@@ -114,6 +140,7 @@ const ProjectCard = memo(
                 >
                   UE {formatVersion(version)}
                 </span>
+                <CompatBadge version={version} />
                 {state.git.initialized && (
                   <span
                     className="flex items-center gap-1 text-[9px] font-mono px-1.5 py-px shrink-0"
@@ -166,6 +193,7 @@ const ProjectCard = memo(
                   color: '#4ade80'
                 }}
                 title="Launch as Game"
+                aria-label="Launch as Game"
               >
                 <Gamepad2 size={14} />
               </motion.button>
@@ -206,6 +234,8 @@ const ProjectCard = memo(
                   color: 'var(--color-text-muted)'
                 }}
                 title="More options"
+                aria-label="More options"
+                aria-haspopup="menu"
               >
                 <MoreVertical size={16} />
               </motion.button>

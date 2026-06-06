@@ -1,5 +1,5 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { RefreshCw, Search, LayoutGrid, LayoutList, Package } from 'lucide-react'
+import { RefreshCw, Search, LayoutGrid, LayoutList, Package, AlertTriangle } from 'lucide-react'
 import { usePluginsState } from './plugins/usePluginsState'
 import { CategorySection } from './plugins/PluginCards'
 
@@ -15,6 +15,7 @@ const InstalledPluginsTab = ({
   const {
     plugins,
     loading,
+    error,
     searchQuery,
     setSearchQuery,
     viewMode,
@@ -122,6 +123,24 @@ const InstalledPluginsTab = ({
             <span className="text-xs">
               Scanning {plugins.length > 0 ? `${plugins.length}+` : ''} plugins…
             </span>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-32 gap-2 text-center px-4">
+            <AlertTriangle size={24} style={{ color: '#f87171', opacity: 0.7 }} />
+            <p className="text-xs font-medium" style={{ color: '#f87171' }}>Plugin scan failed</p>
+            <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>{error}</p>
+            <button
+              onClick={load}
+              className="mt-1 flex items-center gap-1.5 px-3 py-1.5 text-xs cursor-pointer"
+              style={{
+                borderRadius: 'var(--radius)',
+                backgroundColor: 'var(--color-surface-card)',
+                color: 'var(--color-text-secondary)',
+                border: '1px solid var(--color-border)'
+              }}
+            >
+              <RefreshCw size={11} /> Retry
+            </button>
           </div>
         ) : grouped.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-center">

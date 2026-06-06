@@ -10,7 +10,8 @@ const Sidebar = (): React.ReactElement => {
   const state = useSidebarState()
 
   return (
-    <div
+    <nav
+      aria-label="Main navigation"
       className="relative h-full shrink-0 flex flex-col transition-[width] duration-200 ease-in-out"
       style={{ width: state.currentWidth, borderRight: '1px solid var(--color-border)' }}
     >
@@ -25,7 +26,7 @@ const Sidebar = (): React.ReactElement => {
         onToggleCollapse={state.toggleCollapse}
         onMouseDown={state.onMouseDown}
       />
-    </div>
+    </nav>
   )
 }
 

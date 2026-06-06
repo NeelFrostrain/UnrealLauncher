@@ -1,5 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useToast } from '../../../components/ui/ToastContext'
 
 export type ViewMode = 'list' | 'grid'
 
@@ -16,8 +17,10 @@ interface EnginePlugin {
 }
 
 export function usePluginsState(engineDir: string) {
+  const { addToast } = useToast()
   const [plugins, setPlugins] = useState<EnginePlugin[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>(
     () => (localStorage.getItem('pluginsViewMode') as ViewMode) ?? 'list'
@@ -25,13 +28,17 @@ export function usePluginsState(engineDir: string) {
 
   const load = useCallback(async (): Promise<void> => {
     setLoading(true)
+    setError(null)
     try {
       setPlugins(await window.electronAPI.scanEnginePlugins(engineDir))
-    } catch {
+    } catch (err) {
       setPlugins([])
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(msg)
+      addToast('Plugin scan failed: ' + msg, 'error')
     }
     setLoading(false)
-  }, [engineDir])
+  }, [engineDir, addToast])
 
   useEffect(() => {
     load()
@@ -72,6 +79,7 @@ export function usePluginsState(engineDir: string) {
   return {
     plugins,
     loading,
+    error,
     searchQuery,
     setSearchQuery,
     viewMode,

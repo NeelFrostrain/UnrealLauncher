@@ -8,6 +8,7 @@ import { registerUpdateHandlers } from './ipc/updates'
 import { registerMiscHandlers } from './ipc/misc'
 import { registerFabHandlers } from './ipc/fab'
 import { registerLaunchConfigHandlers } from './ipc/launchConfigs'
+import { registerPaletteHandlers } from './ipc/paletteHandlers'
 
 export { cleanupWorkers } from './workers/workers'
 
@@ -20,4 +21,5 @@ export function registerIpcHandlers(): void {
   registerMiscHandlers(ipcMain)
   registerFabHandlers(ipcMain)
   registerLaunchConfigHandlers(ipcMain)
+  registerPaletteHandlers(ipcMain)
 }

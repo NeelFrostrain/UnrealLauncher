@@ -31,15 +31,17 @@ interface ExpandedCardProps {
  * Renders an expanded sidebar card
  */
 const ExpandedCard: FC<ExpandedCardProps> = ({ item, isActive, onClick }) => (
-  <div
+  <button
     onClick={onClick}
-    className={`w-full relative h-28 rounded-md border-2 overflow-hidden transition-all select-none duration-200 cursor-pointer`}
+    className={`w-full relative h-28 rounded-md border-2 overflow-hidden transition-all select-none duration-200 cursor-pointer text-left`}
     style={{
       borderColor: isActive ? 'var(--color-accent)' : 'transparent',
       boxShadow: isActive
         ? '0 4px 20px color-mix(in srgb, var(--color-accent) 20%, transparent)'
         : undefined
     }}
+    aria-label={`Navigate to ${item.title}`}
+    aria-current={isActive ? 'page' : undefined}
   >
     <img
       src={item.imageSrc}
@@ -53,7 +55,7 @@ const ExpandedCard: FC<ExpandedCardProps> = ({ item, isActive, onClick }) => (
       {item.icon}
       {item.title}
     </div>
-  </div>
+  </button>
 )
 
 interface CollapsedItemProps {
@@ -66,9 +68,11 @@ interface CollapsedItemProps {
  * Renders a collapsed sidebar icon button
  */
 const CollapsedItem: FC<CollapsedItemProps> = ({ item, isActive, onClick }) => (
-  <motion.div
+  <motion.button
     onClick={onClick}
     title={item.title}
+    aria-label={`Navigate to ${item.title}`}
+    aria-current={isActive ? 'page' : undefined}
     whileHover={{ scale: 1.08 }}
     whileTap={{ scale: 0.92 }}
     className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer"
@@ -78,7 +82,7 @@ const CollapsedItem: FC<CollapsedItemProps> = ({ item, isActive, onClick }) => (
     }}
   >
     {item.icon}
-  </motion.div>
+  </motion.button>
 )
 
 interface SidebarCardsProps {

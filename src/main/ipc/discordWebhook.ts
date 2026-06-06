@@ -12,7 +12,7 @@ interface DiscordPayload {
  * @param webhookUrl - The URL to validate
  * @returns true if valid Discord webhook URL
  */
-function isValidDiscordWebhookUrl(webhookUrl: string): boolean {
+export function isValidDiscordWebhookUrl(webhookUrl: string): boolean {
   try {
     const url = new URL(webhookUrl)
 
@@ -22,8 +22,9 @@ function isValidDiscordWebhookUrl(webhookUrl: string): boolean {
       return false
     }
 
-    // Must be discord.com domain
-    if (!url.hostname.endsWith('discord.com')) {
+    // Must be discord.com domain (exact match or *.discord.com subdomain only)
+    const host = url.hostname.toLowerCase()
+    if (host !== 'discord.com' && !host.endsWith('.discord.com')) {
       logger.warn('discord', 'Webhook URL must be from discord.com', { hostname: url.hostname })
       return false
     }

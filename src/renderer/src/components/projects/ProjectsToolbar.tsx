@@ -93,6 +93,8 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
     >
       {/* Tab switcher */}
       <div
+        role="tablist"
+        aria-label="Project tabs"
         className="flex items-center gap-0.5 px-1 py-1 rounded-lg"
         style={{
           backgroundColor: 'var(--color-surface-card)',
@@ -104,6 +106,8 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
           return (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={isActive}
               onClick={() => onTabClick(tab.id)}
               className="flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer"
               style={{
@@ -163,6 +167,9 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
           <button
             onClick={() => setSortOpen((v) => !v)}
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer"
+            aria-label={`Sort by ${activeLabel}`}
+            aria-haspopup="listbox"
+            aria-expanded={sortOpen}
             style={{
               borderRadius: 'var(--radius)',
               backgroundColor: sortOpen
@@ -261,6 +268,8 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         >
           <button
             onClick={() => onViewChange('list')}
+            aria-label="List view"
+            aria-pressed={viewMode === 'list'}
             className="flex items-center p-1.5 cursor-pointer transition-colors"
             style={{
               backgroundColor:
@@ -273,6 +282,8 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
           </button>
           <button
             onClick={() => onViewChange('grid')}
+            aria-label="Grid view"
+            aria-pressed={viewMode === 'grid'}
             className="flex items-center p-1.5 cursor-pointer transition-colors"
             style={{
               backgroundColor:
@@ -288,6 +299,8 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         {/* Search toggle */}
         <button
           onClick={onToggleSearch}
+          aria-label={searchOpen ? 'Close search' : 'Open search'}
+          aria-pressed={searchOpen}
           className="flex items-center p-1.5 cursor-pointer transition-colors"
           style={{
             borderRadius: 'var(--radius)',

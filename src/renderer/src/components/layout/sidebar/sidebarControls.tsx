@@ -21,6 +21,7 @@ export function SidebarControls({
       <div className={`pb-3 flex ${collapsed ? 'justify-center' : 'justify-end pr-3'}`}>
         <button
           onClick={onToggleCollapse}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="w-7 h-7 rounded-md flex items-center justify-center transition-colors cursor-pointer"
           style={{ color: 'var(--color-text-muted)' }}
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}

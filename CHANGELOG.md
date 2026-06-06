@@ -2,6 +2,62 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] — `ux · features · arch · testing`
+
+### ✨ Added — UX & Accessibility (Section 4)
+
+- **Toast announcements** — `ToastContext` container now has `role="status"` + `aria-live="polite"` so screen readers announce notifications
+- **Sidebar `<nav>` landmark** — Sidebar wrapper changed from `<div>` to `<nav aria-label="Main navigation">` for landmark navigation
+- **`aria-label` on icon-only buttons** — Added labels to: `Gamepad2` (Launch as Game), `MoreVertical` (More options), log viewer Refresh / Close, error/warning count filter buttons, Sort dropdown
+- **Context menu keyboard access** — `SubMenuTrigger` now opens sub-menus on Enter, Space, and ArrowRight in addition to hover; `aria-haspopup="menu"` corrected on all triggers
+- **`role="menu"` on sub-menus** — `OrganizeSubMenu`, `ProjectToolsSubMenu`, `GitSubMenu` panels all have `role="menu"` + `aria-label`
+- **`aria-haspopup="menu"` on More options button** — Project card `⋮` button now declares it opens a menu
+
+### ✨ Added — New Features (Section 5)
+
+- **Recent Projects tab** — Fourth tab in the Projects toolbar; shows up to 20 most-recently opened projects sorted descending by `lastOpenedAt`. Route `/projects/recent` is persisted across sessions
+- **Engine compatibility badges** — Each project card (list and grid) shows a coloured icon beside the version pill: green ✓ (engine matched), yellow △ (partial/minor version match), red ✗ (no engine found). GUID-based associations (Epic Games Launcher) show nothing to avoid false negatives on Windows. Badge cache shared across all card instances — only one `scanEngines` call ever made
+- **Running projects banner** — Slim animated banner above the project list when Unreal Editor processes are detected via `getRunningProjects`. Polls every 6 s; shows project name chips that open the folder on click; dismissible until the next new process starts
+- **Bulk git status** — After every project scan, `projectGitStatusBulk` is called once with all project paths. Cards that call `getGitStatus()` hit the pre-populated cache synchronously — no per-card IPC waterfall
+- **`primeGitCache(paths[])`** — New export from `useGitStatus` that feeds bulk results into the existing generation-safe cache
+
+### ✨ Added — Global Command Palette
+
+- **`Ctrl+K` in-app** — Opens a full-featured command palette modal over any page. Fuzzy search across 13 commands (navigate + actions) grouped by category. Keyboard nav (↑↓/Enter/Esc), shortcut hints, animated open/close
+- **Standalone palette window** (`palette.html` / `palette.tsx` / `PaletteWindow.tsx`) — When the app is in the system tray, `Ctrl+K` opens a dedicated 580×420 frameless `alwaysOnTop` BrowserWindow. Loads its own minimal React tree (no sidebar, no router) via a second Vite entry point
+- **Engine + project search in palette** — Palette window fetches saved engines and projects from the store (instant, no scan). Shows thumbnail images for projects (with `<Package>` icon fallback). Engines and projects appear first when no query is typed; fuzzy search ranks all three categories together
+- **Direct launch from palette** — Selecting an engine or project in the palette window launches it immediately. Main window is brought to focus and navigated to the relevant page. The palette closes itself after execution
+- **`palette-navigate` / `palette-action` IPC push events** — After the palette window executes a command, the main process routes it to the main window. `ProjectsPage` and `EnginesPage` each listen for `palette-action` CustomEvents to handle refresh/add/search actions triggered remotely
+- **Background OS global shortcut** — Registered (`CommandOrControl+K`) when the window closes to tray; unregistered when the window is restored so the renderer takes over. `globalShortcut.unregisterAll()` called in `before-quit`
+
+### ✨ Added — Keyboard Shortcuts Settings (Section 4)
+
+- **Settings → Shortcuts tab** — New section (`SectionId: 'shortcuts'`) listing all keyboard shortcuts in five groups: Global, Projects, Log Viewer, File Editor, Dialogs & Menus. Each row shows styled `<kbd>` chips and a copy-to-clipboard button (hover-revealed). Top banner links to the command palette. Footer note mentions rebinding is planned
+
+### 🏗️ Architecture & Technical Debt (Section 6)
+
+- **Deleted dead code** — Removed `src/main/scanWorker.ts` (standalone file-based worker, zero imports) and the entire `src/main/scanWorker/` folder (4 files: `scanEngines.ts`, `scanProjects.ts`, `scanWorkerHelpers.ts`, `scanWorkerTypes.ts`) — logic was duplicated in the active inline worker strings
+- **Deleted dead Zustand store** — Removed `src/renderer/src/store/usePagesStore.ts`; React Router is the sole navigation layer
+- **Fixed `resolveAsset.ts` `file:///` branch** — Switched to `local-asset:///` (the app's registered custom protocol, which passes security validation). Path segments now `encodeURIComponent`-encoded to handle spaces and special characters
+- **Removed dead `api = {}` from preload** — Empty `const api = {}` and its `contextBridge.exposeInMainWorld('api', api)` call removed from `preload/index.ts`
+- **Removed developer-specific hardcoded paths** — `D:\\Engine\\UnrealEditors` and `D:\\Unreal` removed from `engineScanWorker.ts` Windows fallback; `D:\\Unreal\\Projects` removed from `projectScanWorker.ts`. Only standard Epic Games Launcher paths remain
+- **Fixed Discord webhook domain bypass** — `isValidDiscordWebhookUrl` used `.endsWith('discord.com')` which accepted `not-discord.com`. Fixed to require exact match `discord.com` or subdomain `.discord.com` (e.g. `canary.discord.com`). Function is now exported for testability
+- **Fixed `formatDate` for invalid input** — `new Date('invalid').toLocaleDateString()` returns the string `"Invalid Date"` rather than throwing. Added `isNaN(dt.getTime())` guard to return the raw input unchanged
+
+### 🧪 Testing & CI (Section 7)
+
+- **58 unit tests passing** (was 8)
+- **`launchConfigArgs.test.ts`** (21 tests) — `buildLaunchArgs` flag generation, security validation on `extraArgs` (shell metacharacters, path traversal), `SKELETON_CONFIG`, `DEFAULT_CONFIG`, `isRhiAvailable`, `getSkeletonRhi`
+- **`projectUtils.test.ts`** (19 tests) — `formatVersion`, `formatDate` (including invalid-date fix verification), `sortProjects` across all 5 sort keys and both directions, immutability, edge cases
+- **`discordWebhook.test.ts`** (10 tests) — Valid URLs, HTTP rejection, domain spoofing (`not-discord.com`, `discord.com.evil.com`), wrong path, empty string, `javascript:` scheme
+- **`.github/workflows/ci.yml`** — Four-job pipeline: Typecheck (node + web), Lint, Test (`vitest run`), Build (`electron-vite build` with stubbed native + tracer). Concurrency cancellation per branch/PR. Runs on push and PR to `main`/`master`/`develop`
+
+### 📝 Documentation (Section 8)
+
+- **README** — Fixed inaccurate `coverage-94%` badge → `tests-58 passing`. Added CI status badge. Updated `Zustand` description. Marked `react-window` as planned (not yet implemented). Removed dead `scanWorker/` from project structure. Added `palette.tsx` and `preload/palette.ts`. Added 6 new System & UX features to the feature list. Updated feature count 50 → 56. Added `test:run` to Available Scripts table
+
+---
+
 ## [2.3.0] - 2026-05-30 — `feature · performance · ui`
 
 ### ✨ Added — Launch Configuration Profiles

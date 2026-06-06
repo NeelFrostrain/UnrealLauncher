@@ -1,7 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { Zap, Palette, Database, RefreshCw, FolderOpen, Activity, Info } from 'lucide-react'
+import { Zap, Palette, Database, RefreshCw, FolderOpen, Activity, Info, Keyboard } from 'lucide-react'
 
-export type SectionId = 'general' | 'appearance' | 'scan' | 'tracer' | 'data' | 'updates' | 'about'
+export type SectionId = 'general' | 'appearance' | 'scan' | 'tracer' | 'data' | 'updates' | 'shortcuts' | 'about'
 
 export interface NavItem {
   id: SectionId
@@ -18,6 +18,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'tracer', label: 'Tracer', icon: <Activity size={14} />, accent: '#4ade80' },
   { id: 'data', label: 'Data', icon: <Database size={14} />, accent: '#f87171' },
   { id: 'updates', label: 'Updates', icon: <RefreshCw size={14} />, accent: '#60a5fa' },
+  { id: 'shortcuts', label: 'Shortcuts', icon: <Keyboard size={14} />, accent: '#fbbf24' },
   { id: 'about', label: 'About', icon: <Info size={14} />, accent: '#22d3ee' }
 ]
 

@@ -16,6 +16,7 @@ import {
   CaseSensitive
 } from 'lucide-react'
 import { useToast } from '../ui/ToastContext'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 interface Props {
   mode: 'config' | 'uproject'
@@ -56,6 +57,8 @@ export default function ProjectFileEditorDialog({
   onClose
 }: Props): React.ReactElement {
   const { addToast } = useToast()
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(dialogRef)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const findInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
@@ -236,6 +239,7 @@ export default function ProjectFileEditorDialog({
       }}
     >
       <motion.div
+        ref={dialogRef}
         className="flex flex-col w-full max-w-3xl"
         style={{
           height: '82vh',

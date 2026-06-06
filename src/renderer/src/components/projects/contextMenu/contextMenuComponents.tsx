@@ -35,6 +35,8 @@ export const MenuItem = ({
   onClose: () => void
 }): React.ReactElement => (
   <button
+    role="menuitem"
+    aria-label={label}
     onClick={() => {
       if (!disabled && onClick) {
         onClick()
@@ -116,8 +118,19 @@ export const SubMenuTrigger = ({
 }): React.ReactElement => (
   <button
     ref={triggerRef}
+    role="menuitem"
+    aria-haspopup="menu"
+    aria-expanded={isOpen}
+    aria-label={label}
     onMouseEnter={onOpen}
     onMouseLeave={onLeave}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') {
+        e.preventDefault()
+        e.stopPropagation()
+        onOpen()
+      }
+    }}
     className="flex items-center gap-2 px-2.5 py-1 text-[11px] cursor-pointer transition-colors rounded-sm"
     style={{
       color: isOpen ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',

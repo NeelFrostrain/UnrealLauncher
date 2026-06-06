@@ -2,13 +2,9 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
-// Custom APIs for renderer
-const api = {}
-
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
     contextBridge.exposeInMainWorld('electronAPI', {
       scanEngines: () => ipcRenderer.invoke('scan-engines'),
       scanProjects: () => ipcRenderer.invoke('scan-projects'),
@@ -178,7 +174,25 @@ if (process.contextIsolated) {
       launchEngineWithConfig: (exePath: string, config: unknown) =>
         ipcRenderer.invoke('launch-engine-with-config', exePath, config),
       launchProjectWithConfig: (projectPath: string, config: unknown) =>
-        ipcRenderer.invoke('launch-project-with-config', projectPath, config)
+        ipcRenderer.invoke('launch-project-with-config', projectPath, config),
+      onOpenCommandPalette: (callback: () => void): (() => void) => {
+        const listener = (): void => callback()
+        ipcRenderer.on('open-command-palette', listener)
+        return (): void => {
+          ipcRenderer.removeListener('open-command-palette', listener)
+        }
+      },
+      // Push events from the palette window (routed via main process)
+      onPaletteNavigate: (callback: (route: string) => void): (() => void) => {
+        const listener = (_event: Electron.IpcRendererEvent, route: string): void => callback(route)
+        ipcRenderer.on('palette-navigate', listener)
+        return (): void => ipcRenderer.removeListener('palette-navigate', listener)
+      },
+      onPaletteAction: (callback: (commandId: string) => void): (() => void) => {
+        const listener = (_event: Electron.IpcRendererEvent, commandId: string): void => callback(commandId)
+        ipcRenderer.on('palette-action', listener)
+        return (): void => ipcRenderer.removeListener('palette-action', listener)
+      }
     })
   } catch (error) {
     console.error(error)

@@ -69,6 +69,8 @@ export const GitSubMenu = ({
     <motion.div
       ref={subRef}
       data-menu-panel
+      role="menu"
+      aria-label="Git Tools"
       className="fixed z-10000 select-none"
       style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 250 }}
       onMouseEnter={onMouseEnter}

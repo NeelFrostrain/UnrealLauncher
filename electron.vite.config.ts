@@ -5,11 +5,10 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()], // keeps Node built-ins out of the bundle
+    plugins: [externalizeDepsPlugin()],
     build: {
       minify: true,
       rollupOptions: {
-        // Ensure all Node built-ins stay external — not bundled
         external: [
           'electron',
           'path',
@@ -30,7 +29,16 @@ export default defineConfig({
     }
   },
   preload: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
+    build: {
+      rollupOptions: {
+        // Build both the main preload and the minimal palette preload
+        input: {
+          index: resolve('src/preload/index.ts'),
+          palette: resolve('src/preload/palette.ts')
+        }
+      }
+    }
   },
   renderer: {
     resolve: {
@@ -40,6 +48,11 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
+        // Two HTML entry points: the full app and the standalone palette window
+        input: {
+          index: resolve('src/renderer/index.html'),
+          palette: resolve('src/renderer/palette.html')
+        },
         output: {
           manualChunks: {
             'react-core': ['react', 'react-dom', 'react-router-dom'],
@@ -54,7 +67,7 @@ export default defineConfig({
         compress: {
           drop_console: true,
           drop_debugger: true,
-          passes: 1 // one pass is sufficient; 2 passes doubles build time for <1% gain
+          passes: 1
         }
       },
       sourcemap: false,

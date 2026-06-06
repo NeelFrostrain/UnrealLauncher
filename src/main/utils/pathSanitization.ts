@@ -1,6 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import fs from 'fs'
+import { loadEngines } from '../store'
 
 // Restrict IPC file read/write operations to text-based configuration formats (e.g., .uproject, .ini, .conf, .cfg, .yaml, .json).
 // Explicitly block reading or writing binary executables (.exe, .dll, .sh, .bat) over these channels.
@@ -337,12 +338,12 @@ export function isRegisteredEnginePath(dirPath: string): string | undefined {
     resolved = path.normalize(resolved)
     const resolvedLower = resolved.toLowerCase()
 
-    const { loadEngines } = require('../store')
     const engines = loadEngines()
 
     for (const eng of engines) {
-      if (eng.enginePath) {
-        let engPath = path.normalize(path.resolve(eng.enginePath))
+      const rawPath = eng.directoryPath ?? eng.enginePath
+      if (rawPath) {
+        let engPath = path.normalize(path.resolve(rawPath))
         try {
           if (fs.existsSync(engPath)) {
             engPath = path.normalize(fs.realpathSync(engPath))
@@ -357,7 +358,7 @@ export function isRegisteredEnginePath(dirPath: string): string | undefined {
       }
     }
     return undefined
-  } catch {
+  } catch (err) {
     return undefined
   }
 }

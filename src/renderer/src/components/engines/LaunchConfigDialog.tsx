@@ -18,6 +18,7 @@ import {
   Terminal
 } from 'lucide-react'
 import { useToast } from '../ui/ToastContext'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 type RHI = 'default' | 'dx11' | 'dx12' | 'vulkan' | 'opengl'
 type Scalability = 'default' | 0 | 1 | 2 | 3 | 4
@@ -280,6 +281,8 @@ export default function LaunchConfigDialog({
   onClose
 }: LaunchConfigDialogProps): React.ReactElement {
   const { addToast } = useToast()
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(dialogRef)
   const [configs, setConfigs] = useState<LaunchConfig[]>([])
   const [selectedId, setSelectedId] = useState<string>('builtin-skeleton')
   const [editing, setEditing] = useState<LaunchConfig | null>(null)
@@ -409,6 +412,7 @@ export default function LaunchConfigDialog({
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <motion.div
+        ref={dialogRef}
         className="flex flex-col overflow-hidden w-full"
         style={{
           maxWidth: 980,

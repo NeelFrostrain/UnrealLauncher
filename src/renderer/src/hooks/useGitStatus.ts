@@ -72,6 +72,31 @@ export function clearGitCache(): void {
   abortControllers.clear()
 }
 
+/**
+ * Bulk-prime the git status cache using a single IPC call.
+ * Call this after a project scan to avoid per-card IPC waterfalls.
+ */
+export async function primeGitCache(projectPaths: string[]): Promise<void> {
+  if (!projectPaths.length) return
+  const capturedGen = generation
+  try {
+    const results = await window.electronAPI.projectGitStatusBulk(projectPaths)
+    // Discard if a new scan started while this request was in-flight
+    if (generation !== capturedGen) return
+    for (const [projectPath, s] of Object.entries(results)) {
+      if (!cache.has(projectPath)) {
+        cache.set(projectPath, {
+          initialized: s.initialized,
+          branch: s.branch,
+          remoteUrl: s.remoteUrl ?? ''
+        })
+      }
+    }
+  } catch {
+    /* non-fatal — individual cards will fall back to per-path IPC */
+  }
+}
+
 /** Clear the cache for a single project path — use after branch switch or git init */
 export function clearGitCacheForPath(projectPath: string): void {
   cache.delete(projectPath)

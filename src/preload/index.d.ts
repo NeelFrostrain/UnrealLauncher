@@ -302,6 +302,8 @@ declare global {
         projectPath: string,
         config: LaunchConfig
       ) => Promise<{ success: boolean; error?: string }>
-    }
+      onOpenCommandPalette: (callback: () => void) => () => void
+      onPaletteNavigate: (callback: (route: string) => void) => () => void
+      onPaletteAction: (callback: (commandId: string) => void) => () => void    }
   }
 }
