@@ -104,7 +104,7 @@ function Kbd({ k }: { k: string }): React.ReactElement {
   )
 }
 
-function ShortcutKeys({ keys }: { keys: string[] }): React.ReactElement {
+export function ShortcutKeys({ keys }: { keys: string[] }): React.ReactElement {
   return (
     <div className="flex items-center gap-1 shrink-0">
       {keys.map((k, i) => (

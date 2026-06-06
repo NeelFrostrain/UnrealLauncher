@@ -6,6 +6,26 @@ import FeedbackDialog from './FeedbackDialog'
 import { getSetting } from '../../utils/settings'
 import config from '../../../../config'
 
+// const IS_MAC = navigator.platform.toLowerCase().includes('mac')
+// const MOD = IS_MAC ? '⌘' : 'Ctrl'
+
+// function Kbd({ k }: { k: string }): React.ReactElement {
+//   return (
+//     <kbd
+//       className="inline-flex items-center justify-center px-1 py-0.5 text-[10px] font-mono font-semibold rounded select-none"
+//       style={{
+//         backgroundColor: 'var(--color-surface-card)',
+//         border: '1px solid var(--color-border)',
+//         color: 'var(--color-text-secondary)',
+//         boxShadow: '0 1px 0 var(--color-border)',
+//         minWidth: 20
+//       }}
+//     >
+//       {k}
+//     </kbd>
+//   )
+// }
+
 const Titlebar = (): React.ReactElement => {
   const [isMaximized, setIsMaximized] = useState(false)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
@@ -48,6 +68,11 @@ const Titlebar = (): React.ReactElement => {
           borderBottom: '1px solid var(--color-border)'
         }}
       >
+        {/* <div className='flex mx-2 justify-center items-center'>
+              <Kbd k={MOD} /> <span className='text-[10px] font-mono' style={{color: 'var(--color-text-secondary)'}}>+</span> <Kbd k="K" />
+        </div>
+         */}
+
         {/* Draggable region */}
         <div className="flex-1 h-full" style={drag} />
 

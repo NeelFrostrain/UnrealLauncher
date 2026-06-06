@@ -1,7 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
 import { getMainWindow } from '../window'
-import { openPaletteWindow, closePaletteWindow, getPaletteWindow } from '../window/paletteWindow'
 import { loadEngines, loadProjects } from '../store'
 import { handleLaunchEngine } from './engineHandlers'
 import { handleLaunchProject } from './projectLaunching'
@@ -54,46 +53,56 @@ function routeToMainWindow(commandId: string): void {
 export function registerPaletteHandlers(ipcMain_: typeof ipcMain): void {
   // Palette renderer is ready — show the window now (no white flash)
   ipcMain_.on('palette-ready', (event) => {
-    const win = getPaletteWindow()
-    if (win && !win.isDestroyed() && event.sender === win.webContents) {
-      win.show()
-      win.focus()
-    }
+    import('../window/paletteWindow').then(({ getPaletteWindow }) => {
+      const win = getPaletteWindow()
+      if (win && !win.isDestroyed() && event.sender === win.webContents) {
+        win.show()
+        win.focus()
+      }
+    }).catch((err) => logger.error('palette', 'Failed to load paletteWindow', err))
   })
 
   // User picked a navigation/action command
   ipcMain_.on('palette-execute', (_event, commandId: string) => {
     logger.info('palette', 'Executing command', { commandId })
-    closePaletteWindow()
-    routeToMainWindow(commandId)
+    import('../window/paletteWindow').then(({ closePaletteWindow }) => {
+      closePaletteWindow()
+      routeToMainWindow(commandId)
+    }).catch((err) => logger.error('palette', 'Failed to close palette', err))
   })
 
   // User launched an engine directly from the palette
   ipcMain_.on('palette-launch-engine', (_event, exePath: string) => {
     logger.info('palette', 'Launch engine from palette', { exePath })
-    closePaletteWindow()
-    // Show main window so the user can see it launching
-    showMainWindow()
-    getMainWindow()?.webContents.send('palette-navigate', '/engines')
-    handleLaunchEngine(exePath).catch((err) =>
-      logger.error('palette', 'Engine launch failed', err)
-    )
+    import('../window/paletteWindow').then(({ closePaletteWindow }) => {
+      closePaletteWindow()
+      // Show main window so the user can see it launching
+      showMainWindow()
+      getMainWindow()?.webContents.send('palette-navigate', '/engines')
+      handleLaunchEngine(exePath).catch((err) =>
+        logger.error('palette', 'Engine launch failed', err)
+      )
+    }).catch((err) => logger.error('palette', 'Failed to close palette', err))
   })
 
   // User launched a project directly from the palette
   ipcMain_.on('palette-launch-project', (_event, projectPath: string) => {
     logger.info('palette', 'Launch project from palette', { projectPath })
-    closePaletteWindow()
-    showMainWindow()
-    getMainWindow()?.webContents.send('palette-navigate', '/projects')
-    handleLaunchProject(projectPath).catch((err) =>
-      logger.error('palette', 'Project launch failed', err)
-    )
+    import('../window/paletteWindow').then(({ closePaletteWindow }) => {
+      closePaletteWindow()
+      showMainWindow()
+      getMainWindow()?.webContents.send('palette-navigate', '/projects')
+      handleLaunchProject(projectPath).catch((err) =>
+        logger.error('palette', 'Project launch failed', err)
+      )
+    }).catch((err) => logger.error('palette', 'Failed to close palette', err))
   })
 
   // Dismiss
   ipcMain_.on('palette-close', () => {
-    closePaletteWindow()
+    import('../window/paletteWindow').then(({ closePaletteWindow }) => {
+      closePaletteWindow()
+    }).catch((err) => logger.error('palette', 'Failed to close palette', err))
   })
 
   // Fetch engines + projects from store — no scan, instant
@@ -109,7 +118,8 @@ export function registerPaletteHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   // Open palette programmatically
-  ipcMain_.handle('open-palette', () => {
+  ipcMain_.handle('open-palette', async () => {
+    const { openPaletteWindow } = await import('../window/paletteWindow')
     openPaletteWindow()
   })
 }

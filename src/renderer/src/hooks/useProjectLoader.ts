@@ -3,7 +3,7 @@
  * Handles loading, scanning, and live-update subscriptions for the project list.
  * Extracted from useProjectsPageState to keep each hook under 150 lines.
  */
-import { useState, useCallback, useRef, useEffect, MutableRefObject } from 'react'
+import { useState, useCallback, useEffect, MutableRefObject, type Dispatch, type SetStateAction } from 'react'
 import type { Project, TabType } from '../types'
 import { clearGitCache, primeGitCache } from './useGitStatus'
 import { useToast } from '../components/ui/ToastContext'
@@ -31,7 +31,7 @@ interface Options {
   favoritePathsRef: MutableRefObject<string[]>
   hiddenPathsRef:  MutableRefObject<string[]>
   filterForTab:    (tab: TabType, src: Project[], fav: string[], hid: string[]) => Project[]
-  setProjects:     (p: Project[]) => void
+  setProjects:     Dispatch<SetStateAction<Project[]>>
   setScanEpoch:    (fn: (e: number) => number) => void
 }
 
