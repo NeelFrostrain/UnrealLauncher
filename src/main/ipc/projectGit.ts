@@ -6,7 +6,7 @@
  */
 import path from 'path'
 import fs from 'fs'
-import { validatePathForGitRead } from '../utils/pathSanitization'
+import { isRegisteredProjectPath, validatePathForGitRead } from '../utils/pathSanitization'
 import { logger } from '../logger'
 import { runGitAsync, assertValidBranchName } from './git/gitCore'
 import { UE_GITIGNORE, UE_GITATTRIBUTES } from './git/gitTemplates'
@@ -71,7 +71,7 @@ export async function handleProjectGitInit(
   projectPath: string
 ): Promise<{ success: boolean; lfsAvailable: boolean; error?: string }> {
   try {
-    const safe = validatePathForGitRead(projectPath)
+    const safe = isRegisteredProjectPath(projectPath)
     if (!safe) throw new Error('Project path not found or invalid')
 
     await runGitAsync(safe, ['init'])
@@ -124,7 +124,7 @@ export function handleProjectGitWriteGitignore(projectPath: string): {
   existed: boolean
   error?: string
 } {
-  const safe = validatePathForGitRead(projectPath)
+  const safe = isRegisteredProjectPath(projectPath)
   if (!safe) return { success: false, existed: false, error: 'Project path not found or invalid' }
   const target = path.join(safe, '.gitignore')
   const existed = fs.existsSync(target)
@@ -140,7 +140,7 @@ export async function handleProjectGitInitLfs(
   projectPath: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const safe = validatePathForGitRead(projectPath)
+    const safe = isRegisteredProjectPath(projectPath)
     if (!safe) throw new Error('Project path not found or invalid')
     await runGitAsync(safe, ['lfs', 'install'])
     fs.writeFileSync(path.join(safe, '.gitattributes'), UE_GITATTRIBUTES, 'utf8')

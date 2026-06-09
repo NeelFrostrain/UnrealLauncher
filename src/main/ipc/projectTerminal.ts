@@ -4,14 +4,14 @@ import path from 'path'
 import fs from 'fs'
 import { spawn } from 'child_process'
 
-import { validatePathForGitRead } from '../utils/pathSanitization'
+import { isRegisteredProjectPath } from '../utils/pathSanitization'
 import { logger } from '../logger'
 
 export async function handleProjectOpenTerminal(
   projectPath: string
 ): Promise<{ success: boolean; error?: string }> {
   // SECURITY: Validate path is a valid existing directory
-  const validatedPath = validatePathForGitRead(projectPath)
+  const validatedPath = isRegisteredProjectPath(projectPath)
   if (!validatedPath) {
     logger.warn('projectTerminal', 'Invalid project path for terminal', { projectPath })
     return { success: false, error: 'Project path not found or invalid' }
@@ -80,6 +80,11 @@ export async function handleProjectOpenTerminal(
 export async function handleProjectOpenGithub(
   projectPath: string
 ): Promise<{ success: boolean; error?: string }> {
+  const validatedPath = isRegisteredProjectPath(projectPath)
+  if (!validatedPath) {
+    return { success: false, error: 'Project path not found or invalid' }
+  }
+
   if (process.platform === 'win32') {
     const localAppData = process.env.LOCALAPPDATA ?? ''
     const candidates = [
@@ -90,7 +95,7 @@ export async function handleProjectOpenGithub(
     const exe = candidates.find((c) => fs.existsSync(c))
     if (exe) {
       try {
-        spawn(exe, [projectPath], { detached: true, stdio: 'ignore' }).unref()
+        spawn(exe, [validatedPath], { detached: true, stdio: 'ignore' }).unref()
         return { success: true }
       } catch (err) {
         return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
@@ -98,7 +103,7 @@ export async function handleProjectOpenGithub(
     }
     return { success: false, error: 'GitHub Desktop not found. Install it from desktop.github.com' }
   }
-  const encoded = encodeURIComponent(projectPath)
+  const encoded = encodeURIComponent(validatedPath)
   const url =
     process.platform === 'darwin'
       ? `github-mac://openRepo?path=${encoded}`

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
 import { openFileOrDirectory } from '../utils/processUtils'
-import { validatePathForGitRead } from '../utils/pathSanitization'
+import { isRegisteredProjectPath } from '../utils/pathSanitization'
 import {
   handleSelectProjectFolder,
   handleLaunchProject,
@@ -39,7 +39,7 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
 
   ipcMain_.handle('open-directory', (_event, dirPath): void => {
     // SECURITY: Validate path is a valid existing directory
-    const validatedPath = validatePathForGitRead(dirPath)
+    const validatedPath = isRegisteredProjectPath(dirPath)
     if (validatedPath) {
       openFileOrDirectory(validatedPath)
     }
@@ -49,7 +49,7 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
 
   ipcMain_.handle('calculate-project-size', async (_event, projectPath) => {
     // SECURITY: Validate path is a valid existing directory
-    const validatedPath = validatePathForGitRead(projectPath)
+    const validatedPath = isRegisteredProjectPath(projectPath)
     if (!validatedPath) {
       return { error: 'Project path not found' }
     }

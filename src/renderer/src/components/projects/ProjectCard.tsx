@@ -20,6 +20,7 @@ import { useProjectCardHandlers } from './card/projectCardHandlers'
 import { ProjectCardDialogs } from './card/projectCardDialogs'
 import { useEngineCompatibility } from '../../hooks/useEngineCompatibility'
 import type { CompatibilityStatus } from '../../hooks/useEngineCompatibility'
+import { toLocalAssetUrl } from '../../utils/resolveAsset'
 
 // ── Compatibility badge ───────────────────────────────────────────────────────
 const COMPAT_STYLES: Record<
@@ -119,9 +120,7 @@ const ProjectCard = memo(
 
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
     // Use thumbnailKey as a cache-busting token for the per-project thumbnail
-    const imageSrc = thumbnail
-      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}?t=${thumbnailKey ?? ''}`
-      : null
+    const imageSrc = thumbnail ? toLocalAssetUrl(thumbnail, thumbnailKey) : null
     const dateLabel = lastOpenedAt ? formatDate(lastOpenedAt) : createdAt
     const dateType = lastOpenedAt ? 'Opened' : 'Created'
 

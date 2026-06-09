@@ -104,7 +104,7 @@ export function validatePath(
       if (resolvedLower.startsWith(allowedLower)) {
         // Ensure exact match or followed by path separator to prevent prefix bypass (e.g. /app/folder matching /app/folder-sibling)
         if (resolvedLower.length === allowedLower.length) return true
-        const nextChar = resolved.charAt(allowedDir.length)
+        const nextChar = resolvedLower.charAt(allowedLower.length)
         if (nextChar === path.sep || nextChar === '/' || nextChar === '\\') return true
       }
       return false
@@ -258,6 +258,19 @@ export function sanitizeDirectory(dirPath: string): {
 }
 
 /**
+ * Returns true when childPath is exactly parentPath or a descendant of it.
+ * Uses a path-separator check to prevent prefix bypass (e.g. /proj vs /proj2).
+ */
+export function isPathWithinDirectory(childPath: string, parentPath: string): boolean {
+  const childLower = path.normalize(childPath).toLowerCase()
+  const parentLower = path.normalize(parentPath).toLowerCase()
+  if (childLower === parentLower) return true
+  if (!childLower.startsWith(parentLower)) return false
+  const nextChar = childLower.charAt(parentLower.length)
+  return nextChar === path.sep || nextChar === '/' || nextChar === '\\'
+}
+
+/**
  * Checks if a path is a registered project directory.
  * Returns normalized path if valid, undefined if not found.
  * Falls back to a basic check if store is not available.
@@ -336,6 +349,46 @@ export function validatePathForGitRead(dirPath: string): string | undefined {
       return resolved
     }
 
+    return undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Checks if a path is a registered engine executable.
+ * Returns normalized path if valid, undefined if not found.
+ */
+export function isRegisteredEngineExePath(exePath: string): string | undefined {
+  try {
+    let resolved = path.resolve(exePath)
+    try {
+      if (fs.existsSync(resolved)) {
+        resolved = fs.realpathSync(resolved)
+      }
+    } catch {
+      // ignore
+    }
+    resolved = path.normalize(resolved)
+    const resolvedLower = resolved.toLowerCase()
+
+    const engines = loadEngines()
+
+    for (const eng of engines) {
+      if (eng.exePath) {
+        let engExe = path.normalize(path.resolve(eng.exePath))
+        try {
+          if (fs.existsSync(engExe)) {
+            engExe = path.normalize(fs.realpathSync(engExe))
+          }
+        } catch {
+          // ignore
+        }
+        if (resolvedLower === engExe.toLowerCase()) {
+          return resolved
+        }
+      }
+    }
     return undefined
   } catch {
     return undefined

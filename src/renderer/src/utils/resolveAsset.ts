@@ -3,6 +3,17 @@ import ProjectDefault from '../assets/ProjectDefault.avif'
 
 const baseUrl = import.meta.env.BASE_URL || './'
 
+/** Builds a local-asset:// URL with per-segment encoding for filesystem paths. */
+export const toLocalAssetUrl = (filePath: string, cacheBust?: string): string => {
+  const normalized = filePath.replace(/\\/g, '/')
+  const encoded = normalized
+    .split('/')
+    .map((seg) => encodeURIComponent(seg))
+    .join('/')
+  const url = `local-asset:///${encoded}`
+  return cacheBust ? `${url}?t=${cacheBust}` : url
+}
+
 export const resolveAsset = (path?: string): string => {
   if (!path) return ProjectDefault
 
@@ -10,12 +21,7 @@ export const resolveAsset = (path?: string): string => {
   // (safer than file:/// which bypasses webSecurity; path segments are encoded
   // to handle spaces and special characters correctly)
   if (path.includes(':\\') || (path.includes('/') && !path.startsWith('http'))) {
-    const normalized = path.replace(/\\/g, '/')
-    const encoded = normalized
-      .split('/')
-      .map((seg) => encodeURIComponent(seg))
-      .join('/')
-    return `local-asset:///${encoded}`
+    return toLocalAssetUrl(path)
   }
 
   if (path.startsWith('http') || path.startsWith('data:') || path.startsWith('local-asset:')) {

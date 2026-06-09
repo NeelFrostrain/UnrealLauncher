@@ -2,7 +2,7 @@
 import { memo } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../../types'
-import { resolveAsset } from '../../utils/resolveAsset'
+import { resolveAsset, toLocalAssetUrl } from '../../utils/resolveAsset'
 import { useProjectCardState } from './card/projectCardState'
 import { useProjectCardHandlers } from './card/projectCardHandlers'
 import { ProjectCardContent } from './card/projectCardContent'
@@ -52,7 +52,7 @@ const ProjectCardGrid = memo(
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
     // Use thumbnailKey to scope thumbnail cache-busting per project
     const imageSrc = thumbnail
-      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}?t=${thumbnailKey ?? ''}`
+      ? toLocalAssetUrl(thumbnail, thumbnailKey)
       : resolveAsset(undefined)
 
     return (

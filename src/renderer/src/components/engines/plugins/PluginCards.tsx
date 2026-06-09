@@ -2,6 +2,7 @@
 import { useEffect, useState, memo } from 'react'
 import { FolderOpen, Package, ChevronDown, ChevronRight } from 'lucide-react'
 import type { ViewMode } from './usePluginsState'
+import { toLocalAssetUrl } from '../../../utils/resolveAsset'
 
 interface EnginePlugin {
   name: string
@@ -19,7 +20,7 @@ interface EnginePlugin {
 export const PluginThumb = memo(
   ({ icon, name }: { icon: string | null; name: string }): React.ReactElement => {
     const [failed, setFailed] = useState(false)
-    const src = icon && !failed ? `local-asset:///${icon.replace(/\\/g, '/')}` : null
+    const src = icon && !failed ? toLocalAssetUrl(icon) : null
     if (src)
       return (
         <img
