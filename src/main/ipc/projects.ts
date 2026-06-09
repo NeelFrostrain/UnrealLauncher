@@ -14,7 +14,6 @@ import {
   deleteProject
 } from './projectHandlers'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
-import { scanProjectPlugins } from './projectPlugins'
 
 /**
  * Registers all project-related IPC handlers
@@ -58,11 +57,4 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   ipcMain_.handle('calculate-all-project-sizes', calculateAllProjectSizes)
-
-  ipcMain_.handle(
-  'project-scan-plugins',
-  async (_event, projectPath: string) => {
-    return scanProjectPlugins(projectPath)
-  }
-)
 }

@@ -84,14 +84,6 @@ declare global {
     createdBy: string
   }
 
-  interface ProjectPlugin {
-  name: string
-  path: string
-  description: string
-  version: string
-  enabled: boolean
-}
-
   interface LaunchConfig {
     id: string
     name: string
@@ -198,7 +190,6 @@ declare global {
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>
       scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
-projectScanPlugins: (projectPath: string) => Promise<ProjectPlugin[]>
       // Fab cache
       fabGetDefaultPath: () => Promise<string>
       fabSelectFolder: () => Promise<string | null>
