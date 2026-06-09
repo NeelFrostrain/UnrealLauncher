@@ -95,7 +95,7 @@ if (process.contextIsolated) {
       selectFolder: () => ipcRenderer.invoke('select-folder'),
       loadSavedProjects: () => ipcRenderer.invoke('load-saved-projects'),
       scanEnginePlugins: (engineDir: string) =>
-  ipcRenderer.invoke('scan-engine-plugins', engineDir),
+        ipcRenderer.invoke('scan-engine-plugins', engineDir),
       projectScanPlugins: (projectPath: string) =>
         ipcRenderer.invoke('project-scan-plugins', projectPath),
       fabGetDefaultPath: () => ipcRenderer.invoke('fab-get-default-path'),

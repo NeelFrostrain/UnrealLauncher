@@ -4,6 +4,7 @@
  */
 
 import { app, BrowserWindow, Tray, Menu, nativeImage, globalShortcut } from 'electron'
+import type { BrowserWindowConstructorOptions } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { optimizer } from '@electron-toolkit/utils'
@@ -192,7 +193,7 @@ export function createWindow(): void {
   logger.info('window', 'Creating splash and main window')
   createSplashWindow()
 
-  mainWindow = new BrowserWindow(MAIN_WINDOW_CONFIG as any)
+  mainWindow = new BrowserWindow(MAIN_WINDOW_CONFIG as BrowserWindowConstructorOptions)
   logger.info('window', 'Main BrowserWindow created', {
     width: MAIN_WINDOW_CONFIG.width,
     height: MAIN_WINDOW_CONFIG.height,

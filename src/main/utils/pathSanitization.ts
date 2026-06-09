@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import fs from 'fs'
-import { loadEngines } from '../store'
+import { loadEngines, loadProjectScanPaths, loadProjects } from '../store'
 
 // Restrict IPC file read/write operations to text-based configuration formats (e.g., .uproject, .ini, .conf, .cfg, .yaml, .json).
 // Explicitly block reading or writing binary executables (.exe, .dll, .sh, .bat) over these channels.
@@ -129,11 +129,8 @@ export function validatePath(
 export function getAppAllowedDirectories(): string[] {
   const allowedDirs: string[] = []
 
-  // Wrap imports and Electron app access in try-catch to remain fully compatible with test runners
+  // Wrap Electron app access in try-catch to remain fully compatible with test runners
   try {
-    const { loadProjectScanPaths, loadProjects } = require('../store')
-
-    // Add registered project scan paths
     const scanPaths = loadProjectScanPaths()
     for (const p of scanPaths) {
       if (p) allowedDirs.push(p)
@@ -149,6 +146,7 @@ export function getAppAllowedDirectories(): string[] {
   }
 
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { app } = require('electron')
     const userData = app.getPath('userData')
     if (userData) {
@@ -292,7 +290,6 @@ export function isRegisteredProjectPath(dirPath: string): string | undefined {
     const resolvedLower = resolved.toLowerCase()
 
     try {
-      const { loadProjects } = require('../store')
       const projects = loadProjects()
 
       if (projects && Array.isArray(projects) && projects.length > 0) {

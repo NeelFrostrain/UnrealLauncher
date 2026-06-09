@@ -8,7 +8,7 @@ export function useLaunchConfigState(
   exePath: string | undefined,
   projectPath: string | undefined,
   onClose: () => void
-) {
+): unknown {
   const { addToast } = useToast()
   const renameRef = useRef<HTMLInputElement>(null)
 

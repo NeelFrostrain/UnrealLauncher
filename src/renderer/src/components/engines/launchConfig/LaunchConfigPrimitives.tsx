@@ -1,9 +1,10 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /** Small reusable UI primitives used exclusively by LaunchConfigDialog. */
 import { ChevronDown } from 'lucide-react'
+import type { ReactElement } from 'react'
 
 // ── Pill ──────────────────────────────────────────────────────────────────────
-export function Pill({ label, color = 'var(--color-accent)' }: { label: string; color?: string }) {
+export function Pill({ label, color = 'var(--color-accent)' }: { label: string; color?: string }): ReactElement {
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full shrink-0"
@@ -27,7 +28,7 @@ export function Toggle({
   on: boolean
   onChange: () => void
   disabled?: boolean
-}) {
+}): ReactElement {
   return (
     <button
       onClick={onChange}
@@ -67,7 +68,7 @@ export function FeatureRow({
   onChange: () => void
   disabled?: boolean
   warn?: boolean
-}) {
+}): ReactElement {
   return (
     <div
       className="flex items-center justify-between gap-4 px-4 py-3.5 transition-colors"
@@ -106,7 +107,7 @@ export function SectionHead({
   icon: React.ReactNode
   label: string
   accent?: string
-}) {
+}): ReactElement {
   return (
     <div className="flex items-center gap-2.5 px-1 mb-2.5 mt-6 first:mt-0">
       <div
@@ -140,7 +141,7 @@ export function StyledSelect({
   onChange: (v: string) => void
   disabled: boolean
   children: React.ReactNode
-}) {
+}): ReactElement {
   return (
     <div className="relative shrink-0">
       <select

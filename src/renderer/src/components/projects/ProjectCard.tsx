@@ -2,14 +2,7 @@
 import { memo } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../../types'
-import {
-  Play,
-  Gamepad2,
-  MoreVertical,
-  Clock,
-  Database,
-  GitBranch
-} from 'lucide-react'
+import { Play, Gamepad2, MoreVertical, Clock, Database, GitBranch } from 'lucide-react'
 import { formatVersion, formatDate } from './projectUtils'
 import { useProjectCardState } from './card/projectCardState'
 import { useProjectCardHandlers } from './card/projectCardHandlers'

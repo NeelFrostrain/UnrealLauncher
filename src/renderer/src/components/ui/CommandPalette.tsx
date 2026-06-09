@@ -93,7 +93,17 @@ export function CommandPalette({
         ])
         if (cancelled) return
         setEngines(loadedEngines)
-        setProjects(loadedProjects)
+        const validProjects = loadedProjects.filter(
+          (project): project is ProjectData & { projectPath: string } =>
+            typeof project.projectPath === 'string' && project.projectPath.length > 0
+        )
+        setProjects(
+          validProjects.map(({ projectPath, name, version }) => ({
+            projectPath,
+            name,
+            version
+          }))
+        )
       } catch {
         // ignore failures, keep static commands available
       }
@@ -107,7 +117,9 @@ export function CommandPalette({
   const dynamicCommands = useMemo(() => {
     const engineCommands: Command[] = engines.map((engine) => ({
       id: `engine:${engine.exePath}`,
-      label: engine.alias ? `${engine.alias} (${engine.version})` : `Unreal Engine ${engine.version}`,
+      label: engine.alias
+        ? `${engine.alias} (${engine.version})`
+        : `Unreal Engine ${engine.version}`,
       description: engine.directoryPath,
       icon: ICONS.engines(),
       group: 'Engines',
@@ -138,14 +150,14 @@ export function CommandPalette({
 
   useEffect(() => {
     if (open) {
-      setQuery('')
-      setActiveIdx(0)
-      requestAnimationFrame(() => inputRef.current?.focus())
+      requestAnimationFrame(() => {
+        setQuery('')
+        setActiveIdx(0)
+        inputRef.current?.focus()
+      })
     }
   }, [open])
-  useEffect(() => {
-    setActiveIdx(0)
-  }, [query])
+
   useEffect(() => {
     listRef.current
       ?.querySelector<HTMLElement>(`[data-idx="${activeIdx}"]`)
@@ -239,7 +251,10 @@ export function CommandPalette({
                 ref={inputRef}
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value)
+                  setActiveIdx(0)
+                }}
                 onKeyDown={onKeyDown}
                 placeholder="Type a command or search…"
                 className="flex-1 bg-transparent outline-none text-sm"

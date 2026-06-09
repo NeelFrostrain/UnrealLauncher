@@ -51,9 +51,7 @@ export function useProjectPluginsState(projectDir: string) {
 
     return q
       ? plugins.filter(
-          (p) =>
-            p.name.toLowerCase().includes(q) ||
-            p.description.toLowerCase().includes(q)
+          (p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
         )
       : plugins
   }, [plugins, searchQuery])

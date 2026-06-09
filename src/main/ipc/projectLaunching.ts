@@ -11,6 +11,28 @@ import { isRegisteredProjectPath } from '../utils/pathSanitization'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
 import { buildLaunchArgs } from '../utils/launchConfigArgs'
 
+function spawnDetachedProcess(executable: string, args: string[]): void {
+  if (process.platform === 'win32') {
+    // Avoid manual quoting — pass the executable and args directly.
+    // `start "" <exe> <args...>` uses the first quoted string as window title.
+    try {
+      spawn('cmd', ['/c', 'start', '""', executable, ...args], {
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true
+      }).unref()
+    } catch (err) {
+      // Fallback to direct spawn if start fails for any reason
+      try {
+        spawn(executable, args, { detached: true, stdio: 'ignore', windowsHide: true }).unref()
+      } catch { }
+    }
+    return
+  }
+
+  spawn(executable, args, { detached: true, stdio: 'ignore' }).unref()
+}
+
 /**
  * Locates the .uproject file in a project directory
  */
@@ -57,7 +79,40 @@ async function getEngineAssociation(uprojectPath: string): Promise<string> {
 function findEditorExecutable(engineAssociation: string): string {
   const engines = loadEngines()
 
-  // 1. Match from stored engines list by version
+  // Helper: given a stored path (file or directory) attempt to resolve a real editor executable
+  const ext = getBinaryExtension()
+  function resolvePossibleExe(p: string): string {
+    try {
+      let candidate = path.normalize(path.resolve(p))
+      if (!fs.existsSync(candidate)) return ''
+      const stat = fs.statSync(candidate)
+      if (stat.isFile()) return candidate
+      // If it's a directory, look for common editor binaries inside known subpaths
+      if (stat.isDirectory()) {
+        const platformBin = process.platform === 'darwin' ? 'Mac' : process.platform === 'linux' ? 'Linux' : 'Win64'
+        const commonNames = [`UnrealEditor${ext}`, `UE4Editor${ext}`]
+        // Check Engine/Binaries/<platform>/
+        for (const name of commonNames) {
+          const p1 = path.join(candidate, 'Engine', 'Binaries', platformBin, name)
+          if (fs.existsSync(p1)) return p1
+        }
+        // Check candidate root for any editor-like executables
+        try {
+          for (const f of fs.readdirSync(candidate)) {
+            const full = path.join(candidate, f)
+            try {
+              if (fs.statSync(full).isFile() && f.toLowerCase().endsWith(ext) && f.toLowerCase().includes('editor')) {
+                return full
+              }
+            } catch { }
+          }
+        } catch { }
+      }
+    } catch { }
+    return ''
+  }
+
+  // 1. Prefer stored engines matched by association
   if (engineAssociation) {
     const match = engines.find(
       (e) =>
@@ -65,14 +120,31 @@ function findEditorExecutable(engineAssociation: string): string {
         e.version.startsWith(engineAssociation) ||
         engineAssociation.startsWith(e.version)
     )
-    if (match?.exePath && fs.existsSync(match.exePath)) return match.exePath
+    if (match) {
+      if (match.exePath) {
+        const resolved = resolvePossibleExe(match.exePath)
+        if (resolved) return resolved
+      }
+      if (match.directoryPath) {
+        const resolved = resolvePossibleExe(match.directoryPath)
+        if (resolved) return resolved
+      }
+    }
   }
 
   // 2. Any stored engine as fallback
-  const anyStored = engines.find((e) => e.exePath && fs.existsSync(e.exePath))
-  if (anyStored) return anyStored.exePath
+  for (const e of engines) {
+    if (e.exePath) {
+      const resolved = resolvePossibleExe(e.exePath)
+      if (resolved) return resolved
+    }
+    if (e.directoryPath) {
+      const resolved = resolvePossibleExe(e.directoryPath)
+      if (resolved) return resolved
+    }
+  }
 
-  // 3. On Linux/macOS: live scan common install paths (Windows uses OS file association)
+  // 3. On non-Windows, try a live scan of common paths
   if (process.platform !== 'win32') {
     const scanned = scanEnginePaths()
     if (engineAssociation) {
@@ -84,13 +156,12 @@ function findEditorExecutable(engineAssociation: string): string {
       )
       if (match?.exePath) return match.exePath
     }
-    if (scanned.length > 0) return scanned[0].exePath
+    if (scanned.length > 0 && scanned[0].exePath) return scanned[0].exePath
 
-    // 4. Check UE_ROOT env var directly (Linux)
+    // 4. Check UE_ROOT env var directly (Linux/macOS)
     const ueRoot = process.env.UE_ROOT
     if (ueRoot) {
       const binPlatform = process.platform === 'darwin' ? 'Mac' : 'Linux'
-      const ext = getBinaryExtension()
       for (const name of [`UnrealEditor${ext}`, `UE4Editor${ext}`]) {
         const candidate = path.join(ueRoot, 'Engine', 'Binaries', binPlatform, name)
         if (fs.existsSync(candidate)) return candidate
@@ -158,7 +229,7 @@ export async function handleLaunchProject(projectPath: string): Promise<Record<s
   }
 
   try {
-    spawn(editorExe, [uprojectPath], { detached: true, stdio: 'ignore' }).unref()
+    spawnDetachedProcess(editorExe, [uprojectPath])
     logger.info('project', 'Project editor process spawned', { editorExe, uprojectPath })
     return { success: true }
   } catch (err) {
@@ -217,7 +288,7 @@ export async function handleLaunchProjectWithConfig(
     const configArgs = buildLaunchArgs(config)
     const args = [uprojectPath, ...configArgs]
     logger.info('project', 'Project config launch args built', { editorExe, args })
-    spawn(editorExe, args, { detached: true, stdio: 'ignore' }).unref()
+    spawnDetachedProcess(editorExe, args)
     logger.info('project', 'Project editor process spawned with config', {
       editorExe,
       uprojectPath,
@@ -283,7 +354,7 @@ export async function handleLaunchProjectGame(
   }
 
   try {
-    spawn(editorExe, [uprojectPath, '-game'], { detached: true, stdio: 'ignore' }).unref()
+    spawnDetachedProcess(editorExe, [uprojectPath, '-game'])
     logger.info('project', 'Project game process spawned', { editorExe, uprojectPath })
     return { success: true }
   } catch (err) {

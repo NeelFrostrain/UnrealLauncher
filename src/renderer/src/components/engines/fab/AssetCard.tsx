@@ -1,5 +1,5 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useState, memo } from 'react'
+import { useState, memo, type ReactElement } from 'react'
 import { FolderOpen, Package, FileCode, Box, HelpCircle } from 'lucide-react'
 import { AssetThumb } from './AssetThumb'
 
@@ -43,7 +43,7 @@ const AssetBadge = ({
   label: string
   color: string
   version?: string
-}) => (
+}): ReactElement => (
   <span
     className="flex items-center gap-0.5 text-[9px] px-1.5 py-px font-medium shrink-0"
     style={{
@@ -66,7 +66,7 @@ const AssetActions = ({
   asset: FabAsset
   hovered: boolean
   size?: number
-}) => (
+}): ReactElement => (
   <div className="flex items-center gap-1">
     {asset.actionUrl && (
       <button
@@ -113,7 +113,7 @@ const AssetActions = ({
 )
 
 // ── Shared tags ───────────────────────────────────────────────────────────────
-const AssetTags = ({ asset }: { asset: FabAsset }) => {
+const AssetTags = ({ asset }: { asset: FabAsset }): ReactElement | null => {
   const tags = asset.tags || asset.filters || []
   if (!tags.length) return null
   return (
@@ -331,6 +331,9 @@ export const AssetGridCard = memo(({ asset }: { asset: FabAsset }): React.ReactE
     </div>
   )
 })
+
+AssetListCard.displayName = 'AssetListCard'
+AssetGridCard.displayName = 'AssetGridCard'
 
 const AssetCard = AssetListCard
 export default AssetCard

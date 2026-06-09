@@ -32,6 +32,7 @@ declare global {
       execute: (commandId: string) => void
       launchEngine: (exePath: string) => void
       launchProject: (projectPath: string) => void
+      launchProjectWithConfig: (projectPath: string, configId: string) => void
       close: () => void
       ready: () => void
       getData: () => Promise<{ engines: EngineData[]; projects: ProjectData[] }>
@@ -384,7 +385,11 @@ export function PaletteWindow(): React.ReactElement {
       ?.scrollIntoView({ block: 'nearest' })
   }, [activeIdx])
 
-  const run = useCallback((item: PaletteItem) => {
+  const run = useCallback((item: PaletteItem, shift = false) => {
+    if (shift && item.kind === 'project' && item.payload) {
+      window.paletteAPI?.launchProjectWithConfig(item.payload, 'builtin-skeleton')
+      return
+    }
     if (item.kind === 'engine' && item.payload) window.paletteAPI?.launchEngine(item.payload)
     else if (item.kind === 'project' && item.payload) window.paletteAPI?.launchProject(item.payload)
     else window.paletteAPI?.execute(item.id)
@@ -399,9 +404,16 @@ export function PaletteWindow(): React.ReactElement {
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
         setActiveIdx((i) => (i - 1 + n) % n)
-      } else if (e.key === 'Enter') {
-        e.preventDefault()
-        if (filtered[activeIdx]) run(filtered[activeIdx])
+        } else if (e.key === 'Enter') {
+          e.preventDefault()
+          const sel = filtered[activeIdx]
+          if (!sel) return
+          // Shift+Enter: launch project with the built-in "Skeleton (Lowest)" config
+          if (e.shiftKey && sel.kind === 'project' && sel.payload) {
+            window.paletteAPI?.launchProjectWithConfig(sel.payload, 'builtin-skeleton')
+          } else {
+            run(sel)
+          }
       } else if (e.key === 'Escape') {
         e.preventDefault()
         window.paletteAPI?.close()
@@ -478,7 +490,7 @@ export function PaletteWindow(): React.ReactElement {
                     role="option"
                     aria-selected={active}
                     data-idx={idx}
-                    onClick={() => run(item)}
+                    onClick={(e: React.MouseEvent) => run(item, e.shiftKey)}
                     onMouseEnter={() => setActiveIdx(idx)}
                     style={{
                       display: 'flex',
@@ -626,6 +638,7 @@ export function PaletteWindow(): React.ReactElement {
           [
             ['↑↓', 'navigate'],
             ['↵', 'run'],
+            ['Shift+↵', 'open (Lowest)'],
             ['Esc', 'close']
           ] as const
         ).map(([key, label]) => (

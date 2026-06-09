@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.3.2] — `bugfix · build · launch`
+
+## [2.3.3] — `ux · palette`
+
+### ✨ Added
+
+- Palette: `Shift+Enter` and Shift+Click now open the selected project using the built-in "Skeleton (Lowest)" launch config (`builtin-skeleton`). This launches the editor with the minimal startup args (no heavy rendering features) for faster, low-footprint testing.
+- Exposed `palette-launch-project-config` IPC and `paletteAPI.launchProjectWithConfig(projectPath, configId)` in the palette preload so the palette can request specific launch profiles. If the requested built-in config is not found, the palette falls back to the normal open behaviour.
+- Palette UI footer now shows a `Shift+↵` hint labelled "open (Lowest)" to indicate the alternate open action.
+
+
+### 🐛 Fixed
+
+- Fixed Windows project launch so Unreal Editor is spawned fully detached from Electron using `cmd /c start "" ...`, preventing the editor from remaining a child process of the app.
+- Fixed renderer manual chunk logic in `electron.vite.config.ts` by removing the unsafe `react-core` grouping and avoiding the circular `vendor -> react-core -> vendor` chunk during production build.
+- Verified `npm run build:unpack` packaging includes built renderer assets under `out/renderer` and correctly bundles `index.html`/`palette.html` into `app.asar`.
+ - Robust engine executable resolution: when a stored engine path points to a directory (or includes a trailing folder), the launcher now searches common subpaths such as `Engine/Binaries/<platform>` and scans the folder for editor-like executables (e.g. `UnrealEditor.exe`). This prevents "Windows cannot find 'D:\...Unreal'" errors when the stored path is a folder or not a direct exe.
+ - Improved Windows detached spawn logic: `cmd start` is used without manual quoting and `windowsHide` is set; if `start` fails we fallback to spawning the executable directly. This fixes cases where quoted arguments caused Windows to treat the exe path as a window title.
+ - Logging and guidance: the launch flow now logs the resolved `editorExe` path (see main log). If you see a misspelled stored path (e.g. `D:\Enignes\...`) update the engine entry in the Engines tab — the resolver will attempt common locations but cannot correct typos in stored paths.
+
 ## [2.3.1] — `ux · features · arch · testing`
 
 ### ✨ Added — UX & Accessibility (Section 4)

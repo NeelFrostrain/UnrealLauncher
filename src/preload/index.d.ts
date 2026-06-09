@@ -85,12 +85,12 @@ declare global {
   }
 
   interface ProjectPlugin {
-  name: string
-  path: string
-  description: string
-  version: string
-  enabled: boolean
-}
+    name: string
+    path: string
+    description: string
+    version: string
+    enabled: boolean
+  }
 
   interface LaunchConfig {
     id: string
@@ -189,16 +189,16 @@ declare global {
       openLogsFolder: () => Promise<void>
       clearLogs: () => Promise<{ success: boolean; removed: number }>
       logActivity: (activity: Record<string, unknown>) => Promise<void>
-      getMainSettings: () => Promise<any>
+      getMainSettings: () => Promise<Record<string, unknown>>
       getRunningProjects: () => Promise<string[]>
       platform: string
       appVersion: string
       electronVersion: string
-      saveMainSettings: (settings: any) => Promise<void>
+      saveMainSettings: (settings: Record<string, unknown>) => Promise<void>
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>
       scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
-projectScanPlugins: (projectPath: string) => Promise<ProjectPlugin[]>
+      projectScanPlugins: (projectPath: string) => Promise<ProjectPlugin[]>
       // Fab cache
       fabGetDefaultPath: () => Promise<string>
       fabSelectFolder: () => Promise<string | null>

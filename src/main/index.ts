@@ -53,7 +53,11 @@ function isProjectThumbnailPath(normalizedResolved: string, resolved: string): b
 }
 
 function isEnginePluginIconPath(normalizedResolved: string, resolved: string): boolean {
-  if (!normalizedResolved.includes('/engine/plugins/') || !normalizedResolved.includes('/resources/') || !normalizedResolved.endsWith('icon128.png')) {
+  if (
+    !normalizedResolved.includes('/engine/plugins/') ||
+    !normalizedResolved.includes('/resources/') ||
+    !normalizedResolved.endsWith('icon128.png')
+  ) {
     return false
   }
 

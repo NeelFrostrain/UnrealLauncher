@@ -240,15 +240,15 @@ On each scan, tracer data is merged with saved data. Tracer provides `lastOpened
 
 ### Frontend
 
-| Library       | Version | Purpose                                |
-| ------------- | ------- | -------------------------------------- |
-| React         | 19      | UI framework                           |
-| TypeScript    | 5.9     | Type safety                            |
-| Tailwind CSS  | 4       | Styling                                |
-| Zustand       | 5       | State management                       |
-| Framer Motion | 12      | Animations                             |
-| Lucide React  | 1.8     | Icons                                  |
-| React Router  | 7       | Page routing                           |
+| Library       | Version | Purpose                                          |
+| ------------- | ------- | ------------------------------------------------ |
+| React         | 19      | UI framework                                     |
+| TypeScript    | 5.9     | Type safety                                      |
+| Tailwind CSS  | 4       | Styling                                          |
+| Zustand       | 5       | State management                                 |
+| Framer Motion | 12      | Animations                                       |
+| Lucide React  | 1.8     | Icons                                            |
+| React Router  | 7       | Page routing                                     |
 | React Window  | 2       | Virtualized lists (large project sets) — planned |
 
 ### Backend (Main Process)

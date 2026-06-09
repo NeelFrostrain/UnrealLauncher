@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { promises as fsPromises } from 'fs'
 import type { FabAsset } from '../src/main/utils/fabAssetDetection'
+import Module from 'module'
 
 // ── Mock Electron module before importing any main process files ────────────────
 const tempUserData = path.join(__dirname, '../temp-test-userdata')
@@ -10,9 +11,12 @@ if (!fs.existsSync(tempUserData)) {
   fs.mkdirSync(tempUserData, { recursive: true })
 }
 
-const Module = require('module')
-const originalRequire = Module.prototype.require
-Module.prototype.require = function (id: string) {
+const originalRequire = Module.prototype.require as (
+  this: any,
+  id: string,
+  ...args: unknown[]
+) => unknown
+Module.prototype.require = function (this: any, id: string, ...args: unknown[]) {
   if (id === 'electron') {
     return {
       app: {
@@ -29,14 +33,17 @@ Module.prototype.require = function (id: string) {
 }
 
 // Helper to clean up a directory recursively
-async function cleanDirectory(dir: string) {
+async function cleanDirectory(dir: string): Promise<void> {
   if (fs.existsSync(dir)) {
     await fsPromises.rm(dir, { recursive: true, force: true })
   }
 }
 
 // Helper to build a file/folder structure
-async function createStructure(base: string, structure: any) {
+async function createStructure(
+  base: string,
+  structure: Record<string, string | Record<string, unknown>>
+): Promise<void> {
   await fsPromises.mkdir(base, { recursive: true })
   for (const [key, value] of Object.entries(structure)) {
     const itemPath = path.join(base, key)
@@ -48,11 +55,11 @@ async function createStructure(base: string, structure: any) {
   }
 }
 
-async function runTests() {
+async function runTests(): Promise<void> {
   console.log('\n=== RUNNING FAB SCANNER UNIT TESTS ===\n')
 
-  const { scanFabFolder } = require('../src/main/ipc/fabScanner')
-  const { saveMainSettings } = require('../src/main/store')
+  const { scanFabFolder } = await import('../src/main/ipc/fabScanner')
+  const { saveMainSettings } = await import('../src/main/store')
 
   const testRoot = path.join(__dirname, '../temp-scanner-test-root')
   await cleanDirectory(testRoot)

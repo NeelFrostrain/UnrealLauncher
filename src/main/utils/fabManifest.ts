@@ -21,7 +21,20 @@ export function readManifest(folderPath: string): Record<string, unknown> | null
 /**
  * Extracts asset metadata from manifest
  */
-export function extractManifestMetadata(manifest: Record<string, unknown>) {
+export function extractManifestMetadata(
+  manifest: Record<string, unknown>
+): {
+  name: string
+  version: string
+  thumbnailUrl: string | null
+  category: string
+  assetType: string
+  actionUrl?: string
+  tags?: string[]
+  isCodeProject: boolean
+  filters?: string[]
+  compatibleApps: string[]
+} {
   const cf = (manifest.CustomFields as Record<string, string>) ?? {}
   return {
     name: cf['Vault.TitleText'] || (manifest.AppNameString as string) || '',

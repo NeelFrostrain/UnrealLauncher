@@ -9,9 +9,7 @@ export interface ProjectPlugin {
   enabled: boolean
 }
 
-export async function scanProjectPlugins(
-  projectDir: string
-): Promise<ProjectPlugin[]> {
+export async function scanProjectPlugins(projectDir: string): Promise<ProjectPlugin[]> {
   const pluginsDir = path.join(projectDir, 'Plugins')
 
   if (!fs.existsSync(pluginsDir)) {

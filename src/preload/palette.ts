@@ -18,6 +18,10 @@ contextBridge.exposeInMainWorld('paletteAPI', {
   launchProject: (projectPath: string): void => {
     ipcRenderer.send('palette-launch-project', projectPath)
   },
+  /** Launch a project using a built-in launch config (by id) */
+  launchProjectWithConfig: (projectPath: string, configId: string): void => {
+    ipcRenderer.send('palette-launch-project-config', projectPath, configId)
+  },
   /** Close this palette window */
   close: (): void => {
     ipcRenderer.send('palette-close')

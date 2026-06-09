@@ -59,10 +59,7 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
 
   ipcMain_.handle('calculate-all-project-sizes', calculateAllProjectSizes)
 
-  ipcMain_.handle(
-  'project-scan-plugins',
-  async (_event, projectPath: string) => {
+  ipcMain_.handle('project-scan-plugins', async (_event, projectPath: string) => {
     return scanProjectPlugins(projectPath)
-  }
-)
+  })
 }

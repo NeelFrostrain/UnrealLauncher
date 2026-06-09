@@ -41,15 +41,19 @@ export function handleClearTracerData(): void {
 /**
  * Handles the get-main-settings IPC event
  */
-export function handleGetMainSettings(): any {
+export function handleGetMainSettings(): Record<string, unknown> {
   return loadMainSettings()
 }
 
 /**
  * Handles the save-main-settings IPC event
  */
-export function handleSaveMainSettings(settings: any): void {
-  logger.info('settings', 'Saving main settings', { keys: Object.keys(settings || {}) })
+export function handleSaveMainSettings(settings: Record<string, unknown>): void {
+  const settingKeys =
+    typeof settings === 'object' && settings !== null
+      ? Object.keys(settings)
+      : []
+  logger.info('settings', 'Saving main settings', { keys: settingKeys })
   saveMainSettings(settings)
 }
 
@@ -127,6 +131,6 @@ export function handleClearLogs(): { success: boolean; removed: number } {
   return { success: true, removed }
 }
 
-export function handleRendererActivity(event: any): void {
+export function handleRendererActivity(event: Record<string, unknown>): void {
   logger.info('ui', event?.action || 'Renderer activity', event || {})
 }

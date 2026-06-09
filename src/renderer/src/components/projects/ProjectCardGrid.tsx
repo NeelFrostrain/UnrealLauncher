@@ -51,9 +51,7 @@ const ProjectCardGrid = memo(
 
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
     // Use thumbnailKey to scope thumbnail cache-busting per project
-    const imageSrc = thumbnail
-      ? toLocalAssetUrl(thumbnail, thumbnailKey)
-      : resolveAsset(undefined)
+    const imageSrc = thumbnail ? toLocalAssetUrl(thumbnail, thumbnailKey) : resolveAsset(undefined)
 
     return (
       <>

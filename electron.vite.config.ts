@@ -60,9 +60,6 @@ export default defineConfig({
             if (!id) return undefined
             const normalizedId = id.replace(/\\\\/g, '/')
             if (normalizedId.includes('/node_modules/')) {
-              if (normalizedId.includes('react-router-dom') || normalizedId.includes('react-dom') || normalizedId.includes('/react/')) {
-                return 'react-core'
-              }
               if (normalizedId.includes('framer-motion')) return 'framer'
               if (normalizedId.includes('lucide-react')) return 'lucide'
               if (normalizedId.includes('zustand')) return 'state'
@@ -78,16 +75,20 @@ export default defineConfig({
       target: 'es2020',
       minify: 'esbuild',
       cssCodeSplit: true,
-      esbuild: {
-        drop: ['console', 'debugger']
-      },
       sourcemap: false,
       assetsInlineLimit: 4096,
       chunkSizeWarningLimit: 1000
     },
     plugins: [react(), tailwindcss()],
     optimizeDeps: {
-      include: ['react', 'react-dom', 'react-router-dom', 'zustand', 'framer-motion', 'lucide-react']
+      include: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        'zustand',
+        'framer-motion',
+        'lucide-react'
+      ]
     }
   }
 })

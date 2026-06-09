@@ -7,9 +7,7 @@ interface ProjectPluginsTabProps {
   projectDir: string
 }
 
-const ProjectPluginsTab = ({
-  projectDir
-}: ProjectPluginsTabProps): React.ReactElement => {
+const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactElement => {
   const {
     plugins,
     filteredPlugins,
@@ -66,13 +64,8 @@ const ProjectPluginsTab = ({
             className="flex items-center p-1.5 cursor-pointer transition-colors"
             style={{
               backgroundColor:
-                viewMode === 'list'
-                  ? 'var(--color-accent)'
-                  : 'var(--color-surface-card)',
-              color:
-                viewMode === 'list'
-                  ? 'var(--color-text-primary)'
-                  : 'var(--color-text-muted)'
+                viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+              color: viewMode === 'list' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
             }}
           >
             <LayoutList size={13} />
@@ -83,13 +76,8 @@ const ProjectPluginsTab = ({
             className="flex items-center p-1.5 cursor-pointer transition-colors"
             style={{
               backgroundColor:
-                viewMode === 'grid'
-                  ? 'var(--color-accent)'
-                  : 'var(--color-surface-card)',
-              color:
-                viewMode === 'grid'
-                  ? 'var(--color-text-primary)'
-                  : 'var(--color-text-muted)'
+                viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+              color: viewMode === 'grid' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
             }}
           >
             <LayoutGrid size={13} />
@@ -115,10 +103,7 @@ const ProjectPluginsTab = ({
       {/* Stats */}
       {!loading && plugins.length > 0 && (
         <div className="px-1 pb-1.5 shrink-0">
-          <p
-            className="text-[11px]"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
+          <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
             {filteredPlugins.length} plugin
             {filteredPlugins.length !== 1 ? 's' : ''}
             {' — '}Project Plugins
@@ -139,16 +124,10 @@ const ProjectPluginsTab = ({
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-32 gap-2 text-center px-4">
             <AlertTriangle size={24} style={{ color: '#f87171' }} />
-            <p
-              className="text-xs font-medium"
-              style={{ color: '#f87171' }}
-            >
+            <p className="text-xs font-medium" style={{ color: '#f87171' }}>
               Plugin scan failed
             </p>
-            <p
-              className="text-[11px]"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
+            <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
               {error}
             </p>
           </div>
@@ -162,10 +141,7 @@ const ProjectPluginsTab = ({
                 opacity: 0.2
               }}
             />
-            <p
-              className="text-xs"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
+            <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               No plugins found
             </p>
           </div>
@@ -183,18 +159,12 @@ const ProjectPluginsTab = ({
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{plugin.name}</span>
 
-                  <span
-                    className="text-xs"
-                    style={{ color: 'var(--color-text-muted)' }}
-                  >
+                  <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
                     {plugin.version ? `v${plugin.version}` : ''}
                   </span>
                 </div>
 
-                <p
-                  className="text-xs mt-1"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
+                <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
                   {plugin.description || 'No description available'}
                 </p>
               </div>

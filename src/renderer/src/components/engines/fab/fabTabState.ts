@@ -8,7 +8,7 @@ type ViewMode = 'list' | 'grid'
 /**
  * Custom hook for managing FabTab state
  */
-export function useFabTabState() {
+export function useFabTabState(): unknown {
   const { addToast } = useToast()
   const [folderPath, setFolderPath] = useState('')
   const [assets, setAssets] = useState<FabAsset[]>([])

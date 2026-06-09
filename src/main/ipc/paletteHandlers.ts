@@ -1,9 +1,9 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
 import { getMainWindow } from '../window'
-import { loadEngines, loadProjects } from '../store'
+import { loadEngines, loadProjects, loadLaunchConfigs } from '../store'
 import { handleLaunchEngine } from './engineHandlers'
-import { handleLaunchProject } from './projectLaunching'
+import { handleLaunchProject, handleLaunchProjectWithConfig } from './projectLaunching'
 import { logger } from '../logger'
 
 // Map command IDs → route to push to the main window
@@ -102,6 +102,37 @@ export function registerPaletteHandlers(ipcMain_: typeof ipcMain): void {
         handleLaunchProject(projectPath).catch((err) =>
           logger.error('palette', 'Project launch failed', err)
         )
+      })
+      .catch((err) => logger.error('palette', 'Failed to close palette', err))
+  })
+
+  // User launched a project from the palette requesting a built-in launch config
+  ipcMain_.on('palette-launch-project-config', (_event, projectPath: string, configId: string) => {
+    logger.info('palette', 'Launch project from palette with config', { projectPath, configId })
+    import('../window/paletteWindow')
+      .then(({ closePaletteWindow }) => {
+        closePaletteWindow()
+        showMainWindow()
+        getMainWindow()?.webContents.send('palette-navigate', '/projects')
+        try {
+          const configs = loadLaunchConfigs()
+          const cfg = configs.find((c) => c.id === configId)
+          if (cfg) {
+            handleLaunchProjectWithConfig(projectPath, cfg).catch((err) =>
+              logger.error('palette', 'Project config launch failed', err)
+            )
+          } else {
+            logger.warn('palette', 'Requested launch config not found, falling back to normal launch', {
+              configId
+            })
+            handleLaunchProject(projectPath).catch((err) =>
+              logger.error('palette', 'Project launch failed', err)
+            )
+          }
+        } catch (err) {
+          logger.error('palette', 'Failed to load launch configs', err)
+          handleLaunchProject(projectPath).catch((e) => logger.error('palette', 'Project launch failed', e))
+        }
       })
       .catch((err) => logger.error('palette', 'Failed to close palette', err))
   })
