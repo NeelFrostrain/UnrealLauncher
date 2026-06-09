@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { AlertTriangle, BookOpen, Code, GitBranch, MessageCircle } from 'lucide-react'
 import config from '../../../../config'
 

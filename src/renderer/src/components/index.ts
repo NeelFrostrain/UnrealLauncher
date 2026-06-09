@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 export { default as Sidebar } from './layout/Sidebar'
 export { default as Titlebar } from './layout/Titlebar'
 export { default as PageTitlebar } from './layout/PageTitlebar'

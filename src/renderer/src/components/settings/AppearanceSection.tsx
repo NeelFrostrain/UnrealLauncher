@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { type RefObject } from 'react'
 import { type ThemeToken } from '../../utils/theme'
 import SavedProfilesSection from './SavedProfilesSection'

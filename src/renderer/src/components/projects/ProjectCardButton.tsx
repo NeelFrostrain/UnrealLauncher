@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type { FC, ReactNode } from 'react'
 
 const ProjectCardButton: FC<{

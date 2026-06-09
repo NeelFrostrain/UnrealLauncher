@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'

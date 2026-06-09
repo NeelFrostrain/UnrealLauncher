@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { motion } from 'framer-motion'
 import type { FC, ReactElement, KeyboardEvent } from 'react'
 import { useState, useRef, memo, useCallback } from 'react'
@@ -202,7 +202,8 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                         className="text-[8px] px-1 py-0.5 rounded cursor-pointer transition-colors"
                         style={{
                           color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
-                          backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
+                          backgroundColor:
+                            'color-mix(in srgb, var(--color-accent) 10%, transparent)'
                         }}
                         title="Calculate exact size"
                       >

@@ -1,12 +1,18 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { describe, it, expect } from 'vitest'
 import { formatVersion, formatDate, sortProjects } from '../projectUtils'
 
 // Minimal project shape used for sort tests.
 // Cast to satisfy the global ProjectData type which requires thumbnail: string | undefined.
-function p(overrides: Partial<{
-  name: string; size: string; createdAt: string; lastOpenedAt: string; version: string
-}>): ProjectData {
+function p(
+  overrides: Partial<{
+    name: string
+    size: string
+    createdAt: string
+    lastOpenedAt: string
+    version: string
+  }>
+): ProjectData {
   return {
     name: overrides.name ?? 'Project',
     version: overrides.version ?? '5.3',
@@ -23,8 +29,10 @@ function p(overrides: Partial<{
 describe('formatVersion', () => {
   it('returns ? for empty string', () => expect(formatVersion('')).toBe('?'))
   it('returns ? for Unknown', () => expect(formatVersion('Unknown')).toBe('?'))
-  it('returns Custom for GUID-style string', () => expect(formatVersion('{12345678-abcd-efab-0000-123456789abc}')).toBe('Custom'))
-  it('returns Custom for version string > 12 chars', () => expect(formatVersion('5.3.2-release-1234')).toBe('Custom'))
+  it('returns Custom for GUID-style string', () =>
+    expect(formatVersion('{12345678-abcd-efab-0000-123456789abc}')).toBe('Custom'))
+  it('returns Custom for version string > 12 chars', () =>
+    expect(formatVersion('5.3.2-release-1234')).toBe('Custom'))
   it('passes through short version string', () => expect(formatVersion('5.3')).toBe('5.3'))
   it('passes through 4-char version', () => expect(formatVersion('5.3.2')).toBe('5.3.2'))
 })
@@ -67,8 +75,8 @@ describe('sortProjects — by name', () => {
 
 describe('sortProjects — by size', () => {
   const projects = [
-    p({ name: 'Big',    size: '10 GB' }),
-    p({ name: 'Small',  size: '200 MB' }),
+    p({ name: 'Big', size: '10 GB' }),
+    p({ name: 'Small', size: '200 MB' }),
     p({ name: 'Medium', size: '1.5 GB' })
   ]
 
@@ -83,10 +91,7 @@ describe('sortProjects — by size', () => {
   })
 
   it('handles range sizes like ~35-45 GB', () => {
-    const proj = [
-      p({ name: 'Range', size: '~35-45 GB' }),
-      p({ name: 'Exact', size: '40 GB' })
-    ]
+    const proj = [p({ name: 'Range', size: '~35-45 GB' }), p({ name: 'Exact', size: '40 GB' })]
     // Range uses lower bound (35 GB) < 40 GB, so Range sorts before Exact ascending
     const sorted = sortProjects(proj, { key: 'size', direction: 'asc' })
     expect(sorted[0].name).toBe('Range')
@@ -95,9 +100,9 @@ describe('sortProjects — by size', () => {
 
 describe('sortProjects — by lastOpenedAt', () => {
   const projects = [
-    p({ name: 'Old',     lastOpenedAt: '2023-01-01' }),
-    p({ name: 'Recent',  lastOpenedAt: '2025-06-01' }),
-    p({ name: 'Middle',  lastOpenedAt: '2024-03-15' }),
+    p({ name: 'Old', lastOpenedAt: '2023-01-01' }),
+    p({ name: 'Recent', lastOpenedAt: '2025-06-01' }),
+    p({ name: 'Middle', lastOpenedAt: '2024-03-15' }),
     p({ name: 'Never' }) // no lastOpenedAt
   ]
 
@@ -116,8 +121,8 @@ describe('sortProjects — by lastOpenedAt', () => {
 
 describe('sortProjects — by version', () => {
   const projects = [
-    p({ name: 'V53',  version: '5.3' }),
-    p({ name: 'V51',  version: '5.1' }),
+    p({ name: 'V53', version: '5.3' }),
+    p({ name: 'V51', version: '5.1' }),
     p({ name: 'V423', version: '4.27' })
   ]
 

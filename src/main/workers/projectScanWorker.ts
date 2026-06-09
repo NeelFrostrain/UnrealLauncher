@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Worker script for scanning Unreal Engine projects.
  * Executed in a worker thread to avoid blocking the main process.

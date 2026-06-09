@@ -1,6 +1,12 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { describe, it, expect } from 'vitest'
-import { buildLaunchArgs, isRhiAvailable, getSkeletonRhi, SKELETON_CONFIG, DEFAULT_CONFIG } from '../launchConfigArgs'
+import {
+  buildLaunchArgs,
+  isRhiAvailable,
+  getSkeletonRhi,
+  SKELETON_CONFIG,
+  DEFAULT_CONFIG
+} from '../launchConfigArgs'
 import type { LaunchConfig } from '../launchConfigArgs'
 
 // Minimal valid config used as a base for each test.
@@ -14,7 +20,7 @@ const base: LaunchConfig = {
   lumen: true,
   nanite: true,
   vsm: true,
-  rayTracing: true,   // true = no disable flag emitted
+  rayTracing: true, // true = no disable flag emitted
   ssr: true,
   taa: true,
   bloom: true,

@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Main process data store.
  * Public API is identical to the old store.ts — all imports that used
@@ -9,14 +9,21 @@ import type { Engine, Project } from '../types'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
 import { SKELETON_CONFIG, DEFAULT_CONFIG, getSkeletonRhi } from '../utils/launchConfigArgs'
 import {
-  getEnginesDataPath, getProjectsDataPath, getSettingsPath,
-  getLaunchConfigsPath, getProjectScanPathsPath, getEngineScanPathsPath,
+  getEnginesDataPath,
+  getProjectsDataPath,
+  getSettingsPath,
+  getLaunchConfigsPath,
+  getProjectScanPathsPath,
+  getEngineScanPathsPath,
   getTracerEnginesPath as _getTracerEnginesPath,
   getTracerProjectsPath as _getTracerProjectsPath,
   migrateIfNeeded
 } from './storePaths'
 import { readJsonArray, readJsonObject, writeJson } from './storeIO'
-import { mergeTracerEngines as _mergeTracerEngines, mergeTracerProjects as _mergeTracerProjects } from '../storeTracerMerge'
+import {
+  mergeTracerEngines as _mergeTracerEngines,
+  mergeTracerProjects as _mergeTracerProjects
+} from '../storeTracerMerge'
 
 // ── Re-export paths needed by external modules ────────────────────────────────
 export { getTracerEnginesPath, getTracerProjectsPath } from './storePaths'
@@ -76,7 +83,9 @@ export function clearAppData(): void {
     const stripped = { ...current } as Record<string, unknown>
     delete stripped['fabCachePath']
     writeJson(getSettingsPath(), stripped, 'settings (clear fab path)')
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 export function clearTracerData(): void {
@@ -127,8 +136,18 @@ function getSkeletonDescription(): string {
 
 function makeBuiltInConfigs(): LaunchConfig[] {
   return [
-    { id: 'builtin-default',  name: 'Default',          description: 'Launch with Unreal Engine defaults — no overrides applied.', ...DEFAULT_CONFIG },
-    { id: 'builtin-skeleton', name: 'Skeleton (Lowest)', description: getSkeletonDescription(), ...SKELETON_CONFIG }
+    {
+      id: 'builtin-default',
+      name: 'Default',
+      description: 'Launch with Unreal Engine defaults — no overrides applied.',
+      ...DEFAULT_CONFIG
+    },
+    {
+      id: 'builtin-skeleton',
+      name: 'Skeleton (Lowest)',
+      description: getSkeletonDescription(),
+      ...SKELETON_CONFIG
+    }
   ]
 }
 

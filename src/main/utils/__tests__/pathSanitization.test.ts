@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import path from 'path'
 import { validatePath, validateDirectory } from '../pathSanitization'
 
@@ -54,7 +54,9 @@ describe('Path Sanitizer Tests', () => {
   it('❌ Prefix bypass injection prevention', () => {
     // This tests that "/users/hp/workspace/UnrealLauncher-hacker/Config/DefaultEngine.ini"
     // is NOT allowed even though it starts with the string "/users/hp/workspace/UnrealLauncher"
-    const bypassPath = path.resolve('/users/hp/workspace/UnrealLauncher-hacker/Config/DefaultEngine.ini')
+    const bypassPath = path.resolve(
+      '/users/hp/workspace/UnrealLauncher-hacker/Config/DefaultEngine.ini'
+    )
     const res = validatePath(bypassPath, mockAllowedDirs)
     expect(res.success).toBe(false)
     expect(res.error).toContain('Path traversal or unauthorized file access detected')

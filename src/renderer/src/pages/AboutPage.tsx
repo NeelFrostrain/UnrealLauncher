@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import PageWrapper from '../layout/PageWrapper'
 import { AboutFooter } from '../components/about/AboutFooter'
 import { AboutHero } from '../components/about/AboutHero'

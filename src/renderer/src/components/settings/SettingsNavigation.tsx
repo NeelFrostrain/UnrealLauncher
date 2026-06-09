@@ -1,7 +1,24 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { Zap, Palette, Database, RefreshCw, FolderOpen, Activity, Info, Keyboard } from 'lucide-react'
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import {
+  Zap,
+  Palette,
+  Database,
+  RefreshCw,
+  FolderOpen,
+  Activity,
+  Info,
+  Keyboard
+} from 'lucide-react'
 
-export type SectionId = 'general' | 'appearance' | 'scan' | 'tracer' | 'data' | 'updates' | 'shortcuts' | 'about'
+export type SectionId =
+  | 'general'
+  | 'appearance'
+  | 'scan'
+  | 'tracer'
+  | 'data'
+  | 'updates'
+  | 'shortcuts'
+  | 'about'
 
 export interface NavItem {
   id: SectionId

@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
@@ -48,7 +48,10 @@ export async function handleProjectOpenTerminal(
 
   if (process.platform === 'darwin') {
     try {
-      spawn('open', ['-a', 'Terminal', projectPath_safe], { detached: true, stdio: 'ignore' }).unref()
+      spawn('open', ['-a', 'Terminal', projectPath_safe], {
+        detached: true,
+        stdio: 'ignore'
+      }).unref()
       return { success: true }
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }

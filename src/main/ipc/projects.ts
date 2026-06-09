@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
 import { openFileOrDirectory } from '../utils/processUtils'
 import { validatePathForGitRead } from '../utils/pathSanitization'

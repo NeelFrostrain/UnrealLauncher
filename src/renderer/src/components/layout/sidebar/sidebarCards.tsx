@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { motion, AnimatePresence } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import { Zap, Package, Settings } from 'lucide-react'

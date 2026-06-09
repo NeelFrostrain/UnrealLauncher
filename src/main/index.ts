@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { config } from 'dotenv'
 import { app, protocol, net, globalShortcut } from 'electron'
 import { spawn } from 'child_process'
@@ -78,7 +78,11 @@ if (!gotTheLock) {
   app.on('before-quit', () => {
     logger.info('app', 'Before quit cleanup started', { childProcesses: childProcesses.length })
     // Release any registered global shortcuts (e.g. background Ctrl+K palette)
-    try { globalShortcut.unregisterAll() } catch { /* ignore */ }
+    try {
+      globalShortcut.unregisterAll()
+    } catch {
+      /* ignore */
+    }
     for (const cp of childProcesses) {
       try {
         cp.kill()
@@ -122,11 +126,11 @@ if (!gotTheLock) {
         // SECURITY: Validate path is within allowed directories or registered in engines/projects
         const resolved = path.resolve(filePath)
         const normalizedResolved = resolved.replace(/\\/g, '/').toLowerCase()
-        
+
         const allowedDirs = [
           path.resolve(path.join(app.getAppPath(), 'resources')),
           path.resolve(path.join(app.getAppPath(), 'out', 'renderer'))
-        ].map(p => p.replace(/\\/g, '/').toLowerCase())
+        ].map((p) => p.replace(/\\/g, '/').toLowerCase())
 
         // Check if path is in allowed app directories
         const isInAppDir = allowedDirs.some((dir) => normalizedResolved.startsWith(dir))
@@ -135,17 +139,25 @@ if (!gotTheLock) {
         let isProjectThumbnail = false
         let isEnginePluginIcon = false
 
-        if (normalizedResolved.includes('/saved/') && 
-            (normalizedResolved.endsWith('autoscreenshot.png') || normalizedResolved.endsWith('thumbnail.png'))) {
+        if (
+          normalizedResolved.includes('/saved/') &&
+          (normalizedResolved.endsWith('autoscreenshot.png') ||
+            normalizedResolved.endsWith('thumbnail.png'))
+        ) {
           // Extract project directory (parent of Saved folder)
           const savedIndex = normalizedResolved.lastIndexOf('/saved/')
           if (savedIndex > 0) {
-            const projectDir = resolved.substring(0, resolved.length - normalizedResolved.length + savedIndex)
+            const projectDir = resolved.substring(
+              0,
+              resolved.length - normalizedResolved.length + savedIndex
+            )
             const normalizedProjectDir = projectDir.replace(/\\/g, '/').toLowerCase()
             try {
               const projects = loadProjects()
-              isProjectThumbnail = projects.some(p => 
-                p.projectPath && p.projectPath.replace(/\\/g, '/').toLowerCase() === normalizedProjectDir
+              isProjectThumbnail = projects.some(
+                (p) =>
+                  p.projectPath &&
+                  p.projectPath.replace(/\\/g, '/').toLowerCase() === normalizedProjectDir
               )
             } catch {
               // ignore load errors
@@ -153,18 +165,25 @@ if (!gotTheLock) {
           }
         }
 
-        if (normalizedResolved.includes('/engine/plugins/') && 
-            normalizedResolved.includes('/resources/') &&
-            normalizedResolved.endsWith('icon128.png')) {
+        if (
+          normalizedResolved.includes('/engine/plugins/') &&
+          normalizedResolved.includes('/resources/') &&
+          normalizedResolved.endsWith('icon128.png')
+        ) {
           // Extract engine directory (parent of Engine folder)
           const engineIndex = normalizedResolved.lastIndexOf('/engine/')
           if (engineIndex > 0) {
-            const engineDir = resolved.substring(0, resolved.length - normalizedResolved.length + engineIndex)
+            const engineDir = resolved.substring(
+              0,
+              resolved.length - normalizedResolved.length + engineIndex
+            )
             const normalizedEngineDir = engineDir.replace(/\\/g, '/').toLowerCase()
             try {
               const engines = loadEngines()
-              isEnginePluginIcon = engines.some(e => 
-                e.directoryPath && e.directoryPath.replace(/\\/g, '/').toLowerCase() === normalizedEngineDir
+              isEnginePluginIcon = engines.some(
+                (e) =>
+                  e.directoryPath &&
+                  e.directoryPath.replace(/\\/g, '/').toLowerCase() === normalizedEngineDir
               )
             } catch {
               // ignore load errors

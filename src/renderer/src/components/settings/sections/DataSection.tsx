@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { Card, SettingRow } from '../SectionHelpers'

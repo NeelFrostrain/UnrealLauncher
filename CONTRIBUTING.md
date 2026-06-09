@@ -1,4 +1,4 @@
-# Contributing to Unreal Launcher
+﻿# Contributing to Unreal Launcher
 
 > **Important — read before contributing.**
 > This project is licensed under a **proprietary license**, not an open-source license.

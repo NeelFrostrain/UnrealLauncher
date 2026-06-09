@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Tracer merge helpers — reads the tracer's output files and merges any new
  * entries into the app's saved data. Kept separate to keep store.ts focused.

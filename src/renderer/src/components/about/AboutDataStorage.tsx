@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { Database, FolderTree } from 'lucide-react'
 import { SectionHeader, Card } from '../settings/SectionHelpers'
 import { STORAGE_ENTRIES } from './aboutConstants'

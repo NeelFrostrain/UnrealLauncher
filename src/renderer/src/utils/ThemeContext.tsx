@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 import {
   type ThemeToken,

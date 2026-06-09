@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, memo } from 'react'
 import { FolderOpen, Package, ChevronDown, ChevronRight } from 'lucide-react'
 import type { ViewMode } from './usePluginsState'

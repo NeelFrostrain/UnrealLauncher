@@ -1,4 +1,4 @@
-appId: com.unreallauncher.app
+﻿appId: com.unreallauncher.app
 productName: Unreal Launcher
 directories:
   buildResources: build

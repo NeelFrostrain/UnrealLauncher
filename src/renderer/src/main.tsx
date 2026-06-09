@@ -1,4 +1,4 @@
-// Apply radius/scale synchronously before first render to avoid layout shift
+﻿// Apply radius/scale synchronously before first render to avoid layout shift
 import { loadPersistedRadius, applyRadius, loadPersistedScale, applyScale } from './utils/theme'
 applyRadius(loadPersistedRadius())
 applyScale(loadPersistedScale())

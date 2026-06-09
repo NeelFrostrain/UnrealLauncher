@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React from 'react'
 import { Plus, RefreshCw, Zap, ShoppingBag, ChevronDown, Check, Store } from 'lucide-react'
 import DropdownPortal from '../../components/ui/DropdownPortal'

@@ -1,4 +1,4 @@
-import fs from 'fs'
+﻿import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import path from 'path'
 import { getFabCachePaths } from '../utils/platformPaths'
@@ -82,9 +82,7 @@ export async function scanFabFolder(rootDir: string): Promise<FabAsset[]> {
     }
 
     const subdirs = entries.filter((e) => e.isDirectory() && !SKIP_FOLDERS.has(e.name))
-    await Promise.all(
-      subdirs.map((subdir) => traverse(path.join(normalized, subdir.name)))
-    )
+    await Promise.all(subdirs.map((subdir) => traverse(path.join(normalized, subdir.name))))
   }
 
   await traverse(rootDir)

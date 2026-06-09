@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import type { FabAsset } from './AssetCard'
 import { useToast } from '../../../components/ui/ToastContext'
@@ -45,20 +45,20 @@ export function useFabTabState() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const scan = useCallback(async (dir: string): Promise<void> => {
-    if (!dir) return
-    setLoading(true)
-    try {
-      setAssets(await window.electronAPI.fabScanFolder(dir))
-    } catch (err) {
-      setAssets([])
-      addToast(
-        'Fab scan failed: ' + (err instanceof Error ? err.message : String(err)),
-        'error'
-      )
-    }
-    setLoading(false)
-  }, [addToast])
+  const scan = useCallback(
+    async (dir: string): Promise<void> => {
+      if (!dir) return
+      setLoading(true)
+      try {
+        setAssets(await window.electronAPI.fabScanFolder(dir))
+      } catch (err) {
+        setAssets([])
+        addToast('Fab scan failed: ' + (err instanceof Error ? err.message : String(err)), 'error')
+      }
+      setLoading(false)
+    },
+    [addToast]
+  )
 
   const handlePickFolder = async (): Promise<void> => {
     const picked = await window.electronAPI.fabSelectFolder()

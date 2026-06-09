@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef } from 'react'
 import { motion } from 'framer-motion'
 import { X, Paperclip, Send, Loader2, CheckCircle, AlertCircle, Trash2 } from 'lucide-react'

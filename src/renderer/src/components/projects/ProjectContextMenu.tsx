@@ -82,9 +82,7 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
         e.preventDefault()
         const menu = ref.current
         if (!menu) return
-        const items = Array.from(
-          menu.querySelectorAll<HTMLButtonElement>('button:not([disabled])')
-        )
+        const items = Array.from(menu.querySelectorAll<HTMLButtonElement>('button:not([disabled])'))
         const current = document.activeElement as HTMLElement
         const idx = items.indexOf(current as HTMLButtonElement)
         if (e.key === 'ArrowDown') {

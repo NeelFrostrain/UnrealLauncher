@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { Layers } from 'lucide-react'
 import { SectionHeader } from '../settings/SectionHelpers'
 import { FEATURE_COUNTS } from './aboutConstants'

@@ -1,4 +1,4 @@
-# Code of Conduct
+﻿# Code of Conduct
 
 This Code of Conduct applies to all spaces associated with **Unreal Launcher** — including GitHub Issues, Pull Requests, Discussions, Discord, and any other communication channel related to this project.
 

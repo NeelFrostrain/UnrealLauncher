@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Configuration loaded from environment variables.
  * Copy .env.example to .env and fill in your values.

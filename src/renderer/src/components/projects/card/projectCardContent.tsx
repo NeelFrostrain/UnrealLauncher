@@ -1,15 +1,18 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { motion, AnimatePresence } from 'framer-motion'
 import { Clock, Database, GitBranch, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
 import { formatVersion, formatDate } from '../projectUtils'
 import { useEngineCompatibility } from '../../../hooks/useEngineCompatibility'
 import type { CompatibilityStatus } from '../../../hooks/useEngineCompatibility'
 
-const COMPAT: Record<CompatibilityStatus, { color: string; Icon: React.FC<{size?: number}> } | null> = {
+const COMPAT: Record<
+  CompatibilityStatus,
+  { color: string; Icon: React.FC<{ size?: number }> } | null
+> = {
   matched: { color: '#4ade80', Icon: CheckCircle2 },
   partial: { color: '#fbbf24', Icon: AlertTriangle },
   missing: { color: '#f87171', Icon: XCircle },
-  unknown: null,
+  unknown: null
 }
 
 interface ProjectCardContentProps {

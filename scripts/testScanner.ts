@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import fs from 'fs'
 import path from 'path'
 import { promises as fsPromises } from 'fs'
@@ -66,44 +66,44 @@ async function runTests() {
   // - A nested valid asset inside another folder: root/FolderC/AssetC (has Content)
   // - A custom excluded folder: root/ExcludedFolder/AssetD (has manifest)
   const mockStructure = {
-    'AssetA': {
-      'manifest': JSON.stringify({
+    AssetA: {
+      manifest: JSON.stringify({
         AppNameString: 'AssetA',
         CustomFields: {
           'Vault.TitleText': 'Asset A',
           'Vault.Type': 'AssetPack'
         }
       }),
-      'Content': {
+      Content: {
         'Texture.uasset': 'mockTexture'
       },
       '.git': {
-        'config': 'git-config-content',
-        'hooks': {
+        config: 'git-config-content',
+        hooks: {
           'pre-commit': 'hook-content',
           'post-merge': 'hook-content'
         }
       },
-      'Binaries': {
-        'Win64': {
+      Binaries: {
+        Win64: {
           'UnrealEditor-MyModule.dll': 'binary-content',
           'UnrealEditor-MyModule.pdb': 'pdb-content'
         }
       }
     },
-    'AssetB': {
+    AssetB: {
       'MyPlugin.uplugin': JSON.stringify({ FriendlyName: 'Asset B', VersionName: '1.0' })
     },
-    'FolderC': {
-      'AssetC': {
-        'Content': {
+    FolderC: {
+      AssetC: {
+        Content: {
           'Blueprint.uasset': 'blueprint'
         }
       }
     },
-    'ExcludedFolder': {
-      'AssetD': {
-        'manifest': JSON.stringify({ AppNameString: 'AssetD' })
+    ExcludedFolder: {
+      AssetD: {
+        manifest: JSON.stringify({ AppNameString: 'AssetD' })
       }
     }
   }
@@ -117,14 +117,14 @@ async function runTests() {
   console.log('Test 1: Standard recursive scanning...')
   const assetsNoExclusions = await scanFabFolder(testRoot)
   console.log(`Detected assets: ${assetsNoExclusions.map((a: FabAsset) => a.name).join(', ')}`)
-  
+
   // We expect AssetA, AssetB, and AssetC to be detected.
   // AssetD in ExcludedFolder is also detected since there are no exclusions yet.
   const assetNames = assetsNoExclusions.map((a: FabAsset) => a.name)
   if (
-    assetNames.includes('Asset A') && 
-    assetNames.includes('Asset B') && 
-    assetNames.includes('AssetC') && 
+    assetNames.includes('Asset A') &&
+    assetNames.includes('Asset B') &&
+    assetNames.includes('AssetC') &&
     assetNames.includes('AssetD')
   ) {
     console.log('✅ Test 1 Passed: Detected all assets recursively.')
@@ -143,7 +143,9 @@ async function runTests() {
   const assetsDefaultExclusions = await scanFabFolder(testRoot)
   console.log(`Detected assets: ${assetsDefaultExclusions.map((a: FabAsset) => a.name).join(', ')}`)
   if (assetsDefaultExclusions.length === 4) {
-    console.log('✅ Test 2 Passed: VCS/Build folder exclusions did not block standard asset detection.')
+    console.log(
+      '✅ Test 2 Passed: VCS/Build folder exclusions did not block standard asset detection.'
+    )
   } else {
     throw new Error('❌ Test 2 Failed: Default exclusions incorrectly blocked valid assets.')
   }
@@ -152,15 +154,26 @@ async function runTests() {
   console.log('\nTest 3: Verifying custom absolute path exclusion...')
   const absolutePathToExclude = path.join(testRoot, 'ExcludedFolder')
   saveMainSettings({
-    excludedScannerPaths: ['.git', 'Binaries', 'Intermediate', 'Saved', 'node_modules', absolutePathToExclude]
+    excludedScannerPaths: [
+      '.git',
+      'Binaries',
+      'Intermediate',
+      'Saved',
+      'node_modules',
+      absolutePathToExclude
+    ]
   })
 
   const assetsWithCustomExclusions = await scanFabFolder(testRoot)
-  console.log(`Detected assets: ${assetsWithCustomExclusions.map((a: FabAsset) => a.name).join(', ')}`)
+  console.log(
+    `Detected assets: ${assetsWithCustomExclusions.map((a: FabAsset) => a.name).join(', ')}`
+  )
   const namesCustom = assetsWithCustomExclusions.map((a: FabAsset) => a.name)
-  
+
   if (!namesCustom.includes('AssetD')) {
-    console.log('✅ Test 3 Passed: ExcludedFolder and its subfolder AssetD were successfully ignored.')
+    console.log(
+      '✅ Test 3 Passed: ExcludedFolder and its subfolder AssetD were successfully ignored.'
+    )
   } else {
     throw new Error('❌ Test 3 Failed: Excluded folder was crawled.')
   }
@@ -168,7 +181,7 @@ async function runTests() {
   // ─── BENCHMARK PERFORMANCE VALIDATION ──────────────────────────────────────────
   console.log('\n=== RUNNING PERFORMANCE BENCHMARK ===\n')
 
-  // We will build a massive mock directory structure dynamically in memory using fs spy, 
+  // We will build a massive mock directory structure dynamically in memory using fs spy,
   // or we can build a moderately large physical tree with 500 folders to avoid polluting disk too much but measure timing.
   // Let's create a massive nested structure with 1,000 subfolders under testRoot/HeavyBranch.
   console.log('Generating 1,000 heavy simulated directories for the benchmark...')
@@ -198,7 +211,9 @@ async function runTests() {
   const startNoEx = performance.now()
   const assetsNoEx = await scanFabFolder(testRoot)
   const durationNoEx = performance.now() - startNoEx
-  console.log(`Scan completed in: ${durationNoEx.toFixed(2)} ms. Found ${assetsNoEx.length} assets.`)
+  console.log(
+    `Scan completed in: ${durationNoEx.toFixed(2)} ms. Found ${assetsNoEx.length} assets.`
+  )
 
   // Benchmark Run 2: With Exclusions (excluding the entire HeavyBranch)
   saveMainSettings({ excludedScannerPaths: [heavyRoot] })
@@ -206,13 +221,17 @@ async function runTests() {
   const startWithEx = performance.now()
   const assetsWithEx = await scanFabFolder(testRoot)
   const durationWithEx = performance.now() - startWithEx
-  console.log(`Scan completed in: ${durationWithEx.toFixed(2)} ms. Found ${assetsWithEx.length} assets.`)
+  console.log(
+    `Scan completed in: ${durationWithEx.toFixed(2)} ms. Found ${assetsWithEx.length} assets.`
+  )
 
   const reductionPercent = ((durationNoEx - durationWithEx) / durationNoEx) * 100
   console.log('\n--- BENCHMARK RESULTS ---')
   console.log(`Scan duration without exclusions: ${durationNoEx.toFixed(2)} ms`)
   console.log(`Scan duration with exclusions:    ${durationWithEx.toFixed(2)} ms`)
-  console.log(`Performance Improvement:          ${reductionPercent.toFixed(1)}% reduction in scan time!`)
+  console.log(
+    `Performance Improvement:          ${reductionPercent.toFixed(1)}% reduction in scan time!`
+  )
   console.log('-------------------------\n')
 
   if (durationWithEx < durationNoEx) {
@@ -229,7 +248,7 @@ async function runTests() {
   console.log('\n=== ALL TESTS AND BENCHMARKS PASSED SUCCESSFULLY ===\n')
 }
 
-runTests().catch(err => {
+runTests().catch((err) => {
   console.error('\n❌ TEST SUITE FAILED:', err)
   process.exit(1)
 })

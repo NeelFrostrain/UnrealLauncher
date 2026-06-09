@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
 import { useEffect } from 'react'
 import { FolderOpen, EyeOff, Star } from 'lucide-react'
@@ -13,7 +13,9 @@ const ProjectsPage = (): React.ReactElement => {
   const state = useProjectsPageState()
 
   useGlobalShortcuts({
-    onFocusSearch: () => { if (!state.searchOpen) state.toggleSearch() },
+    onFocusSearch: () => {
+      if (!state.searchOpen) state.toggleSearch()
+    },
     onRefresh: state.handleRefreshClick,
     onNew: state.handleAddProjectClick
   })

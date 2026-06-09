@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useToast } from '../../../components/ui/ToastContext'
 

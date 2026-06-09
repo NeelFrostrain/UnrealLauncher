@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
@@ -352,7 +352,10 @@ export default function ProjectLogDialog({
         {loading ? (
           <div
             className="flex-1 flex items-center justify-center gap-2"
-            style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)' }}
+            style={{
+              backgroundColor: 'var(--color-surface-card)',
+              color: 'var(--color-text-muted)'
+            }}
           >
             <RefreshCw size={16} className="animate-spin" />
             <span className="text-sm">Loading log…</span>
@@ -360,18 +363,27 @@ export default function ProjectLogDialog({
         ) : logNotFound ? (
           <div
             className="flex-1 flex flex-col items-center justify-center gap-3"
-            style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)' }}
+            style={{
+              backgroundColor: 'var(--color-surface-card)',
+              color: 'var(--color-text-muted)'
+            }}
           >
             <FileText size={32} style={{ opacity: 0.25 }} />
             <p className="text-sm font-medium">No log file found</p>
-            <p className="text-xs text-center max-w-xs" style={{ color: 'var(--color-text-muted)' }}>
+            <p
+              className="text-xs text-center max-w-xs"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Launch the project at least once to generate a log file.
             </p>
           </div>
         ) : filtered.length === 0 ? (
           <div
             className="flex-1 flex flex-col items-center justify-center gap-3"
-            style={{ backgroundColor: 'var(--color-surface-card)', color: 'var(--color-text-muted)' }}
+            style={{
+              backgroundColor: 'var(--color-surface-card)',
+              color: 'var(--color-text-muted)'
+            }}
           >
             <FileText size={32} style={{ opacity: 0.3 }} />
             <span className="text-sm">

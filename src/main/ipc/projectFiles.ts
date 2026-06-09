@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
@@ -182,7 +182,10 @@ export async function handleProjectCleanIntermediate(
  * Reads a text file and returns its content.
  * Used by the in-app file editor dialog.
  */
-export function handleProjectReadTextFile(filePath: string, projectPath: string): {
+export function handleProjectReadTextFile(
+  filePath: string,
+  projectPath: string
+): {
   success: boolean
   content: string
   error?: string

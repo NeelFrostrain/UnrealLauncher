@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { spawn } from 'child_process'
 import { loadEngines, saveEngines } from '../store'
 import { openFileOrDirectory } from '../utils/processUtils'

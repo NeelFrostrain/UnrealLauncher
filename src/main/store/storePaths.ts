@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Path resolution for all data files in the main process store.
  * All paths are computed lazily (after app is ready) so app.getPath()
@@ -44,7 +44,9 @@ export function getTracerDir(): string {
     try {
       fs.mkdirSync(path.dirname(tracerDir), { recursive: true })
       fs.renameSync(oldDir, tracerDir)
-    } catch { /* ignore migration failure */ }
+    } catch {
+      /* ignore migration failure */
+    }
   }
   if (!fs.existsSync(tracerDir)) fs.mkdirSync(tracerDir, { recursive: true })
   return tracerDir
@@ -68,7 +70,11 @@ export function migrateIfNeeded(): void {
     const oldPath = path.join(app.getPath('userData'), file)
     const newPath = path.join(getSaveDir(), file)
     if (fs.existsSync(oldPath) && !fs.existsSync(newPath)) {
-      try { fs.renameSync(oldPath, newPath) } catch { /* ignore */ }
+      try {
+        fs.renameSync(oldPath, newPath)
+      } catch {
+        /* ignore */
+      }
     }
   }
 }

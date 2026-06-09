@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { GitBranch, GitCommit, Plus, Wrench } from 'lucide-react'
 
 // ── v2.2.8 — launch config profiles + theme sync ─────────────────────────────

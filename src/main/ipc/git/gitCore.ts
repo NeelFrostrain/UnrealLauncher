@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Low-level git helpers: async executor and branch-name validator.
  * Used by projectGit.ts — kept separate so it can be unit-tested without

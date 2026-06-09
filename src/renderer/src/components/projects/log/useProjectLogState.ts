@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { getSetting } from '../../../utils/settings'
 

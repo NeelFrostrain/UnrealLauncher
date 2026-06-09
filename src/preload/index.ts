@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
@@ -186,12 +186,17 @@ if (process.contextIsolated) {
       onPaletteNavigate: (callback: (route: string) => void): (() => void) => {
         const listener = (_event: Electron.IpcRendererEvent, route: string): void => callback(route)
         ipcRenderer.on('palette-navigate', listener)
-        return (): void => { ipcRenderer.removeListener('palette-navigate', listener) }
+        return (): void => {
+          ipcRenderer.removeListener('palette-navigate', listener)
+        }
       },
       onPaletteAction: (callback: (commandId: string) => void): (() => void) => {
-        const listener = (_event: Electron.IpcRendererEvent, commandId: string): void => callback(commandId)
+        const listener = (_event: Electron.IpcRendererEvent, commandId: string): void =>
+          callback(commandId)
         ipcRenderer.on('palette-action', listener)
-        return (): void => { ipcRenderer.removeListener('palette-action', listener) }
+        return (): void => {
+          ipcRenderer.removeListener('palette-action', listener)
+        }
       }
     })
   } catch (error) {

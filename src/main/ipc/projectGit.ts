@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Project git IPC handlers.
  * Template strings live in git/gitTemplates.ts.
@@ -14,12 +14,21 @@ import { UE_GITIGNORE, UE_GITATTRIBUTES } from './git/gitTemplates'
 // ── Status (synchronous — reads .git folder directly) ────────────────────────
 
 type GitStatus = {
-  initialized: boolean; branch: string
-  hasUncommitted: boolean; ahead: number; behind: number; remoteUrl: string
+  initialized: boolean
+  branch: string
+  hasUncommitted: boolean
+  ahead: number
+  behind: number
+  remoteUrl: string
 }
 
 const EMPTY_STATUS: GitStatus = {
-  initialized: false, branch: '', hasUncommitted: false, ahead: 0, behind: 0, remoteUrl: ''
+  initialized: false,
+  branch: '',
+  hasUncommitted: false,
+  ahead: 0,
+  behind: 0,
+  remoteUrl: ''
 }
 
 export function handleProjectGitStatus(projectPath: string): GitStatus {
@@ -33,25 +42,27 @@ export function handleProjectGitStatus(projectPath: string): GitStatus {
 
   let branch = 'unknown'
   try {
-    branch = fs.readFileSync(path.join(gitDir, 'HEAD'), 'utf8')
-      .trim().replace('ref: refs/heads/', '')
-  } catch { /* ignore */ }
+    branch = fs
+      .readFileSync(path.join(gitDir, 'HEAD'), 'utf8')
+      .trim()
+      .replace('ref: refs/heads/', '')
+  } catch {
+    /* ignore */
+  }
 
   let remoteUrl = ''
   try {
     const m = fs.readFileSync(path.join(gitDir, 'config'), 'utf8').match(/url\s*=\s*(.+)/)
     if (m) remoteUrl = m[1].trim()
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   return { initialized: true, branch, hasUncommitted: false, ahead: 0, behind: 0, remoteUrl }
 }
 
-export function handleProjectGitStatusBulk(
-  projectPaths: string[]
-): Record<string, GitStatus> {
-  return Object.fromEntries(
-    projectPaths.map((p) => [p, handleProjectGitStatus(p)])
-  )
+export function handleProjectGitStatusBulk(projectPaths: string[]): Record<string, GitStatus> {
+  return Object.fromEntries(projectPaths.map((p) => [p, handleProjectGitStatus(p)]))
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -70,7 +81,12 @@ export async function handleProjectGitInit(
       fs.writeFileSync(path.join(safe, '.gitattributes'), UE_GITATTRIBUTES, 'utf8')
 
     let lfsAvailable = false
-    try { await runGitAsync(safe, ['lfs', 'install']); lfsAvailable = true } catch { /* no lfs */ }
+    try {
+      await runGitAsync(safe, ['lfs', 'install'])
+      lfsAvailable = true
+    } catch {
+      /* no lfs */
+    }
 
     return { success: true, lfsAvailable }
   } catch (err) {
@@ -92,19 +108,22 @@ export async function handleProjectGitReinit(
 // ── Config file helpers ───────────────────────────────────────────────────────
 
 export function handleProjectGitFileStatus(projectPath: string): {
-  hasGitignore: boolean; hasGitattributes: boolean
+  hasGitignore: boolean
+  hasGitattributes: boolean
 } {
   const safe = validatePathForGitRead(projectPath)
   if (!safe) return { hasGitignore: false, hasGitattributes: false }
   return {
-    hasGitignore:    fs.existsSync(path.join(safe, '.gitignore')),
+    hasGitignore: fs.existsSync(path.join(safe, '.gitignore')),
     hasGitattributes: fs.existsSync(path.join(safe, '.gitattributes'))
   }
 }
 
-export function handleProjectGitWriteGitignore(
-  projectPath: string
-): { success: boolean; existed: boolean; error?: string } {
+export function handleProjectGitWriteGitignore(projectPath: string): {
+  success: boolean
+  existed: boolean
+  error?: string
+} {
   const safe = validatePathForGitRead(projectPath)
   if (!safe) return { success: false, existed: false, error: 'Project path not found or invalid' }
   const target = path.join(safe, '.gitignore')
@@ -127,14 +146,20 @@ export async function handleProjectGitInitLfs(
     fs.writeFileSync(path.join(safe, '.gitattributes'), UE_GITATTRIBUTES, 'utf8')
     return { success: true }
   } catch (err) {
-    return { success: false, error: (err as Error).message || 'Git LFS not installed. Install it from git-lfs.com' }
+    return {
+      success: false,
+      error: (err as Error).message || 'Git LFS not installed. Install it from git-lfs.com'
+    }
   }
 }
 
 // ── Changes / commit ──────────────────────────────────────────────────────────
 
 export async function handleProjectGitHasChanges(projectPath: string): Promise<{
-  hasChanges: boolean; summary: string; fileList: Array<{ status: string; file: string }>; error?: string
+  hasChanges: boolean
+  summary: string
+  fileList: Array<{ status: string; file: string }>
+  error?: string
 }> {
   try {
     const safe = validatePathForGitRead(projectPath)
@@ -143,7 +168,10 @@ export async function handleProjectGitHasChanges(projectPath: string): Promise<{
     const lines = out ? out.split('\n').filter(Boolean) : []
     return {
       hasChanges: lines.length > 0,
-      summary: lines.length > 0 ? `${lines.length} file${lines.length !== 1 ? 's' : ''} changed` : 'No changes',
+      summary:
+        lines.length > 0
+          ? `${lines.length} file${lines.length !== 1 ? 's' : ''} changed`
+          : 'No changes',
       fileList: lines.map((l) => ({ status: l.slice(0, 2).trim() || '?', file: l.slice(3).trim() }))
     }
   } catch (err) {
@@ -152,7 +180,8 @@ export async function handleProjectGitHasChanges(projectPath: string): Promise<{
 }
 
 export async function handleProjectGitCommit(
-  projectPath: string, message: string
+  projectPath: string,
+  message: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     await runGitAsync(projectPath, ['add', '-A'])
@@ -177,8 +206,10 @@ export async function handleProjectGitBranches(
     for (const line of out.split('\n')) {
       const t = line.trim()
       if (!t) continue
-      if (t.startsWith('* ')) { current = t.slice(2); branches.push(current) }
-      else branches.push(t)
+      if (t.startsWith('* ')) {
+        current = t.slice(2)
+        branches.push(current)
+      } else branches.push(t)
     }
     return { branches, current }
   } catch (err) {
@@ -206,7 +237,11 @@ export async function handleProjectGitSwitchBranch(
         await runGitAsync(projectPath, ['checkout', branch])
         await runGitAsync(projectPath, ['stash', 'pop'])
       } catch (e) {
-        try { await runGitAsync(projectPath, ['stash', 'pop']) } catch { /* ignore */ }
+        try {
+          await runGitAsync(projectPath, ['stash', 'pop'])
+        } catch {
+          /* ignore */
+        }
         throw e
       }
       return { success: true }
@@ -225,7 +260,11 @@ export async function handleProjectGitSwitchBranch(
     } catch (err) {
       const msg = (err as Error).message
       if (msg.includes('overwritten by checkout') || msg.includes('local changes'))
-        return { success: false, hasUncommitted: true, error: 'You have uncommitted changes that would be overwritten.' }
+        return {
+          success: false,
+          hasUncommitted: true,
+          error: 'You have uncommitted changes that would be overwritten.'
+        }
       throw err
     }
   } catch (err) {

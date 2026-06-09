@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
 import { getMainWindow } from '../window'
 import { loadEngines, loadProjects } from '../store'
@@ -8,14 +8,14 @@ import { logger } from '../logger'
 
 // Map command IDs → route to push to the main window
 const NAV_COMMANDS: Record<string, string> = {
-  'nav-engines':            '/engines',
-  'nav-projects':           '/projects',
-  'nav-projects-recent':    '/projects/recent',
+  'nav-engines': '/engines',
+  'nav-projects': '/projects',
+  'nav-projects-recent': '/projects/recent',
   'nav-projects-favorites': '/projects/favorites',
-  'nav-projects-hidden':    '/projects/hidden',
-  'nav-engines-plugins':    '/engines/plugins',
-  'nav-engines-fab':        '/engines/fab',
-  'nav-settings':           '/settings'
+  'nav-projects-hidden': '/projects/hidden',
+  'nav-engines-plugins': '/engines/plugins',
+  'nav-engines-fab': '/engines/fab',
+  'nav-settings': '/settings'
 }
 
 const ACTION_COMMANDS = new Set([
@@ -53,56 +53,66 @@ function routeToMainWindow(commandId: string): void {
 export function registerPaletteHandlers(ipcMain_: typeof ipcMain): void {
   // Palette renderer is ready — show the window now (no white flash)
   ipcMain_.on('palette-ready', (event) => {
-    import('../window/paletteWindow').then(({ getPaletteWindow }) => {
-      const win = getPaletteWindow()
-      if (win && !win.isDestroyed() && event.sender === win.webContents) {
-        win.show()
-        win.focus()
-      }
-    }).catch((err) => logger.error('palette', 'Failed to load paletteWindow', err))
+    import('../window/paletteWindow')
+      .then(({ getPaletteWindow }) => {
+        const win = getPaletteWindow()
+        if (win && !win.isDestroyed() && event.sender === win.webContents) {
+          win.show()
+          win.focus()
+        }
+      })
+      .catch((err) => logger.error('palette', 'Failed to load paletteWindow', err))
   })
 
   // User picked a navigation/action command
   ipcMain_.on('palette-execute', (_event, commandId: string) => {
     logger.info('palette', 'Executing command', { commandId })
-    import('../window/paletteWindow').then(({ closePaletteWindow }) => {
-      closePaletteWindow()
-      routeToMainWindow(commandId)
-    }).catch((err) => logger.error('palette', 'Failed to close palette', err))
+    import('../window/paletteWindow')
+      .then(({ closePaletteWindow }) => {
+        closePaletteWindow()
+        routeToMainWindow(commandId)
+      })
+      .catch((err) => logger.error('palette', 'Failed to close palette', err))
   })
 
   // User launched an engine directly from the palette
   ipcMain_.on('palette-launch-engine', (_event, exePath: string) => {
     logger.info('palette', 'Launch engine from palette', { exePath })
-    import('../window/paletteWindow').then(({ closePaletteWindow }) => {
-      closePaletteWindow()
-      // Show main window so the user can see it launching
-      showMainWindow()
-      getMainWindow()?.webContents.send('palette-navigate', '/engines')
-      handleLaunchEngine(exePath).catch((err) =>
-        logger.error('palette', 'Engine launch failed', err)
-      )
-    }).catch((err) => logger.error('palette', 'Failed to close palette', err))
+    import('../window/paletteWindow')
+      .then(({ closePaletteWindow }) => {
+        closePaletteWindow()
+        // Show main window so the user can see it launching
+        showMainWindow()
+        getMainWindow()?.webContents.send('palette-navigate', '/engines')
+        handleLaunchEngine(exePath).catch((err) =>
+          logger.error('palette', 'Engine launch failed', err)
+        )
+      })
+      .catch((err) => logger.error('palette', 'Failed to close palette', err))
   })
 
   // User launched a project directly from the palette
   ipcMain_.on('palette-launch-project', (_event, projectPath: string) => {
     logger.info('palette', 'Launch project from palette', { projectPath })
-    import('../window/paletteWindow').then(({ closePaletteWindow }) => {
-      closePaletteWindow()
-      showMainWindow()
-      getMainWindow()?.webContents.send('palette-navigate', '/projects')
-      handleLaunchProject(projectPath).catch((err) =>
-        logger.error('palette', 'Project launch failed', err)
-      )
-    }).catch((err) => logger.error('palette', 'Failed to close palette', err))
+    import('../window/paletteWindow')
+      .then(({ closePaletteWindow }) => {
+        closePaletteWindow()
+        showMainWindow()
+        getMainWindow()?.webContents.send('palette-navigate', '/projects')
+        handleLaunchProject(projectPath).catch((err) =>
+          logger.error('palette', 'Project launch failed', err)
+        )
+      })
+      .catch((err) => logger.error('palette', 'Failed to close palette', err))
   })
 
   // Dismiss
   ipcMain_.on('palette-close', () => {
-    import('../window/paletteWindow').then(({ closePaletteWindow }) => {
-      closePaletteWindow()
-    }).catch((err) => logger.error('palette', 'Failed to close palette', err))
+    import('../window/paletteWindow')
+      .then(({ closePaletteWindow }) => {
+        closePaletteWindow()
+      })
+      .catch((err) => logger.error('palette', 'Failed to close palette', err))
   })
 
   // Fetch engines + projects from store — no scan, instant

@@ -1,16 +1,37 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import fs from 'fs'
 import { loadEngines } from '../store'
 
 // Restrict IPC file read/write operations to text-based configuration formats (e.g., .uproject, .ini, .conf, .cfg, .yaml, .json).
 // Explicitly block reading or writing binary executables (.exe, .dll, .sh, .bat) over these channels.
-const APPROVED_EXTENSIONS = ['.uproject', '.ini', '.conf', '.cfg', '.yaml', '.yml', '.json', '.txt', '.gitignore']
-const BLOCKED_EXTENSIONS = ['.exe', '.dll', '.sh', '.bat', '.bin', '.com', '.cmd', '.msi', '.so', '.dylib']
+const APPROVED_EXTENSIONS = [
+  '.uproject',
+  '.ini',
+  '.conf',
+  '.cfg',
+  '.yaml',
+  '.yml',
+  '.json',
+  '.txt',
+  '.gitignore'
+]
+const BLOCKED_EXTENSIONS = [
+  '.exe',
+  '.dll',
+  '.sh',
+  '.bat',
+  '.bin',
+  '.com',
+  '.cmd',
+  '.msi',
+  '.so',
+  '.dylib'
+]
 
 /**
  * Validates, normalizes, and restricts all filesystem paths passed over the IPC bridge.
- * 
+ *
  * @param filePath The raw file path supplied by the renderer process.
  * @param allowedDirs The authorized base directories (e.g. project scan paths, project folders, config storage directory).
  * @returns An object containing the success status, resolved path, or a descriptive error.
@@ -111,7 +132,7 @@ export function getAppAllowedDirectories(): string[] {
   // Wrap imports and Electron app access in try-catch to remain fully compatible with test runners
   try {
     const { loadProjectScanPaths, loadProjects } = require('../store')
-    
+
     // Add registered project scan paths
     const scanPaths = loadProjectScanPaths()
     for (const p of scanPaths) {
@@ -362,4 +383,3 @@ export function isRegisteredEnginePath(dirPath: string): string | undefined {
     return undefined
   }
 }
-

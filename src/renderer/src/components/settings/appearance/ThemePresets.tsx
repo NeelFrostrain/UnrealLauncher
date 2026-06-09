@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { Check } from 'lucide-react'
 import { BUILT_IN_THEMES, type ThemeToken } from '../../../utils/theme'
 

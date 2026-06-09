@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { memo } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../../types'
