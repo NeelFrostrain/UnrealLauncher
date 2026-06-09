@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
 import { logger } from '../logger'
 
@@ -57,7 +57,7 @@ export async function sendDiscordWebhook(
 
     // SECURITY: Get webhook URL from environment only, ignore any URL in the payload
     const webhookUrl = process.env.DISCORD_WEBHOOK_URL || process.env.VITE_DISCORD_WEBHOOK_URL
-    
+
     if (!webhookUrl) {
       logger.warn('discord', 'No Discord webhook URL configured in environment')
       return { ok: false, status: 400 }

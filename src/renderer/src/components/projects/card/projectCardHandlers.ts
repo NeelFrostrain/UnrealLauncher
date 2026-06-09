@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback } from 'react'
 import { useToast } from '../../ui/ToastContext'
 import { clearGitCacheForPath } from '../../../hooks/useGitStatus'

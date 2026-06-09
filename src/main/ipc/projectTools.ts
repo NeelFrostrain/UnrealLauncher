@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
 import { logger } from '../logger'
 import { handleProjectReadLog } from './projectLog'
@@ -81,8 +81,10 @@ export function registerProjectToolHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('project-read-text-file', (_e, filePath: string, projectPath: string) =>
     handleProjectReadTextFile(filePath, projectPath)
   )
-  ipcMain_.handle('project-write-text-file', (_e, filePath: string, content: string, projectPath: string) =>
-    handleProjectWriteTextFile(filePath, content, projectPath)
+  ipcMain_.handle(
+    'project-write-text-file',
+    (_e, filePath: string, content: string, projectPath: string) =>
+      handleProjectWriteTextFile(filePath, content, projectPath)
   )
   ipcMain_.handle('project-resolve-config-path', (_e, p: string) =>
     handleProjectResolveConfigPath(p)

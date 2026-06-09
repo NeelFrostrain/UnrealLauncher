@@ -1,13 +1,16 @@
-import { useEffect, RefObject } from 'react'
+﻿import { useEffect, RefObject } from 'react'
 
 /**
  * Traps keyboard focus inside a DOM container.
  * Useful for modal dialog accessibility (WCAG 2.1 compliance).
- * 
+ *
  * @param containerRef The ref of the dialog/modal wrapper element.
  * @param active Whether the focus trap is currently active.
  */
-export function useFocusTrap(containerRef: RefObject<HTMLElement | null>, active: boolean = true): void {
+export function useFocusTrap(
+  containerRef: RefObject<HTMLElement | null>,
+  active: boolean = true
+): void {
   useEffect(() => {
     if (!active) return
 
@@ -38,14 +41,14 @@ export function useFocusTrap(containerRef: RefObject<HTMLElement | null>, active
       return elements.filter((el) => {
         const tabIndex = parseInt(el.getAttribute('tabindex') || '0', 10)
         if (tabIndex < 0) return false
-        
+
         // Basic visibility check
         const style = window.getComputedStyle(el)
         if (style.display === 'none' || style.visibility === 'hidden') return false
-        
+
         return true
       })
-    };
+    }
 
     // Focus the first element on mount
     const focusable = getFocusableElements()
@@ -79,7 +82,7 @@ export function useFocusTrap(containerRef: RefObject<HTMLElement | null>, active
           e.preventDefault()
         }
       }
-    };
+    }
 
     container.addEventListener('keydown', handleKeyDown)
 

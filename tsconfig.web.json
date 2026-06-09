@@ -1,4 +1,4 @@
-{
+﻿{
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
     "src/renderer/src/env.d.ts",

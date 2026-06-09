@@ -1,6 +1,7 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState } from 'react'
 import { Package } from 'lucide-react'
+import { toLocalAssetUrl } from '../../../utils/resolveAsset'
 
 interface AssetIconProps {
   icon: string | null
@@ -10,7 +11,7 @@ interface AssetIconProps {
 
 const AssetIcon = ({ icon, thumbnailUrl, name }: AssetIconProps): React.ReactElement => {
   const [failed, setFailed] = useState(false)
-  const src = !failed ? (icon ? `local-asset:///${icon.replace(/\\/g, '/')}` : thumbnailUrl) : null
+  const src = !failed ? (icon ? toLocalAssetUrl(icon) : thumbnailUrl) : null
 
   if (src) {
     return (

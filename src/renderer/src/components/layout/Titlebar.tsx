@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState } from 'react'
 import { Minus, Square, Minimize2, X, MessageSquarePlus, MessageCircle } from 'lucide-react'
 import { AnimatePresence } from 'framer-motion'

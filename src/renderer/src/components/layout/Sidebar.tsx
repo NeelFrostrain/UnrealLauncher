@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useSidebarState } from './sidebar/sidebarState'
 import { SidebarCards } from './sidebar/sidebarCards'
 import { SidebarControls } from './sidebar/sidebarControls'

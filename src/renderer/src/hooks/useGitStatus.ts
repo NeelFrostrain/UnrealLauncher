@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Shared git status cache — avoids one IPC call per card.
  * Results are cached by projectPath and reused across all card instances.

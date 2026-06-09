@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { type CSSProperties, useEffect, useRef } from 'react'
 import { applyRadius, persistRadius, applyScale, persistScale } from '../../../utils/theme'
 

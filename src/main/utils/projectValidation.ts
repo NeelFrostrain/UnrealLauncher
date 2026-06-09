@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import { app } from 'electron'
 import { loadProjects, saveProjects, mergeTracerProjects } from '../store'

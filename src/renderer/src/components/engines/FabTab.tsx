@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { RefreshCw, Search, FolderInput, LayoutGrid, LayoutList } from 'lucide-react'
 import FabFilterBar from './fab/FabFilterBar'
 import { TYPE_LABELS } from './fab/AssetCard'

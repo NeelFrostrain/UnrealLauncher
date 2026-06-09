@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { loadProjects, saveProjects } from '../store'
 import { formatBytes, getFullFolderSize } from '../utils'
 import { getMainWindow } from '../window'

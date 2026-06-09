@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { FolderOpen, RefreshCw, Package } from 'lucide-react'
 import { AssetListCard, AssetGridCard } from './AssetCard'
 import type { FabAsset } from './AssetCard'

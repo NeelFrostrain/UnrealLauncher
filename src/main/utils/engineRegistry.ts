@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Registry-based engine discovery (Windows only).
  * Uses `reg query` via child_process instead of the regedit npm package —

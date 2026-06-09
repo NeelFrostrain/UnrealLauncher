@@ -1,6 +1,7 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { spawn } from 'child_process'
 import { loadEngines, saveEngines } from '../store'
+import { isRegisteredEngineExePath } from '../utils/pathSanitization'
 import { openFileOrDirectory } from '../utils/processUtils'
 import { logger } from '../logger'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
@@ -11,11 +12,16 @@ import { buildLaunchArgs } from '../utils/launchConfigArgs'
  */
 export async function handleLaunchEngine(exePath: string): Promise<Record<string, unknown>> {
   logger.info('engine', 'Launch engine requested', { exePath })
+  const safeExePath = isRegisteredEngineExePath(exePath)
+  if (!safeExePath) {
+    logger.warn('engine', 'Engine launch rejected; exe not registered', { exePath })
+    return { success: false, error: 'Engine executable is not registered' }
+  }
   try {
-    openFileOrDirectory(exePath)
+    openFileOrDirectory(safeExePath)
 
     const engines = loadEngines()
-    const engine = engines.find((e) => e.exePath === exePath)
+    const engine = engines.find((e) => e.exePath === safeExePath)
 
     if (engine) {
       engine.lastLaunch = new Date().toLocaleDateString('en-US', {
@@ -47,13 +53,18 @@ export async function handleLaunchEngineWithConfig(
   config: LaunchConfig
 ): Promise<Record<string, unknown>> {
   logger.info('engine', 'Launch engine with config requested', { exePath, configId: config.id })
+  const safeExePath = isRegisteredEngineExePath(exePath)
+  if (!safeExePath) {
+    logger.warn('engine', 'Engine config launch rejected; exe not registered', { exePath })
+    return { success: false, error: 'Engine executable is not registered' }
+  }
   try {
     const args = buildLaunchArgs(config)
-    logger.info('engine', 'Engine launch args built', { exePath, args })
-    spawn(exePath, args, { detached: true, stdio: 'ignore' }).unref()
+    logger.info('engine', 'Engine launch args built', { exePath: safeExePath, args })
+    spawn(safeExePath, args, { detached: true, stdio: 'ignore' }).unref()
 
     const engines = loadEngines()
-    const engine = engines.find((e) => e.exePath === exePath)
+    const engine = engines.find((e) => e.exePath === safeExePath)
     if (engine) {
       engine.lastLaunch = new Date().toLocaleDateString('en-US', {
         month: 'short',

@@ -1,4 +1,4 @@
-# Security Policy
+﻿# Security Policy
 
 > This project is proprietary software. All security reports are handled exclusively
 > by NeelFrostrain. Do not disclose vulnerabilities publicly before a fix is released.

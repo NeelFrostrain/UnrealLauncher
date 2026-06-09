@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { RefreshCw, Search, LayoutGrid, LayoutList, Package, AlertTriangle } from 'lucide-react'
 import { usePluginsState } from './plugins/usePluginsState'
 import { CategorySection } from './plugins/PluginCards'
@@ -127,8 +127,12 @@ const InstalledPluginsTab = ({
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-32 gap-2 text-center px-4">
             <AlertTriangle size={24} style={{ color: '#f87171', opacity: 0.7 }} />
-            <p className="text-xs font-medium" style={{ color: '#f87171' }}>Plugin scan failed</p>
-            <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>{error}</p>
+            <p className="text-xs font-medium" style={{ color: '#f87171' }}>
+              Plugin scan failed
+            </p>
+            <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+              {error}
+            </p>
             <button
               onClick={load}
               className="mt-1 flex items-center gap-1.5 px-3 py-1.5 text-xs cursor-pointer"

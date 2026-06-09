@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useMemo, useCallback } from 'react'
 import PageWrapper from '../layout/PageWrapper'
 import { SettingsNavigation, type SectionId } from '../components/settings/SettingsNavigation'
@@ -87,7 +87,6 @@ const SettingsPage = (): React.ReactElement => {
       default:
         return null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSection, settingsState, platform])
 
   const handleSectionChange = useCallback(

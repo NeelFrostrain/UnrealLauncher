@@ -1,6 +1,7 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState } from 'react'
 import { Package } from 'lucide-react'
+import { toLocalAssetUrl } from '../../../utils/resolveAsset'
 
 export const AssetThumb = ({
   icon,
@@ -12,9 +13,7 @@ export const AssetThumb = ({
   name: string
 }): React.ReactElement => {
   const [failed, setFailed] = useState(false)
-  const src = !failed
-    ? thumbnailUrl || (icon ? `local-asset:///${icon.replace(/\\/g, '/')}` : null)
-    : null
+  const src = !failed ? thumbnailUrl || (icon ? toLocalAssetUrl(icon) : null) : null
 
   if (src) {
     return (

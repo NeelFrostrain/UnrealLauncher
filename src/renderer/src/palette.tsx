@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Palette window entry point — minimal React tree, no router/layout/sidebar.
  *
@@ -16,7 +16,6 @@ import {
   applyTheme,
   applyRadius
 } from './utils/theme'
-
 ;((): void => {
   const { id, overrides } = loadPersistedTheme()
   const activeProfileId = loadActiveProfileId()

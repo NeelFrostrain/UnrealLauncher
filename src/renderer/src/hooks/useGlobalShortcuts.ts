@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
@@ -85,5 +85,12 @@ export function useGlobalShortcuts(handlers: GlobalShortcutHandlers = {}): void 
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [navigate, location.pathname, handlers.onRefresh, handlers.onNew, handlers.onFocusSearch, handlers.onCommandPalette])
+  }, [
+    navigate,
+    location.pathname,
+    handlers.onRefresh,
+    handlers.onNew,
+    handlers.onFocusSearch,
+    handlers.onCommandPalette
+  ])
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
 /**
  * A launch configuration profile that controls which Unreal Engine features
@@ -146,20 +146,20 @@ export function isRhiAvailable(rhi: LaunchConfig['rhi']): boolean {
  */
 function validateExtraArgs(extraArgs: string): { valid: boolean; error?: string } {
   if (!extraArgs || !extraArgs.trim()) return { valid: true }
-  
+
   // Whitelist of dangerous patterns that should not appear in extra args
   const deniedPatterns = [
-    /[;&|`$()]/,           // Shell metacharacters
-    /\.\./,                // Path traversal
-    /^-(?:exec|system)/i,  // Commands that break out of normal UE flow
+    /[;&|`$()]/, // Shell metacharacters
+    /\.\./, // Path traversal
+    /^-(?:exec|system)/i // Commands that break out of normal UE flow
   ]
-  
+
   for (const pattern of deniedPatterns) {
     if (pattern.test(extraArgs)) {
       return { valid: false, error: `Extra args contain forbidden characters or patterns` }
     }
   }
-  
+
   return { valid: true }
 }
 
@@ -175,7 +175,7 @@ export function buildLaunchArgs(config: LaunchConfig): string[] {
   if (!validation.valid) {
     throw new Error(`Invalid launch config extraArgs: ${validation.error}`)
   }
-  
+
   const args: string[] = []
 
   // ── RHI ──────────────────────────────────────────────────────────────────

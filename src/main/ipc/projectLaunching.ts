@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import fs from 'fs'
 import { spawn } from 'child_process'
@@ -7,6 +7,7 @@ import { openFileOrDirectory } from '../utils/processUtils'
 import { scanEnginePaths } from '../utils/engineScanning'
 import { getBinaryExtension } from '../utils/platformPaths'
 import { logger } from '../logger'
+import { isRegisteredProjectPath } from '../utils/pathSanitization'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
 import { buildLaunchArgs } from '../utils/launchConfigArgs'
 
@@ -107,7 +108,12 @@ function findEditorExecutable(engineAssociation: string): string {
  */
 export async function handleLaunchProject(projectPath: string): Promise<Record<string, unknown>> {
   logger.info('project', 'Launch project requested', { projectPath })
-  const uprojectPath = await locateUproject(projectPath)
+  const safeProjectPath = isRegisteredProjectPath(projectPath)
+  if (!safeProjectPath) {
+    logger.warn('project', 'Launch rejected; project not registered', { projectPath })
+    return { success: false, error: 'Project path is not registered' }
+  }
+  const uprojectPath = await locateUproject(safeProjectPath)
   if (!uprojectPath) {
     logger.warn('project', 'Launch failed; project file not found', { projectPath })
     return { success: false, error: 'Project file not found' }
@@ -174,7 +180,12 @@ export async function handleLaunchProjectWithConfig(
     projectPath,
     configId: config.id
   })
-  const uprojectPath = await locateUproject(projectPath)
+  const safeProjectPath = isRegisteredProjectPath(projectPath)
+  if (!safeProjectPath) {
+    logger.warn('project', 'Config launch rejected; project not registered', { projectPath })
+    return { success: false, error: 'Project path is not registered' }
+  }
+  const uprojectPath = await locateUproject(safeProjectPath)
   if (!uprojectPath) {
     logger.warn('project', 'Config launch failed; project file not found', { projectPath })
     return { success: false, error: 'Project file not found' }
@@ -230,7 +241,12 @@ export async function handleLaunchProjectGame(
   projectPath: string
 ): Promise<Record<string, unknown>> {
   logger.info('project', 'Launch project game requested', { projectPath })
-  const uprojectPath = await locateUproject(projectPath)
+  const safeProjectPath = isRegisteredProjectPath(projectPath)
+  if (!safeProjectPath) {
+    logger.warn('project', 'Game launch rejected; project not registered', { projectPath })
+    return { success: false, error: 'Project path is not registered' }
+  }
+  const uprojectPath = await locateUproject(safeProjectPath)
   if (!uprojectPath) {
     logger.warn('project', 'Game launch failed; project file not found', { projectPath })
     return { success: false, error: 'Project file not found' }

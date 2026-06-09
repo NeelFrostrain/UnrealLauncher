@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import pkg from 'electron-updater'
 const { autoUpdater } = pkg
 import { BrowserWindow, dialog } from 'electron'

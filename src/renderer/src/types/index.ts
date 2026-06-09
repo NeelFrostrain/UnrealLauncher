@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 export type PageType = 'Engines' | 'Projects' | 'About' | 'Settings'
 export type TabType = 'all' | 'hidden' | 'favorites' | 'recent'
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { BookOpen, Zap } from 'lucide-react'
 
 export const AboutSupport = (): React.ReactElement => (

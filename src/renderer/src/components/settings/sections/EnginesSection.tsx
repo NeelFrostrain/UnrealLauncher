@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useEffect, useRef } from 'react'
 import { FolderOpen, Plus, X, AlertCircle, Info } from 'lucide-react'
 import { Card, SettingRow } from '../SectionHelpers'

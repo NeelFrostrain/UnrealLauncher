@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import { MotionConfig } from 'framer-motion'
 import { getSetting, setSetting } from './settings'

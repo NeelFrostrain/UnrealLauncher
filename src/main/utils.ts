@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 // Re-export everything from the split utility modules so existing imports keep working.
 export { getNative, getNativeModulePath } from './utils/native'
 export type { NativeModule, ScannedEngine } from './utils/native'

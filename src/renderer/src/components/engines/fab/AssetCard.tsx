@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, memo } from 'react'
 import { FolderOpen, Package, FileCode, Box, HelpCircle } from 'lucide-react'
 import { AssetThumb } from './AssetThumb'

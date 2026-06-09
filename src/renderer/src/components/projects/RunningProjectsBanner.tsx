@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Activity, FolderOpen, X } from 'lucide-react'
@@ -16,7 +16,9 @@ const POLL_MS = 6000
  * Unreal Editor processes are running. Each chip shows the project name and
  * lets the user click to open the project folder.
  */
-export function RunningProjectsBanner({ allProjects }: RunningProjectsBannerProps): React.ReactElement | null {
+export function RunningProjectsBanner({
+  allProjects
+}: RunningProjectsBannerProps): React.ReactElement | null {
   const [runningPaths, setRunningPaths] = useState<string[]>([])
   const [dismissed, setDismissed] = useState(false)
 
@@ -41,7 +43,8 @@ export function RunningProjectsBanner({ allProjects }: RunningProjectsBannerProp
 
   const resolveName = (p: string): string => {
     const match = allProjects.find(
-      (proj) => proj.projectPath?.replace(/\\/g, '/').toLowerCase() === p.replace(/\\/g, '/').toLowerCase()
+      (proj) =>
+        proj.projectPath?.replace(/\\/g, '/').toLowerCase() === p.replace(/\\/g, '/').toLowerCase()
     )
     return match?.name || p.split(/[/\\]/).pop() || p
   }

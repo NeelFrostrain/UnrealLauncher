@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * App lifecycle and window management.
  */
@@ -31,9 +31,11 @@ function registerBackgroundShortcut(): void {
   globalShortcut.register(PALETTE_SHORTCUT, () => {
     logger.info('shortcut', 'Background Ctrl+K triggered — opening palette window')
     // Import lazily to avoid circular dependency at module load time
-    import('./paletteWindow').then(({ openPaletteWindow }) => {
-      openPaletteWindow()
-    }).catch((err) => logger.error('shortcut', 'Failed to open palette window', err))
+    import('./paletteWindow')
+      .then(({ openPaletteWindow }) => {
+        openPaletteWindow()
+      })
+      .catch((err) => logger.error('shortcut', 'Failed to open palette window', err))
   })
   logger.info('shortcut', 'Background Ctrl+K registered')
 }

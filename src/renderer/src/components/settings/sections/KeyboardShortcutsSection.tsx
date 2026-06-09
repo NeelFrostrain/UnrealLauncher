@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState } from 'react'
 import { Keyboard, Command, Check, Copy } from 'lucide-react'
 import { Card, SectionHeader } from '../SectionHelpers'
@@ -27,12 +27,24 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     title: 'Global',
     accent: '#818cf8',
     shortcuts: [
-      { keys: [MOD, 'K'], label: 'Command Palette', description: 'Open the command palette to run any action' },
+      {
+        keys: [MOD, 'K'],
+        label: 'Command Palette',
+        description: 'Open the command palette to run any action'
+      },
       { keys: [MOD, '1'], label: 'Engines', description: 'Navigate to the Engines page' },
       { keys: [MOD, '2'], label: 'Projects', description: 'Navigate to the Projects page' },
       { keys: [MOD, '3'], label: 'Settings', description: 'Navigate to the Settings page' },
-      { keys: [MOD, 'R'], label: 'Refresh', description: 'Re-scan engines or projects on the current page' },
-      { keys: [MOD, 'N'], label: 'Add New', description: 'Add a project (Projects page) or engine (Engines page)' }
+      {
+        keys: [MOD, 'R'],
+        label: 'Refresh',
+        description: 'Re-scan engines or projects on the current page'
+      },
+      {
+        keys: [MOD, 'N'],
+        label: 'Add New',
+        description: 'Add a project (Projects page) or engine (Engines page)'
+      }
     ]
   },
   {
@@ -79,8 +91,16 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: ['Tab'], label: 'Next focusable element' },
       { keys: ['Shift', 'Tab'], label: 'Previous focusable element' },
       { keys: ['↑', '↓'], label: 'Navigate menu items' },
-      { keys: ['→', 'Space', 'Enter'], label: 'Open sub-menu', description: 'On sub-menu trigger items' },
-      { keys: ['Shift', 'F10'], label: 'Context menu', description: 'Open the right-click menu on a focused card' }
+      {
+        keys: ['→', 'Space', 'Enter'],
+        label: 'Open sub-menu',
+        description: 'On sub-menu trigger items'
+      },
+      {
+        keys: ['Shift', 'F10'],
+        label: 'Context menu',
+        description: 'Open the right-click menu on a focused card'
+      }
     ]
   }
 ]
@@ -158,7 +178,8 @@ export function KeyboardShortcutsSection(): React.ReactElement {
       <div
         className="flex items-start gap-3 px-4 py-3"
         style={{
-          backgroundColor: 'color-mix(in srgb, var(--color-accent) 6%, var(--color-surface-elevated))',
+          backgroundColor:
+            'color-mix(in srgb, var(--color-accent) 6%, var(--color-surface-elevated))',
           border: '1px solid color-mix(in srgb, var(--color-accent) 18%, transparent)',
           borderRadius: 'var(--radius)'
         }}
@@ -168,9 +189,12 @@ export function KeyboardShortcutsSection(): React.ReactElement {
           <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
             Tip — Command Palette
           </p>
-          <p className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-            Press <Kbd k={MOD} /> + <Kbd k="K" /> anywhere to open the command palette.
-            It lists all available actions with their shortcuts and lets you run them by name.
+          <p
+            className="text-xs mt-0.5 leading-relaxed"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            Press <Kbd k={MOD} /> + <Kbd k="K" /> anywhere to open the command palette. It lists all
+            available actions with their shortcuts and lets you run them by name.
           </p>
         </div>
       </div>
@@ -195,7 +219,10 @@ export function KeyboardShortcutsSection(): React.ReactElement {
                 >
                   {/* Label + description */}
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
                       {s.label}
                     </p>
                     {s.description && (
@@ -221,7 +248,10 @@ export function KeyboardShortcutsSection(): React.ReactElement {
       ))}
 
       {/* Footer note */}
-      <p className="text-xs text-center px-4" style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}>
+      <p
+        className="text-xs text-center px-4"
+        style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
+      >
         Shortcuts are not currently remappable. Rebinding support is planned for a future release.
       </p>
     </section>

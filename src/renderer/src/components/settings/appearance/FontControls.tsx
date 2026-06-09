@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { type CSSProperties } from 'react'
 import { BUILT_IN_THEMES, type ThemeToken } from '../../../utils/theme'
 

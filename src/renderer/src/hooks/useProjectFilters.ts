@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Project, TabType } from '../types'

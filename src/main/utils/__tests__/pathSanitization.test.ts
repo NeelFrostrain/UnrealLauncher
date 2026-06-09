@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import path from 'path'
-import { validatePath, validateDirectory } from '../pathSanitization'
+import { validatePath, validateDirectory, isPathWithinDirectory } from '../pathSanitization'
 
 describe('Path Sanitizer Tests', () => {
   // Define mock authorized directories for testing
@@ -54,10 +54,33 @@ describe('Path Sanitizer Tests', () => {
   it('❌ Prefix bypass injection prevention', () => {
     // This tests that "/users/hp/workspace/UnrealLauncher-hacker/Config/DefaultEngine.ini"
     // is NOT allowed even though it starts with the string "/users/hp/workspace/UnrealLauncher"
-    const bypassPath = path.resolve('/users/hp/workspace/UnrealLauncher-hacker/Config/DefaultEngine.ini')
+    const bypassPath = path.resolve(
+      '/users/hp/workspace/UnrealLauncher-hacker/Config/DefaultEngine.ini'
+    )
     const res = validatePath(bypassPath, mockAllowedDirs)
     expect(res.success).toBe(false)
     expect(res.error).toContain('Path traversal or unauthorized file access detected')
+  })
+
+  describe('isPathWithinDirectory', () => {
+    it('✅ Accepts exact match and child paths', () => {
+      const parent = path.resolve('/users/hp/workspace/UnrealLauncher')
+      const child = path.join(parent, 'Config', 'DefaultEngine.ini')
+      expect(isPathWithinDirectory(parent, parent)).toBe(true)
+      expect(isPathWithinDirectory(child, parent)).toBe(true)
+    })
+
+    it('❌ Rejects prefix bypass sibling paths', () => {
+      const parent = path.resolve('/users/hp/workspace/UnrealLauncher')
+      const sibling = path.resolve('/users/hp/workspace/UnrealLauncher-hacker/secret.ini')
+      expect(isPathWithinDirectory(sibling, parent)).toBe(false)
+    })
+
+    it('❌ Rejects paths outside parent', () => {
+      const parent = path.resolve('/users/hp/workspace/UnrealLauncher')
+      const outside = path.resolve('/outside/secret.ini')
+      expect(isPathWithinDirectory(outside, parent)).toBe(false)
+    })
   })
 
   describe('validateDirectory', () => {

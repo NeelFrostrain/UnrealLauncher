@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React from 'react'
 import type { EngineCardProps } from '../../types'
 import EngineCard from '@renderer/components/engines/EngineCard'

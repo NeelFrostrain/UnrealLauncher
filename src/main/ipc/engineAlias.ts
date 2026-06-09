@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { loadEngines, saveEngines } from '../store'
 
 const MAX_ALIAS_LENGTH = 32

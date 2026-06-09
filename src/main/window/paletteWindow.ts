@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Manages the standalone command palette BrowserWindow.
  *
@@ -44,7 +44,7 @@ export function openPaletteWindow(): void {
   const W = Math.round(Math.min(600, sw * 0.5))
   const H = Math.round(Math.min(600, sh * 0.75))
   const x = Math.round((sw - W) / 2)
-  const y = Math.round(sh * 0.08)   // ~8% from top
+  const y = Math.round(sh * 0.08) // ~8% from top
 
   paletteWindow = new BrowserWindow({
     width: W,
@@ -57,7 +57,7 @@ export function openPaletteWindow(): void {
     movable: true,
     alwaysOnTop: true,
     skipTaskbar: true,
-    show: false,                       // shown only after 'palette-ready' IPC
+    show: false, // shown only after 'palette-ready' IPC
     backgroundColor: '#1f1f1f',
     webPreferences: {
       nodeIntegration: false,

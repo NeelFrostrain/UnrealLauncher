@@ -1,16 +1,37 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import fs from 'fs'
 import { loadEngines } from '../store'
 
 // Restrict IPC file read/write operations to text-based configuration formats (e.g., .uproject, .ini, .conf, .cfg, .yaml, .json).
 // Explicitly block reading or writing binary executables (.exe, .dll, .sh, .bat) over these channels.
-const APPROVED_EXTENSIONS = ['.uproject', '.ini', '.conf', '.cfg', '.yaml', '.yml', '.json', '.txt', '.gitignore']
-const BLOCKED_EXTENSIONS = ['.exe', '.dll', '.sh', '.bat', '.bin', '.com', '.cmd', '.msi', '.so', '.dylib']
+const APPROVED_EXTENSIONS = [
+  '.uproject',
+  '.ini',
+  '.conf',
+  '.cfg',
+  '.yaml',
+  '.yml',
+  '.json',
+  '.txt',
+  '.gitignore'
+]
+const BLOCKED_EXTENSIONS = [
+  '.exe',
+  '.dll',
+  '.sh',
+  '.bat',
+  '.bin',
+  '.com',
+  '.cmd',
+  '.msi',
+  '.so',
+  '.dylib'
+]
 
 /**
  * Validates, normalizes, and restricts all filesystem paths passed over the IPC bridge.
- * 
+ *
  * @param filePath The raw file path supplied by the renderer process.
  * @param allowedDirs The authorized base directories (e.g. project scan paths, project folders, config storage directory).
  * @returns An object containing the success status, resolved path, or a descriptive error.
@@ -83,7 +104,7 @@ export function validatePath(
       if (resolvedLower.startsWith(allowedLower)) {
         // Ensure exact match or followed by path separator to prevent prefix bypass (e.g. /app/folder matching /app/folder-sibling)
         if (resolvedLower.length === allowedLower.length) return true
-        const nextChar = resolved.charAt(allowedDir.length)
+        const nextChar = resolvedLower.charAt(allowedLower.length)
         if (nextChar === path.sep || nextChar === '/' || nextChar === '\\') return true
       }
       return false
@@ -111,7 +132,7 @@ export function getAppAllowedDirectories(): string[] {
   // Wrap imports and Electron app access in try-catch to remain fully compatible with test runners
   try {
     const { loadProjectScanPaths, loadProjects } = require('../store')
-    
+
     // Add registered project scan paths
     const scanPaths = loadProjectScanPaths()
     for (const p of scanPaths) {
@@ -237,6 +258,19 @@ export function sanitizeDirectory(dirPath: string): {
 }
 
 /**
+ * Returns true when childPath is exactly parentPath or a descendant of it.
+ * Uses a path-separator check to prevent prefix bypass (e.g. /proj vs /proj2).
+ */
+export function isPathWithinDirectory(childPath: string, parentPath: string): boolean {
+  const childLower = path.normalize(childPath).toLowerCase()
+  const parentLower = path.normalize(parentPath).toLowerCase()
+  if (childLower === parentLower) return true
+  if (!childLower.startsWith(parentLower)) return false
+  const nextChar = childLower.charAt(parentLower.length)
+  return nextChar === path.sep || nextChar === '/' || nextChar === '\\'
+}
+
+/**
  * Checks if a path is a registered project directory.
  * Returns normalized path if valid, undefined if not found.
  * Falls back to a basic check if store is not available.
@@ -322,6 +356,46 @@ export function validatePathForGitRead(dirPath: string): string | undefined {
 }
 
 /**
+ * Checks if a path is a registered engine executable.
+ * Returns normalized path if valid, undefined if not found.
+ */
+export function isRegisteredEngineExePath(exePath: string): string | undefined {
+  try {
+    let resolved = path.resolve(exePath)
+    try {
+      if (fs.existsSync(resolved)) {
+        resolved = fs.realpathSync(resolved)
+      }
+    } catch {
+      // ignore
+    }
+    resolved = path.normalize(resolved)
+    const resolvedLower = resolved.toLowerCase()
+
+    const engines = loadEngines()
+
+    for (const eng of engines) {
+      if (eng.exePath) {
+        let engExe = path.normalize(path.resolve(eng.exePath))
+        try {
+          if (fs.existsSync(engExe)) {
+            engExe = path.normalize(fs.realpathSync(engExe))
+          }
+        } catch {
+          // ignore
+        }
+        if (resolvedLower === engExe.toLowerCase()) {
+          return resolved
+        }
+      }
+    }
+    return undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
  * Checks if a path is a registered engine directory.
  * Returns normalized path if valid, undefined if not found.
  */
@@ -362,4 +436,3 @@ export function isRegisteredEnginePath(dirPath: string): string | undefined {
     return undefined
   }
 }
-

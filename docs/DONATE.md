@@ -1,4 +1,4 @@
-# Support Unreal Launcher
+﻿# Support Unreal Launcher
 
 Unreal Launcher is free to use. If it saves you time, consider supporting development.
 

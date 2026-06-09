@@ -1,21 +1,56 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { memo } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../../types'
-import { Play, Gamepad2, MoreVertical, Clock, Database, GitBranch, CheckCircle2, AlertTriangle, XCircle, HelpCircle } from 'lucide-react'
+import {
+  Play,
+  Gamepad2,
+  MoreVertical,
+  Clock,
+  Database,
+  GitBranch,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  HelpCircle
+} from 'lucide-react'
 import { formatVersion, formatDate } from './projectUtils'
 import { useProjectCardState } from './card/projectCardState'
 import { useProjectCardHandlers } from './card/projectCardHandlers'
 import { ProjectCardDialogs } from './card/projectCardDialogs'
 import { useEngineCompatibility } from '../../hooks/useEngineCompatibility'
 import type { CompatibilityStatus } from '../../hooks/useEngineCompatibility'
+import { toLocalAssetUrl } from '../../utils/resolveAsset'
 
 // ── Compatibility badge ───────────────────────────────────────────────────────
-const COMPAT_STYLES: Record<CompatibilityStatus, { color: string; bg: string; border: string; Icon: React.FC<{ size?: number }> }> = {
-  matched: { color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.25)', Icon: CheckCircle2 },
-  partial: { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.25)', Icon: AlertTriangle },
-  missing: { color: '#f87171', bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.25)', Icon: XCircle },
-  unknown: { color: 'var(--color-text-muted)', bg: 'transparent', border: 'transparent', Icon: HelpCircle },
+const COMPAT_STYLES: Record<
+  CompatibilityStatus,
+  { color: string; bg: string; border: string; Icon: React.FC<{ size?: number }> }
+> = {
+  matched: {
+    color: '#4ade80',
+    bg: 'rgba(74,222,128,0.1)',
+    border: 'rgba(74,222,128,0.25)',
+    Icon: CheckCircle2
+  },
+  partial: {
+    color: '#fbbf24',
+    bg: 'rgba(251,191,36,0.1)',
+    border: 'rgba(251,191,36,0.25)',
+    Icon: AlertTriangle
+  },
+  missing: {
+    color: '#f87171',
+    bg: 'rgba(248,113,113,0.1)',
+    border: 'rgba(248,113,113,0.25)',
+    Icon: XCircle
+  },
+  unknown: {
+    color: 'var(--color-text-muted)',
+    bg: 'transparent',
+    border: 'transparent',
+    Icon: HelpCircle
+  }
 }
 
 function CompatBadge({ version }: { version: string }): React.ReactElement | null {
@@ -27,7 +62,13 @@ function CompatBadge({ version }: { version: string }): React.ReactElement | nul
       className="flex items-center shrink-0"
       title={tooltip}
       aria-label={tooltip}
-      style={{ color, background: bg, border: `1px solid ${border}`, borderRadius: 'calc(var(--radius) * 0.4)', padding: '1px 5px' }}
+      style={{
+        color,
+        background: bg,
+        border: `1px solid ${border}`,
+        borderRadius: 'calc(var(--radius) * 0.4)',
+        padding: '1px 5px'
+      }}
     >
       <Icon size={10} />
     </span>
@@ -79,9 +120,7 @@ const ProjectCard = memo(
 
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
     // Use thumbnailKey as a cache-busting token for the per-project thumbnail
-    const imageSrc = thumbnail
-      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}?t=${thumbnailKey ?? ''}`
-      : null
+    const imageSrc = thumbnail ? toLocalAssetUrl(thumbnail, thumbnailKey) : null
     const dateLabel = lastOpenedAt ? formatDate(lastOpenedAt) : createdAt
     const dateType = lastOpenedAt ? 'Opened' : 'Created'
 

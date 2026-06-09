@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState } from 'react'
 import { FolderOpen, Trash2 } from 'lucide-react'
 import { Card, SettingRow, Toggle } from '../SectionHelpers'

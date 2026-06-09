@@ -1,9 +1,13 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { spawn } from 'child_process'
-import { validatePathForGitRead } from '../utils/pathSanitization'
+import {
+  isRegisteredProjectPath,
+  isPathWithinDirectory,
+  sanitizePath
+} from '../utils/pathSanitization'
 
 export function findUprojectFile(projectPath: string): string | null {
   try {
@@ -19,7 +23,7 @@ export function handleProjectOpenDefaultConfig(projectPath: string): {
   success: boolean
   error?: string
 } {
-  const safeProjectPath = validatePathForGitRead(projectPath)
+  const safeProjectPath = isRegisteredProjectPath(projectPath)
   if (!safeProjectPath) {
     return { success: false, error: 'Project path not found or invalid' }
   }
@@ -45,7 +49,7 @@ export function handleProjectOpenUproject(projectPath: string): {
   success: boolean
   error?: string
 } {
-  const safeProjectPath = validatePathForGitRead(projectPath)
+  const safeProjectPath = isRegisteredProjectPath(projectPath)
   if (!safeProjectPath) {
     return { success: false, error: 'Project path not found or invalid' }
   }
@@ -63,17 +67,18 @@ export function handleProjectOpenSubfolder(
   projectPath: string,
   subfolder: string
 ): { success: boolean; error?: string } {
-  const safeProjectPath = validatePathForGitRead(projectPath)
+  const safeProjectPath = isRegisteredProjectPath(projectPath)
   if (!safeProjectPath) {
     return { success: false, error: 'Project path not found or invalid' }
   }
+  if (!subfolder || subfolder.includes('..') || path.isAbsolute(subfolder)) {
+    return { success: false, error: 'Invalid subfolder' }
+  }
   const target = path.join(safeProjectPath, subfolder)
-  // Verify target is within project path
-  const normTarget = path.normalize(target)
-  const normProject = path.normalize(safeProjectPath)
-  if (!normTarget.startsWith(normProject)) {
+  if (!isPathWithinDirectory(target, safeProjectPath)) {
     return { success: false, error: 'Access denied' }
   }
+  const normTarget = path.normalize(target)
   if (!fs.existsSync(normTarget)) {
     try {
       fs.mkdirSync(normTarget, { recursive: true })
@@ -92,7 +97,7 @@ export function handleProjectOpenSubfolder(
 export async function handleProjectGenerateFiles(
   projectPath: string
 ): Promise<{ success: boolean; error?: string }> {
-  const safeProjectPath = validatePathForGitRead(projectPath)
+  const safeProjectPath = isRegisteredProjectPath(projectPath)
   if (!safeProjectPath) {
     return { success: false, error: 'Project path not found or invalid' }
   }
@@ -122,7 +127,7 @@ export async function handleProjectGenerateFiles(
 export async function handleProjectCleanIntermediate(
   projectPath: string
 ): Promise<{ success: boolean; cleaned: string[]; error?: string }> {
-  const safeProjectPath = validatePathForGitRead(projectPath)
+  const safeProjectPath = isRegisteredProjectPath(projectPath)
   if (!safeProjectPath) {
     return { success: false, cleaned: [], error: 'Project path not found or invalid' }
   }
@@ -182,31 +187,27 @@ export async function handleProjectCleanIntermediate(
  * Reads a text file and returns its content.
  * Used by the in-app file editor dialog.
  */
-export function handleProjectReadTextFile(filePath: string, projectPath: string): {
+export function handleProjectReadTextFile(
+  filePath: string,
+  projectPath: string
+): {
   success: boolean
   content: string
   error?: string
 } {
   try {
-    // Validate the project path first
-    const validatedProjectPath = validatePathForGitRead(projectPath)
+    const validatedProjectPath = isRegisteredProjectPath(projectPath)
     if (!validatedProjectPath) {
       return { success: false, content: '', error: 'Project path not accessible' }
     }
 
-    // Normalize and validate the file path exists
-    let resolved = path.resolve(filePath)
-    try {
-      if (fs.existsSync(resolved)) {
-        resolved = fs.realpathSync(resolved)
-      }
-    } catch {
-      // ignore
+    const sanitized = sanitizePath(filePath)
+    if (!sanitized.success || !sanitized.resolvedPath) {
+      return { success: false, content: '', error: sanitized.error ?? 'Invalid file path' }
     }
-    resolved = path.normalize(resolved)
+    const resolved = sanitized.resolvedPath
 
-    // Verify file is within the validated project path
-    if (!resolved.toLowerCase().startsWith(validatedProjectPath.toLowerCase())) {
+    if (!isPathWithinDirectory(resolved, validatedProjectPath)) {
       return { success: false, content: '', error: 'File is outside project directory' }
     }
 
@@ -236,25 +237,18 @@ export function handleProjectWriteTextFile(
   projectPath: string
 ): { success: boolean; error?: string } {
   try {
-    // Validate the project path first
-    const validatedProjectPath = validatePathForGitRead(projectPath)
+    const validatedProjectPath = isRegisteredProjectPath(projectPath)
     if (!validatedProjectPath) {
       return { success: false, error: 'Project path not accessible' }
     }
 
-    // Normalize and validate the file path
-    let resolved = path.resolve(filePath)
-    try {
-      if (fs.existsSync(resolved)) {
-        resolved = fs.realpathSync(resolved)
-      }
-    } catch {
-      // ignore
+    const sanitized = sanitizePath(filePath)
+    if (!sanitized.success || !sanitized.resolvedPath) {
+      return { success: false, error: sanitized.error ?? 'Invalid file path' }
     }
-    resolved = path.normalize(resolved)
+    const resolved = sanitized.resolvedPath
 
-    // Verify file would be within the validated project path
-    if (!resolved.toLowerCase().startsWith(validatedProjectPath.toLowerCase())) {
+    if (!isPathWithinDirectory(resolved, validatedProjectPath)) {
       return { success: false, error: 'File is outside project directory' }
     }
 
@@ -279,7 +273,7 @@ export function handleProjectResolveConfigPath(projectPath: string): {
   filePath: string
   error?: string
 } {
-  const safeProjectPath = validatePathForGitRead(projectPath)
+  const safeProjectPath = isRegisteredProjectPath(projectPath)
   if (!safeProjectPath) {
     return { success: false, filePath: '', error: 'Project path not found or invalid' }
   }
@@ -300,7 +294,7 @@ export function handleProjectResolveUprojectPath(projectPath: string): {
   filePath: string
   error?: string
 } {
-  const safeProjectPath = validatePathForGitRead(projectPath)
+  const safeProjectPath = isRegisteredProjectPath(projectPath)
   if (!safeProjectPath) {
     return { success: false, filePath: '', error: 'Project path not found or invalid' }
   }

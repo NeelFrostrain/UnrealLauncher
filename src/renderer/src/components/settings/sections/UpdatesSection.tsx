@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { RefreshCw, Download, CheckCircle, GitBranch } from 'lucide-react'
 import { Card } from '../SectionHelpers'
 import { useUpdateCheck } from '../../../hooks/useUpdateCheck'

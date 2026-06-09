@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Generic JSON read/write helpers with automatic backup-and-recover on corruption.
  */
@@ -46,7 +46,9 @@ export function readJsonObject<T extends object>(filePath: string, defaults: T):
     if (fs.existsSync(filePath)) {
       return { ...defaults, ...JSON.parse(fs.readFileSync(filePath, 'utf8')) }
     }
-  } catch { /* use defaults */ }
+  } catch {
+    /* use defaults */
+  }
   return { ...defaults }
 }
 
