@@ -8,6 +8,25 @@ import { BrowserWindow, screen } from 'electron'
 let isMaximized = false
 let previousBounds: { x: number; y: number; width: number; height: number } | null = null
 
+export function enableBackgroundMode(mainWindow: BrowserWindow): void {
+  try {
+    mainWindow.webContents.setBackgroundThrottling(true)
+  } catch {
+    // Some Electron runtimes may not support explicit throttling.
+  }
+  mainWindow.webContents.session.clearCache().catch(() => {
+    /* ignore */
+  })
+}
+
+function enableForegroundMode(mainWindow: BrowserWindow): void {
+  try {
+    mainWindow.webContents.setBackgroundThrottling(false)
+  } catch {
+    /* ignore */
+  }
+}
+
 export function getIsMaximized(): boolean {
   return isMaximized
 }
@@ -43,9 +62,25 @@ export function setupWindowEventHandlers(mainWindow: BrowserWindow): void {
     // Cleanup handled by caller
   })
 
-  // Free renderer memory when minimized
+  // Free renderer memory and throttle timers when not visible.
   mainWindow.on('minimize', () => {
-    mainWindow?.webContents.session.clearCache()
+    enableBackgroundMode(mainWindow)
+  })
+
+  mainWindow.on('hide', () => {
+    enableBackgroundMode(mainWindow)
+  })
+
+  mainWindow.on('blur', () => {
+    enableBackgroundMode(mainWindow)
+  })
+
+  mainWindow.on('show', () => {
+    enableForegroundMode(mainWindow)
+  })
+
+  mainWindow.on('focus', () => {
+    enableForegroundMode(mainWindow)
   })
 }
 

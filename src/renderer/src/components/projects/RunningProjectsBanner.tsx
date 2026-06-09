@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Activity, FolderOpen, X } from 'lucide-react'
 import type { Project } from '../../types'
+import { usePageVisibility } from '../../hooks/usePageVisibility'
 
 interface RunningProjectsBannerProps {
   /** Full project list used to resolve path → name */
@@ -33,11 +34,14 @@ export function RunningProjectsBanner({
     }
   }, [])
 
+  const isVisible = usePageVisibility()
+
   useEffect(() => {
+    if (!isVisible) return undefined
     poll()
     const id = setInterval(poll, POLL_MS)
     return () => clearInterval(id)
-  }, [poll])
+  }, [poll, isVisible])
 
   const visible = !dismissed && runningPaths.length > 0
 

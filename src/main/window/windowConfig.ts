@@ -16,7 +16,8 @@ export const MAIN_WINDOW_CONFIG = {
     contextIsolation: true,
     preload: path.join(__dirname, '../preload/index.js'),
     sandbox: false,
-    // Remove explicit backgroundThrottling because Chromium flags already control timer throttling
+    backgroundThrottling: true,
+    // Keep timers throttled in background windows so hidden/minimized apps use less CPU.
     spellcheck: false,
     enableWebSQL: false,
     v8CacheOptions: 'bypassHeatCheck' as const,

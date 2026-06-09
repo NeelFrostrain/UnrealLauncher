@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useEffect, useRef } from 'react'
 import { setSetting } from '../utils/settings'
+import { usePageVisibility } from './usePageVisibility'
 
 export interface UseTracerSettingsReturn {
   tracerAutoStart: boolean
@@ -20,6 +21,8 @@ export function useTracerSettings(): UseTracerSettingsReturn {
   const [tracerDataDir, setTracerDataDir] = useState('')
   const [tracerMerge, setTracerMerge] = useState(true)
   const timeoutRefs = useRef<NodeJS.Timeout[]>([])
+
+  const isVisible = usePageVisibility()
 
   useEffect(() => {
     // Load initial values with error handling
@@ -48,6 +51,8 @@ export function useTracerSettings(): UseTracerSettingsReturn {
         /* ignore */
       })
 
+    if (!isVisible) return undefined
+
     const interval = setInterval(() => {
       window.electronAPI
         .isTracerRunning()
@@ -65,7 +70,7 @@ export function useTracerSettings(): UseTracerSettingsReturn {
       }
       timeoutRefs.current = []
     }
-  }, [])
+  }, [isVisible])
 
   const handleTracerAutoStartChange = async (): Promise<void> => {
     const next = !tracerAutoStart

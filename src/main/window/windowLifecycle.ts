@@ -10,6 +10,7 @@ import { optimizer } from '@electron-toolkit/utils'
 import { MAIN_WINDOW_CONFIG } from './windowConfig'
 import { createSplashWindow, closeSplashWindow } from './splashWindow'
 import {
+  enableBackgroundMode,
   setupWindowEventHandlers,
   setupDevToolsShortcut,
   setupMemoryManagement
@@ -154,10 +155,11 @@ export function handleRequestedAppClose(): void {
 
   if (mainWindow && !mainWindow.isDestroyed()) {
     if (createAppTray()) {
-      logger.info('window', 'Close requested; closing window and staying in tray')
-      // Register background shortcut before closing so it's active immediately
+      logger.info('window', 'Close requested; hiding window and staying in tray')
+      // Register background shortcut before hiding so it's active immediately
       registerBackgroundShortcut()
-      mainWindow.close()
+      mainWindow.hide()
+      enableBackgroundMode(mainWindow)
     }
   }
 }
@@ -201,15 +203,17 @@ export function createWindow(): void {
   clearMemoryManagementTimer()
   memoryManagementTimer = setupMemoryManagement(mainWindow)
 
-  mainWindow.on('close', () => {
+  mainWindow.on('close', (event) => {
     logger.info('window', 'Main window close event', { isQuiting })
     if (isQuiting) return
     const settings = loadMainSettings()
     if (settings.backgroundCloseEnabled && mainWindow && !mainWindow.isDestroyed()) {
+      event.preventDefault()
       if (createAppTray()) {
         // Window is going to tray — register background shortcut
         registerBackgroundShortcut()
-        return
+        mainWindow.hide()
+        enableBackgroundMode(mainWindow)
       }
     }
   })

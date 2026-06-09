@@ -4,6 +4,7 @@ import { Minus, Square, Minimize2, X, MessageSquarePlus, MessageCircle } from 'l
 import { AnimatePresence } from 'framer-motion'
 import FeedbackDialog from './FeedbackDialog'
 import { getSetting } from '../../utils/settings'
+import { usePageVisibility } from '../../hooks/usePageVisibility'
 import config from '../../../../config'
 
 // const IS_MAC = navigator.platform.toLowerCase().includes('mac')
@@ -38,12 +39,16 @@ const Titlebar = (): React.ReactElement => {
   }
   const handleClose = (): void => window.electronAPI?.windowClose()
 
+  const isVisible = usePageVisibility()
+
   useEffect(() => {
     const update = async (): Promise<void> => {
       const maximized = await window.electronAPI?.windowIsMaximized()
       setIsMaximized(!!maximized)
     }
     update()
+    if (!isVisible) return undefined
+
     const interval = setInterval(update, 500)
 
     // React to setting changes from the Settings page
@@ -54,7 +59,7 @@ const Titlebar = (): React.ReactElement => {
       clearInterval(interval)
       window.removeEventListener('app-settings-changed', onSettingChanged)
     }
-  }, [])
+  }, [isVisible])
 
   const drag = { WebkitAppRegion: 'drag' } as React.CSSProperties
   const noDrag = { WebkitAppRegion: 'no-drag' } as React.CSSProperties
