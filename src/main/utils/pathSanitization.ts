@@ -248,13 +248,16 @@ export function validateDirectory(
 /**
  * Sanitizes a directory path using dynamic authorized directories.
  */
-export function sanitizeDirectory(dirPath: string): {
+export function sanitizeDirectory(
+  dirPath: string,
+  allowedDirs?: string[]
+): {
   success: boolean
   resolvedPath?: string
   error?: string
 } {
-  const allowedDirs = getAppAllowedDirectories()
-  return validateDirectory(dirPath, allowedDirs)
+  const dirs = allowedDirs && allowedDirs.length > 0 ? allowedDirs : getAppAllowedDirectories()
+  return validateDirectory(dirPath, dirs)
 }
 
 /**

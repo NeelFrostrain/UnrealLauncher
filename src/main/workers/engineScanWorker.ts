@@ -125,8 +125,13 @@ function generateGradient() {
 }
 
 const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
+const savedByDirectory = new Map();
+for (const engine of saved) {
+  if (!engine?.directoryPath) continue;
+  savedByDirectory.set(engine.directoryPath, engine);
+}
 const scanned = scanEnginePaths().map(e => {
-  const ex = saved.find(s => s.directoryPath === e.directoryPath);
+  const ex = savedByDirectory.get(e.directoryPath);
   return { version: e.version, exePath: e.exePath, directoryPath: e.directoryPath,
     folderSize: ex?.folderSize || '~35-45 GB',
     lastLaunch: ex?.lastLaunch || 'Unknown',
@@ -134,7 +139,7 @@ const scanned = scanEnginePaths().map(e => {
 });
 const merged = [];
 for (const s of scanned) {
-  const ex = saved.find(e => e.directoryPath === s.directoryPath);
+  const ex = savedByDirectory.get(s.directoryPath);
   if (ex) {
     if (ex.gradient) s.gradient = ex.gradient;
     if (ex.folderSize && !ex.folderSize.startsWith('~')) s.folderSize = ex.folderSize;
@@ -142,8 +147,9 @@ for (const s of scanned) {
   }
   merged.push(s);
 }
+const mergedDirectoryPaths = new Set(merged.map((m) => m.directoryPath));
 for (const e of saved) {
-  if (!merged.find(m => m.directoryPath === e.directoryPath)) merged.push(e);
+  if (!mergedDirectoryPaths.has(e.directoryPath)) merged.push(e);
 }
 parentPort.postMessage(merged.filter(e => fs.existsSync(e.exePath)));
 `

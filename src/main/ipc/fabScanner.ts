@@ -65,12 +65,11 @@ export async function scanFabFolder(rootDir: string): Promise<FabAsset[]> {
     }
 
     const childrenNames = entries.map((e) => e.name)
-    const hasManifest = childrenNames.some(
-      (f) => f.toLowerCase() === 'manifest' || f.toLowerCase().endsWith('.manifest')
-    )
-    const hasUplugin = childrenNames.some((f) => f.endsWith('.uplugin'))
-    const hasUproject = childrenNames.some((f) => f.endsWith('.uproject'))
-    const hasContent = childrenNames.includes('Content')
+    const lowerNames = childrenNames.map((name) => name.toLowerCase())
+    const hasManifest = lowerNames.some((f) => f === 'manifest' || f.endsWith('.manifest'))
+    const hasUplugin = lowerNames.some((f) => f.endsWith('.uplugin'))
+    const hasUproject = lowerNames.some((f) => f.endsWith('.uproject'))
+    const hasContent = lowerNames.includes('content')
 
     if (hasManifest || hasUplugin || hasUproject || hasContent) {
       try {

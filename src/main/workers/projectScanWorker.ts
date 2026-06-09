@@ -76,6 +76,11 @@ function findLogTimestamp(p) {
 
 // ── Build search paths (deduped) ──────────────────────────────────────────────
 const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
+const savedByPath = new Map();
+for (const proj of saved) {
+  if (!proj?.projectPath) continue;
+  savedByPath.set(path.normalize(proj.projectPath).toLowerCase(), proj);
+}
 const rawPaths = [path.join(os.homedir(), 'Documents', 'Unreal Projects')];
 const platform = os.platform();
 if (platform === 'win32') {
@@ -108,7 +113,7 @@ for (const sp of searchPaths) {
     for (const proj of cached.projects) {
       const norm = path.normalize(proj.projectPath).toLowerCase();
       if (!scannedByPath.has(norm)) {
-        const ex = saved.find(p => path.normalize(p.projectPath||'').toLowerCase() === norm);
+        const ex = savedByPath.get(norm);
         scannedByPath.set(norm, {
           ...proj,
           size: (ex?.size && !ex.size.startsWith('~')) ? ex.size : proj.size,
@@ -133,7 +138,7 @@ for (const sp of searchPaths) {
       let version = 'Unknown';
       try { const m = fs.readFileSync(up,'utf8').match(/"EngineAssociation":\\s*"([^"]+)"/); if (m) version = m[1]; } catch {}
 
-      const ex = saved.find(p => path.normalize(p.projectPath||'').toLowerCase() === norm);
+      const ex = savedByPath.get(norm);
       const proj = {
         name, version,
         size: (ex?.size && !ex.size.startsWith('~')) ? ex.size : '~2-5 GB',

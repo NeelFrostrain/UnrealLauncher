@@ -1,19 +1,7 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, Database, GitBranch, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
+import { Clock, Database, GitBranch } from 'lucide-react'
 import { formatVersion, formatDate } from '../projectUtils'
-import { useEngineCompatibility } from '../../../hooks/useEngineCompatibility'
-import type { CompatibilityStatus } from '../../../hooks/useEngineCompatibility'
-
-const COMPAT: Record<
-  CompatibilityStatus,
-  { color: string; Icon: React.FC<{ size?: number }> } | null
-> = {
-  matched: { color: '#4ade80', Icon: CheckCircle2 },
-  partial: { color: '#fbbf24', Icon: AlertTriangle },
-  missing: { color: '#f87171', Icon: XCircle },
-  unknown: null
-}
 
 interface ProjectCardContentProps {
   displayName: string
@@ -27,24 +15,6 @@ interface ProjectCardContentProps {
   hovered: boolean
   launching: boolean
   onImageError: (e: React.SyntheticEvent<HTMLImageElement>) => void
-}
-
-// ── Compatibility badge for the grid card ────────────────────────────────────
-function CompatGridBadge({ version }: { version: string }): React.ReactElement | null {
-  const { status, tooltip } = useEngineCompatibility(version)
-  const entry = COMPAT[status]
-  if (!entry) return null
-  const { color, Icon } = entry
-  return (
-    <span
-      title={tooltip}
-      aria-label={tooltip}
-      className="flex items-center justify-center w-5 h-5 rounded-full bg-black/65 backdrop-blur-md"
-      style={{ border: `1px solid ${color}40`, color }}
-    >
-      <Icon size={11} />
-    </span>
-  )
 }
 
 /**
@@ -87,7 +57,7 @@ export function ProjectCardContent({
       <div className="absolute top-2.5 inset-x-2.5 z-10 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <div
-            className="bg-black/65 backdrop-blur-md px-2 py-0.5 text-[10px] font-mono tracking-wider"
+            className="bg-black/50 backdrop-blur-md px-2 py-0.5 text-[10px] font-mono tracking-wider"
             style={{
               borderRadius: 'calc(var(--radius) * 0.5)',
               border: '1px solid rgba(255,255,255,0.12)',
@@ -96,7 +66,6 @@ export function ProjectCardContent({
           >
             UE {formatVersion(version)}
           </div>
-          <CompatGridBadge version={version} />
         </div>
         {gitInitialized && (
           <div

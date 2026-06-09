@@ -25,10 +25,11 @@ export function registerFabHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   ipcMain_.handle('fab-scan-folder', async (_event, folderPath: string): Promise<FabAsset[]> => {
-    // SECURITY: Sanitize path to prevent directory traversal
-    const sanitized = sanitizeDirectory(folderPath)
+    // SECURITY: Sanitize path to prevent directory traversal.
+    // Explicitly allow the selected folder as its own authorized base.
+    const sanitized = sanitizeDirectory(folderPath, [folderPath])
     if (!sanitized.success || !sanitized.resolvedPath) {
-      return []
+      throw new Error(sanitized.error || 'Invalid Fab folder path')
     }
     return scanFabFolder(sanitized.resolvedPath)
   })

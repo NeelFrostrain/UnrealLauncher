@@ -56,12 +56,13 @@ function detectAssetTypeFromStructure(
 ): 'plugin' | 'content' | 'project' | 'unknown' {
   if (currentType !== 'unknown') return currentType
 
-  const upluginFile = children.find((f) => f.endsWith('.uplugin'))
-  const uprojectFile = children.find((f) => f.endsWith('.uproject'))
+  const lowerChildren = children.map((child) => child.toLowerCase())
+  const upluginFile = lowerChildren.find((f) => f.endsWith('.uplugin'))
+  const uprojectFile = lowerChildren.find((f) => f.endsWith('.uproject'))
 
   if (upluginFile) return 'plugin'
   if (uprojectFile) return 'project'
-  if (children.includes('Content')) return 'content'
+  if (lowerChildren.includes('content')) return 'content'
 
   return 'unknown'
 }
@@ -131,7 +132,10 @@ export function createFabAsset(
 
   // Detect type from file structure if not determined
   if (type === 'unknown') {
-    const upluginFile = children.find((f) => f.endsWith('.uplugin'))
+    const lowerChildren = children.map((child) => child.toLowerCase())
+    const upluginIndex = lowerChildren.findIndex((f) => f.endsWith('.uplugin'))
+    const upluginFile = upluginIndex >= 0 ? children[upluginIndex] : undefined
+
     if (upluginFile) {
       type = 'plugin'
       const upluginMeta = extractUpluginMetadata(folderPath, upluginFile)
@@ -143,7 +147,7 @@ export function createFabAsset(
     }
   }
 
-  hasContent = children.includes('Content')
+  hasContent = children.some((child) => child.toLowerCase() === 'content')
   icon = findIconFile(folderPath)
 
   // Look for local thumbnail if not found in manifest

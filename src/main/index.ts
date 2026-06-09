@@ -13,6 +13,58 @@ import { getNative } from './utils/native'
 import { setupDiscordRichPresence } from './discordPresence'
 import { initializeLogging, logger } from './logger'
 
+let localAssetCacheTimestamp = 0
+let cachedProjectPaths: string[] = []
+let cachedEngineDirs: string[] = []
+
+function refreshLocalAssetCache(): void {
+  const now = Date.now()
+  if (localAssetCacheTimestamp && now - localAssetCacheTimestamp < 5000) return
+
+  try {
+    cachedProjectPaths = loadProjects()
+      .map((project) => project.projectPath)
+      .filter(Boolean)
+      .map((p) => p!.replace(/\\/g, '/').toLowerCase())
+  } catch {
+    cachedProjectPaths = []
+  }
+
+  try {
+    cachedEngineDirs = loadEngines()
+      .map((engine) => engine.directoryPath)
+      .filter(Boolean)
+      .map((p) => p!.replace(/\\/g, '/').toLowerCase())
+  } catch {
+    cachedEngineDirs = []
+  }
+
+  localAssetCacheTimestamp = now
+}
+
+function isProjectThumbnailPath(normalizedResolved: string, resolved: string): boolean {
+  if (!normalizedResolved.includes('/saved/')) return false
+  const savedIndex = normalizedResolved.lastIndexOf('/saved/')
+  if (savedIndex <= 0) return false
+
+  const projectDir = resolved.substring(0, resolved.length - normalizedResolved.length + savedIndex)
+  const normalizedProjectDir = projectDir.replace(/\\/g, '/').toLowerCase()
+  return cachedProjectPaths.includes(normalizedProjectDir)
+}
+
+function isEnginePluginIconPath(normalizedResolved: string, resolved: string): boolean {
+  if (!normalizedResolved.includes('/engine/plugins/') || !normalizedResolved.includes('/resources/') || !normalizedResolved.endsWith('icon128.png')) {
+    return false
+  }
+
+  const engineIndex = normalizedResolved.lastIndexOf('/engine/')
+  if (engineIndex <= 0) return false
+
+  const engineDir = resolved.substring(0, resolved.length - normalizedResolved.length + engineIndex)
+  const normalizedEngineDir = engineDir.replace(/\\/g, '/').toLowerCase()
+  return cachedEngineDirs.includes(normalizedEngineDir)
+}
+
 // Suppress noisy deprecation warnings from transitive dependencies before optional modules load.
 process.noDeprecation = true
 initializeLogging()
@@ -135,61 +187,9 @@ if (!gotTheLock) {
         // Check if path is in allowed app directories
         const isInAppDir = allowedDirs.some((dir) => normalizedResolved.startsWith(dir))
 
-        // Validate thumbnails/icons: must be in /Saved/ or /Engine/Plugins/ AND match registered projects/engines
-        let isProjectThumbnail = false
-        let isEnginePluginIcon = false
-
-        if (
-          normalizedResolved.includes('/saved/') &&
-          (normalizedResolved.endsWith('autoscreenshot.png') ||
-            normalizedResolved.endsWith('thumbnail.png'))
-        ) {
-          // Extract project directory (parent of Saved folder)
-          const savedIndex = normalizedResolved.lastIndexOf('/saved/')
-          if (savedIndex > 0) {
-            const projectDir = resolved.substring(
-              0,
-              resolved.length - normalizedResolved.length + savedIndex
-            )
-            const normalizedProjectDir = projectDir.replace(/\\/g, '/').toLowerCase()
-            try {
-              const projects = loadProjects()
-              isProjectThumbnail = projects.some(
-                (p) =>
-                  p.projectPath &&
-                  p.projectPath.replace(/\\/g, '/').toLowerCase() === normalizedProjectDir
-              )
-            } catch {
-              // ignore load errors
-            }
-          }
-        }
-
-        if (
-          normalizedResolved.includes('/engine/plugins/') &&
-          normalizedResolved.includes('/resources/') &&
-          normalizedResolved.endsWith('icon128.png')
-        ) {
-          // Extract engine directory (parent of Engine folder)
-          const engineIndex = normalizedResolved.lastIndexOf('/engine/')
-          if (engineIndex > 0) {
-            const engineDir = resolved.substring(
-              0,
-              resolved.length - normalizedResolved.length + engineIndex
-            )
-            const normalizedEngineDir = engineDir.replace(/\\/g, '/').toLowerCase()
-            try {
-              const engines = loadEngines()
-              isEnginePluginIcon = engines.some(
-                (e) =>
-                  e.directoryPath &&
-                  e.directoryPath.replace(/\\/g, '/').toLowerCase() === normalizedEngineDir
-              )
-            } catch {
-              // ignore load errors
-            }
-          }
-        }
+        refreshLocalAssetCache()
+        const isProjectThumbnail = isProjectThumbnailPath(normalizedResolved, resolved)
+        const isEnginePluginIcon = isEnginePluginIconPath(normalizedResolved, resolved)
 
         if (!isInAppDir && !isProjectThumbnail && !isEnginePluginIcon) {
           logger.warn('protocol', 'Path access blocked — not in allowed directories', {

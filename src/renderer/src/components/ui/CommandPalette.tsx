@@ -21,6 +21,19 @@ import {
 import { buildCommands, filterCommands } from './commandPalette/commandRegistry'
 import type { Command, CommandContext } from './commandPalette/commandRegistry'
 
+interface EngineCommandData {
+  directoryPath: string
+  alias?: string
+  version: string
+  exePath: string
+}
+
+interface ProjectCommandData {
+  projectPath: string
+  name?: string
+  version: string
+}
+
 // Icon factories passed into buildCommands so the registry stays JSX-free
 const ICON_M = 'var(--color-text-muted)'
 const ICONS = {
@@ -58,6 +71,8 @@ export function CommandPalette({
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [activeIdx, setActiveIdx] = useState(0)
+  const [engines, setEngines] = useState<EngineCommandData[]>([])
+  const [projects, setProjects] = useState<ProjectCommandData[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -65,7 +80,60 @@ export function CommandPalette({
     () => ({ navigate, onRefresh, onAddProject, onAddEngine, onFocusSearch }),
     [navigate, onRefresh, onAddProject, onAddEngine, onFocusSearch]
   )
-  const allCommands = useMemo(() => buildCommands(ctx, ICONS), [ctx])
+
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        const [loadedEngines, loadedProjects] = await Promise.all([
+          window.electronAPI?.scanEngines?.() ?? [],
+          window.electronAPI?.scanProjects?.() ?? []
+        ])
+        if (cancelled) return
+        setEngines(loadedEngines)
+        setProjects(loadedProjects)
+      } catch {
+        // ignore failures, keep static commands available
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [open])
+
+  const dynamicCommands = useMemo(() => {
+    const engineCommands: Command[] = engines.map((engine) => ({
+      id: `engine:${engine.exePath}`,
+      label: engine.alias ? `${engine.alias} (${engine.version})` : `Unreal Engine ${engine.version}`,
+      description: engine.directoryPath,
+      icon: ICONS.engines(),
+      group: 'Engines',
+      action: () => {
+        window.electronAPI?.launchEngine(engine.exePath)
+      }
+    }))
+
+    const projectCommands: Command[] = projects.map((project) => ({
+      id: `project:${project.projectPath}`,
+      label: project.name || project.projectPath.split(/[/\\]/).pop() || 'Unknown Project',
+      description: project.projectPath,
+      icon: ICONS.projects(),
+      group: 'Projects',
+      action: () => {
+        window.electronAPI?.launchProject(project.projectPath)
+      }
+    }))
+
+    return [...projectCommands, ...engineCommands]
+  }, [engines, projects])
+
+  const allCommands = useMemo(
+    () => [...dynamicCommands, ...buildCommands(ctx, ICONS)],
+    [dynamicCommands, ctx]
+  )
   const filtered = useMemo(() => filterCommands(allCommands, query), [allCommands, query])
 
   useEffect(() => {
