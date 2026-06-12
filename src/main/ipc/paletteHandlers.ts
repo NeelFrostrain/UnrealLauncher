@@ -81,9 +81,6 @@ export function registerPaletteHandlers(ipcMain_: typeof ipcMain): void {
     import('../window/paletteWindow')
       .then(({ closePaletteWindow }) => {
         closePaletteWindow()
-        // Show main window so the user can see it launching
-        showMainWindow()
-        getMainWindow()?.webContents.send('palette-navigate', '/engines')
         handleLaunchEngine(exePath).catch((err) =>
           logger.error('palette', 'Engine launch failed', err)
         )
@@ -97,8 +94,6 @@ export function registerPaletteHandlers(ipcMain_: typeof ipcMain): void {
     import('../window/paletteWindow')
       .then(({ closePaletteWindow }) => {
         closePaletteWindow()
-        showMainWindow()
-        getMainWindow()?.webContents.send('palette-navigate', '/projects')
         handleLaunchProject(projectPath).catch((err) =>
           logger.error('palette', 'Project launch failed', err)
         )
@@ -112,8 +107,6 @@ export function registerPaletteHandlers(ipcMain_: typeof ipcMain): void {
     import('../window/paletteWindow')
       .then(({ closePaletteWindow }) => {
         closePaletteWindow()
-        showMainWindow()
-        getMainWindow()?.webContents.send('palette-navigate', '/projects')
         try {
           const configs = loadLaunchConfigs()
           const cfg = configs.find((c) => c.id === configId)
