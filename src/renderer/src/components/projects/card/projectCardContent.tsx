@@ -32,7 +32,7 @@ export function ProjectCardContent({
   hovered,
   launching,
   onImageError
-}: ProjectCardContentProps) {
+}: ProjectCardContentProps): React.ReactElement {
   const dateLabel = lastOpenedAt ? formatDate(lastOpenedAt) : createdAt
   const dateType = lastOpenedAt ? 'Opened' : 'Created'
 

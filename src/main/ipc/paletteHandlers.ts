@@ -115,16 +115,22 @@ export function registerPaletteHandlers(ipcMain_: typeof ipcMain): void {
               logger.error('palette', 'Project config launch failed', err)
             )
           } else {
-            logger.warn('palette', 'Requested launch config not found, falling back to normal launch', {
-              configId
-            })
+            logger.warn(
+              'palette',
+              'Requested launch config not found, falling back to normal launch',
+              {
+                configId
+              }
+            )
             handleLaunchProject(projectPath).catch((err) =>
               logger.error('palette', 'Project launch failed', err)
             )
           }
         } catch (err) {
           logger.error('palette', 'Failed to load launch configs', err)
-          handleLaunchProject(projectPath).catch((e) => logger.error('palette', 'Project launch failed', e))
+          handleLaunchProject(projectPath).catch((e) =>
+            logger.error('palette', 'Project launch failed', e)
+          )
         }
       })
       .catch((err) => logger.error('palette', 'Failed to close palette', err))

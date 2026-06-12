@@ -11,7 +11,7 @@ const ExclusionsSection = (): React.ReactElement => {
   const loadSettings = async (): Promise<void> => {
     if (window.electronAPI) {
       const settings = await window.electronAPI.getMainSettings()
-      setExcludedPaths(settings?.excludedScannerPaths || [])
+      setExcludedPaths((settings?.excludedScannerPaths as string[] | undefined) || [])
     }
   }
 

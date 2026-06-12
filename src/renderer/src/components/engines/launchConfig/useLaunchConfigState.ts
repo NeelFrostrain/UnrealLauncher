@@ -1,14 +1,41 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /** All state and handlers for LaunchConfigDialog. */
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, Ref } from 'react'
 import { useToast } from '../../ui/ToastContext'
 import { UE_DEFAULTS } from './launchConfigConstants'
+
+export interface UseLaunchConfigStateReturn {
+  configs: LaunchConfig[]
+  selectedId: string
+  setSelectedId: (id: string) => void
+  editing: LaunchConfig | null
+  setEditing: (config: LaunchConfig | null) => void
+  launching: boolean
+  newName: string
+  setNewName: (name: string) => void
+  showNewForm: boolean
+  setShowNewForm: (show: boolean) => void
+  renamingId: string | null
+  setRenamingId: (id: string | null) => void
+  renameValue: string
+  setRenameValue: (value: string) => void
+  renameRef: Ref<HTMLInputElement>
+  persist: (updated: LaunchConfig[]) => void
+  startEdit: (cfg: LaunchConfig) => void
+  saveEdit: () => void
+  createNew: () => void
+  deleteConfig: (id: string) => void
+  commitRename: () => void
+  patch: (partial: Partial<LaunchConfig>) => void
+  handleLaunch: () => Promise<void>
+  startRename: (id: string, name: string) => void
+}
 
 export function useLaunchConfigState(
   exePath: string | undefined,
   projectPath: string | undefined,
   onClose: () => void
-): unknown {
+): UseLaunchConfigStateReturn {
   const { addToast } = useToast()
   const renameRef = useRef<HTMLInputElement>(null)
 

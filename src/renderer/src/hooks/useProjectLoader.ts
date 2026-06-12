@@ -50,7 +50,13 @@ export function useProjectLoader({
   filterForTab,
   setProjects,
   setScanEpoch
-}: Options) {
+}: Options): {
+  loadProjects: (source: 'saved' | 'scan') => Promise<Project[]>
+  loadProjectsForTab: (tab: TabType) => Promise<Project[]>
+  loading: boolean
+  backgroundScanning: boolean
+  refresh: () => Promise<void>
+} {
   const { addToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [backgroundScanning, setBackgroundScanning] = useState(false)
@@ -189,5 +195,9 @@ export function useProjectLoader({
     }
   }, [allProjectsRef, setProjects])
 
-  return { loading, backgroundScanning, loadProjects, loadProjectsForTab }
+  const refresh = useCallback(async (): Promise<void> => {
+    await loadProjects('scan')
+  }, [loadProjects])
+
+  return { loading, backgroundScanning, loadProjects, loadProjectsForTab, refresh }
 }

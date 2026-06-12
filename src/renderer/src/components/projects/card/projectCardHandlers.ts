@@ -14,7 +14,12 @@ export function useProjectCardHandlers(
   setGit: (v: any) => void,
   _setShowCommitDialog: (v: boolean) => void,
   _setShowBranchDialog: (v: boolean) => void
-) {
+): {
+  handleClick: () => Promise<void>
+  handleContextMenu: (e: React.MouseEvent) => void
+  handleGitInit: () => Promise<void>
+  handleLaunchGame: () => Promise<void>
+} {
   const { addToast } = useToast()
 
   const handleClick = useCallback(async (): Promise<void> => {

@@ -11,7 +11,7 @@ export function useGitCommitHandlers(
   committing: boolean,
   setCommitting: (v: boolean) => void,
   onClose: () => void
-) {
+): { handleCommit: () => Promise<void> } {
   const { addToast } = useToast()
 
   const handleCommit = useCallback(async () => {

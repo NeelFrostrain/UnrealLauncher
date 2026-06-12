@@ -20,6 +20,7 @@ const PATH_TO_TAB: Record<string, EngineTab> = {
 /**
  * Custom hook for managing EnginesPage state
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function useEnginesPageState() {
   const { tab: tabParam } = useParams<{ tab?: string }>()
   const navigate = useNavigate()

@@ -5,10 +5,25 @@ import { useToast } from '../../../components/ui/ToastContext'
 
 type ViewMode = 'list' | 'grid'
 
+interface FabTabState {
+  folderPath: string
+  assets: FabAsset[]
+  loading: boolean
+  searchQuery: string
+  setSearchQuery: (query: string) => void
+  typeFilter: FabAsset['type'] | 'all'
+  setTypeFilter: (type: FabAsset['type'] | 'all') => void
+  viewMode: ViewMode
+  filtered: FabAsset[]
+  scan: (dir: string) => Promise<void>
+  handlePickFolder: () => Promise<void>
+  handleViewChange: (mode: ViewMode) => void
+}
+
 /**
  * Custom hook for managing FabTab state
  */
-export function useFabTabState(): unknown {
+export function useFabTabState(): FabTabState {
   const { addToast } = useToast()
   const [folderPath, setFolderPath] = useState('')
   const [assets, setAssets] = useState<FabAsset[]>([])

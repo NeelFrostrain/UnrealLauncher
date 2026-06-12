@@ -45,7 +45,7 @@ export function EnginesPageToolbar({
   onAddEngine,
   onSelectEngine,
   onDropdownToggle
-}: EnginesPageToolbarProps) {
+}: EnginesPageToolbarProps): React.ReactElement {
   return (
     <div
       className="flex items-center gap-3 py-3 shrink-0 border-b"

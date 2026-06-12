@@ -3,7 +3,7 @@
  * Find / replace state and logic for ProjectFileEditorDialog.
  * Extracted to keep the dialog component under 200 lines.
  */
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef, Dispatch, SetStateAction } from 'react'
 
 export interface FindState {
   open: boolean
@@ -42,7 +42,21 @@ export function useFindBar(
   content: string,
   setContent: (v: string) => void,
   onToast: (msg: string, type: 'success' | 'error' | 'info') => void
-) {
+): {
+  find: FindState
+  setFind: Dispatch<SetStateAction<FindState>>
+  matches: number[]
+  matchCount: number
+  currentMatch: number
+  findInputRef: React.RefObject<HTMLInputElement>
+  replaceInputRef: React.RefObject<HTMLInputElement>
+  textareaRef: React.RefObject<HTMLTextAreaElement>
+  goToMatch: (delta: 1 | -1) => void
+  openFind: (showReplace?: boolean) => void
+  closeFind: () => void
+  replaceOne: () => void
+  replaceAll: () => void
+} {
   const [find, setFind] = useState<FindState>(INITIAL)
   const findInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
@@ -110,9 +124,9 @@ export function useFindBar(
     matches,
     matchCount,
     currentMatch,
-    findInputRef,
-    replaceInputRef,
-    textareaRef,
+    findInputRef: findInputRef as React.RefObject<HTMLInputElement>,
+    replaceInputRef: replaceInputRef as React.RefObject<HTMLInputElement>,
+    textareaRef: textareaRef as React.RefObject<HTMLTextAreaElement>,
     goToMatch,
     openFind,
     closeFind,

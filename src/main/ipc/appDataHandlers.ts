@@ -42,17 +42,14 @@ export function handleClearTracerData(): void {
  * Handles the get-main-settings IPC event
  */
 export function handleGetMainSettings(): Record<string, unknown> {
-  return loadMainSettings()
+  return loadMainSettings() as unknown as Record<string, unknown>
 }
 
 /**
  * Handles the save-main-settings IPC event
  */
 export function handleSaveMainSettings(settings: Record<string, unknown>): void {
-  const settingKeys =
-    typeof settings === 'object' && settings !== null
-      ? Object.keys(settings)
-      : []
+  const settingKeys = typeof settings === 'object' && settings !== null ? Object.keys(settings) : []
   logger.info('settings', 'Saving main settings', { keys: settingKeys })
   saveMainSettings(settings)
 }

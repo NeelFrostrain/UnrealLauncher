@@ -21,9 +21,7 @@ export function readManifest(folderPath: string): Record<string, unknown> | null
 /**
  * Extracts asset metadata from manifest
  */
-export function extractManifestMetadata(
-  manifest: Record<string, unknown>
-): {
+export function extractManifestMetadata(manifest: Record<string, unknown>): {
   name: string
   version: string
   thumbnailUrl: string | null

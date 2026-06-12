@@ -25,7 +25,7 @@ function spawnDetachedProcess(executable: string, args: string[]): void {
       // Fallback to direct spawn if start fails for any reason
       try {
         spawn(executable, args, { detached: true, stdio: 'ignore', windowsHide: true }).unref()
-      } catch { }
+      } catch {}
     }
     return
   }
@@ -83,13 +83,14 @@ function findEditorExecutable(engineAssociation: string): string {
   const ext = getBinaryExtension()
   function resolvePossibleExe(p: string): string {
     try {
-      let candidate = path.normalize(path.resolve(p))
+      const candidate = path.normalize(path.resolve(p))
       if (!fs.existsSync(candidate)) return ''
       const stat = fs.statSync(candidate)
       if (stat.isFile()) return candidate
       // If it's a directory, look for common editor binaries inside known subpaths
       if (stat.isDirectory()) {
-        const platformBin = process.platform === 'darwin' ? 'Mac' : process.platform === 'linux' ? 'Linux' : 'Win64'
+        const platformBin =
+          process.platform === 'darwin' ? 'Mac' : process.platform === 'linux' ? 'Linux' : 'Win64'
         const commonNames = [`UnrealEditor${ext}`, `UE4Editor${ext}`]
         // Check Engine/Binaries/<platform>/
         for (const name of commonNames) {
@@ -101,14 +102,18 @@ function findEditorExecutable(engineAssociation: string): string {
           for (const f of fs.readdirSync(candidate)) {
             const full = path.join(candidate, f)
             try {
-              if (fs.statSync(full).isFile() && f.toLowerCase().endsWith(ext) && f.toLowerCase().includes('editor')) {
+              if (
+                fs.statSync(full).isFile() &&
+                f.toLowerCase().endsWith(ext) &&
+                f.toLowerCase().includes('editor')
+              ) {
                 return full
               }
-            } catch { }
+            } catch {}
           }
-        } catch { }
+        } catch {}
       }
-    } catch { }
+    } catch {}
     return ''
   }
 

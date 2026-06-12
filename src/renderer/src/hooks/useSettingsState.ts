@@ -15,6 +15,7 @@ import { useTheme } from '../utils/ThemeContext'
  * Hook to manage all settings page state
  * Handles theme, appearance, profiles, and general settings
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function useSettingsState() {
   const {
     activeThemeId,
@@ -92,8 +93,8 @@ export function useSettingsState() {
 
   useEffect(() => {
     window.electronAPI.getMainSettings().then((settings) => {
-      if (settings?.backgroundCloseEnabled !== undefined) {
-        setBackgroundCloseOnClose(settings.backgroundCloseEnabled)
+      if (settings && settings.backgroundCloseEnabled !== undefined) {
+        setBackgroundCloseOnClose(settings.backgroundCloseEnabled as boolean)
       }
     })
   }, [])

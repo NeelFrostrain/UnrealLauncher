@@ -47,7 +47,7 @@ export function GitCommitContent({
   inputRef,
   onCommitMsgChange,
   onKeyDown
-}: GitCommitContentProps) {
+}: GitCommitContentProps): React.ReactElement {
   return (
     <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3" style={{ minHeight: 0 }}>
       {loading ? (

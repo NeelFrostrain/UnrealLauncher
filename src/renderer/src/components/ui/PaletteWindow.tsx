@@ -404,16 +404,16 @@ export function PaletteWindow(): React.ReactElement {
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
         setActiveIdx((i) => (i - 1 + n) % n)
-        } else if (e.key === 'Enter') {
-          e.preventDefault()
-          const sel = filtered[activeIdx]
-          if (!sel) return
-          // Shift+Enter: launch project with the built-in "Skeleton (Lowest)" config
-          if (e.shiftKey && sel.kind === 'project' && sel.payload) {
-            window.paletteAPI?.launchProjectWithConfig(sel.payload, 'builtin-skeleton')
-          } else {
-            run(sel)
-          }
+      } else if (e.key === 'Enter') {
+        e.preventDefault()
+        const sel = filtered[activeIdx]
+        if (!sel) return
+        // Shift+Enter: launch project with the built-in "Skeleton (Lowest)" config
+        if (e.shiftKey && sel.kind === 'project' && sel.payload) {
+          window.paletteAPI?.launchProjectWithConfig(sel.payload, 'builtin-skeleton')
+        } else {
+          run(sel)
+        }
       } else if (e.key === 'Escape') {
         e.preventDefault()
         window.paletteAPI?.close()

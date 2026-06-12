@@ -40,7 +40,7 @@ export function EnginesPageContent({
   onUpdateAlias,
   onScan,
   scanning
-}: EnginesPageContentProps) {
+}: EnginesPageContentProps): React.ReactElement {
   if (activeTab === 'engines') {
     return (
       <div className="flex-1 overflow-hidden">

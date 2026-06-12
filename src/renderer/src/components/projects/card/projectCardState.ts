@@ -8,10 +8,28 @@ interface GitStatus {
   remoteUrl: string
 }
 
+interface ProjectCardState {
+  launching: boolean
+  setLaunching: (v: boolean) => void
+  hovered: boolean
+  setHovered: (v: boolean) => void
+  ctxMenu: { x: number; y: number } | null
+  setCtxMenu: (v: { x: number; y: number } | null) => void
+  showLogs: boolean
+  setShowLogs: (v: boolean) => void
+  showCommitDialog: boolean
+  setShowCommitDialog: (v: boolean) => void
+  showBranchDialog: boolean
+  setShowBranchDialog: (v: boolean) => void
+  git: GitStatus
+  setGit: (v: GitStatus) => void
+  handleBranchChanged: (branch: string) => void
+}
+
 /**
  * Custom hook for managing ProjectCardGrid state
  */
-export function useProjectCardState(projectPath: string | undefined) {
+export function useProjectCardState(projectPath: string | undefined): ProjectCardState {
   const [launching, setLaunching] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null)

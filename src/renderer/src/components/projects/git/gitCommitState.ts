@@ -9,6 +9,7 @@ interface ChangedFile {
 /**
  * Custom hook for managing GitCommitDialog state
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function useGitCommitState(projectPath: string, onClose: () => void) {
   const inputRef = useRef<HTMLInputElement>(null)
 

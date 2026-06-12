@@ -73,7 +73,7 @@ export function ProjectCardDialogs({
   onCloseBranchDialog,
   externalShowLaunchConfig,
   externalSetShowLaunchConfig
-}: ProjectCardDialogsProps) {
+}: ProjectCardDialogsProps): React.ReactElement {
   // File editor state lives here — survives context menu close
   const [fileEditorMode, setFileEditorMode] = useState<'config' | 'uproject' | null>(null)
   const [internalShowLaunchConfig, internalSetShowLaunchConfig] = useState(false)

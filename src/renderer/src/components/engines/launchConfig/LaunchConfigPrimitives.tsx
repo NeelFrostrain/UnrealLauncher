@@ -4,7 +4,13 @@ import { ChevronDown } from 'lucide-react'
 import type { ReactElement } from 'react'
 
 // ── Pill ──────────────────────────────────────────────────────────────────────
-export function Pill({ label, color = 'var(--color-accent)' }: { label: string; color?: string }): ReactElement {
+export function Pill({
+  label,
+  color = 'var(--color-accent)'
+}: {
+  label: string
+  color?: string
+}): ReactElement {
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full shrink-0"
