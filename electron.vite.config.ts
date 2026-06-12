@@ -2,10 +2,21 @@
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { config as loadEnv } from 'dotenv'
+
+// Load .env file before build config is processed
+loadEnv()
+
+// Load environment variables for build-time substitution
+const env = process.env
 
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
+    define: {
+      __DISCORD_STARTUP_WEBHOOK__: JSON.stringify(env.DISCORD_STARTUP_WEBHOOK_URL || ''),
+      __DISCORD_WEBHOOK__: JSON.stringify(env.DISCORD_WEBHOOK_URL || '')
+    },
     build: {
       target: 'node22.20',
       minify: true,

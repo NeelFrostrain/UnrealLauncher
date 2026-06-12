@@ -2,6 +2,9 @@
 
 import { logger } from '../logger'
 
+// Build-time injected environment variables
+declare const __DISCORD_WEBHOOK__: string
+
 interface DiscordPayload {
   embed: object
   files: Array<{ name: string; type: string; b64: string }>
@@ -56,7 +59,7 @@ export async function sendDiscordWebhook(
     const { embed, files } = JSON.parse(payloadJson) as Omit<DiscordPayload, 'webhookUrl'>
 
     // SECURITY: Get webhook URL from environment only, ignore any URL in the payload
-    const webhookUrl = process.env.DISCORD_WEBHOOK_URL || process.env.VITE_DISCORD_WEBHOOK_URL
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL || __DISCORD_WEBHOOK__
 
     if (!webhookUrl) {
       logger.warn('discord', 'No Discord webhook URL configured in environment')
