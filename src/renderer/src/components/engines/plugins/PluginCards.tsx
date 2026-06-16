@@ -223,11 +223,10 @@ export const CategorySection = memo(
     defaultOpen: boolean
     forceOpen: boolean
   }): React.ReactElement => {
-    const [open, setOpen] = useState(defaultOpen)
+    const [open, setOpen] = useState(forceOpen || defaultOpen)
     useEffect(() => {
       if (forceOpen) setOpen(true)
-      else setOpen(defaultOpen)
-    }, [forceOpen, defaultOpen])
+    }, [forceOpen])
     return (
       <div className="mb-1">
         <button

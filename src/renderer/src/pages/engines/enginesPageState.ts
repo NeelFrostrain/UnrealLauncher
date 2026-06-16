@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback } from 'react'
+import type React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import type { EngineCardProps } from '../../types'
 
@@ -20,17 +21,31 @@ const PATH_TO_TAB: Record<string, EngineTab> = {
 /**
  * Custom hook for managing EnginesPage state
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function useEnginesPageState() {
+export function useEnginesPageState(): {
+  engines: EngineCardProps[]
+  setEngines: React.Dispatch<React.SetStateAction<EngineCardProps[]>>
+  loading: boolean
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  displayStart: number
+  activeTab: EngineTab
+  selectedEngine: EngineCardProps | null
+  setSelectedEngine: React.Dispatch<React.SetStateAction<EngineCardProps | null>>
+  dropdownOpen: boolean
+  setDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>
+  dropdownAnchorRef: React.RefObject<HTMLButtonElement | null>
+  containerRef: React.RefObject<HTMLDivElement | null>
+  ITEMS_PER_BATCH: number
+  switchTab: (tab: EngineTab) => void
+  handleScroll: (e: React.UIEvent<HTMLDivElement>) => void
+  activeEngine: EngineCardProps | null
+  TAB_PATHS: Record<EngineTab, string>
+} {
   const { tab: tabParam } = useParams<{ tab?: string }>()
   const navigate = useNavigate()
 
   const [engines, setEngines] = useState<EngineCardProps[]>([])
   const [loading, setLoading] = useState(true)
   const [displayStart, setDisplayStart] = useState(0)
-  const [activeTab, setActiveTab] = useState<EngineTab>(() => {
-    return PATH_TO_TAB[tabParam ?? ''] ?? 'engines'
-  })
   const [selectedEngine, setSelectedEngine] = useState<EngineCardProps | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
@@ -38,15 +53,11 @@ export function useEnginesPageState() {
   const containerRef = useRef<HTMLDivElement>(null)
   const ITEMS_PER_BATCH = 30
 
-  // Sync tab state when URL param changes
-  useEffect(() => {
-    const resolved = PATH_TO_TAB[tabParam ?? ''] ?? 'engines'
-    setActiveTab(resolved)
-  }, [tabParam])
+  // Derive active tab directly from URL param — no effect needed
+  const activeTab: EngineTab = PATH_TO_TAB[tabParam ?? ''] ?? 'engines'
 
   const switchTab = useCallback(
     (tab: EngineTab): void => {
-      setActiveTab(tab)
       navigate(TAB_PATHS[tab], { replace: true })
       if (tab === 'plugins' && !selectedEngine && engines.length > 0) {
         setSelectedEngine(engines[0])

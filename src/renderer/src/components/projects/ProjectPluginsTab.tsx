@@ -1,5 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
+import { useState } from 'react'
 import { RefreshCw, Search, LayoutGrid, LayoutList, Package, AlertTriangle } from 'lucide-react'
 import { useProjectPluginsState } from './plugins/useProjectPluginsState'
 
@@ -7,6 +8,102 @@ interface ProjectPluginsTabProps {
   projectDir: string
 }
 
+// ── Toggle ────────────────────────────────────────────────────────────────────
+function Toggle({
+  checked,
+  onChange
+}: {
+  checked: boolean
+  onChange: () => void
+}): React.ReactElement {
+  return (
+    <button
+      role="switch"
+      aria-checked={checked}
+      onClick={onChange}
+      className="relative shrink-0 cursor-pointer transition-colors"
+      style={{
+        width: 28,
+        height: 16,
+        borderRadius: 999,
+        backgroundColor: checked ? 'var(--color-accent)' : 'var(--color-surface-elevated)',
+        border: '1px solid var(--color-border)',
+        padding: 0,
+        outline: 'none'
+      }}
+    >
+      <span
+        style={{
+          position: 'absolute',
+          top: 2,
+          left: checked ? 13 : 2,
+          width: 10,
+          height: 10,
+          borderRadius: '50%',
+          backgroundColor: checked ? '#fff' : 'var(--color-text-muted)',
+          transition: 'left 0.15s ease, background-color 0.15s ease'
+        }}
+      />
+    </button>
+  )
+}
+
+// ── Plugin card ───────────────────────────────────────────────────────────────
+function PluginCard({
+  plugin,
+  onToggle
+}: {
+  plugin: { name: string; path: string; description: string; version: string; enabled: boolean }
+  onToggle: () => void
+}): React.ReactElement {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        borderRadius: 'var(--radius)',
+        backgroundColor: hovered ? 'var(--color-surface-elevated)' : 'var(--color-surface-card)',
+        border: `1px solid ${hovered ? 'color-mix(in srgb, var(--color-accent) 25%, var(--color-border))' : 'var(--color-border)'}`,
+        opacity: plugin.enabled ? 1 : 0.6,
+        transition: 'background-color 120ms ease, border-color 120ms ease, opacity 120ms ease',
+        padding: '10px 12px'
+      }}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p
+            className="text-xs font-semibold truncate"
+            style={{ color: 'var(--color-text-primary)' }}
+            title={plugin.name}
+          >
+            {plugin.name}
+          </p>
+          {plugin.version && (
+            <p
+              className="text-[10px] mt-0.5 font-mono"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              v{plugin.version}
+            </p>
+          )}
+          {plugin.description && (
+            <p
+              className="text-[11px] mt-1.5 line-clamp-2"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              {plugin.description}
+            </p>
+          )}
+        </div>
+        <Toggle checked={plugin.enabled} onChange={onToggle} />
+      </div>
+    </div>
+  )
+}
+
+// ── Tab ───────────────────────────────────────────────────────────────────────
 const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactElement => {
   const {
     plugins,
@@ -17,6 +114,7 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
     setSearchQuery,
     viewMode,
     handleViewChange,
+    togglePlugin,
     load
   } = useProjectPluginsState(projectDir)
 
@@ -54,10 +152,7 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
 
         <div
           className="flex items-center overflow-hidden shrink-0"
-          style={{
-            borderRadius: 'var(--radius)',
-            border: '1px solid var(--color-border)'
-          }}
+          style={{ borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}
         >
           <button
             onClick={() => handleViewChange('list')}
@@ -67,10 +162,10 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
                 viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
               color: viewMode === 'list' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
             }}
+            title="List view"
           >
             <LayoutList size={13} />
           </button>
-
           <button
             onClick={() => handleViewChange('grid')}
             className="flex items-center p-1.5 cursor-pointer transition-colors"
@@ -79,6 +174,7 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
                 viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
               color: viewMode === 'grid' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
             }}
+            title="Grid view"
           >
             <LayoutGrid size={13} />
           </button>
@@ -102,11 +198,10 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
 
       {/* Stats */}
       {!loading && plugins.length > 0 && (
-        <div className="px-1 pb-1.5 shrink-0">
+        <div className="px-1 pb-2 shrink-0">
           <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-            {filteredPlugins.length} plugin
-            {filteredPlugins.length !== 1 ? 's' : ''}
-            {' — '}Project Plugins
+            {filteredPlugins.length} plugin{filteredPlugins.length !== 1 ? 's' : ''}
+            {searchQuery ? ` matching "${searchQuery}"` : ''}
           </p>
         </div>
       )}
@@ -136,38 +231,20 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
             <Package
               size={28}
               className="mb-2"
-              style={{
-                color: 'var(--color-text-muted)',
-                opacity: 0.2
-              }}
+              style={{ color: 'var(--color-text-muted)', opacity: 0.2 }}
             />
             <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               No plugins found
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-1.5'}>
             {filteredPlugins.map((plugin) => (
-              <div
-                key={plugin.path}
-                className="p-3 rounded"
-                style={{
-                  backgroundColor: 'var(--color-surface-card)',
-                  border: '1px solid var(--color-border)'
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{plugin.name}</span>
-
-                  <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                    {plugin.version ? `v${plugin.version}` : ''}
-                  </span>
-                </div>
-
-                <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                  {plugin.description || 'No description available'}
-                </p>
-              </div>
+              <PluginCard
+                key={plugin.internalName}
+                plugin={plugin}
+                onToggle={() => togglePlugin(plugin.internalName, plugin.enabled)}
+              />
             ))}
           </div>
         )}

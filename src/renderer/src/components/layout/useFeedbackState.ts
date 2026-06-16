@@ -13,7 +13,30 @@ export interface Attachment {
   preview: string | null
 }
 
-export function useFeedbackState(onClose: () => void) {
+export function useFeedbackState(onClose: () => void): {
+  mode: Mode
+  setMode: (m: Mode) => void
+  name: string
+  setName: (v: string) => void
+  email: string
+  setEmail: (v: string) => void
+  title: string
+  setTitle: (v: string) => void
+  description: string
+  setDescription: (v: string) => void
+  attachments: Attachment[]
+  fileError: string
+  status: 'idle' | 'sending' | 'success' | 'error'
+  errorMsg: string
+  fileRef: React.RefObject<HTMLInputElement | null>
+  accentColor: string
+  accentHex: number
+  MAX_FILES: number
+  addFiles: (files: FileList | null) => void
+  removeAttachment: (i: number) => void
+  handleSubmit: () => Promise<void>
+  canSubmit: boolean
+} {
   const [mode, setMode] = useState<Mode>('report')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')

@@ -1,5 +1,14 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import {
+  type Dispatch,
+  type RefObject,
+  type SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo
+} from 'react'
 import { getSetting } from '../../../utils/settings'
 
 export type LogLevel = 'error' | 'warning' | 'info' | 'verbose'
@@ -52,7 +61,31 @@ export function parseLine(raw: string): LogLine {
   return { id, raw, level, category: '', message: raw, timestamp: '' }
 }
 
-export function useProjectLogState(projectPath: string, onClose: () => void) {
+export function useProjectLogState(
+  projectPath: string,
+  onClose: () => void
+): {
+  lines: LogLine[]
+  logPath: string
+  loading: boolean
+  logNotFound: boolean
+  filter: Filter
+  setFilter: Dispatch<SetStateAction<Filter>>
+  search: string
+  setSearch: (v: string) => void
+  autoScroll: boolean
+  setAutoScroll: Dispatch<SetStateAction<boolean>>
+  sizeKb: number
+  live: boolean
+  setLive: Dispatch<SetStateAction<boolean>>
+  fontSizeIdx: number
+  setFontSizeIdx: Dispatch<SetStateAction<number>>
+  maxLines: number
+  logScrollRef: RefObject<HTMLDivElement | null>
+  counts: { error: number; warning: number }
+  filtered: LogLine[]
+  poll: (reset?: boolean) => Promise<void>
+} {
   const [lines, setLines] = useState<LogLine[]>([])
   const [logPath, setLogPath] = useState('')
   const [loading, setLoading] = useState(true)

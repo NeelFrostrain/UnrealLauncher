@@ -320,7 +320,9 @@ const S = {
 
 export function PaletteWindow(): React.ReactElement {
   const [query, setQuery] = useState('')
-  const [activeIdx, setActiveIdx] = useState(0)
+  const [activeIdxRaw, setActiveIdx] = useState(0)
+  // Clamp activeIdx whenever filtered list changes length
+  const activeIdx = Math.min(activeIdxRaw, Math.max(0, filtered.length - 1))
   const [engines, setEngines] = useState<EngineData[]>([])
   const [projects, setProjects] = useState<ProjectData[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
@@ -374,10 +376,6 @@ export function PaletteWindow(): React.ReactElement {
       .sort((a, b) => b.s - a.s)
       .map((x) => x.item)
   }, [allItems, query])
-
-  useEffect(() => {
-    setActiveIdx(0)
-  }, [query])
 
   useEffect(() => {
     listRef.current
@@ -447,7 +445,7 @@ export function PaletteWindow(): React.ReactElement {
           style={S.searchInput}
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => { setQuery(e.target.value); setActiveIdx(0) }}
           onKeyDown={onKeyDown}
           placeholder={hasData ? 'Search commands, engines, projects…' : 'Type a command…'}
           autoComplete="off"

@@ -6,6 +6,7 @@ import GitCommitDialog from '../GitCommitDialog'
 import GitBranchDialog from '../GitBranchDialog'
 import ProjectFileEditorDialog from '../ProjectFileEditorDialog'
 import LaunchConfigDialog from '../../engines/LaunchConfigDialog'
+import ProjectPluginsDialog from '../ProjectPluginsDialog'
 
 interface ProjectCardDialogsProps {
   ctxMenu: { x: number; y: number } | null
@@ -77,12 +78,13 @@ export function ProjectCardDialogs({
   // File editor state lives here — survives context menu close
   const [fileEditorMode, setFileEditorMode] = useState<'config' | 'uproject' | null>(null)
   const [internalShowLaunchConfig, internalSetShowLaunchConfig] = useState(false)
+  const [showPlugins, setShowPlugins] = useState(false)
   const showLaunchConfig =
     externalShowLaunchConfig !== undefined ? externalShowLaunchConfig : internalShowLaunchConfig
   const setShowLaunchConfig = externalSetShowLaunchConfig ?? internalSetShowLaunchConfig
 
   useEffect(() => {
-    const handler = (ev: Event) => {
+    const handler = (ev: Event): void => {
       try {
         const detail = (ev as CustomEvent).detail
         if (!detail) return
@@ -124,6 +126,7 @@ export function ProjectCardDialogs({
           onOpenCommitDialog={onOpenCommitDialog}
           onOpenBranchDialog={onOpenBranchDialog}
           onOpenFileEditor={setFileEditorMode}
+          onOpenPlugins={() => setShowPlugins(true)}
           onClose={onCloseCtxMenu}
         />
       )}
@@ -170,6 +173,15 @@ export function ProjectCardDialogs({
           projectPath={projectPath}
           displayName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
           onClose={() => setShowLaunchConfig(false)}
+        />
+      )}
+
+      {/* Plugins dialog */}
+      {showPlugins && projectPath && (
+        <ProjectPluginsDialog
+          projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+          projectPath={projectPath}
+          onClose={() => setShowPlugins(false)}
         />
       )}
     </>

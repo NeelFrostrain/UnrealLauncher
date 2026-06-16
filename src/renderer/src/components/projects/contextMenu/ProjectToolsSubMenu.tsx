@@ -2,7 +2,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { Settings2, FileCode2, ScrollText, Trash2 } from 'lucide-react'
+import { Settings2, FileCode2, ScrollText, Trash2, Package } from 'lucide-react'
 import { useToast } from '../../ui/ToastContext'
 import { MenuItem, MenuSeparator, MENU_STYLE } from './contextMenuComponents'
 import { useContextMenuPosition } from './useContextMenuPosition'
@@ -15,6 +15,7 @@ export const ProjectToolsSubMenu = ({
   parentWidth,
   onViewLogs,
   onOpenFileEditor,
+  onOpenPlugins,
   onClose,
   onMouseEnter,
   onMouseLeave
@@ -26,6 +27,7 @@ export const ProjectToolsSubMenu = ({
   parentWidth: number
   onViewLogs: () => void
   onOpenFileEditor: (mode: 'config' | 'uproject') => void
+  onOpenPlugins: () => void
   onClose: () => void
   onMouseEnter?: () => void
   onMouseLeave?: () => void
@@ -89,6 +91,17 @@ export const ProjectToolsSubMenu = ({
           label="View Logs"
           sub="Tail latest Saved/Logs file"
           onClick={onViewLogs}
+          onClose={onClose}
+        />
+        <MenuItem
+          icon={<Package size={11} style={{ color: '#a78bfa' }} />}
+          label="Plugins"
+          sub="Enable / disable project plugins"
+          onClick={() => {
+            onOpenPlugins()
+            onClose()
+          }}
+          noClose
           onClose={onClose}
         />
         <MenuSeparator />

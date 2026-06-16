@@ -25,11 +25,11 @@ export const VirtualizedProjectGrid = ({
   const containerRef = useRef<HTMLDivElement>(null)
   const [columnCount, setColumnCount] = useState(1)
   const [scrollTop, setScrollTop] = useState(0)
+  const [containerHeight, setContainerHeight] = useState(800)
 
   // Calculate visible range based on scroll position
   const firstVisibleRow = Math.max(0, Math.floor(scrollTop / CARD_HEIGHT) - BUFFER_SIZE)
-  const lastVisibleRow =
-    Math.ceil((scrollTop + (containerRef.current?.clientHeight || 800)) / CARD_HEIGHT) + BUFFER_SIZE
+  const lastVisibleRow = Math.ceil((scrollTop + containerHeight) / CARD_HEIGHT) + BUFFER_SIZE
   const rowCount = Math.ceil(items.length / columnCount)
 
   // Recalculate column count on resize
@@ -39,6 +39,7 @@ export const VirtualizedProjectGrid = ({
         const width = containerRef.current.clientWidth
         const newColumnCount = Math.max(1, Math.floor(width / CARD_WIDTH))
         setColumnCount(newColumnCount)
+        setContainerHeight(containerRef.current.clientHeight)
       }
     }
 

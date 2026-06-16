@@ -86,6 +86,7 @@ declare global {
 
   interface ProjectPlugin {
     name: string
+    internalName: string
     path: string
     description: string
     version: string
@@ -199,7 +200,11 @@ declare global {
       loadSavedProjects: () => Promise<ProjectData[]>
       scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
       projectScanPlugins: (projectPath: string) => Promise<ProjectPlugin[]>
-      // Fab cache
+      projectTogglePlugin: (
+        projectPath: string,
+        pluginName: string,
+        enabled: boolean
+      ) => Promise<{ success: boolean; error?: string }>
       fabGetDefaultPath: () => Promise<string>
       fabSelectFolder: () => Promise<string | null>
       fabScanFolder: (folderPath: string) => Promise<FabAsset[]>
