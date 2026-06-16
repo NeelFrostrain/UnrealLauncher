@@ -108,11 +108,8 @@ export function useEngineCompatibility(projectVersion: string): EngineCompatibil
   })
 
   useEffect(() => {
-    // If engines were already loaded synchronously, nothing more to do
-    if (_resultCache.has(projectVersion)) {
-      setCompat(_resultCache.get(projectVersion)!)
-      return
-    }
+    // If result is already cached, nothing async needed
+    if (_resultCache.has(projectVersion)) return
     let cancelled = false
     loadEnginesOnce().then((engines) => {
       if (cancelled) return

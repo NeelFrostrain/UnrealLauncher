@@ -10,7 +10,18 @@ const COLLAPSED_WIDTH = 52
 /**
  * Custom hook for managing Sidebar state and drag behavior
  */
-export function useSidebarState() {
+export function useSidebarState(): {
+  collapsed: boolean
+  width: number
+  currentWidth: number
+  location: ReturnType<typeof useLocation>
+  onMouseDown: (e: React.MouseEvent) => void
+  toggleCollapse: () => void
+  handleNavClick: (basePath: string) => void
+  MIN_WIDTH: number
+  MAX_WIDTH: number
+  COLLAPSED_WIDTH: number
+} {
   const location = useLocation()
   const navigate = useNavigate()
 

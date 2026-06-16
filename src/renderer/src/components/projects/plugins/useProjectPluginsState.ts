@@ -1,19 +1,34 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { useToast } from '../../../components/ui/ToastContext'
 
 export type ViewMode = 'list' | 'grid'
 
 interface ProjectPlugin {
   name: string
+  internalName: string
   path: string
   description: string
   version: string
   enabled: boolean
 }
 
-export function useProjectPluginsState(projectPath: string) {
+export function useProjectPluginsState(projectPath: string): {
+  plugins: ProjectPlugin[]
+  filteredPlugins: ProjectPlugin[]
+  loading: boolean
+  error: string | null
+  searchQuery: string
+  setSearchQuery: (q: string) => void
+  viewMode: ViewMode
+  handleViewChange: (mode: ViewMode) => void
+  togglePlugin: (internalName: string, currentStatus: boolean) => Promise<void>
+  load: () => Promise<void>
+} {
   const { addToast } = useToast()
+  const addToastRef = useRef(addToast)
+  addToastRef.current = addToast
+
   const [plugins, setPlugins] = useState<ProjectPlugin[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -22,51 +37,53 @@ export function useProjectPluginsState(projectPath: string) {
     () => (localStorage.getItem('projectPluginsViewMode') as ViewMode) ?? 'list'
   )
 
+  // Stable — only re-creates when projectPath changes, not on every addToast render
   const load = useCallback(async (): Promise<void> => {
     setLoading(true)
     setError(null)
-
     try {
-      // Calls the backend handler we registered in Step 12
       setPlugins(await window.electronAPI.projectScanPlugins(projectPath))
     } catch (err) {
       setPlugins([])
       const msg = err instanceof Error ? err.message : String(err)
       setError(msg)
-      addToast('Plugin scan failed: ' + msg, 'error')
+      addToastRef.current('Plugin scan failed: ' + msg, 'error')
     }
-
     setLoading(false)
-  }, [projectPath, addToast])
+  }, [projectPath])
 
   useEffect(() => {
     load()
   }, [load])
 
-  // 1. New function to trigger the backend toggle configuration update
-  const togglePlugin = useCallback(async (pluginInternalName: string, currentStatus: boolean): Promise<void> => {
-    const nextStatus = !currentStatus
+  const togglePlugin = useCallback(
+    async (internalName: string, currentStatus: boolean): Promise<void> => {
+      const nextStatus = !currentStatus
 
-    // Optimistic UI Update: update layout state instantly so the user experience is smooth
-    setPlugins((prev) =>
-      prev.map((p) => (p.name === pluginInternalName ? { ...p, enabled: nextStatus } : p))
-    )
-
-    try {
-      const result = await window.electronAPI.projectTogglePlugin(projectPath, pluginInternalName, nextStatus)
-      if (!result.success) {
-        throw new Error(result.error || 'Unknown file error')
-      }
-      addToast(`Successfully ${nextStatus ? 'enabled' : 'disabled'} ${pluginInternalName}`, 'success')
-    } catch (err) {
-      // Revert the UI state if the backend operation fails
+      // Optimistic update
       setPlugins((prev) =>
-        prev.map((p) => (p.name === pluginInternalName ? { ...p, enabled: currentStatus } : p))
+        prev.map((p) => (p.internalName === internalName ? { ...p, enabled: nextStatus } : p))
       )
-      const msg = err instanceof Error ? err.message : String(err)
-      addToast(`Failed to update plugin config: ${msg}`, 'error')
-    }
-  }, [projectPath, addToast])
+
+      try {
+        const result = await window.electronAPI.projectTogglePlugin(
+          projectPath,
+          internalName,
+          nextStatus
+        )
+        if (!result.success) throw new Error(result.error || 'Unknown error')
+        addToastRef.current(`${nextStatus ? 'Enabled' : 'Disabled'} ${internalName}`, 'success')
+      } catch (err) {
+        // Revert on failure
+        setPlugins((prev) =>
+          prev.map((p) => (p.internalName === internalName ? { ...p, enabled: currentStatus } : p))
+        )
+        const msg = err instanceof Error ? err.message : String(err)
+        addToastRef.current(`Failed to update plugin: ${msg}`, 'error')
+      }
+    },
+    [projectPath]
+  )
 
   const handleViewChange = useCallback((mode: ViewMode): void => {
     setViewMode(mode)
@@ -75,7 +92,6 @@ export function useProjectPluginsState(projectPath: string) {
 
   const filteredPlugins = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
-
     return q
       ? plugins.filter(
           (p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
@@ -92,7 +108,7 @@ export function useProjectPluginsState(projectPath: string) {
     setSearchQuery,
     viewMode,
     handleViewChange,
-    togglePlugin, // Expose toggle function to UI elements
+    togglePlugin,
     load
   }
 }

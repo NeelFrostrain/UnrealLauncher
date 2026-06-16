@@ -88,6 +88,26 @@ export default function ProjectFileEditorDialog({
     load()
   }, [load])
 
+  // ── Save ─────────────────────────────────────────────────────────────────────
+  const handleSave = useCallback(async () => {
+    if (!filePath || saving) return
+    if (mode === 'uproject') {
+      try {
+        JSON.parse(content)
+      } catch {
+        addToast('Invalid JSON — fix syntax errors before saving', 'error')
+        return
+      }
+    }
+    setSaving(true)
+    const result = await window.electronAPI.projectWriteTextFile(filePath, content, projectPath)
+    setSaving(false)
+    if (result.success) {
+      setOriginal(content)
+      addToast('File saved', 'success')
+    } else addToast(result.error ?? 'Failed to save file', 'error')
+  }, [filePath, content, mode, saving, addToast, projectPath])
+
   // ── Keyboard shortcuts ──────────────────────────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
@@ -117,27 +137,7 @@ export default function ProjectFileEditorDialog({
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [find.open, isDirty, content, openFind, closeFind, onClose])
-
-  // ── Save ─────────────────────────────────────────────────────────────────────
-  const handleSave = useCallback(async () => {
-    if (!filePath || saving) return
-    if (mode === 'uproject') {
-      try {
-        JSON.parse(content)
-      } catch {
-        addToast('Invalid JSON — fix syntax errors before saving', 'error')
-        return
-      }
-    }
-    setSaving(true)
-    const result = await window.electronAPI.projectWriteTextFile(filePath, content, projectPath)
-    setSaving(false)
-    if (result.success) {
-      setOriginal(content)
-      addToast('File saved', 'success')
-    } else addToast(result.error ?? 'Failed to save file', 'error')
-  }, [filePath, content, mode, saving, addToast, projectPath])
+  }, [find.open, isDirty, content, openFind, closeFind, onClose, handleSave])
 
   const fileName = filePath ? (filePath.split(/[/\\]/).pop() ?? '') : ''
   const isJson = mode === 'uproject'

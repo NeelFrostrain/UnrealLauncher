@@ -407,7 +407,7 @@ export default function ProjectLogDialog({
             <span>
               {filtered.length.toLocaleString()} / {lines.length.toLocaleString()} lines
             </span>
-            {search && <span style={{ color: 'var(--color-accent)' }}>"{search}"</span>}
+            {search && <span style={{ color: 'var(--color-accent)' }}>&ldquo;{search}&rdquo;</span>}
           </div>
           <div className="flex items-center gap-4">
             <span>cap {maxLines.toLocaleString()}</span>

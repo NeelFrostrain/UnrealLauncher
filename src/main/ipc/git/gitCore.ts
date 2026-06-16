@@ -27,7 +27,7 @@ export async function runGitAsync(projectPath: string, args: string[]): Promise<
  */
 export function assertValidBranchName(branch: string): void {
   if (branch.startsWith('-')) throw new Error('Invalid branch name')
-  const invalidBranchName = new RegExp('[\\x00-\\x1f\\x7f ~^:?*\\\\\\\]]')
+  const invalidBranchName = new RegExp('[\\x00-\\x1f\\x7f ~^:?*\\\\[\\]]')
   if (invalidBranchName.test(branch) || branch.includes('..') || branch.endsWith('.lock')) {
     throw new Error('Invalid branch name')
   }

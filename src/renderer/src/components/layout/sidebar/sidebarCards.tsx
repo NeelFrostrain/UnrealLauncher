@@ -94,7 +94,11 @@ interface SidebarCardsProps {
 /**
  * Renders the navigation cards (expanded or collapsed)
  */
-export function SidebarCards({ collapsed, currentPath, onNavClick }: SidebarCardsProps) {
+export function SidebarCards({
+  collapsed,
+  currentPath,
+  onNavClick
+}: SidebarCardsProps): React.ReactElement {
   return (
     <div
       className={`flex-1 overflow-hidden ${collapsed ? 'flex flex-col items-center gap-1.5 pt-3 px-1.5' : 'p-3'}`}

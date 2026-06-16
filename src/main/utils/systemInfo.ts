@@ -1,6 +1,8 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
 import os from 'os'
+import https from 'https'
+import http from 'http'
 import { execSync } from 'child_process'
 
 export interface SystemInfo {
@@ -114,22 +116,26 @@ async function getPublicIp(): Promise<string | undefined> {
     for (const service of services) {
       try {
         const response = await new Promise<{ ip?: string; text?: string }>((resolve) => {
-          const https = service.startsWith('https') ? require('https') : require('http')
-          const req = https.get(service, { timeout: 3000 }, (res: any) => {
-            let data = ''
-            res.on('data', (chunk: any) => (data += chunk))
-            res.on('end', () => {
-              try {
-                if (service.includes('ipify')) {
-                  resolve(JSON.parse(data))
-                } else {
-                  resolve({ text: data.trim() })
+          const client = service.startsWith('https') ? https : http
+          const req = client.get(
+            service,
+            { timeout: 3000 } as Parameters<typeof https.get>[1],
+            (res) => {
+              let data = ''
+              res.on('data', (chunk: Buffer) => (data += chunk.toString()))
+              res.on('end', () => {
+                try {
+                  if (service.includes('ipify')) {
+                    resolve(JSON.parse(data) as { ip: string })
+                  } else {
+                    resolve({ text: data.trim() })
+                  }
+                } catch {
+                  resolve({})
                 }
-              } catch {
-                resolve({})
-              }
-            })
-          })
+              })
+            }
+          )
           req.on('error', () => resolve({}))
         })
 

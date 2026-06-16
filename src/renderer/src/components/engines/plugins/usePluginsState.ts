@@ -1,5 +1,5 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { useToast } from '../../../components/ui/ToastContext'
 
 export type ViewMode = 'list' | 'grid'
@@ -31,6 +31,8 @@ export interface UsePluginsStateReturn {
 
 export function usePluginsState(engineDir: string): UsePluginsStateReturn {
   const { addToast } = useToast()
+  const addToastRef = useRef(addToast)
+  addToastRef.current = addToast
   const [plugins, setPlugins] = useState<EnginePlugin[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,10 +50,10 @@ export function usePluginsState(engineDir: string): UsePluginsStateReturn {
       setPlugins([])
       const msg = err instanceof Error ? err.message : String(err)
       setError(msg)
-      addToast('Plugin scan failed: ' + msg, 'error')
+      addToastRef.current('Plugin scan failed: ' + msg, 'error')
     }
     setLoading(false)
-  }, [engineDir, addToast])
+  }, [engineDir])
 
   useEffect(() => {
     load()

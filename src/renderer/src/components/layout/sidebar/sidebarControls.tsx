@@ -14,7 +14,7 @@ export function SidebarControls({
   collapsed,
   onToggleCollapse,
   onMouseDown
-}: SidebarControlsProps) {
+}: SidebarControlsProps): React.ReactElement {
   return (
     <>
       {/* Collapse toggle */}

@@ -27,7 +27,6 @@ export function RunningProjectsBanner({
     try {
       const paths = await window.electronAPI.getRunningProjects()
       setRunningPaths(paths ?? [])
-      // Un-dismiss if a new project started
       if (paths && paths.length > 0) setDismissed(false)
     } catch {
       /* native module unavailable — ignore */
