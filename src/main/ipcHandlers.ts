@@ -9,6 +9,8 @@ import { registerMiscHandlers } from './ipc/misc'
 import { registerFabHandlers } from './ipc/fab'
 import { registerLaunchConfigHandlers } from './ipc/launchConfigs'
 import { registerPaletteHandlers } from './ipc/paletteHandlers'
+// 1. Add this import line right here:
+import { registerProjectPluginHandlers } from './ipc/projectPlugins'
 
 export { cleanupWorkers } from './workers/workers'
 
@@ -22,4 +24,6 @@ export function registerIpcHandlers(): void {
   registerFabHandlers(ipcMain)
   registerLaunchConfigHandlers(ipcMain)
   registerPaletteHandlers(ipcMain)
+  // 2. Add this call right here:
+  registerProjectPluginHandlers(ipcMain)
 }

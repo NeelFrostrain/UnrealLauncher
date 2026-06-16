@@ -1,3 +1,4 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useToast } from '../../../components/ui/ToastContext'
 
@@ -11,7 +12,7 @@ interface ProjectPlugin {
   enabled: boolean
 }
 
-export function useProjectPluginsState(projectDir: string) {
+export function useProjectPluginsState(projectPath: string) {
   const { addToast } = useToast()
   const [plugins, setPlugins] = useState<ProjectPlugin[]>([])
   const [loading, setLoading] = useState(false)
@@ -26,7 +27,8 @@ export function useProjectPluginsState(projectDir: string) {
     setError(null)
 
     try {
-      setPlugins(await window.electronAPI.projectScanPlugins(projectDir))
+      // Calls the backend handler we registered in Step 12
+      setPlugins(await window.electronAPI.projectScanPlugins(projectPath))
     } catch (err) {
       setPlugins([])
       const msg = err instanceof Error ? err.message : String(err)
@@ -35,11 +37,36 @@ export function useProjectPluginsState(projectDir: string) {
     }
 
     setLoading(false)
-  }, [projectDir, addToast])
+  }, [projectPath, addToast])
 
   useEffect(() => {
     load()
   }, [load])
+
+  // 1. New function to trigger the backend toggle configuration update
+  const togglePlugin = useCallback(async (pluginInternalName: string, currentStatus: boolean): Promise<void> => {
+    const nextStatus = !currentStatus
+
+    // Optimistic UI Update: update layout state instantly so the user experience is smooth
+    setPlugins((prev) =>
+      prev.map((p) => (p.name === pluginInternalName ? { ...p, enabled: nextStatus } : p))
+    )
+
+    try {
+      const result = await window.electronAPI.projectTogglePlugin(projectPath, pluginInternalName, nextStatus)
+      if (!result.success) {
+        throw new Error(result.error || 'Unknown file error')
+      }
+      addToast(`Successfully ${nextStatus ? 'enabled' : 'disabled'} ${pluginInternalName}`, 'success')
+    } catch (err) {
+      // Revert the UI state if the backend operation fails
+      setPlugins((prev) =>
+        prev.map((p) => (p.name === pluginInternalName ? { ...p, enabled: currentStatus } : p))
+      )
+      const msg = err instanceof Error ? err.message : String(err)
+      addToast(`Failed to update plugin config: ${msg}`, 'error')
+    }
+  }, [projectPath, addToast])
 
   const handleViewChange = useCallback((mode: ViewMode): void => {
     setViewMode(mode)
@@ -65,6 +92,7 @@ export function useProjectPluginsState(projectDir: string) {
     setSearchQuery,
     viewMode,
     handleViewChange,
+    togglePlugin, // Expose toggle function to UI elements
     load
   }
 }

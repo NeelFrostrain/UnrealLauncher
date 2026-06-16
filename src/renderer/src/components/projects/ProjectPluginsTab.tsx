@@ -4,7 +4,7 @@ import { RefreshCw, Search, LayoutGrid, LayoutList, Package, AlertTriangle } fro
 import { useProjectPluginsState } from './plugins/useProjectPluginsState'
 
 interface ProjectPluginsTabProps {
-  projectDir: string
+  projectDir: string // This should pass the full path to the .uproject file
 }
 
 const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactElement => {
@@ -17,6 +17,7 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
     setSearchQuery,
     viewMode,
     handleViewChange,
+    togglePlugin, // 1. Pulling the toggle handler from our state hook
     load
   } = useProjectPluginsState(projectDir)
 
@@ -103,7 +104,7 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
       {/* Stats */}
       {!loading && plugins.length > 0 && (
         <div className="px-1 pb-1.5 shrink-0">
-          <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+          <p className="text className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
             {filteredPlugins.length} plugin
             {filteredPlugins.length !== 1 ? 's' : ''}
             {' — '}Project Plugins
@@ -111,7 +112,7 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
         </div>
       )}
 
-      {/* Content */}
+      {/* Content Layout wrapper */}
       <div className="flex-1 overflow-y-auto pb-4">
         {loading ? (
           <div
@@ -146,27 +147,48 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
+          /* Responsive Layout supporting both list and grid views */
+          <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-2'}>
             {filteredPlugins.map((plugin) => (
               <div
                 key={plugin.path}
-                className="p-3 rounded"
+                className="p-3 rounded flex flex-col justify-between transition-all"
                 style={{
                   backgroundColor: 'var(--color-surface-card)',
-                  border: '1px solid var(--color-border)'
+                  border: '1px solid var(--color-border)',
+                  opacity: plugin.enabled ? 1 : 0.75
                 }}
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{plugin.name}</span>
+                <div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-xs text-primary">{plugin.name}</span>
+                      <span className="text-[10px] mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                        {plugin.version ? `v${plugin.version}` : 'v0.0.0'}
+                      </span>
+                    </div>
 
-                  <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                    {plugin.version ? `v${plugin.version}` : ''}
-                  </span>
+                    {/* 2. Interactive Toggle Switch Action */}
+                    <label className="relative inline-flex items-center cursor-pointer select-none shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={plugin.enabled}
+                        onChange={() => togglePlugin(plugin.name, plugin.enabled)}
+                        className="sr-only peer"
+                      />
+                      <div 
+                        className="w-7 h-4 bg-zinc-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-500"
+                        style={{
+                          transition: 'background-color 0.2s ease, transform 0.2s ease'
+                        }}
+                      ></div>
+                    </label>
+                  </div>
+
+                  <p className="text-xs mt-2 line-clamp-3" style={{ color: 'var(--color-text-muted)' }}>
+                    {plugin.description || 'No description available.'}
+                  </p>
                 </div>
-
-                <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                  {plugin.description || 'No description available'}
-                </p>
               </div>
             ))}
           </div>

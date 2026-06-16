@@ -97,7 +97,9 @@ if (process.contextIsolated) {
       scanEnginePlugins: (engineDir: string) =>
         ipcRenderer.invoke('scan-engine-plugins', engineDir),
       projectScanPlugins: (projectPath: string) =>
-        ipcRenderer.invoke('project-scan-plugins', projectPath),
+  ipcRenderer.invoke('project-scan-plugins', projectPath),
+projectTogglePlugin: (projectPath: string, pluginName: string, enabled: boolean) =>
+  ipcRenderer.invoke('project-toggle-plugin', projectPath, pluginName, enabled),
       fabGetDefaultPath: () => ipcRenderer.invoke('fab-get-default-path'),
       fabSelectFolder: () => ipcRenderer.invoke('fab-select-folder'),
       fabScanFolder: (folderPath: string) => ipcRenderer.invoke('fab-scan-folder', folderPath),
