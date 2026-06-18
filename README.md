@@ -2,6 +2,9 @@
 
 > A lightweight, cross-platform Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
 
+![S1](./docs/Screenshot 
+-2026-06-12-121301.jpeg)
+
 <!-- Metadata Row -->
 
 [![Version](https://img.shields.io/badge/version-2.3.1-blue)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.3.0)
