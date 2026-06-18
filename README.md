@@ -2,7 +2,7 @@
 
 > A lightweight, cross-platform Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
 
-![S1](./docs/Screenshot 2026-06-12 121301.jpeg)
+![S1](./docs/S3.jpeg)
 
 <!-- Metadata Row -->
 
