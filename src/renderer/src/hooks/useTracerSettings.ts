@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { setSetting } from '../utils/settings'
 import { usePageVisibility } from './usePageVisibility'
+import { useToast } from '../components/ui/ToastContext'
 
 export interface UseTracerSettingsReturn {
   tracerAutoStart: boolean
@@ -16,6 +17,7 @@ export interface UseTracerSettingsReturn {
 }
 
 export function useTracerSettings(): UseTracerSettingsReturn {
+  const { addToast } = useToast()
   const [tracerAutoStart, setTracerAutoStart] = useState(false)
   const [tracerRunning, setTracerRunning] = useState(false)
   const [tracerDataDir, setTracerDataDir] = useState('')
@@ -99,7 +101,9 @@ export function useTracerSettings(): UseTracerSettingsReturn {
         timeoutRefs.current.push(timeoutId)
       }
     } catch {
-      /* ignore */
+      setTracerAutoStart(!next)
+      setSetting('tracerAutoStart', !next)
+      addToast('Failed to update tracer auto-start setting', 'error')
     }
   }
 
@@ -109,7 +113,8 @@ export function useTracerSettings(): UseTracerSettingsReturn {
     try {
       await window.electronAPI.setTracerMerge(next)
     } catch {
-      /* ignore */
+      setTracerMerge(!next)
+      addToast('Failed to update tracer merge setting', 'error')
     }
   }
 

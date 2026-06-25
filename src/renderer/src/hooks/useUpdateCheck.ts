@@ -55,27 +55,34 @@ export function useUpdateCheck(): UseUpdateCheckReturn {
     setUpdateStatus('checking')
     setUpdateMessage('Checking for updates...')
 
-    const result = await window.electronAPI.checkForUpdates()
-    const currentVersion = appVersion || APP_VERSION
+    try {
+      const result = await window.electronAPI.checkForUpdates()
+      const currentVersion = appVersion || APP_VERSION
 
-    if (result.success && result.updateInfo) {
-      const latestVersion = String(result.updateInfo.version || '').replace(/^v/i, '')
-      if (compareVersions(latestVersion, currentVersion)) {
-        setUpdateStatus('available')
-        setUpdateVersion(latestVersion)
-        setUpdateMessage(`Version ${latestVersion} is available!`)
-      } else {
+      if (result.success && result.updateInfo) {
+        const latestVersion = String(result.updateInfo.version || '').replace(/^v/i, '')
+        if (compareVersions(latestVersion, currentVersion)) {
+          setUpdateStatus('available')
+          setUpdateVersion(latestVersion)
+          setUpdateMessage(`Version ${latestVersion} is available!`)
+        } else {
+          setUpdateStatus('no-update')
+          setUpdateMessage(
+            `No update available. Installed version ${currentVersion} is newer or equal to ${latestVersion}.`
+          )
+        }
+      } else if (result.success) {
         setUpdateStatus('no-update')
-        setUpdateMessage(
-          `No update available. Installed version ${currentVersion} is newer or equal to ${latestVersion}.`
-        )
+        setUpdateMessage(result.message || 'You are using the latest version')
+      } else {
+        setUpdateStatus('error')
+        setUpdateMessage(result.error || 'Failed to check for updates')
       }
-    } else if (result.success) {
-      setUpdateStatus('no-update')
-      setUpdateMessage(result.message || 'You are using the latest version')
-    } else {
+    } catch (error) {
       setUpdateStatus('error')
-      setUpdateMessage(result.error || 'Failed to check for updates')
+      setUpdateMessage(
+        `Failed to check for updates: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 

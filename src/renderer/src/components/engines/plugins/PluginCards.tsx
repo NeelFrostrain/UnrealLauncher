@@ -225,8 +225,10 @@ export const CategorySection = memo(
   }): React.ReactElement => {
     const [open, setOpen] = useState(forceOpen || defaultOpen)
     useEffect(() => {
-      if (forceOpen) setOpen(true)
-    }, [forceOpen])
+      if (forceOpen) {
+        setOpen(prev => prev ? prev : true);
+      }
+    }, [forceOpen]);
     return (
       <div className="mb-1">
         <button

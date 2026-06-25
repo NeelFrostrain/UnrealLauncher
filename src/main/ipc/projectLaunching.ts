@@ -13,31 +13,20 @@ import { buildLaunchArgs } from '../utils/launchConfigArgs'
 
 function spawnDetachedProcess(executable: string, args: string[]): void {
   if (process.platform === 'win32') {
-    // Wrap paths in quotes to handle spaces safely
-    const quotedExe = `"${executable}"`;
-    const quotedArgs = args.map(arg => `"${arg}"`);
-
     try {
-      // Use /s and /c to ensure the command string is parsed correctly by cmd
-      // The empty "" is the required window title argument for 'start'
-      const command = ['/s', '/c', 'start', '""', quotedExe, ...quotedArgs].join(' ');
-      
-      spawn('cmd', [command], {
+      spawn('cmd', ['/c', 'start', '""', executable, ...args], {
         detached: true,
         stdio: 'ignore',
-        windowsHide: true,
-        shell: true // Allows command string execution
-      }).unref();
+        windowsHide: true
+      }).unref()
     } catch (e) {
-      logger.error('project', 'Failed to spawn detached process', { error: e });
-      // Fallback
-      spawn(executable, args, { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+      logger.error('project', 'Failed to spawn detached process', { error: e })
+      spawn(executable, args, { detached: true, stdio: 'ignore', windowsHide: true }).unref()
     }
-    return;
+    return
   }
 
-  // Unix-like systems handle array arguments natively without shell escaping
-  spawn(executable, args, { detached: true, stdio: 'ignore' }).unref();
+  spawn(executable, args, { detached: true, stdio: 'ignore' }).unref()
 }
 
 /**

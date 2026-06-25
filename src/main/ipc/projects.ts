@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
 import { openFileOrDirectory } from '../utils/processUtils'
-import { isRegisteredProjectPath } from '../utils/pathSanitization'
+import { isRegisteredProjectPath, resolveOpenableDirectory } from '../utils/pathSanitization'
 import {
   handleSelectProjectFolder,
   handleLaunchProject,
@@ -14,7 +14,6 @@ import {
   deleteProject
 } from './projectHandlers'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
-import { scanProjectPlugins } from './projectPlugins'
 
 /**
  * Registers all project-related IPC handlers
@@ -38,13 +37,17 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
       handleLaunchProjectWithConfig(projectPath, config)
   )
 
-  ipcMain_.handle('open-directory', (_event, dirPath): void => {
-    // SECURITY: Validate path is a valid existing directory
-    const validatedPath = isRegisteredProjectPath(dirPath)
-    if (validatedPath) {
+  ipcMain_.handle(
+    'open-directory',
+    (_event, dirPath): { success: boolean; error?: string } => {
+      const validatedPath = resolveOpenableDirectory(dirPath)
+      if (!validatedPath) {
+        return { success: false, error: 'Directory path not allowed or does not exist' }
+      }
       openFileOrDirectory(validatedPath)
+      return { success: true }
     }
-  })
+  )
 
   ipcMain_.handle('delete-project', (_event, projectPath) => deleteProject(projectPath))
 
@@ -58,8 +61,4 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   ipcMain_.handle('calculate-all-project-sizes', calculateAllProjectSizes)
-
-  //ipcMain_.handle('project-scan-plugins', async (_event, projectPath: string) => {
-  // return scanProjectPlugins(projectPath)
-  //})
 }

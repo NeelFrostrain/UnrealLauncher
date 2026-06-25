@@ -67,10 +67,19 @@ export function useProjectActions({
   )
 
   const handleOpenDir = useCallback(async (dirPath: string): Promise<void> => {
-    if (window.electronAPI) {
-      await window.electronAPI.openDirectory(dirPath)
+    if (!window.electronAPI) return
+    try {
+      const result = await window.electronAPI.openDirectory(dirPath)
+      if (!result.success) {
+        addToast(result.error || 'Failed to open directory', 'error')
+      }
+    } catch (error) {
+      addToast(
+        'Failed to open directory: ' + (error instanceof Error ? error.message : String(error)),
+        'error'
+      )
     }
-  }, [])
+  }, [addToast])
 
   const handleAddProject = useCallback(
     async ({

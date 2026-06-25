@@ -2,6 +2,7 @@
 import { IpcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import { isRegisteredProjectPath } from '../utils/pathSanitization'
 
 export interface ProjectPlugin {
   name: string // FriendlyName or internal name for display
@@ -166,14 +167,22 @@ export async function toggleProjectPlugin(
 // 2. Connect listeners to the string channels declared in Preload
 export function registerProjectPluginHandlers(ipcMain: IpcMain): void {
   ipcMain.handle('project-scan-plugins', async (_event, projectPath: string) => {
-    return await scanProjectPlugins(projectPath)
+    const validatedPath = isRegisteredProjectPath(projectPath)
+    if (!validatedPath) {
+      return { error: 'Project path not found' }
+    }
+    return await scanProjectPlugins(validatedPath)
   })
 
   ipcMain.handle(
     'project-toggle-plugin',
     async (_event, projectPath: string, internalName: string, enabled: boolean) => {
       if (!internalName) return { success: false, error: 'Plugin name is required' }
-      return await toggleProjectPlugin(projectPath, internalName, enabled)
+      const validatedPath = isRegisteredProjectPath(projectPath)
+      if (!validatedPath) {
+        return { success: false, error: 'Project path not found' }
+      }
+      return await toggleProjectPlugin(validatedPath, internalName, enabled)
     }
   )
 }

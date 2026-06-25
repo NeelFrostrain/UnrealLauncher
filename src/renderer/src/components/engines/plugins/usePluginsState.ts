@@ -32,7 +32,9 @@ export interface UsePluginsStateReturn {
 export function usePluginsState(engineDir: string): UsePluginsStateReturn {
   const { addToast } = useToast()
   const addToastRef = useRef(addToast)
-  addToastRef.current = addToast
+  useEffect(() => {
+    addToastRef.current = addToast;
+  }, [addToast]); // Safely updates after render
   const [plugins, setPlugins] = useState<EnginePlugin[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -68,11 +70,11 @@ export function usePluginsState(engineDir: string): UsePluginsStateReturn {
     const q = searchQuery.trim().toLowerCase()
     const filtered = q
       ? plugins.filter(
-          (p) =>
-            p.name.toLowerCase().includes(q) ||
-            p.category.toLowerCase().includes(q) ||
-            p.description.toLowerCase().includes(q)
-        )
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q)
+      )
       : plugins
     const map = new Map<string, EnginePlugin[]>()
     for (const p of filtered) {

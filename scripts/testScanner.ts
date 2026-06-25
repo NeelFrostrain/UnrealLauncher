@@ -16,7 +16,7 @@ const originalRequire = Module.prototype.require as (
   id: string,
   ...args: unknown[]
 ) => unknown
-Module.prototype.require = function (this: any, id: string, ...args: unknown[]) {
+Module.prototype.require = function (this: any, id: string, ...args: any[]) {
   if (id === 'electron') {
     return {
       app: {
@@ -29,7 +29,7 @@ Module.prototype.require = function (this: any, id: string, ...args: unknown[]) 
       }
     }
   }
-  return originalRequire.apply(this, arguments)
+  return originalRequire.apply(this, [id, arguments])
 }
 
 // Helper to clean up a directory recursively
@@ -39,15 +39,20 @@ async function cleanDirectory(dir: string): Promise<void> {
   }
 }
 
+
+type FileSystemStructure = {
+  [key: string]: string | FileSystemStructure
+}
+
 // Helper to build a file/folder structure
 async function createStructure(
   base: string,
-  structure: Record<string, string | Record<string, unknown>>
+  structure: FileSystemStructure
 ): Promise<void> {
   await fsPromises.mkdir(base, { recursive: true })
   for (const [key, value] of Object.entries(structure)) {
     const itemPath = path.join(base, key)
-    if (typeof value === 'object') {
+    if (typeof value === 'object' && value != null) {
       await createStructure(itemPath, value)
     } else {
       await fsPromises.writeFile(itemPath, value as string)
