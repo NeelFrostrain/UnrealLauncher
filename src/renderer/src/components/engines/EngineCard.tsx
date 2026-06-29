@@ -59,7 +59,12 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     }
 
     // Clear launch timeout if the card unmounts before it fires
-    useEffect(() => () => { if (launchTimeoutRef.current) clearTimeout(launchTimeoutRef.current) }, [])
+    useEffect(
+      () => () => {
+        if (launchTimeoutRef.current) clearTimeout(launchTimeoutRef.current)
+      },
+      []
+    )
 
     const handleCalculateSize = async (): Promise<void> => {
       if (calculating) return

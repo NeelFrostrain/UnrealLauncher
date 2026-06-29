@@ -61,17 +61,65 @@ const TECH = [
 ]
 
 const LINKS = [
-  { label: 'GitHub', icon: GitBranch, url: config.githubRepo, color: 'var(--color-text-secondary)', border: 'var(--color-border)', bg: 'var(--color-surface-card)' },
-  { label: 'Changelog', icon: BookOpen, url: `${config.githubRepo}/blob/main/CHANGELOG.md`, color: 'var(--color-text-secondary)', border: 'var(--color-border)', bg: 'var(--color-surface-card)' },
-  { label: 'Contribute', icon: Code, url: `${config.githubRepo}/blob/main/docs/CONTRIBUTING.md`, color: 'var(--color-text-secondary)', border: 'var(--color-border)', bg: 'var(--color-surface-card)' },
-  { label: 'Issues', icon: AlertTriangle, url: `${config.githubRepo}/issues`, color: 'var(--color-text-secondary)', border: 'var(--color-border)', bg: 'var(--color-surface-card)' },
-  { label: 'Discord', icon: MessageCircle, url: config.discordInvite, color: '#818cf8', border: 'rgba(99,102,241,0.3)', bg: 'rgba(99,102,241,0.08)' },
-  { label: 'Ko-fi', icon: ExternalLink, url: config.kofi, color: '#fb923c', border: 'rgba(251,146,60,0.3)', bg: 'rgba(251,146,60,0.08)' }
+  {
+    label: 'GitHub',
+    icon: GitBranch,
+    url: config.githubRepo,
+    color: 'var(--color-text-secondary)',
+    border: 'var(--color-border)',
+    bg: 'var(--color-surface-card)'
+  },
+  {
+    label: 'Changelog',
+    icon: BookOpen,
+    url: `${config.githubRepo}/blob/main/CHANGELOG.md`,
+    color: 'var(--color-text-secondary)',
+    border: 'var(--color-border)',
+    bg: 'var(--color-surface-card)'
+  },
+  {
+    label: 'Contribute',
+    icon: Code,
+    url: `${config.githubRepo}/blob/main/docs/CONTRIBUTING.md`,
+    color: 'var(--color-text-secondary)',
+    border: 'var(--color-border)',
+    bg: 'var(--color-surface-card)'
+  },
+  {
+    label: 'Issues',
+    icon: AlertTriangle,
+    url: `${config.githubRepo}/issues`,
+    color: 'var(--color-text-secondary)',
+    border: 'var(--color-border)',
+    bg: 'var(--color-surface-card)'
+  },
+  {
+    label: 'Discord',
+    icon: MessageCircle,
+    url: config.discordInvite,
+    color: '#818cf8',
+    border: 'rgba(99,102,241,0.3)',
+    bg: 'rgba(99,102,241,0.08)'
+  },
+  {
+    label: 'Ko-fi',
+    icon: ExternalLink,
+    url: config.kofi,
+    color: '#fb923c',
+    border: 'rgba(251,146,60,0.3)',
+    bg: 'rgba(251,146,60,0.08)'
+  }
 ]
 
 // ── Card helper ──────────────────────────────────────────────────────────────
 
-const Card = ({ children, className = '' }: { children: React.ReactNode; className?: string }): React.ReactElement => (
+const Card = ({
+  children,
+  className = ''
+}: {
+  children: React.ReactNode
+  className?: string
+}): React.ReactElement => (
   <div
     className={`rounded-lg border ${className}`}
     style={{ backgroundColor: 'var(--color-surface-elevated)', borderColor: 'var(--color-border)' }}
@@ -106,10 +154,16 @@ const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement =
           style={{ backgroundColor: 'var(--color-accent)', opacity: 0.06, filter: 'blur(32px)' }}
         />
         <div className="relative text-center">
-          <h1 className="text-2xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--color-text-primary)' }}>
+          <h1
+            className="text-2xl font-bold tracking-tight mb-1.5"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
             Unreal Launcher
           </h1>
-          <p className="text-sm max-w-md mx-auto leading-relaxed mb-5" style={{ color: 'var(--color-text-muted)' }}>
+          <p
+            className="text-sm max-w-md mx-auto leading-relaxed mb-5"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
             A lightweight desktop app for discovering, launching, and managing Unreal Engine
             installations and projects — no Epic Games Launcher required.
           </p>
@@ -139,17 +193,26 @@ const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement =
         {/* Features */}
         <Card>
           <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
-            <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+            <h2
+              className="text-xs font-semibold uppercase tracking-wider"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Features
             </h2>
           </div>
           <div className="p-3 grid grid-cols-1 gap-1">
             {FEATURES.map(({ icon: Icon, label, color }) => (
-              <div key={label} className="flex items-center gap-2.5 px-2 py-1.5 rounded-md"
-                style={{ backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 50%, transparent)' }}
+              <div
+                key={label}
+                className="flex items-center gap-2.5 px-2 py-1.5 rounded-md"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 50%, transparent)'
+                }}
               >
                 <Icon size={13} style={{ color, flexShrink: 0 }} />
-                <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
+                <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                  {label}
+                </span>
               </div>
             ))}
           </div>
@@ -159,7 +222,10 @@ const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement =
           {/* Tech stack */}
           <Card>
             <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
-              <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+              <h2
+                className="text-xs font-semibold uppercase tracking-wider"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 Built With
               </h2>
             </div>
@@ -179,7 +245,10 @@ const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement =
           {/* Links */}
           <Card>
             <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
-              <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+              <h2
+                className="text-xs font-semibold uppercase tracking-wider"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 Links
               </h2>
             </div>
@@ -200,10 +269,17 @@ const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement =
 
           {/* Made by */}
           <div className="text-center">
-            <p className="text-[11px] uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
+            <p
+              className="text-[11px] uppercase tracking-widest"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Made with ♥ by{' '}
               <button
-                onClick={() => window.electronAPI.openExternal(config.githubRepo.split('/').slice(0, 4).join('/'))}
+                onClick={() =>
+                  window.electronAPI.openExternal(
+                    config.githubRepo.split('/').slice(0, 4).join('/')
+                  )
+                }
                 className="transition-colors cursor-pointer hover:opacity-80"
                 style={{ color: 'var(--color-text-secondary)' }}
               >

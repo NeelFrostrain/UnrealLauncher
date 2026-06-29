@@ -18,7 +18,8 @@ import { getSystemInfo, createSystemInfoEmbed } from './utils/systemInfo'
 
 // Build-time injected environment variables
 declare const __DISCORD_STARTUP_WEBHOOK__: string
-declare const __DISCORD_WEBHOOK__: string
+
+// --- Build-time constants injected by Vite ---
 
 let localAssetCacheTimestamp = 0
 let cachedProjectPaths: string[] = []

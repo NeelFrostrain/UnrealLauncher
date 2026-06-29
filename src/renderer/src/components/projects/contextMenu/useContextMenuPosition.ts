@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback, useLayoutEffect, useState } from 'react'
 
 /**
@@ -45,7 +45,7 @@ export function useContextMenuPosition(
     ro.observe(subRef.current)
 
     return () => ro.disconnect()
-  }, [recalc])
+  }, [recalc, subRef])
 
   return pos
 }

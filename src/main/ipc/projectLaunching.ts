@@ -83,19 +83,19 @@ function findEditorExecutable(engineAssociation: string): string {
       if (!fs.existsSync(candidate)) return ''
       const stat = fs.statSync(candidate)
       if (stat.isFile()) return candidate
-      
+
       // If it's a directory, look for common editor binaries inside known subpaths
       if (stat.isDirectory()) {
         const platformBin =
           process.platform === 'darwin' ? 'Mac' : process.platform === 'linux' ? 'Linux' : 'Win64'
         const commonNames = [`UnrealEditor${ext}`, `UE4Editor${ext}`]
-        
+
         // Check Engine/Binaries/<platform>/
         for (const name of commonNames) {
           const p1 = path.join(candidate, 'Engine', 'Binaries', platformBin, name)
           if (fs.existsSync(p1)) return p1
         }
-        
+
         // Check candidate root for any editor-like executables
         try {
           for (const f of fs.readdirSync(candidate)) {

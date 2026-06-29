@@ -1,6 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { app } from 'electron'
 import { getNativeModulePath } from './native'
+import type { Worker } from 'worker_threads'
 
 export function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B'
@@ -10,9 +11,12 @@ export function formatBytes(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-let sharedSizingWorker: any | null = null
+let sharedSizingWorker: Worker | null = null
 let nextReqId = 1
-const pendingPromises = new Map<number, { resolve: (val: number) => void; reject: (err: Error) => void }>()
+const pendingPromises = new Map<
+  number,
+  { resolve: (val: number) => void; reject: (err: Error) => void }
+>()
 
 // Set up automatic cleanup of the persistent worker when the app is quitting.
 // Use once() to prevent duplicate registrations if this module is ever re-evaluated.
@@ -25,7 +29,7 @@ if (app) {
   })
 }
 
-function getOrCreateSizingWorker(): any {
+function getOrCreateSizingWorker(): Worker {
   if (sharedSizingWorker) return sharedSizingWorker
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports

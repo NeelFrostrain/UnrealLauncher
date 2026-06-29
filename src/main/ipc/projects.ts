@@ -37,17 +37,14 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
       handleLaunchProjectWithConfig(projectPath, config)
   )
 
-  ipcMain_.handle(
-    'open-directory',
-    (_event, dirPath): { success: boolean; error?: string } => {
-      const validatedPath = resolveOpenableDirectory(dirPath)
-      if (!validatedPath) {
-        return { success: false, error: 'Directory path not allowed or does not exist' }
-      }
-      openFileOrDirectory(validatedPath)
-      return { success: true }
+  ipcMain_.handle('open-directory', (_event, dirPath): { success: boolean; error?: string } => {
+    const validatedPath = resolveOpenableDirectory(dirPath)
+    if (!validatedPath) {
+      return { success: false, error: 'Directory path not allowed or does not exist' }
     }
-  )
+    openFileOrDirectory(validatedPath)
+    return { success: true }
+  })
 
   ipcMain_.handle('delete-project', (_event, projectPath) => deleteProject(projectPath))
 

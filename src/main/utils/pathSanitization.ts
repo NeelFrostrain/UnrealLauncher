@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import fs from 'fs'
 import { loadEngines, loadProjectScanPaths, loadProjects } from '../store'
@@ -312,7 +312,7 @@ export function isRegisteredProjectPath(dirPath: string): string | undefined {
           }
         }
       }
-    } catch (storeErr) {
+    } catch {
       // Store not available or failed to load — return undefined
       return undefined
     }
@@ -434,7 +434,7 @@ export function isRegisteredEnginePath(dirPath: string): string | undefined {
       }
     }
     return undefined
-  } catch (err) {
+  } catch {
     return undefined
   }
 }

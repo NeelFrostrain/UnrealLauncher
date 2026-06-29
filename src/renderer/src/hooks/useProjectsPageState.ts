@@ -111,7 +111,9 @@ export function useProjectsPageState() {
       if (!isMounted) return
       return loadProjects('scan')
     })
-    return () => { isMounted = false }
+    return () => {
+      isMounted = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

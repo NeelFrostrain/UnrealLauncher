@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback } from 'react'
 import { useToast } from '../../ui/ToastContext'
 import { clearGitCacheForPath } from '../../../hooks/useGitStatus'
+import type { GitStatus } from '../../../hooks/useGitStatus'
 
 /**
  * Custom hook for ProjectCardGrid event handlers
@@ -11,7 +12,7 @@ export function useProjectCardHandlers(
   onLaunch: (p: string) => void,
   setLaunching: (v: boolean) => void,
   setCtxMenu: (v: { x: number; y: number } | null) => void,
-  setGit: (v: any) => void,
+  setGit: (v: GitStatus) => void,
   _setShowCommitDialog: (v: boolean) => void,
   _setShowBranchDialog: (v: boolean) => void
 ): {

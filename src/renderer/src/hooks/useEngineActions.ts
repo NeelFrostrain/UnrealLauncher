@@ -58,7 +58,8 @@ export function useEngineActions(
               : e
           )
         )
-        if (getSetting('autoCloseOnLaunch')) setTimeout(() => window.electronAPI?.windowClose(), 1000)
+        if (getSetting('autoCloseOnLaunch'))
+          setTimeout(() => window.electronAPI?.windowClose(), 1000)
       }
     } catch (error) {
       addToast(

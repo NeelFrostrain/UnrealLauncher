@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -118,7 +118,7 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
       document.removeEventListener('keydown', keyHandler)
       clearTimeout(t)
     }
-  }, [p.onClose])
+  }, [p])
 
   const openSub = useCallback((sub: 'organize' | 'tools' | 'git') => {
     if (closeTimer.current) clearTimeout(closeTimer.current)

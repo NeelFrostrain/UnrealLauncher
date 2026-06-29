@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useCallback } from 'react'
 import { useToast } from '../../ui/ToastContext'
 
@@ -39,6 +39,7 @@ export function useGitBranchState(
   }, [projectPath])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
   }, [load])
 

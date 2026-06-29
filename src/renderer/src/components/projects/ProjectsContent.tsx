@@ -161,4 +161,3 @@ export const ProjectsContent = memo(function ProjectsContent({
     </div>
   )
 })
-

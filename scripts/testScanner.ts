@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import fs from 'fs'
 import path from 'path'
 import { promises as fsPromises } from 'fs'
@@ -12,11 +12,11 @@ if (!fs.existsSync(tempUserData)) {
 }
 
 const originalRequire = Module.prototype.require as (
-  this: any,
+  this: typeof Module,
   id: string,
   ...args: unknown[]
 ) => unknown
-Module.prototype.require = function (this: any, id: string, ...args: any[]) {
+Module.prototype.require = function (this: typeof Module, id: string, ...args: unknown[]) {
   if (id === 'electron') {
     return {
       app: {
@@ -29,7 +29,7 @@ Module.prototype.require = function (this: any, id: string, ...args: any[]) {
       }
     }
   }
-  return originalRequire.apply(this, [id, arguments])
+  return originalRequire.apply(this, [id, ...args])
 }
 
 // Helper to clean up a directory recursively
@@ -39,16 +39,12 @@ async function cleanDirectory(dir: string): Promise<void> {
   }
 }
 
-
 type FileSystemStructure = {
   [key: string]: string | FileSystemStructure
 }
 
 // Helper to build a file/folder structure
-async function createStructure(
-  base: string,
-  structure: FileSystemStructure
-): Promise<void> {
+async function createStructure(base: string, structure: FileSystemStructure): Promise<void> {
   await fsPromises.mkdir(base, { recursive: true })
   for (const [key, value] of Object.entries(structure)) {
     const itemPath = path.join(base, key)

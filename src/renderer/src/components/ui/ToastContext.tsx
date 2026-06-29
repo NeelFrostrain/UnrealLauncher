@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React, { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
@@ -113,11 +113,12 @@ export const ToastProvider = ({ children }: { children: ReactNode }): ReactNode 
 
   // Cleanup all timeouts on unmount
   React.useEffect(() => {
+    const refs = timeoutRefs.current
     return () => {
-      for (const timeoutId of timeoutRefs.current.values()) {
+      for (const timeoutId of refs.values()) {
         clearTimeout(timeoutId)
       }
-      timeoutRefs.current.clear()
+      refs.clear()
     }
   }, [])
 

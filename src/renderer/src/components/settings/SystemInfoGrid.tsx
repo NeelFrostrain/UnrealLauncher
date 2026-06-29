@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useEffect } from 'react'
 
 export function SystemInfoGrid(): React.ReactElement {
@@ -14,7 +14,7 @@ export function SystemInfoGrid(): React.ReactElement {
       if (v) setAppVersion(v)
     })
     if (platform === 'win32') window.electronAPI.isTracerRunning().then(setTracerRunning)
-  }, [])
+  }, [platform])
 
   const PLATFORM_LABEL: Record<string, string> = {
     win32: 'Windows',

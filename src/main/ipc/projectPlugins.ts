@@ -147,7 +147,7 @@ export async function toggleProjectPlugin(
     }
 
     const idx = uprojectData.Plugins.findIndex(
-      (p: any) => p.Name && p.Name.toLowerCase() === internalName.toLowerCase()
+      (p: { Name?: string }) => p.Name && p.Name.toLowerCase() === internalName.toLowerCase()
     )
 
     if (idx !== -1) {
@@ -158,9 +158,9 @@ export async function toggleProjectPlugin(
 
     fs.writeFileSync(uprojectFile, JSON.stringify(uprojectData, null, 2), 'utf8')
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to toggle project plugin:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 }
 

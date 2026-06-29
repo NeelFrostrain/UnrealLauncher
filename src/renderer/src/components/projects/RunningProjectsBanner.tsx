@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Activity, FolderOpen, X } from 'lucide-react'
@@ -37,6 +37,7 @@ export function RunningProjectsBanner({
 
   useEffect(() => {
     if (!isVisible) return undefined
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     poll()
     const id = setInterval(poll, POLL_MS)
     return () => clearInterval(id)

@@ -99,7 +99,9 @@ export function useSettingsState() {
         setBackgroundCloseOnClose(settings.backgroundCloseEnabled as boolean)
       }
     })
-    return () => { isMounted = false }
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   return {

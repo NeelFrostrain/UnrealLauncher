@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { useToast } from '../../../components/ui/ToastContext'
 
@@ -33,8 +33,8 @@ export function usePluginsState(engineDir: string): UsePluginsStateReturn {
   const { addToast } = useToast()
   const addToastRef = useRef(addToast)
   useEffect(() => {
-    addToastRef.current = addToast;
-  }, [addToast]); // Safely updates after render
+    addToastRef.current = addToast
+  }, [addToast]) // Safely updates after render
   const [plugins, setPlugins] = useState<EnginePlugin[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -58,6 +58,7 @@ export function usePluginsState(engineDir: string): UsePluginsStateReturn {
   }, [engineDir])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
   }, [load])
 
@@ -70,11 +71,11 @@ export function usePluginsState(engineDir: string): UsePluginsStateReturn {
     const q = searchQuery.trim().toLowerCase()
     const filtered = q
       ? plugins.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q)
-      )
+          (p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q)
+        )
       : plugins
     const map = new Map<string, EnginePlugin[]>()
     for (const p of filtered) {

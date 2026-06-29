@@ -1,5 +1,5 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useLayoutEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 interface GlobalShortcutHandlers {
@@ -29,7 +29,9 @@ export function useGlobalShortcuts(handlers: GlobalShortcutHandlers = {}): void 
   const location = useLocation()
   const handlersRef = useRef(handlers)
   // Keep ref current on every render — standard pattern for stable listener closures
-  handlersRef.current = handlers
+  useLayoutEffect(() => {
+    handlersRef.current = handlers
+  }, [handlers])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
@@ -88,8 +90,5 @@ export function useGlobalShortcuts(handlers: GlobalShortcutHandlers = {}): void 
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [
-    navigate,
-    location.pathname
-  ])
+  }, [navigate, location.pathname])
 }

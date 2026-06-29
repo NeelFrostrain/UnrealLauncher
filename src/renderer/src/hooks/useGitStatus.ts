@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Shared git status cache — avoids one IPC call per card.
  * Results are cached by projectPath and reused across all card instances.
@@ -10,7 +10,7 @@
  * preventing memory leaks from pending promises.
  */
 
-type GitStatus = { initialized: boolean; branch: string; remoteUrl: string }
+export type GitStatus = { initialized: boolean; branch: string; remoteUrl: string }
 
 const cache = new Map<string, GitStatus>()
 const pending = new Map<string, Promise<GitStatus>>()

@@ -33,28 +33,51 @@ export function useTracerSettings(): UseTracerSettingsReturn {
     // setState on unmounted component if user navigates away before these resolve.
     window.electronAPI
       .getTracerStartup()
-      .then((v) => { if (isMounted) setTracerAutoStart(v) })
-      .catch(() => { /* ignore */ })
+      .then((v) => {
+        if (isMounted) setTracerAutoStart(v)
+      })
+      .catch(() => {
+        /* ignore */
+      })
     window.electronAPI
       .isTracerRunning()
-      .then((v) => { if (isMounted) setTracerRunning(v) })
-      .catch(() => { /* ignore */ })
+      .then((v) => {
+        if (isMounted) setTracerRunning(v)
+      })
+      .catch(() => {
+        /* ignore */
+      })
     window.electronAPI
       .getTracerDataDir()
-      .then((v) => { if (isMounted) setTracerDataDir(v) })
-      .catch(() => { /* ignore */ })
+      .then((v) => {
+        if (isMounted) setTracerDataDir(v)
+      })
+      .catch(() => {
+        /* ignore */
+      })
     window.electronAPI
       .getTracerMerge()
-      .then((v) => { if (isMounted) setTracerMerge(v) })
-      .catch(() => { /* ignore */ })
+      .then((v) => {
+        if (isMounted) setTracerMerge(v)
+      })
+      .catch(() => {
+        /* ignore */
+      })
 
-    if (!isVisible) return () => { isMounted = false }
+    if (!isVisible)
+      return () => {
+        isMounted = false
+      }
 
     const interval = setInterval(() => {
       window.electronAPI
         .isTracerRunning()
-        .then((v) => { if (isMounted) setTracerRunning(v) })
-        .catch(() => { /* ignore */ })
+        .then((v) => {
+          if (isMounted) setTracerRunning(v)
+        })
+        .catch(() => {
+          /* ignore */
+        })
     }, 30000) // 30s — tracer state rarely changes, no need to spawn tasklist every 5s
 
     return () => {

@@ -341,7 +341,7 @@ export function PaletteWindow(): React.ReactElement {
     refreshData()
     window.paletteAPI?.ready()
     requestAnimationFrame(() => inputRef.current?.focus())
-    
+
     // Listen for subsequent opens
     const cleanup = window.paletteAPI?.onOpened?.(() => {
       setQuery('')
@@ -349,7 +349,7 @@ export function PaletteWindow(): React.ReactElement {
       refreshData()
       requestAnimationFrame(() => inputRef.current?.focus())
     })
-    
+
     return () => cleanup?.()
   }, [refreshData])
 
@@ -461,7 +461,10 @@ export function PaletteWindow(): React.ReactElement {
           style={S.searchInput}
           type="text"
           value={query}
-          onChange={(e) => { setQuery(e.target.value); setActiveIdx(0) }}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setActiveIdx(0)
+          }}
           onKeyDown={onKeyDown}
           placeholder={hasData ? 'Search commands, engines, projects…' : 'Type a command…'}
           autoComplete="off"

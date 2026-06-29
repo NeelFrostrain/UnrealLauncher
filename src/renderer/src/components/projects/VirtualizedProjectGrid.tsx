@@ -61,7 +61,12 @@ export const VirtualizedProjectGrid = ({
   }, [])
 
   // Cancel any pending frame on unmount to avoid setState on unmounted component
-  useEffect(() => () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current) }, [])
+  useEffect(
+    () => () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+    },
+    []
+  )
 
   // Render only visible items
   const visibleItems: React.ReactElement[] = []

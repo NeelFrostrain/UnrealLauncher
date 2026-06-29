@@ -47,9 +47,13 @@ export function useUpdateCheck(): UseUpdateCheckReturn {
   useEffect(() => {
     let isMounted = true
     if (window.electronAPI?.getAppVersion) {
-      window.electronAPI.getAppVersion().then((v) => { if (isMounted) setAppVersion(v) })
+      window.electronAPI.getAppVersion().then((v) => {
+        if (isMounted) setAppVersion(v)
+      })
     }
-    return () => { isMounted = false }
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const handleCheckForUpdates = useCallback(async (): Promise<void> => {

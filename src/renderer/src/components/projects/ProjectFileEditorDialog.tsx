@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -85,6 +85,7 @@ export default function ProjectFileEditorDialog({
   }, [mode, projectPath])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
   }, [load])
 

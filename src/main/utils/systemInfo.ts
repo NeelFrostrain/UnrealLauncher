@@ -351,7 +351,7 @@ export async function getSystemInfo(appVersion: string): Promise<SystemInfo> {
 /**
  * Creates a Discord embed message with system information
  */
-export function createSystemInfoEmbed(systemInfo: SystemInfo): Record<string, any> {
+export function createSystemInfoEmbed(systemInfo: SystemInfo): Record<string, unknown> {
   const timestamp = new Date().toISOString()
   const memoryUsagePercent = (((os.totalmem() - os.freemem()) / os.totalmem()) * 100).toFixed(1)
 
