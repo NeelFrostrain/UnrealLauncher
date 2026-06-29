@@ -13,20 +13,16 @@ import { buildLaunchArgs } from '../utils/launchConfigArgs'
 
 function spawnDetachedProcess(executable: string, args: string[]): void {
   if (process.platform === 'win32') {
-    try {
-      spawn('cmd', ['/c', 'start', '""', executable, ...args], {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true
-      }).unref()
-    } catch (e) {
-      logger.error('project', 'Failed to spawn detached process', { error: e })
-      spawn(executable, args, { detached: true, stdio: 'ignore', windowsHide: true }).unref()
-    }
+    spawn(executable, args, {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: true,
+      shell: false
+    }).unref()
     return
   }
 
-  spawn(executable, args, { detached: true, stdio: 'ignore' }).unref()
+  spawn(executable, args, { detached: true, stdio: 'ignore', shell: false }).unref()
 }
 
 /**
