@@ -7,7 +7,7 @@ import https from 'https'
 import path from 'path'
 import fs from 'fs'
 import { setupAppLifecycle, createWindow, getMainWindow } from './window'
-import { preloadPaletteWindow } from './window/paletteWindow'
+import { preloadPaletteWindow, openPaletteWindow } from './window/paletteWindow'
 import { setupAutoUpdaterEvents, checkForUpdatesOnStartup } from './updater'
 import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
 import { loadMainSettings, loadProjects, loadEngines } from './store'
@@ -124,7 +124,9 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 // ── Single instance lock ──────────────────────────────────────────────────────
-const gotTheLock = app.requestSingleInstanceLock()
+// Pass argv so second-instance can detect --palette even when the first
+// instance is the full launcher.
+const gotTheLock = app.requestSingleInstanceLock({ argv: process.argv })
 if (!gotTheLock) {
   logger.warn('app', 'Second instance detected before lock; quitting this process')
   app.quit()
@@ -159,18 +161,26 @@ if (!gotTheLock) {
     logger.info('app', 'Before quit cleanup finished')
   })
 
-  // ── Second instance → focus existing window or restore from tray ────────────
-  app.on('second-instance', () => {
+  // ── Second instance → open palette or focus main window ─────────────────────
+  // When the tracer spawns `unreallauncher.exe --palette` while we're already
+  // running, Electron fires second-instance instead of starting a new process.
+  app.on('second-instance', (_event, argv) => {
+    if (argv.includes('--palette')) {
+      logger.info('app', 'Second instance requested palette open')
+      import('./window/paletteWindow')
+        .then(({ openPaletteWindow: open }) => open())
+        .catch((err) => logger.error('palette', 'Failed to open palette via second-instance', err))
+      return
+    }
+
     logger.info('app', 'Second instance requested focus')
     const win = getMainWindow()
     if (win && !win.isDestroyed()) {
-      // Window exists — restore and focus it
       if (win.isMinimized()) win.restore()
       if (!win.isVisible()) win.show()
       win.focus()
       logger.info('app', 'Restored and focused existing window')
     } else {
-      // Window doesn't exist or was destroyed — recreate it
       logger.info('app', 'Window not found, creating new window')
       createWindow()
     }
@@ -181,6 +191,22 @@ if (!gotTheLock) {
     .whenReady()
     .then(() => {
       logger.info('app', 'Electron app ready')
+
+      // ── Palette-only mode ─────────────────────────────────────────────────
+      // The tracer spawns `unreallauncher.exe --palette` when Ctrl+K is
+      // pressed and the launcher isn't already running.  In this mode we skip
+      // the heavy main window, show only the palette, and quit on close.
+      const paletteMode = process.argv.includes('--palette')
+      if (paletteMode) {
+        logger.info('app', 'Palette mode — skipping main window')
+        registerIpcHandlers()
+        preloadPaletteWindow()
+        setImmediate(() => openPaletteWindow())
+        // Quit cleanly when the palette closes (no main window to keep alive)
+        app.on('window-all-closed', () => app.quit())
+        return
+      }
+
       // 1. Register local-asset:// protocol handler with path traversal protection
       // Only allow thumbnails/icons from registered projects and engines
       protocol.handle('local-asset', (request) => {
@@ -238,21 +264,21 @@ if (!gotTheLock) {
         }
       })
 
-      // 6. Tracer startup — fully async, never blocks main thread
+      // 7. Tracer startup — fully async, never blocks main thread
       setImmediate(() => {
         startTracerAsync().catch((error) => {
           logger.error('tracer', 'Tracer startup failed', error)
         })
       })
 
-      // 7. Defer update check until well after the window is visible
+      // 8. Defer update check until well after the window is visible
       setTimeout(() => {
         checkForUpdatesOnStartup().catch((error) => {
           logger.error('updater', 'Startup update check failed', error)
         })
       }, 5000)
 
-      // 8. Preload palette window in the background so it opens instantly later
+      // 9. Preload palette window in the background so it opens instantly later
       setImmediate(() => {
         try {
           preloadPaletteWindow()
@@ -261,7 +287,7 @@ if (!gotTheLock) {
         }
       })
 
-      // 9. Send system startup notification to Discord (async, optional)
+      // 10. Send system startup notification to Discord (async, optional)
       setImmediate(() => {
         sendSystemStartupNotification().catch((error) => {
           logger.warn('discord', 'Failed to send startup notification', error)
@@ -286,31 +312,29 @@ if (!gotTheLock) {
       return
     }
 
-    let tracerStartupEnabled = false
+    // Always start the tracer — it owns the Ctrl+K hotkey and the named pipe.
+    // The tracerStartupEnabled setting only controls the Windows Run registry
+    // entry (whether it auto-starts at login), not whether it runs now.
+    let tracerStartupEnabled = true
     try {
       tracerStartupEnabled = loadMainSettings().tracerStartupEnabled
-    } catch (error) {
-      logger.warn('tracer', 'Failed to read tracer startup setting', error)
-      return
-    }
-    if (!tracerStartupEnabled) {
-      logger.info('tracer', 'Tracer startup disabled in settings')
-      return
+    } catch {
+      // If settings can't be read, default to enabled
     }
 
     const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
     const KEY_NAME = 'Unreal Launcher Tracer'
 
-    // Update registry key asynchronously
-    logger.info('tracer', 'Ensuring tracer startup registry entry')
-    const regProcess = spawn(
-      'reg',
-      ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
-      {
-        stdio: 'ignore'
-      }
-    )
-    childProcesses.push(regProcess)
+    // Only manage the registry Run entry based on user preference
+    if (tracerStartupEnabled) {
+      logger.info('tracer', 'Ensuring tracer startup registry entry')
+      const regProcess = spawn(
+        'reg',
+        ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
+        { stdio: 'ignore' }
+      )
+      childProcesses.push(regProcess)
+    }
 
     // Check if tracer is already running — async via spawn instead of execSync
     await new Promise<void>((resolve) => {

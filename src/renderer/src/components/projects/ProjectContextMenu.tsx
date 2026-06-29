@@ -108,12 +108,6 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
       return () => document.removeEventListener('pointerdown', handler)
     }, 50)
 
-    // Focus first item on mount
-    setTimeout(() => {
-      const first = ref.current?.querySelector<HTMLButtonElement>('button:not([disabled])')
-      first?.focus()
-    }, 60)
-
     return () => {
       document.removeEventListener('keydown', keyHandler)
       clearTimeout(t)

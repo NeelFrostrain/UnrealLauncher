@@ -8,7 +8,7 @@ import { saveMainSettings, loadMainSettings } from '../store'
 
 const execFileAsync = promisify(execFile)
 import { getTracerDataDir, getTracerBinaryName } from '../utils/platformPaths'
-import { isProcessRunning, killProcess } from '../utils/processUtils'
+import { isProcessRunning } from '../utils/processUtils'
 import { logger } from '../logger'
 export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
   // In production: resources/ sits inside app and dev uses the project root.
@@ -51,13 +51,15 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
           { timeout: 5000 }
         )
 
-        // Use async process check to avoid blocking main thread
+        // Start the tracer now if it isn't already running
         const isRunning = await isProcessRunning(tracerBinaryName)
         if (!isRunning) {
           logger.info('tracer', 'Starting tracer from settings', { tracerExe })
           spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
         }
       } else {
+        // Remove from startup registry — but do NOT kill the running tracer.
+        // The tracer owns the Ctrl+K hotkey pipe; killing it breaks the hotkey.
         try {
           await execFileAsync('reg', ['delete', RUN_KEY, '/v', TRACER_KEY_NAME, '/f'], {
             timeout: 5000
@@ -65,9 +67,6 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
         } catch {
           /* key didn't exist */
         }
-
-        // Use async process kill to avoid blocking main thread
-        await killProcess(tracerBinaryName)
       }
     } catch (error) {
       logger.error('tracer', 'Failed to update tracer startup setting', { enabled, error })

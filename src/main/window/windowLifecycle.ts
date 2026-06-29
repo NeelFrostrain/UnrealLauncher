@@ -24,22 +24,30 @@ let isQuiting = false
 let memoryManagementTimer: NodeJS.Timeout | null = null
 
 // ── Background global shortcut ────────────────────────────────────────────────
-// Registered only when the window is hidden (tray mode). Unregistered when the
-// window is shown so the renderer can handle Ctrl+K normally while focused.
+// The tracer process now owns the system-wide Ctrl+K hotkey and signals us
+// via the named pipe.  We only register the Electron globalShortcut as a
+// fallback for when the tracer is NOT installed / running (e.g. Linux/macOS
+// or first-run before tracer starts).  On Windows with tracer running this
+// shortcut registration will silently fail (hotkey already claimed) which is
+// the correct behaviour — we don't want a double-trigger.
 const PALETTE_SHORTCUT = 'CommandOrControl+K'
 
 function registerBackgroundShortcut(): void {
   if (globalShortcut.isRegistered(PALETTE_SHORTCUT)) return
-  globalShortcut.register(PALETTE_SHORTCUT, () => {
+  // On Windows the tracer owns this key; this will fail silently — that's fine.
+  const ok = globalShortcut.register(PALETTE_SHORTCUT, () => {
     logger.info('shortcut', 'Background Ctrl+K triggered — opening palette window')
-    // Import lazily to avoid circular dependency at module load time
     import('./paletteWindow')
       .then(({ openPaletteWindow }) => {
         openPaletteWindow()
       })
       .catch((err) => logger.error('shortcut', 'Failed to open palette window', err))
   })
-  logger.info('shortcut', 'Background Ctrl+K registered')
+  if (ok) {
+    logger.info('shortcut', 'Background Ctrl+K registered (tracer not running)')
+  } else {
+    logger.info('shortcut', 'Background Ctrl+K not registered — tracer owns the hotkey')
+  }
 }
 
 function unregisterBackgroundShortcut(): void {

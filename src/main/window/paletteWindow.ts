@@ -15,9 +15,19 @@ import { logger } from '../logger'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 let paletteWindow: BrowserWindow | null = null
+// Set to true when openPaletteWindow() is called before the renderer has sent
+// 'palette-ready'.  The ready handler checks this flag before showing the window,
+// so a background preload never flashes the window on screen.
+let pendingShow = false
 
 export function getPaletteWindow(): BrowserWindow | null {
   return paletteWindow
+}
+
+export function isPendingShow(): boolean {
+  const val = pendingShow
+  pendingShow = false // consume the flag
+  return val
 }
 
 export function isPaletteOpen(): boolean {
@@ -90,14 +100,14 @@ export function preloadPaletteWindow(): void {
  */
 export function openPaletteWindow(): void {
   if (!paletteWindow || paletteWindow.isDestroyed()) {
-    // Fallback if not preloaded or was destroyed
+    // Fallback if not preloaded or was destroyed — set flag so the
+    // 'palette-ready' IPC handler will show the window once it loads.
+    pendingShow = true
     preloadPaletteWindow()
-    // It will be shown by the 'palette-ready' IPC handler once it finishes loading
   } else {
-    // Already exists: notify renderer to reset state, then show
+    // Already exists: notify renderer to reset state, then force to front
     paletteWindow.webContents.send('palette-opened')
-    paletteWindow.show()
-    paletteWindow.focus()
+    forceForeground(paletteWindow)
   }
 }
 
@@ -105,4 +115,17 @@ export function closePaletteWindow(): void {
   if (paletteWindow && !paletteWindow.isDestroyed()) {
     paletteWindow.hide()
   }
+}
+
+/**
+ * Force the palette window to the foreground, bypassing Windows' foreground
+ * lock which blocks focus() when the calling process isn't already foreground.
+ */
+export function forceForeground(win: BrowserWindow): void {
+  // The trick: briefly set alwaysOnTop to yank the window to the front,
+  // then immediately unset it so the user can still click other windows.
+  win.setAlwaysOnTop(true, 'screen-saver')
+  win.show()
+  win.focus()
+  win.setAlwaysOnTop(false)
 }
