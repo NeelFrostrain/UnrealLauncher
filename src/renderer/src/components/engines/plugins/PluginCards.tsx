@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useEffect, useState, memo } from 'react'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { useState, memo } from 'react'
 import { FolderOpen, Package, ChevronDown, ChevronRight } from 'lucide-react'
 import type { ViewMode } from './usePluginsState'
 import { toLocalAssetUrl } from '../../../utils/resolveAsset'
@@ -224,9 +224,12 @@ export const CategorySection = memo(
     forceOpen: boolean
   }): React.ReactElement => {
     const [open, setOpen] = useState(forceOpen || defaultOpen)
-    useEffect(() => {
+    const [prevForceOpen, setPrevForceOpen] = useState(forceOpen)
+
+    if (forceOpen !== prevForceOpen) {
+      setPrevForceOpen(forceOpen)
       if (forceOpen) setOpen(true)
-    }, [forceOpen])
+    }
     return (
       <div className="mb-1">
         <button

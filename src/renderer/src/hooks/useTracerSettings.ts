@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useEffect, useRef } from 'react'
 import { setSetting } from '../utils/settings'
 import { usePageVisibility } from './usePageVisibility'
+import { useToast } from '../components/ui/ToastContext'
 
 export interface UseTracerSettingsReturn {
   tracerAutoStart: boolean
@@ -16,6 +17,7 @@ export interface UseTracerSettingsReturn {
 }
 
 export function useTracerSettings(): UseTracerSettingsReturn {
+  const { addToast } = useToast()
   const [tracerAutoStart, setTracerAutoStart] = useState(false)
   const [tracerRunning, setTracerRunning] = useState(false)
   const [tracerDataDir, setTracerDataDir] = useState('')
@@ -25,44 +27,61 @@ export function useTracerSettings(): UseTracerSettingsReturn {
   const isVisible = usePageVisibility()
 
   useEffect(() => {
-    // Load initial values with error handling
+    let isMounted = true
+
+    // Load initial values with error handling — guard with isMounted to prevent
+    // setState on unmounted component if user navigates away before these resolve.
     window.electronAPI
       .getTracerStartup()
-      .then(setTracerAutoStart)
+      .then((v) => {
+        if (isMounted) setTracerAutoStart(v)
+      })
       .catch(() => {
         /* ignore */
       })
     window.electronAPI
       .isTracerRunning()
-      .then(setTracerRunning)
+      .then((v) => {
+        if (isMounted) setTracerRunning(v)
+      })
       .catch(() => {
         /* ignore */
       })
     window.electronAPI
       .getTracerDataDir()
-      .then(setTracerDataDir)
+      .then((v) => {
+        if (isMounted) setTracerDataDir(v)
+      })
       .catch(() => {
         /* ignore */
       })
     window.electronAPI
       .getTracerMerge()
-      .then(setTracerMerge)
+      .then((v) => {
+        if (isMounted) setTracerMerge(v)
+      })
       .catch(() => {
         /* ignore */
       })
 
-    if (!isVisible) return undefined
+    if (!isVisible)
+      return () => {
+        isMounted = false
+      }
 
     const interval = setInterval(() => {
       window.electronAPI
         .isTracerRunning()
-        .then(setTracerRunning)
+        .then((v) => {
+          if (isMounted) setTracerRunning(v)
+        })
         .catch(() => {
           /* ignore */
         })
     }, 30000) // 30s — tracer state rarely changes, no need to spawn tasklist every 5s
 
     return () => {
+      isMounted = false
       clearInterval(interval)
       // Cleanup all pending timeouts
       for (const timeout of timeoutRefs.current) {
@@ -99,7 +118,9 @@ export function useTracerSettings(): UseTracerSettingsReturn {
         timeoutRefs.current.push(timeoutId)
       }
     } catch {
-      /* ignore */
+      setTracerAutoStart(!next)
+      setSetting('tracerAutoStart', !next)
+      addToast('Failed to update tracer auto-start setting', 'error')
     }
   }
 
@@ -109,7 +130,8 @@ export function useTracerSettings(): UseTracerSettingsReturn {
     try {
       await window.electronAPI.setTracerMerge(next)
     } catch {
-      /* ignore */
+      setTracerMerge(!next)
+      addToast('Failed to update tracer merge setting', 'error')
     }
   }
 

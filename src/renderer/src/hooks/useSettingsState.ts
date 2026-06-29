@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getSetting, setSetting } from '../utils/settings'
 import {
@@ -92,11 +92,16 @@ export function useSettingsState() {
   }, [])
 
   useEffect(() => {
+    let isMounted = true
     window.electronAPI.getMainSettings().then((settings) => {
+      if (!isMounted) return
       if (settings && settings.backgroundCloseEnabled !== undefined) {
         setBackgroundCloseOnClose(settings.backgroundCloseEnabled as boolean)
       }
     })
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   return {

@@ -1,7 +1,9 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import fs from 'fs'
 import { loadEngines, loadProjectScanPaths, loadProjects } from '../store'
+import { getSettingsPath } from '../store/storePaths'
+import { getTracerDataDir } from './platformPaths'
 
 // Restrict IPC file read/write operations to text-based configuration formats (e.g., .uproject, .ini, .conf, .cfg, .yaml, .json).
 // Explicitly block reading or writing binary executables (.exe, .dll, .sh, .bat) over these channels.
@@ -310,7 +312,7 @@ export function isRegisteredProjectPath(dirPath: string): string | undefined {
           }
         }
       }
-    } catch (storeErr) {
+    } catch {
       // Store not available or failed to load — return undefined
       return undefined
     }
@@ -432,7 +434,108 @@ export function isRegisteredEnginePath(dirPath: string): string | undefined {
       }
     }
     return undefined
-  } catch (err) {
+  } catch {
+    return undefined
+  }
+}
+
+function resolveExistingDirectory(dirPath: string): string | undefined {
+  let resolved = path.resolve(dirPath)
+  try {
+    if (fs.existsSync(resolved)) {
+      resolved = fs.realpathSync(resolved)
+    }
+  } catch {
+    // ignore
+  }
+  resolved = path.normalize(resolved)
+  if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
+    return undefined
+  }
+  return resolved
+}
+
+function loadFabCachePath(): string | undefined {
+  try {
+    const settingsPath = getSettingsPath()
+    if (!fs.existsSync(settingsPath)) return undefined
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
+      fabCachePath?: string
+    }
+    const fabPath = settings.fabCachePath
+    return typeof fabPath === 'string' && fabPath ? fabPath : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Validates a directory path for open-in-file-manager IPC.
+ * Accepts registered project/engine roots, descendants, and app-owned directories.
+ */
+export function resolveOpenableDirectory(dirPath: string): string | undefined {
+  if (!dirPath || typeof dirPath !== 'string') return undefined
+
+  try {
+    const resolved = resolveExistingDirectory(dirPath)
+    if (!resolved) return undefined
+
+    const registeredProject = isRegisteredProjectPath(dirPath)
+    if (registeredProject) return registeredProject
+
+    const registeredEngine = isRegisteredEnginePath(dirPath)
+    if (registeredEngine) return registeredEngine
+
+    const projects = loadProjects()
+    for (const proj of projects) {
+      if (proj.projectPath && isPathWithinDirectory(resolved, proj.projectPath)) {
+        return resolved
+      }
+    }
+
+    const engines = loadEngines()
+    for (const eng of engines) {
+      if (eng.directoryPath && isPathWithinDirectory(resolved, eng.directoryPath)) {
+        return resolved
+      }
+    }
+
+    const allowedRoots: string[] = []
+    try {
+      const tracerDir = getTracerDataDir()
+      if (tracerDir) allowedRoots.push(tracerDir)
+    } catch {
+      // ignore
+    }
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { app } = require('electron')
+      const userData = app.getPath('userData')
+      if (userData) allowedRoots.push(userData)
+    } catch {
+      // ignore
+    }
+
+    const fabCache = loadFabCachePath()
+    if (fabCache) allowedRoots.push(fabCache)
+
+    try {
+      for (const scanPath of loadProjectScanPaths()) {
+        if (scanPath) allowedRoots.push(scanPath)
+      }
+    } catch {
+      // ignore
+    }
+
+    for (const root of allowedRoots) {
+      if (isPathWithinDirectory(resolved, root)) {
+        return resolved
+      }
+    }
+
+    return undefined
+  } catch {
     return undefined
   }
 }

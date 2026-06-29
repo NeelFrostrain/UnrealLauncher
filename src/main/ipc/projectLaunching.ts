@@ -13,31 +13,16 @@ import { buildLaunchArgs } from '../utils/launchConfigArgs'
 
 function spawnDetachedProcess(executable: string, args: string[]): void {
   if (process.platform === 'win32') {
-    // Wrap paths in quotes to handle spaces safely
-    const quotedExe = `"${executable}"`;
-    const quotedArgs = args.map(arg => `"${arg}"`);
-
-    try {
-      // Use /s and /c to ensure the command string is parsed correctly by cmd
-      // The empty "" is the required window title argument for 'start'
-      const command = ['/s', '/c', 'start', '""', quotedExe, ...quotedArgs].join(' ');
-      
-      spawn('cmd', [command], {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true,
-        shell: true // Allows command string execution
-      }).unref();
-    } catch (e) {
-      logger.error('project', 'Failed to spawn detached process', { error: e });
-      // Fallback
-      spawn(executable, args, { detached: true, stdio: 'ignore', windowsHide: true }).unref();
-    }
-    return;
+    spawn(executable, args, {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: true,
+      shell: false
+    }).unref()
+    return
   }
 
-  // Unix-like systems handle array arguments natively without shell escaping
-  spawn(executable, args, { detached: true, stdio: 'ignore' }).unref();
+  spawn(executable, args, { detached: true, stdio: 'ignore', shell: false }).unref()
 }
 
 /**
@@ -94,19 +79,19 @@ function findEditorExecutable(engineAssociation: string): string {
       if (!fs.existsSync(candidate)) return ''
       const stat = fs.statSync(candidate)
       if (stat.isFile()) return candidate
-      
+
       // If it's a directory, look for common editor binaries inside known subpaths
       if (stat.isDirectory()) {
         const platformBin =
           process.platform === 'darwin' ? 'Mac' : process.platform === 'linux' ? 'Linux' : 'Win64'
         const commonNames = [`UnrealEditor${ext}`, `UE4Editor${ext}`]
-        
+
         // Check Engine/Binaries/<platform>/
         for (const name of commonNames) {
           const p1 = path.join(candidate, 'Engine', 'Binaries', platformBin, name)
           if (fs.existsSync(p1)) return p1
         }
-        
+
         // Check candidate root for any editor-like executables
         try {
           for (const f of fs.readdirSync(candidate)) {

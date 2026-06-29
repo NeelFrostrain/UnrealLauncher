@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useCallback, useRef } from 'react'
 
 interface ChangedFile {
@@ -32,6 +32,7 @@ export function useGitCommitState(projectPath: string, onClose: () => void) {
   }, [projectPath])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
   }, [load])
 

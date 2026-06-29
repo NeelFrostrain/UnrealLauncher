@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React, { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sidebar, Titlebar } from '../components'
@@ -49,11 +49,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
       className="w-screen h-screen p-px overflow-hidden"
       style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
     >
-      <div
-        id="app-scale-root"
-        className="w-full h-full flex flex-col"
-        style={{ backgroundColor: 'var(--color-surface)' }}
-      >
+      <div id="app-scale-root" className="w-full h-full flex flex-col">
         <div className="flex-1 flex min-h-0">
           {/* Sidebar is chrome — keep select-none */}
           <div className="select-none">

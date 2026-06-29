@@ -39,30 +39,48 @@ export function useEngineActions(
   }
 
   const handleLaunch = async (exePath: string): Promise<void> => {
-    const result = await window.electronAPI.launchEngine(exePath)
-    if (!result.success) {
-      addToast('Failed to launch engine: ' + result.error, 'error')
-    } else {
-      setEngines((prev) =>
-        prev.map((e) =>
-          e.exePath === exePath
-            ? {
-                ...e,
-                lastLaunch: new Date().toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric'
-                })
-              }
-            : e
+    try {
+      const result = await window.electronAPI.launchEngine(exePath)
+      if (!result.success) {
+        addToast('Failed to launch engine: ' + result.error, 'error')
+      } else {
+        setEngines((prev) =>
+          prev.map((e) =>
+            e.exePath === exePath
+              ? {
+                  ...e,
+                  lastLaunch: new Date().toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })
+                }
+              : e
+          )
         )
+        if (getSetting('autoCloseOnLaunch'))
+          setTimeout(() => window.electronAPI?.windowClose(), 1000)
+      }
+    } catch (error) {
+      addToast(
+        'Failed to launch engine: ' + (error instanceof Error ? error.message : String(error)),
+        'error'
       )
-      if (getSetting('autoCloseOnLaunch')) setTimeout(() => window.electronAPI?.windowClose(), 1000)
     }
   }
 
   const handleOpenDir = async (dirPath: string): Promise<void> => {
-    await window.electronAPI.openDirectory(dirPath)
+    try {
+      const result = await window.electronAPI.openDirectory(dirPath)
+      if (!result.success) {
+        addToast(result.error || 'Failed to open directory', 'error')
+      }
+    } catch (error) {
+      addToast(
+        'Failed to open directory: ' + (error instanceof Error ? error.message : String(error)),
+        'error'
+      )
+    }
   }
 
   const handleDelete = async (dirPath: string): Promise<void> => {

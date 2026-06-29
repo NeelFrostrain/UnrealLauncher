@@ -130,7 +130,16 @@ export async function loadSavedProjects(): Promise<Project[]> {
 export function deleteProject(projectPath: string): boolean {
   logger.info('project', 'Delete project requested', { projectPath })
   try {
-    saveProjects(loadProjects().filter((p) => p.projectPath !== projectPath))
+    const projects = loadProjects()
+    const normalized = path.normalize(projectPath).toLowerCase()
+    const filtered = projects.filter(
+      (p) => path.normalize(p.projectPath).toLowerCase() !== normalized
+    )
+    if (filtered.length === projects.length) {
+      logger.warn('project', 'Project not found in saved list', { projectPath })
+      return false
+    }
+    saveProjects(filtered)
     logger.info('project', 'Project deleted from saved list', { projectPath })
     return true
   } catch (error) {

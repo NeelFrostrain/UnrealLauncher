@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useEffect, useRef } from 'react'
 import { FolderX, Plus, X, AlertCircle } from 'lucide-react'
 import { Card, SettingRow } from '../SectionHelpers'
@@ -16,6 +16,7 @@ const ExclusionsSection = (): React.ReactElement => {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadSettings()
     return () => {
       if (errorTimerRef.current !== null) window.clearTimeout(errorTimerRef.current)

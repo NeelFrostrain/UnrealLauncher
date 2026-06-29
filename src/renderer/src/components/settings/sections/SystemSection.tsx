@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState } from 'react'
 import { Monitor, Cpu, Tag } from 'lucide-react'
 import { Card } from '../SectionHelpers'
@@ -23,7 +23,7 @@ const SystemSection = (): React.ReactElement => {
     if (platform === 'win32') {
       window.electronAPI.isTracerRunning().then(setTracerRunning)
     }
-  }, [])
+  }, [platform])
 
   const nativeColor =
     nativeLoaded === null ? 'var(--color-text-muted)' : nativeLoaded ? '#60a5fa' : '#f87171'

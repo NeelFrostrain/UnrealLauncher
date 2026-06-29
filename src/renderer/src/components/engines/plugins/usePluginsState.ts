@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { useToast } from '../../../components/ui/ToastContext'
 
@@ -32,7 +32,9 @@ export interface UsePluginsStateReturn {
 export function usePluginsState(engineDir: string): UsePluginsStateReturn {
   const { addToast } = useToast()
   const addToastRef = useRef(addToast)
-  addToastRef.current = addToast
+  useEffect(() => {
+    addToastRef.current = addToast
+  }, [addToast]) // Safely updates after render
   const [plugins, setPlugins] = useState<EnginePlugin[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,6 +58,7 @@ export function usePluginsState(engineDir: string): UsePluginsStateReturn {
   }, [engineDir])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
   }, [load])
 

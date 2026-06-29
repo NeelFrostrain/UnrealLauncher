@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect } from 'react'
 import PageWrapper from '@renderer/layout/PageWrapper'
 import { useEngineActions } from '../../hooks/useEngineActions'
@@ -37,6 +37,8 @@ const EnginesPage = (): React.ReactElement => {
     return () => window.removeEventListener('palette-action', handler)
   }, [handleScan, handleAddEngine])
 
+  const { setEngines } = state
+
   // Load engines on mount
   useEffect(() => {
     const load = async (): Promise<void> => {
@@ -44,9 +46,11 @@ const EnginesPage = (): React.ReactElement => {
         state.setLoading(false)
         return
       }
+
+      state.setLoading(true)
       try {
         const engines = await window.electronAPI.scanEngines()
-        state.setEngines(engines)
+        setEngines(engines)
         // Keep the compatibility badge cache in sync — free since data is already loaded
         setEnginesCache(engines)
         clearEngineCompatibilityCache()
@@ -62,13 +66,13 @@ const EnginesPage = (): React.ReactElement => {
     if (window.electronAPI) {
       return window.electronAPI.onSizeCalculated((data) => {
         if (data.type === 'engine')
-          state.setEngines((prev) =>
+          setEngines((prev) =>
             prev.map((e) => (e.directoryPath === data.path ? { ...e, folderSize: data.size } : e))
           )
       })
     }
     return () => {}
-  }, [])
+  }, [setEngines])
 
   return (
     <PageWrapper>

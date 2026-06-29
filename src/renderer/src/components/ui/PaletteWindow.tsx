@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Standalone palette window component.
  * Uses inline styles throughout — no Tailwind classes for layout — because the
@@ -36,6 +36,7 @@ declare global {
       close: () => void
       ready: () => void
       getData: () => Promise<{ engines: EngineData[]; projects: ProjectData[] }>
+      onOpened?: (callback: () => void) => () => void
     }
   }
 }
@@ -321,14 +322,12 @@ const S = {
 export function PaletteWindow(): React.ReactElement {
   const [query, setQuery] = useState('')
   const [activeIdxRaw, setActiveIdx] = useState(0)
-  // Clamp activeIdx whenever filtered list changes length
-  const activeIdx = Math.min(activeIdxRaw, Math.max(0, filtered.length - 1))
   const [engines, setEngines] = useState<EngineData[]>([])
   const [projects, setProjects] = useState<ProjectData[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  const refreshData = useCallback(() => {
     window.paletteAPI
       ?.getData()
       .then(({ engines: e, projects: p }) => {
@@ -336,9 +335,23 @@ export function PaletteWindow(): React.ReactElement {
         setProjects(p ?? [])
       })
       .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    refreshData()
     window.paletteAPI?.ready()
     requestAnimationFrame(() => inputRef.current?.focus())
-  }, [])
+
+    // Listen for subsequent opens
+    const cleanup = window.paletteAPI?.onOpened?.(() => {
+      setQuery('')
+      setActiveIdx(0)
+      refreshData()
+      requestAnimationFrame(() => inputRef.current?.focus())
+    })
+
+    return () => cleanup?.()
+  }, [refreshData])
 
   const allItems = useMemo((): PaletteItem[] => {
     const engineItems: PaletteItem[] = engines.map((e) => ({
@@ -376,6 +389,9 @@ export function PaletteWindow(): React.ReactElement {
       .sort((a, b) => b.s - a.s)
       .map((x) => x.item)
   }, [allItems, query])
+
+  // Clamp activeIdx whenever filtered list changes length
+  const activeIdx = Math.min(activeIdxRaw, Math.max(0, filtered.length - 1))
 
   useEffect(() => {
     listRef.current
@@ -445,7 +461,10 @@ export function PaletteWindow(): React.ReactElement {
           style={S.searchInput}
           type="text"
           value={query}
-          onChange={(e) => { setQuery(e.target.value); setActiveIdx(0) }}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setActiveIdx(0)
+          }}
           onKeyDown={onKeyDown}
           placeholder={hasData ? 'Search commands, engines, projects…' : 'Type a command…'}
           autoComplete="off"

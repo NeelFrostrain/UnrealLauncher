@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { contextBridge, ipcRenderer } from 'electron'
 
 /**
@@ -50,5 +50,13 @@ contextBridge.exposeInMainWorld('paletteAPI', {
       thumbnail?: string
       projectPath?: string
     }[]
-  }> => ipcRenderer.invoke('palette-get-data')
+  }> => ipcRenderer.invoke('palette-get-data'),
+  /** Listen for when the palette is shown again */
+  onOpened: (callback: () => void): (() => void) => {
+    const handler = (): void => callback()
+    ipcRenderer.on('palette-opened', handler)
+    return () => {
+      ipcRenderer.removeListener('palette-opened', handler)
+    }
+  }
 })

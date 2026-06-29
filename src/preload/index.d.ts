@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ElectronAPI } from '@electron-toolkit/preload'
 
 declare global {
@@ -140,7 +140,7 @@ declare global {
       ) => Promise<{ success: boolean; size?: string; error?: string }>
       calculateAllProjectSizes: () => Promise<void>
       // Filesystem
-      openDirectory: (dirPath: string) => Promise<void>
+      openDirectory: (dirPath: string) => Promise<{ success: boolean; error?: string }>
       openExternal: (url: string) => Promise<{ success: boolean; error?: string }>
       // Window
       windowMinimize: () => void

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import {
   type Dispatch,
   type RefObject,
@@ -140,6 +140,7 @@ export function useProjectLogState(
   )
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     poll(true)
   }, [poll])
   useEffect(() => {

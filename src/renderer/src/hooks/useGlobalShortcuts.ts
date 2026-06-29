@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useEffect } from 'react'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { useEffect, useRef, useLayoutEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 interface GlobalShortcutHandlers {
@@ -27,6 +27,11 @@ interface GlobalShortcutHandlers {
 export function useGlobalShortcuts(handlers: GlobalShortcutHandlers = {}): void {
   const navigate = useNavigate()
   const location = useLocation()
+  const handlersRef = useRef(handlers)
+  // Keep ref current on every render — standard pattern for stable listener closures
+  useLayoutEffect(() => {
+    handlersRef.current = handlers
+  }, [handlers])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
@@ -56,28 +61,28 @@ export function useGlobalShortcuts(handlers: GlobalShortcutHandlers = {}): void 
         case 'R':
           if (!isEditable) {
             e.preventDefault()
-            handlers.onRefresh?.()
+            handlersRef.current.onRefresh?.()
           }
           break
         case 'n':
         case 'N':
           if (!isEditable) {
             e.preventDefault()
-            handlers.onNew?.()
+            handlersRef.current.onNew?.()
           }
           break
         case 'f':
         case 'F':
           if (!isEditable && location.pathname.startsWith('/projects')) {
             e.preventDefault()
-            handlers.onFocusSearch?.()
+            handlersRef.current.onFocusSearch?.()
           }
           break
         case 'k':
         case 'K':
           if (!isEditable) {
             e.preventDefault()
-            handlers.onCommandPalette?.()
+            handlersRef.current.onCommandPalette?.()
           }
           break
       }
@@ -85,12 +90,5 @@ export function useGlobalShortcuts(handlers: GlobalShortcutHandlers = {}): void 
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [
-    navigate,
-    location.pathname,
-    handlers.onRefresh,
-    handlers.onNew,
-    handlers.onFocusSearch,
-    handlers.onCommandPalette
-  ])
+  }, [navigate, location.pathname])
 }

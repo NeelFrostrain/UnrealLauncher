@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { spawn } from 'child_process'
+import path from 'path'
 import { loadEngines, saveEngines } from '../store'
 import { isRegisteredEngineExePath } from '../utils/pathSanitization'
 import { openFileOrDirectory } from '../utils/processUtils'
@@ -88,7 +89,16 @@ export async function handleLaunchEngineWithConfig(
 export function handleDeleteEngine(directoryPath: string): boolean {
   logger.info('engine', 'Delete engine requested', { directoryPath })
   try {
-    saveEngines(loadEngines().filter((e) => e.directoryPath !== directoryPath))
+    const engines = loadEngines()
+    const normalized = path.normalize(directoryPath).toLowerCase()
+    const filtered = engines.filter(
+      (e) => path.normalize(e.directoryPath).toLowerCase() !== normalized
+    )
+    if (filtered.length === engines.length) {
+      logger.warn('engine', 'Engine not found in saved list', { directoryPath })
+      return false
+    }
+    saveEngines(filtered)
     logger.info('engine', 'Engine deleted from saved list', { directoryPath })
     return true
   } catch (error) {

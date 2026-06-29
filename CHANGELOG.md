@@ -1,6 +1,37 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [2.4.0] — `perf · ui · grid`
+
+### ⚡ Performance & Memory
+
+- Removed unused dependencies `react-window`, `react-virtualized-auto-sizer`, `zustand`, and `@types/react-window` — all were listed but never imported. Reduces install footprint.
+- Moved `framer-motion` from `devDependencies` to `dependencies` (it is used in production renderer components).
+- **Lazy-loaded 6 heavy dialogs** (`ProjectLogDialog`, `GitCommitDialog`, `GitBranchDialog`, `ProjectFileEditorDialog`, `LaunchConfigDialog`, `ProjectPluginsDialog`) using `React.lazy()` + `Suspense`. Approximately 113 KB of dialog code is now excluded from the initial bundle and loaded on first open.
+- Fixed memory leak in `useTracerSettings` — 4 floating IPC promises now guarded by `isMounted` flag; `setState` no longer called on unmounted component if the user navigates away before promises resolve.
+- Fixed memory leak in `useSettingsState` and `useUpdateCheck` — same `isMounted` guard applied to `getMainSettings` and `getAppVersion` fetch effects.
+- Fixed memory leak in `EngineCard` — the 3-second launch-button timeout is now stored in a ref and cleared in a `useEffect` cleanup, preventing a `setState` call on an unmounted card.
+- Fixed memory leak in `useProjectsPageState` — the initial `loadProjects('saved') → loadProjects('scan')` chain is now cancellable; navigating away mid-load no longer triggers further state updates.
+- Fixed duplicate `before-quit` listener in `folderOps.ts` — changed `app.on` → `app.once`; moved mid-file `import { app }` to the top of the file.
+- Replaced dynamic `await import('https')` in `main/index.ts` with a static top-level import (Node built-in, always available). Removed a dead `data` variable accumulation in the Discord webhook response handler.
+- Fixed re-render loop in `useGlobalShortcuts` — keyboard listener is now registered once (on `navigate` / `location.pathname` change only). Handlers are stored in a ref so the closure always reads the latest values without triggering re-registration.
+- Fixed stale closure + unnecessary re-registration in `ProjectsPage` palette-action handler — `searchOpen` is now tracked via a ref; deps narrowed from the entire `state` object to three stable `useCallback` refs.
+- Fixed O(n²) → O(1) lookup in `ProjectsContent` — `favoritePaths` and `hiddenPaths` are now converted to `Set` before the `.map()` loop. With 200 projects and 20 favorites, this eliminates ~4 000 string comparisons per render. Wrapped component in `React.memo()`.
+- Throttled `VirtualizedProjectGrid` scroll handler with `requestAnimationFrame` — limits `setState` calls to ≤ 60/sec during fast scroll instead of firing on every DOM scroll event.
+- Removed erroneous `await` from `calculateAllProjectSizes()` call in `useProjectActions` — size updates stream back via IPC push events; awaiting the call was blocking the entire refresh operation from completing.
+- Wrapped `useProjectFavorites` handlers in `useCallback` with stable `[]` deps. `toggleFavoritePath` now uses the functional `setState` updater form to read current state from React's queue rather than a potentially stale closure. Removed dead `getFavoritePaths` function (was a stale-closure footgun).
+- Wrapped all three `useUpdateCheck` handlers in `useCallback`.
+- Extracted the magic number `98` (list item height) to a named constant `LIST_ITEM_HEIGHT` in `useProjectsPageState`.
+- Stable `onImageError` callback in `ProjectCardGrid` via `useCallback`.
+- Removed duplicate `backgroundColor: 'var(--color-surface)'` style on the inner `#app-scale-root` div in `layout/index.tsx`.
+
+### 🎨 UI Redesign
+
+- **Project grid layout**: Grid view in `ProjectsContent` now uses a native CSS `grid` with `repeat(auto-fill, minmax(200px, 1fr))` and `gap-3 content-start` instead of the hand-rolled absolute-positioned virtualizer. Cards fill the available width responsively without fixed column counts.
+- **Settings page**: Replaced the horizontal top tab bar with a **vertical sidebar navigation** (160 px wide). Each nav item shows a color-coded icon, label, and an accent dot for the active section. The sidebar and content area scroll independently. `useMemo` for JSX (anti-pattern) replaced with a plain `renderContent()` function.
+- **About page**: Completely redesigned with a compact two-column layout — a gradient hero card with live version stats, a feature list column alongside tech-stack chips and social/documentation link buttons. The sprawling 8-component import chain is replaced by a self-contained, premium card layout. Added proper horizontal padding when the About page is viewed as a modal inside Settings.
+- **Command Palette**: `Ctrl+K` palette is now preloaded silently in the background on app startup and hidden instead of destroyed on close. It opens instantly with no white flash. Input state and search results are correctly reset whenever the palette is re-shown.
 
 ## [2.3.2] — `bugfix · build · launch`
 

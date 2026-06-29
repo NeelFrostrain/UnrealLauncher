@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useEffect, useRef, useCallback } from 'react'
 import ProjectCardGrid from './ProjectCardGrid'
 import type { Project } from '../../types'
@@ -49,9 +49,24 @@ export const VirtualizedProjectGrid = ({
     return () => resizeObserver.disconnect()
   }, [])
 
+  const rafRef = useRef<number | null>(null)
+
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>): void => {
-    setScrollTop((e.currentTarget as HTMLDivElement).scrollTop)
+    const top = (e.currentTarget as HTMLDivElement).scrollTop
+    if (rafRef.current !== null) return // already a frame queued
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null
+      setScrollTop(top)
+    })
   }, [])
+
+  // Cancel any pending frame on unmount to avoid setState on unmounted component
+  useEffect(
+    () => () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+    },
+    []
+  )
 
   // Render only visible items
   const visibleItems: React.ReactElement[] = []

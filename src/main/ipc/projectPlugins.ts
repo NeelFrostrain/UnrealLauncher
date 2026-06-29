@@ -2,6 +2,7 @@
 import { IpcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import { isRegisteredProjectPath } from '../utils/pathSanitization'
 
 export interface ProjectPlugin {
   name: string // FriendlyName or internal name for display
@@ -146,7 +147,7 @@ export async function toggleProjectPlugin(
     }
 
     const idx = uprojectData.Plugins.findIndex(
-      (p: any) => p.Name && p.Name.toLowerCase() === internalName.toLowerCase()
+      (p: { Name?: string }) => p.Name && p.Name.toLowerCase() === internalName.toLowerCase()
     )
 
     if (idx !== -1) {
@@ -157,23 +158,31 @@ export async function toggleProjectPlugin(
 
     fs.writeFileSync(uprojectFile, JSON.stringify(uprojectData, null, 2), 'utf8')
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to toggle project plugin:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 }
 
 // 2. Connect listeners to the string channels declared in Preload
 export function registerProjectPluginHandlers(ipcMain: IpcMain): void {
   ipcMain.handle('project-scan-plugins', async (_event, projectPath: string) => {
-    return await scanProjectPlugins(projectPath)
+    const validatedPath = isRegisteredProjectPath(projectPath)
+    if (!validatedPath) {
+      return { error: 'Project path not found' }
+    }
+    return await scanProjectPlugins(validatedPath)
   })
 
   ipcMain.handle(
     'project-toggle-plugin',
     async (_event, projectPath: string, internalName: string, enabled: boolean) => {
       if (!internalName) return { success: false, error: 'Plugin name is required' }
-      return await toggleProjectPlugin(projectPath, internalName, enabled)
+      const validatedPath = isRegisteredProjectPath(projectPath)
+      if (!validatedPath) {
+        return { success: false, error: 'Project path not found' }
+      }
+      return await toggleProjectPlugin(validatedPath, internalName, enabled)
     }
   )
 }

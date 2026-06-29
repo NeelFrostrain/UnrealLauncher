@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback } from 'react'
 import type { TabType } from '../types'
 import { getSetting } from '../utils/settings'
@@ -46,7 +46,9 @@ export function useProjectActions({
         count: Array.isArray(projects) ? projects.length : 0
       })
       setRefreshing(false)
-      await window.electronAPI.calculateAllProjectSizes()
+      // Fire-and-forget: size updates stream back via 'size-calculated' IPC push events.
+      // Awaiting this would block the refresh from completing until ALL sizes are done.
+      void window.electronAPI.calculateAllProjectSizes()
       logActivity('Project refresh size calculation requested')
       setCalculatingSizes(false)
     },
@@ -66,11 +68,23 @@ export function useProjectActions({
     [addToast]
   )
 
-  const handleOpenDir = useCallback(async (dirPath: string): Promise<void> => {
-    if (window.electronAPI) {
-      await window.electronAPI.openDirectory(dirPath)
-    }
-  }, [])
+  const handleOpenDir = useCallback(
+    async (dirPath: string): Promise<void> => {
+      if (!window.electronAPI) return
+      try {
+        const result = await window.electronAPI.openDirectory(dirPath)
+        if (!result.success) {
+          addToast(result.error || 'Failed to open directory', 'error')
+        }
+      } catch (error) {
+        addToast(
+          'Failed to open directory: ' + (error instanceof Error ? error.message : String(error)),
+          'error'
+        )
+      }
+    },
+    [addToast]
+  )
 
   const handleAddProject = useCallback(
     async ({
