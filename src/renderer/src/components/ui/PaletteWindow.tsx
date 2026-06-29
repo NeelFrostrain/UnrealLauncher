@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Standalone palette window component.
  * Uses inline styles throughout — no Tailwind classes for layout — because the
@@ -321,8 +321,6 @@ const S = {
 export function PaletteWindow(): React.ReactElement {
   const [query, setQuery] = useState('')
   const [activeIdxRaw, setActiveIdx] = useState(0)
-  // Clamp activeIdx whenever filtered list changes length
-  const activeIdx = Math.min(activeIdxRaw, Math.max(0, filtered.length - 1))
   const [engines, setEngines] = useState<EngineData[]>([])
   const [projects, setProjects] = useState<ProjectData[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
@@ -376,6 +374,9 @@ export function PaletteWindow(): React.ReactElement {
       .sort((a, b) => b.s - a.s)
       .map((x) => x.item)
   }, [allItems, query])
+
+  // Clamp activeIdx whenever filtered list changes length
+  const activeIdx = Math.min(activeIdxRaw, Math.max(0, filtered.length - 1))
 
   useEffect(() => {
     listRef.current

@@ -1,7 +1,7 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useMemo } from 'react'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { memo, useMemo } from 'react'
 import ProjectCard from './ProjectCard'
-import ProjectCardGrid from './ProjectCardGrid'
+import { VirtualizedProjectGrid } from './VirtualizedProjectGrid'
 import type { Project, TabType } from '../../types'
 import type { ViewMode } from './ProjectsToolbar'
 import type { SortConfig } from './projectUtils'
@@ -29,7 +29,7 @@ type ProjectWithFlags = Project & { isFavorite: boolean; isHidden: boolean }
 
 const ITEMS_PER_BATCH = 50
 
-export const ProjectsContent = ({
+export const ProjectsContent = memo(function ProjectsContent({
   projects,
   loading,
   currentTab,
@@ -45,16 +45,19 @@ export const ProjectsContent = ({
   onLaunch,
   onOpenDir,
   onListScroll
-}: ProjectsContentProps): React.ReactElement => {
+}: ProjectsContentProps): React.ReactElement {
   // Hoist processed search query to avoid per-project computation on each keystroke
   const q = searchQuery.trim().toLowerCase()
 
   const visibleProjects = useMemo((): ProjectWithFlags[] => {
+    // Convert arrays to Sets for O(1) lookup — avoids O(n²) includes() in the map below
+    const favoriteSet = new Set(favoritePaths)
+    const hiddenSet = new Set(hiddenPaths)
     const filtered = (q ? projects.filter((p) => p.name.toLowerCase().includes(q)) : projects).map(
       (project): ProjectWithFlags => ({
         ...project,
-        isFavorite: project.projectPath ? favoritePaths.includes(project.projectPath) : false,
-        isHidden: project.projectPath ? hiddenPaths.includes(project.projectPath) : false
+        isFavorite: project.projectPath ? favoriteSet.has(project.projectPath) : false,
+        isHidden: project.projectPath ? hiddenSet.has(project.projectPath) : false
       })
     )
     return sortProjects(filtered, sortConfig) as ProjectWithFlags[]
@@ -107,26 +110,14 @@ export const ProjectsContent = ({
   }
 
   if (viewMode === 'grid') {
-    // Filter out entries missing a projectPath and pass a per-project thumbnailKey so only changed cards re-render
     return (
-      <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto py-2 h-full content-start">
-        {visibleProjects
-          .filter((p) => !!p.projectPath)
-          .map((data, idx) => (
-            <ProjectCardGrid
-              key={data.projectPath}
-              {...data}
-              index={idx}
-              isFavorite={data.isFavorite}
-              isHidden={data.isHidden}
-              thumbnailKey={`${data.projectPath}:${data.thumbnail}`}
-              onToggleFavorite={onToggleFavorite}
-              onHide={onHide}
-              onLaunch={onLaunch}
-              onOpenDir={onOpenDir}
-            />
-          ))}
-      </div>
+      <VirtualizedProjectGrid
+        items={visibleProjects}
+        onToggleFavorite={onToggleFavorite}
+        onHide={onHide}
+        onLaunch={onLaunch}
+        onOpenDir={onOpenDir}
+      />
     )
   }
 
@@ -155,4 +146,5 @@ export const ProjectsContent = ({
         ))}
     </div>
   )
-}
+})
+

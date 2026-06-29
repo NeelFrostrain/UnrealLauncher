@@ -1,6 +1,6 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { FolderOpen, EyeOff, Star } from 'lucide-react'
 import PageWrapper from '../layout/PageWrapper'
 import ProjectsToolbar from '../components/projects/ProjectsToolbar'
@@ -20,17 +20,23 @@ const ProjectsPage = (): React.ReactElement => {
     onNew: state.handleAddProjectClick
   })
 
-  // Receive action commands dispatched from the mini palette window
+  // Keep a ref to searchOpen so the palette-action handler never has a stale closure
+  const searchOpenRef = useRef(state.searchOpen)
+  searchOpenRef.current = state.searchOpen
+
+  // Receive action commands dispatched from the mini palette window.
+  // Deps are the three stable useCallback refs — avoids re-registration on every render.
   useEffect(() => {
     const handler = (e: Event): void => {
       const { commandId } = (e as CustomEvent<{ commandId: string }>).detail
       if (commandId === 'action-refresh') state.handleRefreshClick()
       else if (commandId === 'action-add-project') state.handleAddProjectClick()
-      else if (commandId === 'action-search-projects' && !state.searchOpen) state.toggleSearch()
+      else if (commandId === 'action-search-projects' && !searchOpenRef.current)
+        state.toggleSearch()
     }
     window.addEventListener('palette-action', handler)
     return () => window.removeEventListener('palette-action', handler)
-  }, [state])
+  }, [state.handleRefreshClick, state.handleAddProjectClick, state.toggleSearch])
 
   return (
     <PageWrapper>

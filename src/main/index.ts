@@ -1,8 +1,9 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { config } from 'dotenv'
 import { app, protocol, net, globalShortcut } from 'electron'
 import { spawn } from 'child_process'
 import type { ChildProcess } from 'child_process'
+import https from 'https'
 import path from 'path'
 import fs from 'fs'
 import { setupAppLifecycle, createWindow, getMainWindow } from './window'
@@ -340,7 +341,6 @@ if (!gotTheLock) {
       const systemInfo = await getSystemInfo(app.getVersion())
       const embed = createSystemInfoEmbed(systemInfo)
 
-      const https = await import('https')
       const url = new URL(webhookUrl)
 
       const payload = JSON.stringify({
@@ -360,10 +360,8 @@ if (!gotTheLock) {
 
       await new Promise<void>((resolve, reject) => {
         const req = https.request(options, (res) => {
-          let data = ''
-          res.on('data', (chunk) => {
-            data += chunk
-          })
+          // Consume the response body to prevent socket hang
+          res.resume()
           res.on('end', () => {
             if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
               logger.info('discord', 'System startup notification sent successfully', {

@@ -1,4 +1,5 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { app } from 'electron'
 import { getNativeModulePath } from './native'
 
 export function formatBytes(bytes: number): string {
@@ -9,28 +10,33 @@ export function formatBytes(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-export function getFullFolderSize(folderPath: string): Promise<number> {
-  // Always run in a Worker — both Rust and JS walks are synchronous and
-  // will block the main process event loop for 35-45 GB engine folders.
-  return _folderSizeWorker(folderPath)
+let sharedSizingWorker: any | null = null
+let nextReqId = 1
+const pendingPromises = new Map<number, { resolve: (val: number) => void; reject: (err: Error) => void }>()
+
+// Set up automatic cleanup of the persistent worker when the app is quitting.
+// Use once() to prevent duplicate registrations if this module is ever re-evaluated.
+if (app) {
+  app.once('before-quit', () => {
+    if (sharedSizingWorker) {
+      sharedSizingWorker.terminate()
+      sharedSizingWorker = null
+    }
+  })
 }
 
-function _folderSizeWorker(folderPath: string): Promise<number> {
+function getOrCreateSizingWorker(): any {
+  if (sharedSizingWorker) return sharedSizingWorker
+
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Worker } = require('worker_threads')
 
-  // Inline worker: tries to load the native module first, falls back to JS walk.
-  // We pass the native module path so the worker can require() it directly.
-  const nativeModulePath = getNativeModulePath()
-
+  // The inline worker code: runs a message loop and doesn't exit on its own.
   const code = `
-    const { parentPort, workerData } = require('worker_threads');
+    const { parentPort } = require('worker_threads');
     const fs = require('fs'), path = require('path');
 
     let native = null;
-    try {
-      native = require(workerData.nativePath);
-    } catch { /* JS fallback */ }
 
     function sizeJS(dir) {
       let s = 0;
@@ -49,25 +55,76 @@ function _folderSizeWorker(folderPath: string): Promise<number> {
       return s;
     }
 
-    try {
-      const result = native
-        ? native.getFolderSize(workerData.p)
-        : sizeJS(workerData.p);
-      parentPort.postMessage(result);
-    } catch {
-      parentPort.postMessage(sizeJS(workerData.p));
-    }
+    parentPort.on('message', (msg) => {
+      if (msg.type === 'calculate') {
+        const { reqId, folderPath, nativePath } = msg;
+        if (!native && nativePath) {
+          try {
+            native = require(nativePath);
+          } catch {}
+        }
+        try {
+          const result = native
+            ? native.getFolderSize(folderPath)
+            : sizeJS(folderPath);
+          parentPort.postMessage({ reqId, size: result });
+        } catch {
+          parentPort.postMessage({ reqId, size: sizeJS(folderPath) });
+        }
+      }
+    });
   `
 
+  const w = new Worker(code, { eval: true })
+
+  w.on('message', (response: { reqId: number; size: number }) => {
+    const promise = pendingPromises.get(response.reqId)
+    if (promise) {
+      pendingPromises.delete(response.reqId)
+      promise.resolve(response.size)
+    }
+  })
+
+  w.on('error', (err: Error) => {
+    console.error('Sizing worker error:', err)
+    // Reject all pending promises
+    for (const promise of pendingPromises.values()) {
+      promise.reject(err)
+    }
+    pendingPromises.clear()
+    w.terminate()
+    if (sharedSizingWorker === w) sharedSizingWorker = null
+  })
+
+  w.on('exit', (code: number) => {
+    if (code !== 0) {
+      const err = new Error(`Sizing worker exited with code ${code}`)
+      for (const promise of pendingPromises.values()) {
+        promise.reject(err)
+      }
+    }
+    pendingPromises.clear()
+    if (sharedSizingWorker === w) sharedSizingWorker = null
+  })
+
+  sharedSizingWorker = w
+  return w
+}
+
+export function getFullFolderSize(folderPath: string): Promise<number> {
   return new Promise((resolve, reject) => {
-    const w = new Worker(code, {
-      eval: true,
-      workerData: { p: folderPath, nativePath: nativeModulePath }
-    })
-    w.on('message', resolve)
-    w.on('error', reject)
-    w.on('exit', (c: number) => {
-      if (c !== 0) reject(new Error(`Worker exited ${c}`))
-    })
+    try {
+      const w = getOrCreateSizingWorker()
+      const reqId = nextReqId++
+      pendingPromises.set(reqId, { resolve, reject })
+      w.postMessage({
+        type: 'calculate',
+        reqId,
+        folderPath,
+        nativePath: getNativeModulePath()
+      })
+    } catch (err) {
+      reject(err instanceof Error ? err : new Error(String(err)))
+    }
   })
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import type { Project, TabType } from '../types'
@@ -13,6 +13,8 @@ import { useToast } from '../components/ui/ToastContext'
 import { logActivity } from '../utils/activityLogger'
 
 const HIDDEN_KEY = 'projectHidden'
+// Row height used by the manual scroll-based windowing in list mode
+const LIST_ITEM_HEIGHT = 98
 
 function loadHiddenPaths(): string[] {
   try {
@@ -102,9 +104,14 @@ export function useProjectsPageState() {
     }
   }, [location.pathname, filterForTab])
 
-  // Initial load
+  // Initial load: first show saved projects (instant), then background scan (fresh data)
   useEffect(() => {
-    loadProjects('saved').then(() => loadProjects('scan'))
+    let isMounted = true
+    loadProjects('saved').then(() => {
+      if (!isMounted) return
+      return loadProjects('scan')
+    })
+    return () => { isMounted = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -185,7 +192,7 @@ export function useProjectsPageState() {
   }, [])
 
   const handleListScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setDisplayStart(Math.max(0, Math.floor(e.currentTarget.scrollTop / 98) - 5))
+    setDisplayStart(Math.max(0, Math.floor(e.currentTarget.scrollTop / LIST_ITEM_HEIGHT) - 5))
   }, [])
 
   const handleAddProjectClick = useCallback(

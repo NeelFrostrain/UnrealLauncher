@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useState, useEffect } from 'react'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { useState, useEffect, useCallback } from 'react'
 import { APP_VERSION } from '../utils/appVersion'
 
 type UpdateStatus =
@@ -45,12 +45,14 @@ export function useUpdateCheck(): UseUpdateCheckReturn {
   const [githubMessage, setGithubMessage] = useState('')
 
   useEffect(() => {
+    let isMounted = true
     if (window.electronAPI?.getAppVersion) {
-      window.electronAPI.getAppVersion().then(setAppVersion)
+      window.electronAPI.getAppVersion().then((v) => { if (isMounted) setAppVersion(v) })
     }
+    return () => { isMounted = false }
   }, [])
 
-  const handleCheckForUpdates = async (): Promise<void> => {
+  const handleCheckForUpdates = useCallback(async (): Promise<void> => {
     if (!window.electronAPI?.checkForUpdates) return
     setUpdateStatus('checking')
     setUpdateMessage('Checking for updates...')
@@ -84,9 +86,9 @@ export function useUpdateCheck(): UseUpdateCheckReturn {
         `Failed to check for updates: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
-  }
+  }, [appVersion])
 
-  const handleDownloadUpdate = async (): Promise<void> => {
+  const handleDownloadUpdate = useCallback(async (): Promise<void> => {
     if (!window.electronAPI?.downloadUpdate) return
     setUpdateStatus('downloading')
     setUpdateMessage('Downloading update...')
@@ -98,9 +100,9 @@ export function useUpdateCheck(): UseUpdateCheckReturn {
       setUpdateStatus('error')
       setUpdateMessage(result.error || 'Failed to download update')
     }
-  }
+  }, [])
 
-  const checkGitHubVersion = async (): Promise<void> => {
+  const checkGitHubVersion = useCallback(async (): Promise<void> => {
     setGithubStatus('checking')
     try {
       if (!window.electronAPI?.checkGithubVersion)
@@ -116,7 +118,7 @@ export function useUpdateCheck(): UseUpdateCheckReturn {
         `Failed to check GitHub: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
-  }
+  }, [])
 
   return {
     appVersion,

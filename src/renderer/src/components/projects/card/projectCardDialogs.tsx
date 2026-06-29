@@ -1,12 +1,16 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useState, useEffect } from 'react'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { useState, useEffect, lazy, Suspense } from 'react'
 import ProjectContextMenu from '../ProjectContextMenu'
-import ProjectLogDialog from '../ProjectLogDialog'
-import GitCommitDialog from '../GitCommitDialog'
-import GitBranchDialog from '../GitBranchDialog'
-import ProjectFileEditorDialog from '../ProjectFileEditorDialog'
-import LaunchConfigDialog from '../../engines/LaunchConfigDialog'
-import ProjectPluginsDialog from '../ProjectPluginsDialog'
+
+// Heavy dialogs: lazy-loaded so they are excluded from the initial bundle chunk.
+// They are only ever opened on explicit user action, so the extra async chunk load
+// is imperceptible in practice.
+const ProjectLogDialog = lazy(() => import('../ProjectLogDialog'))
+const GitCommitDialog = lazy(() => import('../GitCommitDialog'))
+const GitBranchDialog = lazy(() => import('../GitBranchDialog'))
+const ProjectFileEditorDialog = lazy(() => import('../ProjectFileEditorDialog'))
+const LaunchConfigDialog = lazy(() => import('../../engines/LaunchConfigDialog'))
+const ProjectPluginsDialog = lazy(() => import('../ProjectPluginsDialog'))
 
 interface ProjectCardDialogsProps {
   ctxMenu: { x: number; y: number } | null
@@ -132,57 +136,69 @@ export function ProjectCardDialogs({
       )}
 
       {showLogs && projectPath && (
-        <ProjectLogDialog
-          projectName={projectName ?? ''}
-          projectPath={projectPath}
-          onClose={onCloseLogs}
-        />
+        <Suspense fallback={null}>
+          <ProjectLogDialog
+            projectName={projectName ?? ''}
+            projectPath={projectPath}
+            onClose={onCloseLogs}
+          />
+        </Suspense>
       )}
 
       {showCommitDialog && projectPath && (
-        <GitCommitDialog
-          projectName={projectName ?? ''}
-          projectPath={projectPath}
-          onClose={onCloseCommitDialog}
-        />
+        <Suspense fallback={null}>
+          <GitCommitDialog
+            projectName={projectName ?? ''}
+            projectPath={projectPath}
+            onClose={onCloseCommitDialog}
+          />
+        </Suspense>
       )}
 
       {showBranchDialog && projectPath && (
-        <GitBranchDialog
-          projectName={projectName ?? ''}
-          projectPath={projectPath}
-          currentBranch={gitBranch}
-          onBranchChanged={onBranchChanged}
-          onClose={onCloseBranchDialog}
-        />
+        <Suspense fallback={null}>
+          <GitBranchDialog
+            projectName={projectName ?? ''}
+            projectPath={projectPath}
+            currentBranch={gitBranch}
+            onBranchChanged={onBranchChanged}
+            onClose={onCloseBranchDialog}
+          />
+        </Suspense>
       )}
 
       {/* File editor — rendered here so it survives context menu unmount */}
       {fileEditorMode && projectPath && (
-        <ProjectFileEditorDialog
-          mode={fileEditorMode}
-          projectPath={projectPath}
-          projectName={projectName ?? ''}
-          onClose={() => setFileEditorMode(null)}
-        />
+        <Suspense fallback={null}>
+          <ProjectFileEditorDialog
+            mode={fileEditorMode}
+            projectPath={projectPath}
+            projectName={projectName ?? ''}
+            onClose={() => setFileEditorMode(null)}
+          />
+        </Suspense>
       )}
 
       {/* Launch config dialog */}
       {showLaunchConfig && projectPath && (
-        <LaunchConfigDialog
-          projectPath={projectPath}
-          displayName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
-          onClose={() => setShowLaunchConfig(false)}
-        />
+        <Suspense fallback={null}>
+          <LaunchConfigDialog
+            projectPath={projectPath}
+            displayName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            onClose={() => setShowLaunchConfig(false)}
+          />
+        </Suspense>
       )}
 
       {/* Plugins dialog */}
       {showPlugins && projectPath && (
-        <ProjectPluginsDialog
-          projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
-          projectPath={projectPath}
-          onClose={() => setShowPlugins(false)}
-        />
+        <Suspense fallback={null}>
+          <ProjectPluginsDialog
+            projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            projectPath={projectPath}
+            onClose={() => setShowPlugins(false)}
+          />
+        </Suspense>
       )}
     </>
   )

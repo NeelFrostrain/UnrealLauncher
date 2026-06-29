@@ -1,7 +1,7 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { motion } from 'framer-motion'
 import type { FC, ReactElement, KeyboardEvent } from 'react'
-import { useState, useRef, memo, useCallback } from 'react'
+import { useState, useRef, memo, useCallback, useEffect } from 'react'
 import { Play, FolderOpen, XCircle, Pencil, Settings2 } from 'lucide-react'
 import type { EngineCardProps } from '../../types'
 import { generateGradient } from '@renderer/utils/generateGradient'
@@ -46,11 +46,20 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     const [savingAlias, setSavingAlias] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
 
-    const handleLaunch = async (): Promise<void> => {
+    const launchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    const handleLaunch = (): void => {
       setLaunching(true)
       onLaunch(exePath)
-      setTimeout(() => setLaunching(false), 3000)
+      if (launchTimeoutRef.current) clearTimeout(launchTimeoutRef.current)
+      launchTimeoutRef.current = setTimeout(() => {
+        launchTimeoutRef.current = null
+        setLaunching(false)
+      }, 3000)
     }
+
+    // Clear launch timeout if the card unmounts before it fires
+    useEffect(() => () => { if (launchTimeoutRef.current) clearTimeout(launchTimeoutRef.current) }, [])
 
     const handleCalculateSize = async (): Promise<void> => {
       if (calculating) return

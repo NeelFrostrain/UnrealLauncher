@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useEffect, useRef } from 'react'
 import { setSetting } from '../utils/settings'
 import { usePageVisibility } from './usePageVisibility'
@@ -27,44 +27,38 @@ export function useTracerSettings(): UseTracerSettingsReturn {
   const isVisible = usePageVisibility()
 
   useEffect(() => {
-    // Load initial values with error handling
+    let isMounted = true
+
+    // Load initial values with error handling — guard with isMounted to prevent
+    // setState on unmounted component if user navigates away before these resolve.
     window.electronAPI
       .getTracerStartup()
-      .then(setTracerAutoStart)
-      .catch(() => {
-        /* ignore */
-      })
+      .then((v) => { if (isMounted) setTracerAutoStart(v) })
+      .catch(() => { /* ignore */ })
     window.electronAPI
       .isTracerRunning()
-      .then(setTracerRunning)
-      .catch(() => {
-        /* ignore */
-      })
+      .then((v) => { if (isMounted) setTracerRunning(v) })
+      .catch(() => { /* ignore */ })
     window.electronAPI
       .getTracerDataDir()
-      .then(setTracerDataDir)
-      .catch(() => {
-        /* ignore */
-      })
+      .then((v) => { if (isMounted) setTracerDataDir(v) })
+      .catch(() => { /* ignore */ })
     window.electronAPI
       .getTracerMerge()
-      .then(setTracerMerge)
-      .catch(() => {
-        /* ignore */
-      })
+      .then((v) => { if (isMounted) setTracerMerge(v) })
+      .catch(() => { /* ignore */ })
 
-    if (!isVisible) return undefined
+    if (!isVisible) return () => { isMounted = false }
 
     const interval = setInterval(() => {
       window.electronAPI
         .isTracerRunning()
-        .then(setTracerRunning)
-        .catch(() => {
-          /* ignore */
-        })
+        .then((v) => { if (isMounted) setTracerRunning(v) })
+        .catch(() => { /* ignore */ })
     }, 30000) // 30s — tracer state rarely changes, no need to spawn tasklist every 5s
 
     return () => {
+      isMounted = false
       clearInterval(interval)
       // Cleanup all pending timeouts
       for (const timeout of timeoutRefs.current) {
