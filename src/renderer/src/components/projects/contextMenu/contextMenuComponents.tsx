@@ -55,7 +55,7 @@ export const MenuItem = ({
       e.currentTarget.style.backgroundColor = 'transparent'
       onHoverOut?.()
     }}
-    className="flex items-center gap-2 px-2.5 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default rounded-sm"
+    className="flex items-center gap-2 px-2.5 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default rounded-sm outline-none focus:outline-none"
     style={{
       color: danger ? '#f87171' : 'var(--color-text-secondary)',
       width: 'calc(100% - 8px)',
@@ -131,7 +131,7 @@ export const SubMenuTrigger = ({
         onOpen()
       }
     }}
-    className="flex items-center gap-2 px-2.5 py-1 text-[11px] cursor-pointer transition-colors rounded-sm"
+    className="flex items-center gap-2 px-2.5 py-1 text-[11px] cursor-pointer transition-colors rounded-sm outline-none focus:outline-none"
     style={{
       color: isOpen ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
       backgroundColor: isOpen ? 'var(--color-surface-card)' : 'transparent',

@@ -15,9 +15,19 @@ import { logger } from '../logger'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 let paletteWindow: BrowserWindow | null = null
+// Set to true when openPaletteWindow() is called before the renderer has sent
+// 'palette-ready'.  The ready handler checks this flag before showing the window,
+// so a background preload never flashes the window on screen.
+let pendingShow = false
 
 export function getPaletteWindow(): BrowserWindow | null {
   return paletteWindow
+}
+
+export function isPendingShow(): boolean {
+  const val = pendingShow
+  pendingShow = false // consume the flag
+  return val
 }
 
 export function isPaletteOpen(): boolean {
@@ -90,9 +100,10 @@ export function preloadPaletteWindow(): void {
  */
 export function openPaletteWindow(): void {
   if (!paletteWindow || paletteWindow.isDestroyed()) {
-    // Fallback if not preloaded or was destroyed
+    // Fallback if not preloaded or was destroyed — set flag so the
+    // 'palette-ready' IPC handler will show the window once it loads.
+    pendingShow = true
     preloadPaletteWindow()
-    // It will be shown by the 'palette-ready' IPC handler once it finishes loading
   } else {
     // Already exists: notify renderer to reset state, then show
     paletteWindow.webContents.send('palette-opened')

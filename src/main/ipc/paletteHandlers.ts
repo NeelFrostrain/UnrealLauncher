@@ -51,12 +51,14 @@ function routeToMainWindow(commandId: string): void {
 }
 
 export function registerPaletteHandlers(ipcMain_: typeof ipcMain): void {
-  // Palette renderer is ready — show the window now (no white flash)
+  // Palette renderer is ready — the window stays hidden until explicitly opened.
+  // We only show it if it was opened via openPaletteWindow() before the renderer
+  // finished loading (i.e. the pending-show flag is set).
   ipcMain_.on('palette-ready', (event) => {
     import('../window/paletteWindow')
-      .then(({ getPaletteWindow }) => {
+      .then(({ getPaletteWindow, isPendingShow }) => {
         const win = getPaletteWindow()
-        if (win && !win.isDestroyed() && event.sender === win.webContents) {
+        if (win && !win.isDestroyed() && event.sender === win.webContents && isPendingShow()) {
           win.show()
           win.focus()
         }
