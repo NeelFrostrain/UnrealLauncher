@@ -1,7 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { memo, useMemo } from 'react'
 import ProjectCard from './ProjectCard'
-import { VirtualizedProjectGrid } from './VirtualizedProjectGrid'
+import ProjectCardGrid from './ProjectCardGrid'
 import type { Project, TabType } from '../../types'
 import type { ViewMode } from './ProjectsToolbar'
 import type { SortConfig } from './projectUtils'
@@ -111,13 +111,27 @@ export const ProjectsContent = memo(function ProjectsContent({
 
   if (viewMode === 'grid') {
     return (
-      <VirtualizedProjectGrid
-        items={visibleProjects}
-        onToggleFavorite={onToggleFavorite}
-        onHide={onHide}
-        onLaunch={onLaunch}
-        onOpenDir={onOpenDir}
-      />
+      <div
+        className="grid gap-3 overflow-y-auto py-2 h-full content-start px-0.5"
+        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}
+      >
+        {visibleProjects
+          .filter((p) => !!p.projectPath)
+          .map((data, idx) => (
+            <ProjectCardGrid
+              key={data.projectPath}
+              {...data}
+              index={idx}
+              isFavorite={data.isFavorite}
+              isHidden={data.isHidden}
+              thumbnailKey={`${data.projectPath}:${data.thumbnail}`}
+              onToggleFavorite={onToggleFavorite}
+              onHide={onHide}
+              onLaunch={onLaunch}
+              onOpenDir={onOpenDir}
+            />
+          ))}
+      </div>
     )
   }
 
