@@ -36,6 +36,7 @@ declare global {
       close: () => void
       ready: () => void
       getData: () => Promise<{ engines: EngineData[]; projects: ProjectData[] }>
+      onOpened?: (callback: () => void) => () => void
     }
   }
 }
@@ -326,7 +327,7 @@ export function PaletteWindow(): React.ReactElement {
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  const refreshData = useCallback(() => {
     window.paletteAPI
       ?.getData()
       .then(({ engines: e, projects: p }) => {
@@ -334,9 +335,23 @@ export function PaletteWindow(): React.ReactElement {
         setProjects(p ?? [])
       })
       .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    refreshData()
     window.paletteAPI?.ready()
     requestAnimationFrame(() => inputRef.current?.focus())
-  }, [])
+    
+    // Listen for subsequent opens
+    const cleanup = window.paletteAPI?.onOpened?.(() => {
+      setQuery('')
+      setActiveIdx(0)
+      refreshData()
+      requestAnimationFrame(() => inputRef.current?.focus())
+    })
+    
+    return () => cleanup?.()
+  }, [refreshData])
 
   const allItems = useMemo((): PaletteItem[] => {
     const engineItems: PaletteItem[] = engines.map((e) => ({

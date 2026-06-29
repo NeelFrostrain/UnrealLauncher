@@ -30,7 +30,8 @@ All notable changes to this project will be documented in this file.
 
 - **Project grid layout**: Grid view in `ProjectsContent` now uses a native CSS `grid` with `repeat(auto-fill, minmax(200px, 1fr))` and `gap-3 content-start` instead of the hand-rolled absolute-positioned virtualizer. Cards fill the available width responsively without fixed column counts.
 - **Settings page**: Replaced the horizontal top tab bar with a **vertical sidebar navigation** (160 px wide). Each nav item shows a color-coded icon, label, and an accent dot for the active section. The sidebar and content area scroll independently. `useMemo` for JSX (anti-pattern) replaced with a plain `renderContent()` function.
-- **About page**: Completely redesigned with a compact two-column layout — a gradient hero card with live version stats, a feature list column alongside tech-stack chips and social/documentation link buttons. The sprawling 8-component import chain is replaced by a self-contained, premium card layout.
+- **About page**: Completely redesigned with a compact two-column layout — a gradient hero card with live version stats, a feature list column alongside tech-stack chips and social/documentation link buttons. The sprawling 8-component import chain is replaced by a self-contained, premium card layout. Added proper horizontal padding when the About page is viewed as a modal inside Settings.
+- **Command Palette**: `Ctrl+K` palette is now preloaded silently in the background on app startup and hidden instead of destroyed on close. It opens instantly with no white flash. Input state and search results are correctly reset whenever the palette is re-shown.
 
 ## [2.3.2] — `bugfix · build · launch`
 

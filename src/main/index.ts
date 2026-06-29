@@ -7,6 +7,7 @@ import https from 'https'
 import path from 'path'
 import fs from 'fs'
 import { setupAppLifecycle, createWindow, getMainWindow } from './window'
+import { preloadPaletteWindow } from './window/paletteWindow'
 import { setupAutoUpdaterEvents, checkForUpdatesOnStartup } from './updater'
 import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
 import { loadMainSettings, loadProjects, loadEngines } from './store'
@@ -248,9 +249,18 @@ if (!gotTheLock) {
         checkForUpdatesOnStartup().catch((error) => {
           logger.error('updater', 'Startup update check failed', error)
         })
-      }, 8000)
+      }, 5000)
 
-      // 8. Send system startup notification to Discord (async, optional)
+      // 8. Preload palette window in the background so it opens instantly later
+      setImmediate(() => {
+        try {
+          preloadPaletteWindow()
+        } catch (error) {
+          logger.error('palette', 'Failed to preload palette window', error)
+        }
+      })
+
+      // 9. Send system startup notification to Discord (async, optional)
       setImmediate(() => {
         sendSystemStartupNotification().catch((error) => {
           logger.warn('discord', 'Failed to send startup notification', error)

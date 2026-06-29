@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Manages the standalone command palette BrowserWindow.
  *
@@ -25,15 +25,11 @@ export function isPaletteOpen(): boolean {
 }
 
 /**
- * Opens the palette window, creating it if needed.
- * Subsequent calls while it's already open just focus it.
+ * Preloads the palette window silently in the background.
+ * Should be called once during app startup.
  */
-export function openPaletteWindow(): void {
-  // If already open — focus it
-  if (paletteWindow && !paletteWindow.isDestroyed()) {
-    paletteWindow.focus()
-    return
-  }
+export function preloadPaletteWindow(): void {
+  if (paletteWindow && !paletteWindow.isDestroyed()) return
 
   // Use workAreaSize with scaleFactor to correctly size the window on
   // high-DPI displays (125%, 150%, 200% Windows scaling)
@@ -70,7 +66,7 @@ export function openPaletteWindow(): void {
   })
 
   paletteWindow.on('closed', () => {
-    logger.info('palette', 'Palette window closed')
+    logger.info('palette', 'Palette window destroyed')
     paletteWindow = null
   })
 
@@ -86,11 +82,27 @@ export function openPaletteWindow(): void {
     paletteWindow.loadFile(path.join(__dirname, '../renderer/palette.html'))
   }
 
-  logger.info('palette', 'Palette window created')
+  logger.info('palette', 'Palette window preloaded')
+}
+
+/**
+ * Opens the palette window. If preloaded, shows it instantly.
+ */
+export function openPaletteWindow(): void {
+  if (!paletteWindow || paletteWindow.isDestroyed()) {
+    // Fallback if not preloaded or was destroyed
+    preloadPaletteWindow()
+    // It will be shown by the 'palette-ready' IPC handler once it finishes loading
+  } else {
+    // Already exists: notify renderer to reset state, then show
+    paletteWindow.webContents.send('palette-opened')
+    paletteWindow.show()
+    paletteWindow.focus()
+  }
 }
 
 export function closePaletteWindow(): void {
   if (paletteWindow && !paletteWindow.isDestroyed()) {
-    paletteWindow.close()
+    paletteWindow.hide()
   }
 }
