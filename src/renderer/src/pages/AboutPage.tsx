@@ -218,7 +218,7 @@ const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement =
           </div>
         </Card>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex my-4 flex-col gap-4">
           {/* Tech stack */}
           <Card>
             <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>

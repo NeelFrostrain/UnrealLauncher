@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased] — `perf · ui · grid`
+## [2.4.0] — `perf · ui · grid`
 
 ### ⚡ Performance & Memory
 
