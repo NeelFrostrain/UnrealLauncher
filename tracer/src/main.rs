@@ -15,6 +15,151 @@ use std::{
 };
 use sysinfo::{Pid, ProcessesToUpdate, System};
 
+// ── Ctrl+K hotkey → spawn launcher with --palette ─────────────────────────────
+
+/// Spawn a background thread that installs a low-level keyboard hook
+/// (WH_KEYBOARD_LL).  This fires for ALL keystrokes regardless of which window
+/// is focused.
+///
+/// On Ctrl+K it spawns `unreallauncher.exe --palette`.
+/// Electron's single-instance lock means:
+///   • Launcher already running → second-instance fires → palette opens in-process
+///   • Launcher not running     → fresh process starts  → palette-only mode
+fn spawn_hotkey_thread() {
+    #[cfg(target_os = "windows")]
+    {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        use windows::{
+            Win32::{
+                Foundation::{LPARAM, LRESULT, WPARAM},
+                System::LibraryLoader::GetModuleHandleW,
+                UI::{
+                    Input::KeyboardAndMouse::{GetKeyState, VK_CONTROL, VK_K, VIRTUAL_KEY},
+                    WindowsAndMessaging::{
+                        CallNextHookEx, DispatchMessageW, GetMessageW,
+                        SetWindowsHookExW, UnhookWindowsHookEx,
+                        HHOOK, KBDLLHOOKSTRUCT, MSG,
+                        WH_KEYBOARD_LL, WM_KEYDOWN, WM_SYSKEYDOWN,
+                    },
+                },
+            },
+        };
+
+        static CTRL_DOWN: AtomicBool = AtomicBool::new(false);
+
+        unsafe extern "system" fn ll_hook(
+            code: i32,
+            wparam: WPARAM,
+            lparam: LPARAM,
+        ) -> LRESULT {
+            if code >= 0 {
+                let msg_type = wparam.0 as u32;
+                let kb = &*(lparam.0 as *const KBDLLHOOKSTRUCT);
+                let vk = VIRTUAL_KEY(kb.vkCode as u16);
+                let is_down = msg_type == WM_KEYDOWN || msg_type == WM_SYSKEYDOWN;
+
+                // Track Ctrl state
+                if vk == VK_CONTROL {
+                    CTRL_DOWN.store(is_down, Ordering::Relaxed);
+                }
+
+                // Ctrl+K key-down → open palette
+                if is_down && vk == VK_K {
+                    let ctrl = CTRL_DOWN.load(Ordering::Relaxed)
+                        || (GetKeyState(VK_CONTROL.0 as i32) as u16 & 0x8000) != 0;
+
+                    if ctrl {
+                        open_palette_via_launcher();
+                    }
+                }
+            }
+            CallNextHookEx(HHOOK::default(), code, wparam, lparam)
+        }
+
+        thread::spawn(move || {
+            unsafe {
+                let hmod = GetModuleHandleW(None).unwrap_or_default();
+                let hook = match SetWindowsHookExW(WH_KEYBOARD_LL, Some(ll_hook), hmod, 0) {
+                    Ok(h) => h,
+                    Err(_) => return,
+                };
+
+                let mut msg = MSG::default();
+                loop {
+                    if GetMessageW(&mut msg, None, 0, 0).0 <= 0 {
+                        break;
+                    }
+                    DispatchMessageW(&msg);
+                }
+
+                UnhookWindowsHookEx(hook).ok();
+            }
+        });
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    let _ = ();
+}
+
+/// Find `unreallauncher.exe` next to this binary and spawn it with `--palette`.
+/// Electron's single-instance lock handles the rest:
+///   - Already running → `second-instance` event fires in the existing process → palette opens
+///   - Not running     → new process starts in palette-only mode
+fn open_palette_via_launcher() {
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+        let log_path = std::env::temp_dir().join("unreal_launcher_hotkey_debug.log");
+        let mut log = fs::OpenOptions::new().create(true).append(true).open(&log_path).ok();
+
+        let launcher = find_launcher_exe();
+        let ts = chrono::Utc::now().format("%H:%M:%S%.3f");
+
+        match &launcher {
+            Some(exe) => {
+                if let Some(f) = log.as_mut() {
+                    let _ = writeln!(f, "[{}] Ctrl+K → spawning {:?}", ts, exe);
+                }
+                let result = std::process::Command::new(exe)
+                    .arg("--palette")
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .spawn();
+                if let Some(f) = log.as_mut() {
+                    let ts2 = chrono::Utc::now().format("%H:%M:%S%.3f");
+                    match result {
+                        Ok(child) => { let _ = writeln!(f, "[{}] spawn OK pid={}", ts2, child.id()); }
+                        Err(e)    => { let _ = writeln!(f, "[{}] spawn FAILED: {}", ts2, e); }
+                    }
+                }
+            }
+            None => {
+                if let Some(f) = log.as_mut() {
+                    let me = std::env::current_exe().unwrap_or_default();
+                    let _ = writeln!(f, "[{}] Ctrl+K → launcher NOT FOUND (tracer at {:?})", ts, me);
+                }
+            }
+        }
+    }
+}
+
+/// Find the launcher executable in the same directory as this binary.
+fn find_launcher_exe() -> Option<std::path::PathBuf> {
+    let me = std::env::current_exe().ok()?;
+    let dir = me.parent()?;
+
+    // Production: tracer lives in resources/, launcher is one level up
+    let candidates = [
+        dir.join("unreallauncher.exe"),
+        dir.join("UnrealLauncher.exe"),
+        dir.parent()?.join("unreallauncher.exe"),
+        dir.parent()?.join("UnrealLauncher.exe"),
+    ];
+
+    candidates.into_iter().find(|p| p.exists())
+}
+
 // ── Platform paths ────────────────────────────────────────────────────────────
 
 fn tracer_dir() -> PathBuf {
@@ -452,6 +597,10 @@ fn main() {
 
     let dir = tracer_dir();
     fs::create_dir_all(&dir).ok();
+
+    // Spawn the hotkey listener thread — registers Ctrl+K globally.
+    // When the Electron app is running it signals it via the named pipe.
+    spawn_hotkey_thread();
 
     let mut seen_engine: HashSet<u32> = HashSet::new();
     let mut seen_project: HashSet<u32> = HashSet::new();

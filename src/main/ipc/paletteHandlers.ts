@@ -56,11 +56,10 @@ export function registerPaletteHandlers(ipcMain_: typeof ipcMain): void {
   // finished loading (i.e. the pending-show flag is set).
   ipcMain_.on('palette-ready', (event) => {
     import('../window/paletteWindow')
-      .then(({ getPaletteWindow, isPendingShow }) => {
+      .then(({ getPaletteWindow, isPendingShow, forceForeground: ff }) => {
         const win = getPaletteWindow()
         if (win && !win.isDestroyed() && event.sender === win.webContents && isPendingShow()) {
-          win.show()
-          win.focus()
+          ff(win)
         }
       })
       .catch((err) => logger.error('palette', 'Failed to load paletteWindow', err))

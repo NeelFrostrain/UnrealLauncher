@@ -105,10 +105,9 @@ export function openPaletteWindow(): void {
     pendingShow = true
     preloadPaletteWindow()
   } else {
-    // Already exists: notify renderer to reset state, then show
+    // Already exists: notify renderer to reset state, then force to front
     paletteWindow.webContents.send('palette-opened')
-    paletteWindow.show()
-    paletteWindow.focus()
+    forceForeground(paletteWindow)
   }
 }
 
@@ -116,4 +115,17 @@ export function closePaletteWindow(): void {
   if (paletteWindow && !paletteWindow.isDestroyed()) {
     paletteWindow.hide()
   }
+}
+
+/**
+ * Force the palette window to the foreground, bypassing Windows' foreground
+ * lock which blocks focus() when the calling process isn't already foreground.
+ */
+export function forceForeground(win: BrowserWindow): void {
+  // The trick: briefly set alwaysOnTop to yank the window to the front,
+  // then immediately unset it so the user can still click other windows.
+  win.setAlwaysOnTop(true, 'screen-saver')
+  win.show()
+  win.focus()
+  win.setAlwaysOnTop(false)
 }

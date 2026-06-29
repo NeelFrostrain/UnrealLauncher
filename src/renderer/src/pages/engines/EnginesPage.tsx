@@ -37,17 +37,17 @@ const EnginesPage = (): React.ReactElement => {
     return () => window.removeEventListener('palette-action', handler)
   }, [handleScan, handleAddEngine])
 
-  const { setEngines } = state
+  const { setEngines, setLoading } = state
 
   // Load engines on mount
   useEffect(() => {
     const load = async (): Promise<void> => {
       if (!window.electronAPI) {
-        state.setLoading(false)
+        setLoading(false)
         return
       }
 
-      state.setLoading(true)
+      setLoading(true)
       try {
         const engines = await window.electronAPI.scanEngines()
         setEngines(engines)
@@ -57,7 +57,7 @@ const EnginesPage = (): React.ReactElement => {
       } catch (err) {
         console.error('Failed to load engines:', err)
       } finally {
-        state.setLoading(false)
+        setLoading(false)
       }
     }
 
@@ -72,7 +72,7 @@ const EnginesPage = (): React.ReactElement => {
       })
     }
     return () => {}
-  }, [setEngines])
+  }, [setEngines, setLoading])
 
   return (
     <PageWrapper>
