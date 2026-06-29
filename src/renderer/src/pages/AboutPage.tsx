@@ -86,7 +86,7 @@ const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement =
   const version = useAppVersion()
 
   const content = (
-    <div className="space-y-5 pb-6">
+    <div className="space-y-5 pb-6 m-5">
       {/* Hero */}
       <div
         className="relative overflow-hidden rounded-xl px-6 py-7"

@@ -38,7 +38,7 @@ const SettingsPage = (): React.ReactElement => {
     switch (activeSection) {
       case 'general':
         return (
-          <div className="space-y-6">
+          <div className="w-full">
             <LaunchSection
               autoCloseOnLaunch={settingsState.autoCloseOnLaunch}
               onToggle={() => settingsState.handleAutoCloseToggle(!settingsState.autoCloseOnLaunch)}
@@ -149,7 +149,7 @@ const SettingsPage = (): React.ReactElement => {
 
         {/* Content area */}
         <div className="flex-1 overflow-y-auto min-h-0">
-          <div className="p-5 max-w-2xl">{renderContent()}</div>
+          <div className="p-5">{renderContent()}</div>
         </div>
       </div>
     </PageWrapper>

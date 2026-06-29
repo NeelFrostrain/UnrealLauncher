@@ -47,7 +47,7 @@ const LaunchSection = ({
   }
 
   return (
-    <section className='w-full'>
+    <section className="w-full">
       <Card>
         <SettingRow
           label="Auto-close on launch"
