@@ -15,6 +15,8 @@ const TRACER_ACTIVE_MAX_AGE_MS = 30000
 
 interface DiscordRichPresenceOptions {
   clientId?: string
+  // Added optional buttons array
+  buttons?: { label: string; url: string }[]
 }
 
 interface TracerActiveSession {
@@ -253,18 +255,24 @@ export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {
       if (presenceKey === lastPresenceKey) return
       lastPresenceKey = presenceKey
 
-      await rpc
-        .setActivity({
-          details: presence.details,
-          state: presence.state,
-          largeImageKey: 'icon',
-          largeImageText: DISCORD_APP_NAME,
-          startTimestamp: activityStartedAt,
-          instance: false
-        })
-        .catch(() => {
-          lastPresenceKey = ''
-        })
+      // Build the base activity payload
+      const activityPayload: any = {
+        details: presence.details,
+        state: presence.state,
+        largeImageKey: 'icon',
+        largeImageText: DISCORD_APP_NAME,
+        startTimestamp: activityStartedAt,
+        instance: false
+      }
+
+      // Inject custom buttons if provided (safely limited to 2)
+      if (options.buttons && options.buttons.length > 0) {
+        activityPayload.buttons = options.buttons.slice(0, 2)
+      }
+
+      await rpc.setActivity(activityPayload).catch(() => {
+        lastPresenceKey = ''
+      })
     } catch {
       lastPresenceKey = ''
     } finally {

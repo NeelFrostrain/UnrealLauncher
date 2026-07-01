@@ -133,7 +133,11 @@ if (!gotTheLock) {
 } else {
   // ── Discord Rich Presence ───────────────────────────────────────────────────
   setupDiscordRichPresence({
-    clientId: process.env.DISCORD_CLIENT_ID || process.env.VITE_DISCORD_CLIENT_ID
+    clientId: process.env.DISCORD_CLIENT_ID || process.env.VITE_DISCORD_CLIENT_ID,
+    buttons: [
+      { label: 'Join Discord', url: `${process.env.VITE_DISCORD_INVITE_URL}` },
+      { label: 'Download Launcher', url: `${process.env.VITE_WEBSITE_URL}` }
+    ]
   })
   logger.info('discord', 'Rich Presence setup requested')
 

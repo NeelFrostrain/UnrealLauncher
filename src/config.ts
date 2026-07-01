@@ -16,7 +16,8 @@ const config = {
   githubRepo: import.meta.env.VITE_GITHUB_REPO_URL || '',
 
   /** Ko-fi donation link */
-  kofi: import.meta.env.VITE_KOFI_URL || ''
+  kofi: import.meta.env.VITE_KOFI_URL || '',
+  website: import.meta.env.VITE_WEBSITE_URL || ''
 }
 
 export default config
