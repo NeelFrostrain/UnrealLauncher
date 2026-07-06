@@ -319,6 +319,13 @@ declare global {
       onOpenCommandPalette: (callback: () => void) => () => void
       onPaletteNavigate: (callback: (route: string) => void) => () => void
       onPaletteAction: (callback: (commandId: string) => void) => () => void
+      // Asset Analyzer
+      scanAssets: (projectPath: string) => Promise<any>
+      cancelAssetScan: () => Promise<{ cancelled: boolean }>
+      exportAssetAnalysis: (data: any, format: 'json' | 'csv') => Promise<{ filePath: string }>
+      onAssetAnalyzerProgress: (
+        callback: (progress: { phase: string; scanned: number; total: number }) => void
+      ) => () => void
     }
   }
 }

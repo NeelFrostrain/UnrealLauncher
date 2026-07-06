@@ -1,8 +1,8 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { Settings2, FileCode2, ScrollText, Trash2, Package } from 'lucide-react'
+import { Settings2, FileCode2, ScrollText, Trash2, Package, PieChart } from 'lucide-react'
 import { useToast } from '../../ui/ToastContext'
 import { MenuItem, MenuSeparator, MENU_STYLE } from './contextMenuComponents'
 import { useContextMenuPosition } from './useContextMenuPosition'
@@ -16,6 +16,7 @@ export const ProjectToolsSubMenu = ({
   onViewLogs,
   onOpenFileEditor,
   onOpenPlugins,
+  onOpenAnalyzer,
   onClose,
   onMouseEnter,
   onMouseLeave
@@ -28,6 +29,7 @@ export const ProjectToolsSubMenu = ({
   onViewLogs: () => void
   onOpenFileEditor: (mode: 'config' | 'uproject') => void
   onOpenPlugins: () => void
+  onOpenAnalyzer: () => void
   onClose: () => void
   onMouseEnter?: () => void
   onMouseLeave?: () => void
@@ -99,6 +101,17 @@ export const ProjectToolsSubMenu = ({
           sub="Enable / disable project plugins"
           onClick={() => {
             onOpenPlugins()
+            onClose()
+          }}
+          noClose
+          onClose={onClose}
+        />
+        <MenuItem
+          icon={<PieChart size={11} style={{ color: '#38bdf8' }} />}
+          label="Asset Usage Analyzer"
+          sub="Scan assets, find duplicates & stats"
+          onClick={() => {
+            onOpenAnalyzer()
             onClose()
           }}
           noClose

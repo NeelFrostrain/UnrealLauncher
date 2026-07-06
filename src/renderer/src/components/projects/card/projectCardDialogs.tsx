@@ -11,6 +11,7 @@ const GitBranchDialog = lazy(() => import('../GitBranchDialog'))
 const ProjectFileEditorDialog = lazy(() => import('../ProjectFileEditorDialog'))
 const LaunchConfigDialog = lazy(() => import('../../engines/LaunchConfigDialog'))
 const ProjectPluginsDialog = lazy(() => import('../ProjectPluginsDialog'))
+const AssetAnalyzerDialog = lazy(() => import('../analyzer/AssetAnalyzerDialog'))
 
 interface ProjectCardDialogsProps {
   ctxMenu: { x: number; y: number } | null
@@ -83,6 +84,7 @@ export function ProjectCardDialogs({
   const [fileEditorMode, setFileEditorMode] = useState<'config' | 'uproject' | null>(null)
   const [internalShowLaunchConfig, internalSetShowLaunchConfig] = useState(false)
   const [showPlugins, setShowPlugins] = useState(false)
+  const [showAnalyzer, setShowAnalyzer] = useState(false)
   const showLaunchConfig =
     externalShowLaunchConfig !== undefined ? externalShowLaunchConfig : internalShowLaunchConfig
   const setShowLaunchConfig = externalSetShowLaunchConfig ?? internalSetShowLaunchConfig
@@ -131,6 +133,7 @@ export function ProjectCardDialogs({
           onOpenBranchDialog={onOpenBranchDialog}
           onOpenFileEditor={setFileEditorMode}
           onOpenPlugins={() => setShowPlugins(true)}
+          onOpenAnalyzer={() => setShowAnalyzer(true)}
           onClose={onCloseCtxMenu}
         />
       )}
@@ -197,6 +200,17 @@ export function ProjectCardDialogs({
             projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
             projectPath={projectPath}
             onClose={() => setShowPlugins(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Asset Analyzer dialog */}
+      {showAnalyzer && projectPath && (
+        <Suspense fallback={null}>
+          <AssetAnalyzerDialog
+            projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            projectPath={projectPath}
+            onClose={() => setShowAnalyzer(false)}
           />
         </Suspense>
       )}

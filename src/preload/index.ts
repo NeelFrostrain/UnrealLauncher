@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
@@ -200,6 +200,23 @@ if (process.contextIsolated) {
         ipcRenderer.on('palette-action', listener)
         return (): void => {
           ipcRenderer.removeListener('palette-action', listener)
+        }
+      },
+      // Asset Analyzer
+      scanAssets: (projectPath: string) => ipcRenderer.invoke('scan-assets', projectPath),
+      cancelAssetScan: () => ipcRenderer.invoke('cancel-asset-scan'),
+      exportAssetAnalysis: (data: unknown, format: 'json' | 'csv') =>
+        ipcRenderer.invoke('export-asset-analysis', data, format),
+      onAssetAnalyzerProgress: (
+        callback: (progress: { phase: string; scanned: number; total: number }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          progress: { phase: string; scanned: number; total: number }
+        ): void => callback(progress)
+        ipcRenderer.on('asset-analyzer-progress', listener)
+        return (): void => {
+          ipcRenderer.removeListener('asset-analyzer-progress', listener)
         }
       }
     })

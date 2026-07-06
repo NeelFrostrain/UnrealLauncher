@@ -587,6 +587,143 @@ fn walk_size(dir: &Path) -> u64 {
   total
 }
 
+
+// ── Asset analysis ────────────────────────────────────────────────────────
+
+#[napi(object)]
+pub struct AssetEntry {
+    pub path: String,
+    pub size: u64,
+    pub asset_type: String,
+}
+
+#[napi(object)]
+pub struct FolderStat {
+    pub folder: String,
+    pub size: u64,
+    pub asset_count: u32,
+}
+
+fn determine_asset_type(path: &Path) -> String {
+    // Simple heuristic based on file extension and parent folder
+    if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+        match ext.to_ascii_lowercase().as_str() {
+            "uasset" => {
+                if let Some(parent) = path.parent().and_then(|p| p.file_name()) {
+                    let folder = parent.to_string_lossy().to_ascii_lowercase();
+                    if folder.contains("blueprint") { return "Blueprint".to_string(); }
+                    if folder.contains("material") { return "Material".to_string(); }
+                    if folder.contains("texture") { return "Texture".to_string(); }
+                    if folder.contains("staticmesh") { return "Static Mesh".to_string(); }
+                    if folder.contains("skeletalmesh") { return "Skeletal Mesh".to_string(); }
+                    if folder.contains("animation") { return "Animation".to_string(); }
+                    if folder.contains("audio") { return "Audio".to_string(); }
+                    if folder.contains("map") { return "Map".to_string(); }
+                    if folder.contains("niagara") { return "Niagara System".to_string(); }
+                    if folder.contains("widget") { return "Widget".to_string(); }
+                    if folder.contains("dataasset") { return "Data Asset".to_string(); }
+                    if folder.contains("datatable") { return "Data Table".to_string(); }
+                    if folder.contains("plugin") { return "Plugin".to_string(); }
+                }
+                "Other".to_string()
+            }
+            "umap" => "Map".to_string(),
+            _ => "Other".to_string(),
+        }
+    } else {
+        "Other".to_string()
+    }
+}
+
+#[napi]
+pub fn list_assets(root: String) -> Vec<AssetEntry> {
+    let mut results = Vec::new();
+    fn recurse(dir: &Path, results: &mut Vec<AssetEntry>) {
+        let entries = match fs::read_dir(dir) { Ok(e) => e, Err(_) => return };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                recurse(&path, results);
+            } else if path.is_file() {
+                let size = fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+                let asset_type = determine_asset_type(&path);
+                results.push(AssetEntry {
+                    path: path.to_string_lossy().into_owned(),
+                    size,
+                    asset_type,
+                });
+            }
+        }
+    }
+    let root_path = Path::new(&root);
+    if root_path.exists() {
+        recurse(root_path, &mut results);
+    }
+    results
+}
+
+#[napi]
+pub fn compute_folder_sizes(root: String) -> Vec<FolderStat> {
+    let mut stats = Vec::new();
+    fn recurse(dir: &Path, stats: &mut Vec<FolderStat>) {
+        let mut total_size = 0u64;
+        let mut count = 0u32;
+        let entries = match fs::read_dir(dir) { Ok(e) => e, Err(_) => return };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                recurse(&path, stats);
+                let (size, cnt) = folder_aggregate(&path);
+                total_size += size;
+                count += cnt;
+            } else if path.is_file() {
+                total_size += fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+                count += 1;
+            }
+        }
+        stats.push(FolderStat {
+            folder: dir.to_string_lossy().into_owned(),
+            size: total_size,
+            asset_count: count,
+        });
+    }
+    fn folder_aggregate(dir: &Path) -> (u64, u32) {
+        let mut size = 0u64;
+        let mut cnt = 0u32;
+        let entries = match fs::read_dir(dir) { Ok(e) => e, Err(_) => return (0,0) };
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.is_dir() { let (s,c) = folder_aggregate(&p); size+=s; cnt+=c; }
+            else if p.is_file() { size+=fs::metadata(&p).map(|m| m.len()).unwrap_or(0); cnt+=1; }
+        }
+        (size,cnt)
+    }
+    let root_path = Path::new(&root);
+    if root_path.exists() {
+        recurse(root_path, &mut stats);
+    }
+    stats
+}
+
+#[napi]
+pub fn hash_file(path: String) -> Option<String> {
+    use std::io::Read;
+    let p = Path::new(&path);
+    if !p.is_file() { return None; }
+    let meta = fs::metadata(p).ok()?;
+    if meta.len() > 100 * 1024 * 1024 { return None; }
+    let mut file = fs::File::open(p).ok()?;
+    let mut hasher = sha2::Sha256::new();
+    let mut buffer = [0u8; 8192];
+    loop {
+        let n = file.read(&mut buffer).ok()?;
+        if n == 0 { break; }
+        hasher.update(&buffer[..n]);
+    }
+    let result = hasher.finalize();
+    Some(format!("{:x}", result))
+}
+
 // ── Validation ────────────────────────────────────────────────────────────────
 
 #[napi(object)]

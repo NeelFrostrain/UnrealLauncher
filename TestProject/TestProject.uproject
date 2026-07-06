@@ -1,0 +1,13 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.3",
+  "Category": "",
+  "Description": "Fake Project for Testing",
+  "Modules": [
+    {
+      "Name": "TestProject",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}
