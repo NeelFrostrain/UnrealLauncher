@@ -2,6 +2,71 @@
   "project": "Unreal Launcher",
   "versions": [
     {
+      "version": "2.4.2",
+      "date": "2026-07-09",
+      "tags": ["refactor", "ui", "perf"],
+      "sections": [
+        {
+          "category": "Removed",
+          "emoji": "❌",
+          "items": [
+            "Removed usage of Framer Motion motion components and global runtime animations; replaced dynamic motion-based UI transitions with CSS-based, preference-respecting transitions.",
+            "Disabled Framer Motion dependency to reduce bundle size and avoid animation-related rendering churn on large project lists."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🐛",
+          "items": [
+            "Fixed inconsistent reduced-motion handling by honoring the user's `prefers-reduced-motion` setting and the app 'Animations' toggle via the AnimationContext API.",
+            "Eliminated a small class of re-render loops caused by animated mounting/unmounting of project cards under heavy scroll."
+          ]
+        },
+        {
+          "category": "Notes",
+          "emoji": "ℹ️",
+          "items": [
+            "If you still need page-level entrance/exit animation, prefer CSS transitions or lightweight requestAnimationFrame-driven helpers that respect `prefers-reduced-motion`.",
+            "Next: remove Framer Motion from `package.json` and the lockfile once code references are fully replaced."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.4.1",
+      "date": "2026-07-09",
+      "tags": ["merge", "release"],
+      "sections": [
+        {
+          "category": "Summary",
+          "emoji": "🔀",
+          "items": [
+            "Merge of release branch into main: reconciled UI, performance, and packaging fixes.",
+            "Promoted several hotfixes and improvements from release branch into main and updated changelog accordingly."
+          ]
+        },
+        {
+          "category": "Notable Fixes & Improvements",
+          "emoji": "🛠️",
+          "items": [
+            "Engine-version filter: added 'Unsupported' option and included project-linked versions in the dropdown so projects targeting uninstalled engines remain searchable.",
+            "Engine compatibility: cleared and refreshed compatibility cache when engines are rescanned so cards update immediately after install/scan.",
+            "Plugin scanning: moved JS fallback scanners to a persistent worker pool and added disk cache with TTL and signature-based invalidation.",
+            "Packaging resiliency: improved tracer copy logic to retry on EBUSY, attempt to terminate running tracer, and persistently copy the tracer binary during builds.",
+            "Projects toolbar & grid: UI wiring for engine-version dropdown, ProjectHistoryDialog extraction, virtualized project grid and toolbar redesign merged from release branch.",
+            "Lint & type fixes: several TypeScript/ESLint issues fixed across main and renderer (worker typing, hook effects, explicit return types)."
+          ]
+        },
+        {
+          "category": "Notes",
+          "emoji": "ℹ️",
+          "items": [
+            "Recommend running a full app scan (Engines → Scan) after installing new engines so the UI reflects the latest state."
+          ]
+        }
+      ]
+    },
+    {
       "version": "2.4.0",
       "date": null,
       "tags": ["perf", "ui", "grid"],

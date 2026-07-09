@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.2] - 2026-07-09 — `refactor · ui · perf`
+
+### ❌ Removed
+
+- Removed usage of Framer Motion `motion` components and global runtime animations; replaced dynamic motion-based UI transitions with CSS-based, preference-respecting transitions.
+- Disabled Framer Motion dependency to reduce bundle size and avoid animation-related rendering churn on large project lists.
+
+### 🐛 Fixed
+
+- Fixed inconsistent reduced-motion handling by honoring the user's `prefers-reduced-motion` setting and the app 'Animations' toggle via the `AnimationContext` API.
+- Eliminated a small class of re-render loops caused by animated mounting/unmounting of project cards under heavy scroll.
+
+### ℹ️ Notes
+
+- If you still need page-level entrance/exit animation, prefer CSS transitions or lightweight `requestAnimationFrame`-driven helpers that respect `prefers-reduced-motion`.
+- Next: remove Framer Motion from `package.json` and the lockfile once code references are fully replaced.
+
 ## [2.4.0] — `perf · ui · grid`
 
 ### ⚡ Performance & Memory
