@@ -33,7 +33,9 @@ export default function GitCommitDialog({
     <div
       className="fixed inset-0 z-10001 flex items-center justify-center p-6"
       style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
     >
       <div
         ref={dialogRef}

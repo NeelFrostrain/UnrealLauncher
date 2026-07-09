@@ -47,4 +47,3 @@ export function cacheProjectThumbnail(thumbnailPath: string | null | undefined):
     return thumbnailPath
   }
 }
-

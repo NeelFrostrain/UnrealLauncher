@@ -12,6 +12,7 @@ import {
   handleUpdateEngineAlias,
   loadSavedEngines
 } from './engineHandlers'
+import { clearEnginePluginCache } from './enginePlugins'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
 
 /**
@@ -58,6 +59,10 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
       return []
     }
     return scanEnginePlugins(validatedPath)
+  })
+
+  ipcMain_.handle('clear-engine-plugin-cache', (): void => {
+    clearEnginePluginCache()
   })
 
   ipcMain_.handle('update-engine-alias', (_event, directoryPath: string, alias: string) =>

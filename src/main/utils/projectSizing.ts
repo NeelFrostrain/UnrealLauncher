@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
+import fs from 'fs'
 import { app } from 'electron'
 import { loadProjects, saveProjects } from '../store'
 import { formatBytes, getFullFolderSize } from '../utils'
@@ -21,7 +22,6 @@ function getSizeCachePath(): string {
 
 function loadSizeCache(): SizeCache {
   try {
-    const fs = require('fs') as typeof import('fs')
     const cachePath = getSizeCachePath()
     if (!fs.existsSync(cachePath)) return {}
     return JSON.parse(fs.readFileSync(cachePath, 'utf8')) as SizeCache
@@ -32,7 +32,6 @@ function loadSizeCache(): SizeCache {
 
 function saveSizeCache(cache: SizeCache): void {
   try {
-    const fs = require('fs') as typeof import('fs')
     const cachePath = getSizeCachePath()
     fs.mkdirSync(path.dirname(cachePath), { recursive: true })
     fs.writeFileSync(cachePath, JSON.stringify(cache), 'utf8')
@@ -42,7 +41,6 @@ function saveSizeCache(cache: SizeCache): void {
 }
 
 async function getProjectSizeCached(projectPath: string, cache: SizeCache): Promise<string> {
-  const fs = await import('fs')
   const normalized = path.normalize(projectPath).toLowerCase()
   const mtimeMs = fs.statSync(projectPath).mtimeMs
   const cached = cache[normalized]
@@ -60,7 +58,6 @@ async function getProjectSizeCached(projectPath: string, cache: SizeCache): Prom
 export async function calculateProjectSize(projectPath: string): Promise<Record<string, unknown>> {
   try {
     // Guard: don't report 0 B for a folder that no longer exists
-    const fs = await import('fs')
     if (!fs.existsSync(projectPath)) {
       return { success: false, error: 'Project folder not found' }
     }
@@ -98,7 +95,6 @@ export async function calculateAllProjectSizes(): Promise<void> {
   if (projects.length === 0) return
 
   // Separate existing from missing up-front
-  const fs = await import('fs')
   const existing = projects.filter((p) => p.projectPath && fs.existsSync(p.projectPath))
   const missing = projects.filter((p) => !p.projectPath || !fs.existsSync(p.projectPath))
 

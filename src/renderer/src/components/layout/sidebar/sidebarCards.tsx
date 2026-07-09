@@ -97,35 +97,35 @@ export function SidebarCards({
   onNavClick
 }: SidebarCardsProps): React.ReactElement {
   return (
-      <div
-        className={`flex-1 overflow-hidden ${collapsed ? 'flex flex-col items-center gap-1.5 pt-3 px-1.5' : 'p-3'}`}
-      >
-        {collapsed ? (
-          <div className="flex flex-col items-center gap-1.5 w-full">
-            {NAV_ITEMS.map((item) => (
-              <CollapsedItem
-                key={item.basePath}
-                item={item}
-                isActive={currentPath.startsWith(item.basePath)}
-                onClick={() => onNavClick(item.basePath)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div
-            className="w-full h-fit p-2 rounded-sm flex flex-col gap-2"
-            style={{ backgroundColor: 'var(--color-surface-card)' }}
-          >
-            {NAV_ITEMS.map((item) => (
-              <ExpandedCard
-                key={item.basePath}
-                item={item}
-                isActive={currentPath.startsWith(item.basePath)}
-                onClick={() => onNavClick(item.basePath)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+    <div
+      className={`flex-1 overflow-hidden ${collapsed ? 'flex flex-col items-center gap-1.5 pt-3 px-1.5' : 'p-3'}`}
+    >
+      {collapsed ? (
+        <div className="flex flex-col items-center gap-1.5 w-full">
+          {NAV_ITEMS.map((item) => (
+            <CollapsedItem
+              key={item.basePath}
+              item={item}
+              isActive={currentPath.startsWith(item.basePath)}
+              onClick={() => onNavClick(item.basePath)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div
+          className="w-full h-fit p-2 rounded-sm flex flex-col gap-2"
+          style={{ backgroundColor: 'var(--color-surface-card)' }}
+        >
+          {NAV_ITEMS.map((item) => (
+            <ExpandedCard
+              key={item.basePath}
+              item={item}
+              isActive={currentPath.startsWith(item.basePath)}
+              onClick={() => onNavClick(item.basePath)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

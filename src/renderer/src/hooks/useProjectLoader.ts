@@ -74,6 +74,69 @@ export function useProjectLoader({
             : await window.electronAPI.scanProjects()
         clearGitCache()
         const deduped = dedupeProjectList(raw)
+
+        // Apply cached sizes from previous runs to improve perceived performance
+        try {
+          const rawCache = localStorage.getItem('projectSizeCache')
+          if (rawCache) {
+            const cache = JSON.parse(rawCache) as Record<string, string>
+            for (const p of deduped) {
+              if (!p.size && p.projectPath) {
+                const cached = cache[p.projectPath]
+                if (cached) p.size = cached
+              }
+            }
+          }
+        } catch {
+          /* ignore cache parse errors */
+        }
+
+        // Incremental detection: compare a lightweight snapshot to avoid reprocessing unchanged projects
+        try {
+          const snapshotKey = 'projectsSnapshot'
+          const prevRaw = localStorage.getItem(snapshotKey)
+          const prev = prevRaw ? (JSON.parse(prevRaw) as Record<string, string>) : {}
+          const nextSnapshot: Record<string, string> = {}
+          const changed: string[] = []
+          for (const p of deduped) {
+            const key = p.projectPath ?? ''
+            const fingerprint = JSON.stringify({ name: p.name, version: p.version, lastOpenedAt: p.lastOpenedAt })
+            if (key) {
+              nextSnapshot[key] = fingerprint
+              if (!prev[key] || prev[key] !== fingerprint) changed.push(key)
+            } else {
+              // if no path, consider changed so derived data gets recalculated later
+              if (p.projectPath) changed.push(p.projectPath)
+            }
+          }
+          localStorage.setItem(snapshotKey, JSON.stringify(nextSnapshot))
+
+          if (changed.length > 0) {
+            try {
+              // Remove size cache entries for changed projects so next size calculation refreshes
+              const rawSizeCache = localStorage.getItem('projectSizeCache')
+              const sizeCache = rawSizeCache ? (JSON.parse(rawSizeCache) as Record<string, string>) : {}
+              let mutated = false
+              for (const c of changed) {
+                if (sizeCache[c]) {
+                  delete sizeCache[c]
+                  mutated = true
+                }
+              }
+              if (mutated) localStorage.setItem('projectSizeCache', JSON.stringify(sizeCache))
+            } catch {
+              /* ignore */
+            }
+
+            // Trigger background size recalculation for changed projects
+            for (const c of changed) {
+              if (c) window.electronAPI.calculateProjectSize(c).catch(() => {})
+            }
+          }
+        } catch {
+          /* ignore snapshot errors */
+        }
+
         allProjectsRef.current = deduped
         setProjects(
           filterForTab(
@@ -170,28 +233,69 @@ export function useProjectLoader({
   // Live size updates + removed projects
   useEffect(() => {
     if (!window.electronAPI) return
+
+    // Batch size updates to avoid frequent re-renders when many files are scanned.
+    const pending = new Map<string, string>()
+    let flushTimer: ReturnType<typeof setTimeout> | null = null
+
+    const scheduleFlush = () => {
+      if (flushTimer) return
+      flushTimer = setTimeout(() => {
+        if (pending.size > 0) {
+          const updates = new Map(pending)
+          // Apply to allProjectsRef immediately
+          for (const [path, size] of updates) {
+            const idx = allProjectsRef.current.findIndex((p) => p.projectPath === path)
+            if (idx >= 0) allProjectsRef.current[idx] = { ...allProjectsRef.current[idx], size }
+          }
+          // Batch setProjects once
+          setProjects((prev) => {
+            if (prev.length === 0) return prev
+            const next = prev.map((p) => {
+              const key = p.projectPath ?? ''
+              const s = key ? updates.get(key) : undefined
+              return s ? { ...p, size: s } : p
+            })
+            return next
+          })
+          // Persist updated sizes to cache
+          try {
+            const rawCache = localStorage.getItem('projectSizeCache')
+            const cache = rawCache ? (JSON.parse(rawCache) as Record<string, string>) : {}
+            for (const [path, size] of updates) {
+              if (path) cache[path] = size
+            }
+            localStorage.setItem('projectSizeCache', JSON.stringify(cache))
+          } catch {
+            /* ignore */
+          }
+          pending.clear()
+        }
+        if (flushTimer) {
+          clearTimeout(flushTimer)
+          flushTimer = null
+        }
+      }, 200)
+    }
+
     const unsubSize = window.electronAPI.onSizeCalculated((data) => {
       if (data.type !== 'project') return
-      const idx = allProjectsRef.current.findIndex((p) => p.projectPath === data.path)
-      if (idx >= 0)
-        allProjectsRef.current[idx] = { ...allProjectsRef.current[idx], size: data.size }
-      setProjects((prev) => {
-        const i = prev.findIndex((p) => p.projectPath === data.path)
-        if (i < 0) return prev
-        const updated = [...prev]
-        updated[i] = { ...prev[i], size: data.size }
-        return updated
-      })
+      pending.set(data.path, data.size)
+      scheduleFlush()
     })
+
     const unsubRemoved = window.electronAPI.onProjectRemoved((data) => {
       allProjectsRef.current = allProjectsRef.current.filter(
         (p) => p.projectPath !== data.projectPath
       )
       setProjects((prev) => prev.filter((p) => p.projectPath !== data.projectPath))
     })
+
     return () => {
       unsubSize()
       unsubRemoved()
+      if (flushTimer) clearTimeout(flushTimer)
+      pending.clear()
     }
   }, [allProjectsRef, setProjects])
 

@@ -40,7 +40,7 @@ interface MainSettings {
 
 const DEFAULT_SETTINGS: MainSettings = {
   tracerMergeEnabled: true,
-  tracerStartupEnabled: true,
+  tracerStartupEnabled: false,
   registryEnginesEnabled: true,
   backgroundCloseEnabled: false,
   excludedScannerPaths: ['.git', 'Binaries', 'Intermediate', 'Saved', 'node_modules']

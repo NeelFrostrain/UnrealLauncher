@@ -42,6 +42,138 @@ export const showErrorToast = (message: string): void => {
   setTimeout(() => msg.remove(), 5000)
 }
 
+// ── Project search and activity helpers ─────────────────────────────────────
+
+const ACTIVITY_STORAGE_KEY = 'unrealLauncherProjectActivity'
+
+type ProjectActivityType =
+  | 'launch'
+  | 'engine-launch'
+  | 'plugin-change'
+  | 'git-commit'
+  | 'config-edit'
+
+export interface ProjectActivityEntry {
+  id: string
+  projectPath: string
+  projectName: string
+  type: ProjectActivityType
+  message: string
+  timestamp: string
+}
+
+const ACTIVITY_LABELS: Record<ProjectActivityType, string> = {
+  launch: 'Launch',
+  'engine-launch': 'Engine',
+  'plugin-change': 'Plugin',
+  'git-commit': 'Git',
+  'config-edit': 'Config'
+}
+
+export function getProjectActivityLabel(type: ProjectActivityType): string {
+  return ACTIVITY_LABELS[type]
+}
+
+export function formatActivityTimestamp(timestamp: string): string {
+  try {
+    const dt = new Date(timestamp)
+    if (Number.isNaN(dt.getTime())) return ''
+    return dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  } catch {
+    return ''
+  }
+}
+
+function readActivityStorage(): ProjectActivityEntry[] {
+  try {
+    const raw = localStorage.getItem(ACTIVITY_STORAGE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as ProjectActivityEntry[]
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function writeActivityStorage(entries: ProjectActivityEntry[]): void {
+  localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(entries))
+}
+
+export function addProjectActivity(
+  projectPath: string,
+  projectName: string,
+  type: ProjectActivityType,
+  message: string
+): void {
+  const entry: ProjectActivityEntry = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    projectPath,
+    projectName,
+    type,
+    message,
+    timestamp: new Date().toISOString()
+  }
+
+  const existing = readActivityStorage()
+  const next = [entry, ...existing.filter((item) => item.projectPath !== projectPath)]
+  writeActivityStorage(next.slice(0, 24))
+}
+
+export function getProjectActivitySummary(projectPath: string): string {
+  const entries = readActivityStorage().filter((item) => item.projectPath === projectPath)
+  if (!entries.length) return 'No recent activity'
+
+  const latest = entries[0]
+  return `${ACTIVITY_LABELS[latest.type]} · ${latest.message}`
+}
+
+export function getProjectActivityTimeline(projectPath: string): ProjectActivityEntry[] {
+  return readActivityStorage()
+    .filter((item) => item.projectPath === projectPath)
+    .slice(0, 6)
+}
+
+export function getProjectActivityFeed(): ProjectActivityEntry[] {
+  return readActivityStorage().slice(0, 20)
+}
+
+export function matchesProjectQuery(project: Project, query: string): boolean {
+  const normalized = query.trim().toLowerCase()
+  if (!normalized) return true
+
+  const haystacks = [
+    project.name,
+    project.version,
+    project.projectPath ?? '',
+    project.size,
+    project.createdAt,
+    project.lastOpenedAt ? formatDate(project.lastOpenedAt) : ''
+  ]
+
+  return haystacks.some((value) => value?.toLowerCase().includes(normalized))
+}
+
+export type EngineVersionFilter = 'all' | 'unspecified' | string
+
+function normalizeEngineVersion(value: string | undefined): string {
+  const normalized = (value ?? '').trim()
+  if (!normalized || normalized.toLowerCase() === 'unknown') return 'unspecified'
+  return normalized
+}
+
+export function filterProjectsByEngineVersion(
+  projects: Project[],
+  filter: EngineVersionFilter
+): Project[] {
+  if (!filter || filter === 'all') return projects
+
+  return projects.filter((project) => {
+    const version = normalizeEngineVersion(project.version)
+    if (filter === 'unspecified') return version === 'unspecified'
+    return version === normalizeEngineVersion(filter)
+  })
+}
+
 // ── Sorting ───────────────────────────────────────────────────────────────────
 
 export type SortKey = 'name' | 'size' | 'createdAt' | 'lastOpenedAt' | 'version'

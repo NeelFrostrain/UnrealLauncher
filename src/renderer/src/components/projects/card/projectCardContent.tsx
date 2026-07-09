@@ -113,9 +113,7 @@ export function ProjectCardContent({
           transition: 'opacity 0.18s ease, transform 0.18s ease'
         }}
       >
-        <p className="w-full text-center text-xs opacity-60">
-          L-Click: Launch | R-Click: Options
-        </p>
+        <p className="w-full text-center text-xs opacity-60">L-Click: Launch | R-Click: Options</p>
       </div>
 
       {/* Bottom info */}

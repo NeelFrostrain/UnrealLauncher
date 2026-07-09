@@ -2,6 +2,7 @@
 import { memo, useCallback } from 'react'
 import type { Project } from '../../types'
 import { resolveAsset, toLocalAssetUrl } from '../../utils/resolveAsset'
+import useThumbnailCache from '../../components/ui/useThumbnailCache'
 import { useProjectCardState } from './card/projectCardState'
 import { useProjectCardHandlers } from './card/projectCardHandlers'
 import { ProjectCardContent } from './card/projectCardContent'
@@ -42,12 +43,15 @@ const ProjectCardGrid = memo(
       state.setCtxMenu,
       state.setGit,
       state.setShowCommitDialog,
-      state.setShowBranchDialog
+      state.setShowBranchDialog,
+      state.setHovered
     )
 
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
     // Use thumbnailKey to scope thumbnail cache-busting per project
-    const imageSrc = thumbnail ? toLocalAssetUrl(thumbnail, thumbnailKey) : resolveAsset(undefined)
+    const rawSrc = thumbnail ? toLocalAssetUrl(thumbnail, thumbnailKey) : resolveAsset(undefined)
+    const cached = useThumbnailCache(rawSrc, thumbnailKey)
+    const imageSrc = cached ?? rawSrc
     const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
       e.currentTarget.src = resolveAsset(undefined)
     }, [])

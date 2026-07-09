@@ -8,9 +8,14 @@ import { useProjectActions } from './useProjectActions'
 import { useProjectLoader } from './useProjectLoader'
 import { clearGitCache } from './useGitStatus'
 import type { ViewMode } from '../components/projects/ProjectsToolbar'
-import type { SortConfig } from '../components/projects/projectUtils'
+import {
+  formatVersion,
+  type SortConfig,
+  type EngineVersionFilter
+} from '../components/projects/projectUtils'
 import { useToast } from '../components/ui/ToastContext'
 import { logActivity } from '../utils/activityLogger'
+import { setEnginesCache } from './useEngineCompatibility'
 
 const HIDDEN_KEY = 'projectHidden'
 // Row height used by the manual scroll-based windowing in list mode
@@ -57,6 +62,7 @@ export function useProjectsPageState() {
   })
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [engineVersionFilter, setEngineVersionFilter] = useState<EngineVersionFilter>('all')
   const [displayStart, setDisplayStart] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -88,6 +94,50 @@ export function useProjectsPageState() {
     currentTab,
     loadProjectsForTab
   })
+
+  const [engineVersionOptions, setEngineVersionOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([
+    { value: 'all', label: 'All versions' },
+    { value: 'unspecified', label: 'Unspecified' }
+  ])
+
+  useEffect(() => {
+    let cancelled = false
+    window.electronAPI
+      .scanEngines()
+      .then((engines) => {
+        if (cancelled) return
+        setEnginesCache(engines)
+        const versions = new Set<string>()
+        for (const engine of engines) {
+          const version = (engine.version ?? '').trim()
+          if (version && version.toLowerCase() !== 'unknown') versions.add(version)
+        }
+        const nextOptions = [
+          { value: 'all', label: 'All versions' },
+          { value: 'unspecified', label: 'Unspecified' }
+        ] as Array<{ value: string; label: string }>
+        for (const version of [...versions].sort((a, b) =>
+          a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+        )) {
+          nextOptions.push({ value: version, label: formatVersion(version) })
+        }
+        setEngineVersionOptions(nextOptions)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setEngineVersionOptions([
+            { value: 'all', label: 'All versions' },
+            { value: 'unspecified', label: 'Unspecified' }
+          ])
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // Sync tab ↔ URL
   useEffect(() => {
@@ -220,6 +270,8 @@ export function useProjectsPageState() {
     sortConfig,
     searchOpen,
     searchQuery,
+    engineVersionFilter,
+    engineVersionOptions,
     displayStart,
     containerRef,
     favoritePaths,
@@ -236,6 +288,7 @@ export function useProjectsPageState() {
     handleLaunch,
     handleOpenDir,
     handleListScroll,
-    setSearchQuery
+    setSearchQuery,
+    setEngineVersionFilter
   }
 }

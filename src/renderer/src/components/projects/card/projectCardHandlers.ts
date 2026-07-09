@@ -3,6 +3,7 @@ import { useCallback } from 'react'
 import { useToast } from '../../ui/ToastContext'
 import { clearGitCacheForPath } from '../../../hooks/useGitStatus'
 import type { GitStatus } from '../../../hooks/useGitStatus'
+import { addProjectActivity } from '../projectUtils'
 
 /**
  * Custom hook for ProjectCardGrid event handlers
@@ -14,7 +15,8 @@ export function useProjectCardHandlers(
   setCtxMenu: (v: { x: number; y: number } | null) => void,
   setGit: (v: GitStatus) => void,
   _setShowCommitDialog: (v: boolean) => void,
-  _setShowBranchDialog: (v: boolean) => void
+  _setShowBranchDialog: (v: boolean) => void,
+  setHovered?: (v: boolean) => void
 ): {
   handleClick: () => Promise<void>
   handleContextMenu: (e: React.MouseEvent) => void
@@ -28,6 +30,12 @@ export function useProjectCardHandlers(
     setLaunching(true)
     try {
       await onLaunch(projectPath)
+      addProjectActivity(
+        projectPath,
+        projectPath.split(/[/\\]/).pop() || 'Project',
+        'launch',
+        'Opened in Editor'
+      )
     } finally {
       setLaunching(false)
     }
@@ -37,13 +45,21 @@ export function useProjectCardHandlers(
     (e: React.MouseEvent): void => {
       e.preventDefault()
       setCtxMenu({ x: e.clientX, y: e.clientY })
+      // Clear hover state when context menu opens to avoid visual artifacts
+      setHovered?.(false)
     },
-    [setCtxMenu]
+    [setCtxMenu, setHovered]
   )
 
   const handleGitInit = useCallback(async (): Promise<void> => {
     if (!projectPath) return
     const r = await window.electronAPI.projectGitInit(projectPath)
+    addProjectActivity(
+      projectPath,
+      projectPath.split(/[/\\]/).pop() || 'Project',
+      'git-commit',
+      'Initialized Git repo'
+    )
     if (r.success) {
       clearGitCacheForPath(projectPath)
       setGit({ initialized: true, branch: 'main', remoteUrl: '' })
@@ -65,6 +81,14 @@ export function useProjectCardHandlers(
     setLaunching(true)
     try {
       const result = await window.electronAPI.projectLaunchGame(projectPath)
+      if (result.success) {
+        addProjectActivity(
+          projectPath,
+          projectPath.split(/[/\\]/).pop() || 'Project',
+          'engine-launch',
+          'Launched as Game'
+        )
+      }
       if (!result.success) {
         addToast(result.error ?? 'Failed to launch as game', 'error')
       }

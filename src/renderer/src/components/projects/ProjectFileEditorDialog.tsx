@@ -148,7 +148,9 @@ export default function ProjectFileEditorDialog({
     <div
       className="fixed inset-0 z-10002 flex items-center justify-center p-6"
       style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(6px)' }}
-      onClick={(e) => { if (e.target === e.currentTarget && !isDirty) onClose() }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !isDirty) onClose()
+      }}
     >
       <div
         ref={dialogRef}
@@ -271,144 +273,142 @@ export default function ProjectFileEditorDialog({
         {find.open && (
           <div
             className="shrink-0 overflow-hidden transition-all"
-            style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-elevated)' }}
+            style={{
+              borderBottom: '1px solid var(--color-border)',
+              backgroundColor: 'var(--color-surface-elevated)'
+            }}
           >
-              <div className="px-3 py-2 flex flex-col gap-1.5">
-                <div className="flex items-center gap-2">
-                  <Search size={12} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
-                  <input
-                    ref={findInputRef}
-                    type="text"
-                    placeholder="Find…"
-                    value={find.query}
-                    autoFocus
-                    onChange={(e) =>
-                      setFind((f) => ({ ...f, query: e.target.value, matchIndex: 0 }))
+            <div className="px-3 py-2 flex flex-col gap-1.5">
+              <div className="flex items-center gap-2">
+                <Search size={12} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                <input
+                  ref={findInputRef}
+                  type="text"
+                  placeholder="Find…"
+                  value={find.query}
+                  autoFocus
+                  onChange={(e) => setFind((f) => ({ ...f, query: e.target.value, matchIndex: 0 }))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      goToMatch(e.shiftKey ? -1 : 1)
                     }
+                    if (e.key === 'Escape') closeFind()
+                  }}
+                  className="flex-1 bg-transparent outline-none text-xs font-mono"
+                  style={{ color: 'var(--color-text-primary)' }}
+                />
+                {find.query && (
+                  <span
+                    className="text-[10px] shrink-0 font-mono"
+                    style={{ color: matchCount > 0 ? 'var(--color-text-muted)' : '#f87171' }}
+                  >
+                    {matchCount > 0 ? `${currentMatch + 1}/${matchCount}` : 'No matches'}
+                  </span>
+                )}
+                <button
+                  onClick={() =>
+                    setFind((f) => ({ ...f, caseSensitive: !f.caseSensitive, matchIndex: 0 }))
+                  }
+                  className="p-1 cursor-pointer"
+                  title="Case sensitive"
+                  style={{
+                    borderRadius: 'calc(var(--radius) * 0.4)',
+                    backgroundColor: find.caseSensitive
+                      ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+                      : 'transparent',
+                    color: find.caseSensitive ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                    border: `1px solid ${find.caseSensitive ? 'color-mix(in srgb, var(--color-accent) 30%, transparent)' : 'transparent'}`
+                  }}
+                >
+                  <CaseSensitive size={13} />
+                </button>
+                <button
+                  onClick={() => goToMatch(-1)}
+                  disabled={matchCount === 0}
+                  className="p-1 cursor-pointer disabled:opacity-30"
+                  style={{ color: 'var(--color-text-muted)' }}
+                  title="Previous"
+                >
+                  <ChevronUp size={13} />
+                </button>
+                <button
+                  onClick={() => goToMatch(1)}
+                  disabled={matchCount === 0}
+                  className="p-1 cursor-pointer disabled:opacity-30"
+                  style={{ color: 'var(--color-text-muted)' }}
+                  title="Next"
+                >
+                  <ChevronDown size={13} />
+                </button>
+                <button
+                  onClick={() => setFind((f) => ({ ...f, showReplace: !f.showReplace }))}
+                  className="p-1 cursor-pointer"
+                  title="Toggle replace"
+                  style={{
+                    borderRadius: 'calc(var(--radius) * 0.4)',
+                    backgroundColor: find.showReplace
+                      ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                      : 'transparent',
+                    color: find.showReplace ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                    border: `1px solid ${find.showReplace ? 'color-mix(in srgb, var(--color-accent) 25%, transparent)' : 'transparent'}`
+                  }}
+                >
+                  <Replace size={13} />
+                </button>
+                <button
+                  onClick={closeFind}
+                  className="p-1 cursor-pointer"
+                  style={{ color: 'var(--color-text-muted)' }}
+                  title="Close"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+              {find.showReplace && (
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <Replace size={12} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                  <input
+                    ref={replaceInputRef}
+                    type="text"
+                    placeholder="Replace with…"
+                    value={find.replaceQuery}
+                    onChange={(e) => setFind((f) => ({ ...f, replaceQuery: e.target.value }))}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        goToMatch(e.shiftKey ? -1 : 1)
-                      }
-                      if (e.key === 'Escape') closeFind()
+                      if (e.key === 'Enter') replaceOne()
                     }}
                     className="flex-1 bg-transparent outline-none text-xs font-mono"
                     style={{ color: 'var(--color-text-primary)' }}
                   />
-                  {find.query && (
-                    <span
-                      className="text-[10px] shrink-0 font-mono"
-                      style={{ color: matchCount > 0 ? 'var(--color-text-muted)' : '#f87171' }}
-                    >
-                      {matchCount > 0 ? `${currentMatch + 1}/${matchCount}` : 'No matches'}
-                    </span>
-                  )}
                   <button
-                    onClick={() =>
-                      setFind((f) => ({ ...f, caseSensitive: !f.caseSensitive, matchIndex: 0 }))
-                    }
-                    className="p-1 cursor-pointer"
-                    title="Case sensitive"
+                    onClick={replaceOne}
+                    disabled={matchCount === 0}
+                    className="px-2 py-0.5 text-[10px] cursor-pointer disabled:opacity-40"
                     style={{
                       borderRadius: 'calc(var(--radius) * 0.4)',
-                      backgroundColor: find.caseSensitive
-                        ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
-                        : 'transparent',
-                      color: find.caseSensitive ? 'var(--color-accent)' : 'var(--color-text-muted)',
-                      border: `1px solid ${find.caseSensitive ? 'color-mix(in srgb, var(--color-accent) 30%, transparent)' : 'transparent'}`
+                      backgroundColor: 'var(--color-surface-card)',
+                      color: 'var(--color-text-secondary)',
+                      border: '1px solid var(--color-border)'
                     }}
                   >
-                    <CaseSensitive size={13} />
+                    Replace
                   </button>
                   <button
-                    onClick={() => goToMatch(-1)}
+                    onClick={replaceAll}
                     disabled={matchCount === 0}
-                    className="p-1 cursor-pointer disabled:opacity-30"
-                    style={{ color: 'var(--color-text-muted)' }}
-                    title="Previous"
-                  >
-                    <ChevronUp size={13} />
-                  </button>
-                  <button
-                    onClick={() => goToMatch(1)}
-                    disabled={matchCount === 0}
-                    className="p-1 cursor-pointer disabled:opacity-30"
-                    style={{ color: 'var(--color-text-muted)' }}
-                    title="Next"
-                  >
-                    <ChevronDown size={13} />
-                  </button>
-                  <button
-                    onClick={() => setFind((f) => ({ ...f, showReplace: !f.showReplace }))}
-                    className="p-1 cursor-pointer"
-                    title="Toggle replace"
+                    className="px-2 py-0.5 text-[10px] cursor-pointer disabled:opacity-40"
                     style={{
                       borderRadius: 'calc(var(--radius) * 0.4)',
-                      backgroundColor: find.showReplace
-                        ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
-                        : 'transparent',
-                      color: find.showReplace ? 'var(--color-accent)' : 'var(--color-text-muted)',
-                      border: `1px solid ${find.showReplace ? 'color-mix(in srgb, var(--color-accent) 25%, transparent)' : 'transparent'}`
+                      backgroundColor: 'var(--color-surface-card)',
+                      color: 'var(--color-text-secondary)',
+                      border: '1px solid var(--color-border)'
                     }}
                   >
-                    <Replace size={13} />
-                  </button>
-                  <button
-                    onClick={closeFind}
-                    className="p-1 cursor-pointer"
-                    style={{ color: 'var(--color-text-muted)' }}
-                    title="Close"
-                  >
-                    <X size={12} />
+                    Replace All
                   </button>
                 </div>
-                  {find.showReplace && (
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <Replace
-                        size={12}
-                        style={{ color: 'var(--color-text-muted)', flexShrink: 0 }}
-                      />
-                      <input
-                        ref={replaceInputRef}
-                        type="text"
-                        placeholder="Replace with…"
-                        value={find.replaceQuery}
-                        onChange={(e) => setFind((f) => ({ ...f, replaceQuery: e.target.value }))}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') replaceOne()
-                        }}
-                        className="flex-1 bg-transparent outline-none text-xs font-mono"
-                        style={{ color: 'var(--color-text-primary)' }}
-                      />
-                      <button
-                        onClick={replaceOne}
-                        disabled={matchCount === 0}
-                        className="px-2 py-0.5 text-[10px] cursor-pointer disabled:opacity-40"
-                        style={{
-                          borderRadius: 'calc(var(--radius) * 0.4)',
-                          backgroundColor: 'var(--color-surface-card)',
-                          color: 'var(--color-text-secondary)',
-                          border: '1px solid var(--color-border)'
-                        }}
-                      >
-                        Replace
-                      </button>
-                      <button
-                        onClick={replaceAll}
-                        disabled={matchCount === 0}
-                        className="px-2 py-0.5 text-[10px] cursor-pointer disabled:opacity-40"
-                        style={{
-                          borderRadius: 'calc(var(--radius) * 0.4)',
-                          backgroundColor: 'var(--color-surface-card)',
-                          color: 'var(--color-text-secondary)',
-                          border: '1px solid var(--color-border)'
-                        }}
-                      >
-                        Replace All
-                      </button>
-                    </div>
-                  )}
-              </div>
+              )}
+            </div>
           </div>
         )}
 

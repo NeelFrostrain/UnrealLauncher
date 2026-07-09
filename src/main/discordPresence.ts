@@ -19,6 +19,16 @@ interface DiscordRichPresenceOptions {
   buttons?: { label: string; url: string }[]
 }
 
+interface DiscordActivity {
+  details?: string
+  state?: string
+  largeImageKey?: string
+  largeImageText?: string
+  startTimestamp?: number
+  instance?: boolean
+  buttons?: { label: string; url: string }[]
+}
+
 interface TracerActiveSession {
   sessionType?: string
   projectName?: string
@@ -256,7 +266,7 @@ export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {
       lastPresenceKey = presenceKey
 
       // Build the base activity payload
-      const activityPayload: any = {
+      const activityPayload: DiscordActivity = {
         details: presence.details,
         state: presence.state,
         largeImageKey: 'icon',

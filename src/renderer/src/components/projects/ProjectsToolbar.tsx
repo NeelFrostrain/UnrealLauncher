@@ -1,8 +1,18 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import type { FC } from 'react'
-import { Plus, RefreshCw, Search, X, LayoutGrid, LayoutList } from 'lucide-react'
+import { useEffect, useRef, useState, type FC } from 'react'
+import {
+  Plus,
+  RefreshCw,
+  Search,
+  X,
+  LayoutGrid,
+  LayoutList,
+  History,
+  Filter,
+  Check
+} from 'lucide-react'
 import type { TabType } from '../../types'
-import type { SortConfig } from './projectUtils'
+import type { SortConfig, EngineVersionFilter } from './projectUtils'
 import { SortDropdown } from './toolbar/SortDropdown'
 
 export type ViewMode = 'list' | 'grid'
@@ -23,8 +33,99 @@ interface ProjectsToolbarProps {
   onSearchChange: (value: string) => void
   onAddProject: () => void
   onRefresh: () => void
+  onOpenHistory: () => void
   onViewChange: (mode: ViewMode) => void
   onSortChange: (config: SortConfig) => void
+  engineVersionFilter: EngineVersionFilter
+  engineVersionOptions: Array<{ value: string; label: string }>
+  onEngineVersionChange: (value: EngineVersionFilter) => void
+}
+
+function EngineVersionDropdown({
+  value,
+  options,
+  onChange
+}: {
+  value: EngineVersionFilter
+  options: Array<{ value: string; label: string }>
+  onChange: (value: EngineVersionFilter) => void
+}): React.ReactElement {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent): void => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const activeLabel = options.find((option) => option.value === value)?.label ?? 'All versions'
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((current) => !current)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer"
+        aria-label={`Filter by engine version: ${activeLabel}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        style={{
+          borderRadius: 'var(--radius)',
+          backgroundColor: open
+            ? 'color-mix(in srgb, var(--color-accent) 15%, var(--color-surface-card))'
+            : 'var(--color-surface-card)',
+          border: `1px solid ${open ? 'var(--color-accent)' : 'var(--color-border)'}`,
+          color: 'var(--color-text-secondary)'
+        }}
+        title="Filter projects by engine version"
+      >
+        <Filter
+          size={12}
+          style={{ color: open ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
+        />
+        <span className="max-w-24 truncate">{activeLabel}</span>
+      </button>
+
+      {open && (
+        <div
+          className="absolute right-0 top-full mt-1.5 z-50 py-1.5 w-48"
+          style={{
+            backgroundColor: 'var(--color-surface-elevated)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+            fontSize: '12px'
+          }}
+        >
+          {options.map((option) => {
+            const isActive = value === option.value
+            return (
+              <button
+                key={option.value}
+                onClick={() => {
+                  onChange(option.value as EngineVersionFilter)
+                  setOpen(false)
+                }}
+                className="w-full flex items-center justify-between gap-2 px-3 py-1.5 transition-colors cursor-pointer"
+                style={{
+                  color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                  backgroundColor: isActive
+                    ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)'
+                    : 'transparent'
+                }}
+              >
+                <span>{option.label}</span>
+                {isActive && <Check size={11} style={{ color: 'var(--color-accent)' }} />}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
 }
 
 const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
@@ -43,8 +144,12 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
   onSearchChange,
   onAddProject,
   onRefresh,
+  onOpenHistory,
   onViewChange,
-  onSortChange
+  onSortChange,
+  engineVersionFilter,
+  engineVersionOptions,
+  onEngineVersionChange
 }) => (
   <div
     className="flex items-center gap-3 py-3 shrink-0 border-b"
@@ -122,6 +227,13 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       {/* Sort */}
       <SortDropdown sortConfig={sortConfig} onSortChange={onSortChange} />
 
+      {/* Engine version filter */}
+      <EngineVersionDropdown
+        value={engineVersionFilter}
+        options={engineVersionOptions}
+        onChange={onEngineVersionChange}
+      />
+
       {/* View toggle */}
       <div
         className="flex items-center overflow-hidden"
@@ -156,6 +268,22 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
           <LayoutGrid size={13} />
         </button>
       </div>
+
+      {/* History */}
+      <button
+        onClick={onOpenHistory}
+        aria-label="Open project history"
+        className="flex items-center p-1.5 cursor-pointer transition-colors"
+        style={{
+          borderRadius: 'var(--radius)',
+          backgroundColor: 'var(--color-surface-card)',
+          color: 'var(--color-text-muted)',
+          border: '1px solid var(--color-border)'
+        }}
+        title="Project history"
+      >
+        <History size={13} />
+      </button>
 
       {/* Search toggle */}
       <button

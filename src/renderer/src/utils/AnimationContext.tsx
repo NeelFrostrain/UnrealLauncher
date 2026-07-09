@@ -31,10 +31,7 @@ export const AnimationProvider = ({ children }: { children: ReactNode }): React.
 
   return (
     <AnimationContext.Provider value={{ animationsEnabled, toggleAnimations }}>
-      <div
-        id="animation-root"
-        className={animationsEnabled ? '' : 'no-animations'}
-      >
+      <div id="animation-root" className={animationsEnabled ? '' : 'no-animations'}>
         {children}
       </div>
     </AnimationContext.Provider>

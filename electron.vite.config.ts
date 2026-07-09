@@ -71,7 +71,6 @@ export default defineConfig({
             if (!id) return undefined
             const normalizedId = id.replace(/\\\\/g, '/')
             if (normalizedId.includes('/node_modules/')) {
-              if (normalizedId.includes('framer-motion')) return 'framer'
               if (normalizedId.includes('lucide-react')) return 'lucide'
               if (normalizedId.includes('zustand')) return 'state'
               return 'vendor'
@@ -92,14 +91,7 @@ export default defineConfig({
     },
     plugins: [react(), tailwindcss()],
     optimizeDeps: {
-      include: [
-        'react',
-        'react-dom',
-        'react-router-dom',
-        'zustand',
-        'framer-motion',
-        'lucide-react'
-      ]
+      include: ['react', 'react-dom', 'react-router-dom', 'zustand', 'lucide-react']
     }
   }
 })

@@ -22,6 +22,7 @@ import {
 import { OrganizeSubMenu } from './contextMenu/OrganizeSubMenu'
 import { ProjectToolsSubMenu } from './contextMenu/ProjectToolsSubMenu'
 import { GitSubMenu } from './contextMenu/GitSubMenu'
+import { useEngineCompatibility } from '../../hooks/useEngineCompatibility'
 
 export interface ProjectContextMenuProps {
   x: number
@@ -57,6 +58,7 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
   const [pos, setPos] = useState({ top: p.y, left: p.x, width: 248 })
   const [activeSub, setActiveSub] = useState<'organize' | 'tools' | 'git' | null>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const compatibility = useEngineCompatibility(p.projectVersion)
 
   // Position menu within viewport bounds
   useEffect(() => {
@@ -152,12 +154,16 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
           className="px-3 py-2.5"
           style={{
             borderBottom: '1px solid var(--color-border)',
-            background: 'linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 8%, transparent) 0%, transparent 100%)'
+            background:
+              'linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 8%, transparent) 0%, transparent 100%)'
           }}
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[12px] font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
+              <p
+                className="text-[12px] font-semibold truncate"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
                 {p.name}
               </p>
               <div className="mt-1 flex items-center gap-1.5 flex-wrap">
@@ -171,6 +177,37 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
                   }}
                 >
                   UE {p.projectVersion}
+                </span>
+                <span
+                  className="flex items-center gap-1 rounded-full px-1.5 py-px text-[9px]"
+                  style={{
+                    backgroundColor:
+                      compatibility.status === 'matched'
+                        ? 'color-mix(in srgb, #34d399 12%, transparent)'
+                        : compatibility.status === 'partial'
+                          ? 'color-mix(in srgb, #f59e0b 12%, transparent)'
+                          : compatibility.status === 'missing'
+                            ? 'color-mix(in srgb, #f87171 12%, transparent)'
+                            : 'color-mix(in srgb, var(--color-text-muted) 12%, transparent)',
+                    color:
+                      compatibility.status === 'matched'
+                        ? '#34d399'
+                        : compatibility.status === 'partial'
+                          ? '#f59e0b'
+                          : compatibility.status === 'missing'
+                            ? '#f87171'
+                            : 'var(--color-text-secondary)',
+                    border: '1px solid color-mix(in srgb, currentColor 24%, transparent)'
+                  }}
+                  title={compatibility.tooltip}
+                >
+                  {compatibility.status === 'matched'
+                    ? 'Ready'
+                    : compatibility.status === 'partial'
+                      ? 'Compatible'
+                      : compatibility.status === 'missing'
+                        ? 'Engine Missing'
+                        : 'Unknown'}
                 </span>
                 {p.isFavorite && (
                   <span
@@ -189,7 +226,8 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
                   <span
                     className="flex items-center gap-1 rounded-full px-1.5 py-px text-[9px]"
                     style={{
-                      backgroundColor: 'color-mix(in srgb, var(--color-text-muted) 12%, transparent)',
+                      backgroundColor:
+                        'color-mix(in srgb, var(--color-text-muted) 12%, transparent)',
                       color: 'var(--color-text-secondary)',
                       border: '1px solid color-mix(in srgb, var(--color-border) 80%, transparent)'
                     }}
@@ -213,20 +251,12 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
                 )}
               </div>
             </div>
-            <div
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--color-accent) 14%, transparent)',
-                borderColor: 'color-mix(in srgb, var(--color-accent) 24%, transparent)',
-                color: 'var(--color-accent)'
-              }}
-            >
-              <Play size={13} fill="currentColor" />
-            </div>
           </div>
         </div>
 
         <div className="py-1">
+          <MenuSeparator />
+
           {/* Launch */}
           <MenuCategory label="Launch" />
           <MenuItem

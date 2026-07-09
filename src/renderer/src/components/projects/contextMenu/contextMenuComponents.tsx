@@ -73,7 +73,10 @@ export const MenuItem = ({
   >
     <span className="shrink-0 w-3.5 flex items-center justify-center self-start mt-px">{icon}</span>
     <span className="flex-1 text-left min-w-0">
-      <span className="block text-[11px] leading-tight truncate" style={{ color: danger ? '#f87171' : 'var(--color-text-primary)' }}>
+      <span
+        className="block text-[11px] leading-tight truncate"
+        style={{ color: danger ? '#f87171' : 'var(--color-text-primary)' }}
+      >
         {label}
       </span>
       {sub && (
@@ -146,7 +149,9 @@ export const SubMenuTrigger = ({
       backgroundColor: isOpen
         ? 'color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-card))'
         : 'transparent',
-      borderColor: isOpen ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)' : 'transparent',
+      borderColor: isOpen
+        ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+        : 'transparent',
       width: 'calc(100% - 8px)',
       margin: '0 4px'
     }}

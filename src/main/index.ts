@@ -318,29 +318,34 @@ if (!gotTheLock) {
       return
     }
 
-    // Always start the tracer — it owns the Ctrl+K hotkey and the named pipe.
-    // The tracerStartupEnabled setting only controls the Windows Run registry
-    // entry (whether it auto-starts at login), not whether it runs now.
-    let tracerStartupEnabled = true
+    // Respect user preference: only start the tracer at app startup if the
+    // `tracerStartupEnabled` setting is enabled. Previously we always started
+    // the tracer (regardless of the setting) which forced the background
+    // tracer to run for all users.
+    let tracerStartupEnabled = false
     try {
       tracerStartupEnabled = loadMainSettings().tracerStartupEnabled
     } catch {
-      // If settings can't be read, default to enabled
+      // If settings can't be read, default to disabled
+      tracerStartupEnabled = false
     }
 
     const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
     const KEY_NAME = 'Unreal Launcher Tracer'
 
-    // Only manage the registry Run entry based on user preference
-    if (tracerStartupEnabled) {
-      logger.info('tracer', 'Ensuring tracer startup registry entry')
-      const regProcess = spawn(
-        'reg',
-        ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
-        { stdio: 'ignore' }
-      )
-      childProcesses.push(regProcess)
+    if (!tracerStartupEnabled) {
+      logger.info('tracer', 'Tracer startup disabled by settings — skipping start')
+      return
     }
+
+    // Ensure the registry Run entry is present when the user enabled startup
+    logger.info('tracer', 'Ensuring tracer startup registry entry')
+    const regProcess = spawn(
+      'reg',
+      ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
+      { stdio: 'ignore' }
+    )
+    childProcesses.push(regProcess)
 
     // Check if tracer is already running — async via spawn instead of execSync
     await new Promise<void>((resolve) => {
