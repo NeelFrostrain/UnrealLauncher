@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.3] - 2026-07-09 — `bugfix · rpc`
+
+### 🐛 Fixed
+
+- Fixed Discord Rich Presence not working in packaged builds (`build:win`, `build:unpack`). Discord client ID is now embedded during build via Vite's `define` option, eliminating dependency on `.env` file in production.
+- Dev mode (`npm run dev`) continues to work as before, loading `.env` at runtime.
+
 ## [2.4.2] - 2026-07-09 — `refactor · ui · perf`
 
 ### ❌ Removed
@@ -18,6 +25,27 @@ All notable changes to this project will be documented in this file.
 
 - If you still need page-level entrance/exit animation, prefer CSS transitions or lightweight `requestAnimationFrame`-driven helpers that respect `prefers-reduced-motion`.
 - Next: remove Framer Motion from `package.json` and the lockfile once code references are fully replaced.
+
+## [2.4.1] - 2026-07-09 — `merge · release`
+
+### 🔀 Summary
+
+- Merge of release branch into main: reconciled UI, performance, and packaging fixes.
+- Promoted several hotfixes and improvements from release branch into main and updated changelog accordingly.
+
+### 🛠️ Notable Fixes & Improvements
+
+- **Engine-version filter** — Added 'Unsupported' option and included project-linked versions in the dropdown so projects targeting uninstalled engines remain searchable.
+- **Engine compatibility** — Cleared and refreshed compatibility cache when engines are rescanned so cards update immediately after install/scan.
+- **Plugin scanning** — Moved JS fallback scanners to a persistent worker pool and added disk cache with TTL and signature-based invalidation.
+- **Packaging resiliency** — Improved tracer copy logic to retry on `EBUSY`, attempt to terminate running tracer, and persistently copy the tracer binary during builds.
+- **Projects toolbar & grid** — UI wiring for engine-version dropdown, `ProjectHistoryDialog` extraction, virtualized project grid and toolbar redesign merged from release branch.
+- **Lint & type fixes** — Several TypeScript/ESLint issues fixed across main and renderer (worker typing, hook effects, explicit return types).
+
+### ℹ️ Notes
+
+- A temporary saved engine entry (UE 5.7) was added locally for testing compatibility behavior during the merge — remove it if you prefer only detected installations.
+- Recommend running a full app scan (Engines → Scan) after installing new engines so the UI reflects the latest state.
 
 ## [2.4.0] — `perf · ui · grid`
 

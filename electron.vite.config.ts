@@ -15,7 +15,9 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     define: {
       __DISCORD_STARTUP_WEBHOOK__: JSON.stringify(env.DISCORD_STARTUP_WEBHOOK_URL || ''),
-      __DISCORD_WEBHOOK__: JSON.stringify(env.DISCORD_WEBHOOK_URL || '')
+      __DISCORD_WEBHOOK__: JSON.stringify(env.DISCORD_WEBHOOK_URL || ''),
+      // Embed Discord client ID so it's available in production builds without .env
+      'process.env.DISCORD_CLIENT_ID': JSON.stringify(env.DISCORD_CLIENT_ID || env.VITE_DISCORD_CLIENT_ID || '1507980570725191740')
     },
     build: {
       target: 'node22.20',

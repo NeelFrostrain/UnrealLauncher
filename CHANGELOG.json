@@ -1,8 +1,21 @@
 {
   "project": "Unreal Launcher",
   "versions": [
-    {
-      "version": "2.4.2",
+    {      "version": "2.4.3",
+      "date": "2026-07-09",
+      "tags": ["bugfix", "rpc"],
+      "sections": [
+        {
+          "category": "Fixed",
+          "emoji": "🐛",
+          "items": [
+            "Fixed Discord Rich Presence not working in packaged builds (build:win, build:unpack). Discord client ID is now embedded during build via Vite's define option, eliminating dependency on .env file in production.",
+            "Dev mode (npm run dev) continues to work as before, loading .env at runtime."
+          ]
+        }
+      ]
+    },
+    {      "version": "2.4.2",
       "date": "2026-07-09",
       "tags": ["refactor", "ui", "perf"],
       "sections": [
