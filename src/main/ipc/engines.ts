@@ -65,6 +65,19 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
     clearEnginePluginCache()
   })
 
+  ipcMain_.handle('get-engine-plugin-cache-ttl', (): number => {
+    // lazy import to avoid cycles
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getEnginePluginCacheTTL } = require('./enginePlugins')
+    return getEnginePluginCacheTTL()
+  })
+
+  ipcMain_.handle('set-engine-plugin-cache-ttl', (_event, ms: number) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { setEnginePluginCacheTTL } = require('./enginePlugins')
+    setEnginePluginCacheTTL(Number(ms) || 0)
+  })
+
   ipcMain_.handle('update-engine-alias', (_event, directoryPath: string, alias: string) =>
     handleUpdateEngineAlias(directoryPath, alias)
   )

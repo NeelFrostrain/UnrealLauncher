@@ -100,7 +100,11 @@ export function useProjectLoader({
           const changed: string[] = []
           for (const p of deduped) {
             const key = p.projectPath ?? ''
-            const fingerprint = JSON.stringify({ name: p.name, version: p.version, lastOpenedAt: p.lastOpenedAt })
+            const fingerprint = JSON.stringify({
+              name: p.name,
+              version: p.version,
+              lastOpenedAt: p.lastOpenedAt
+            })
             if (key) {
               nextSnapshot[key] = fingerprint
               if (!prev[key] || prev[key] !== fingerprint) changed.push(key)
@@ -115,7 +119,9 @@ export function useProjectLoader({
             try {
               // Remove size cache entries for changed projects so next size calculation refreshes
               const rawSizeCache = localStorage.getItem('projectSizeCache')
-              const sizeCache = rawSizeCache ? (JSON.parse(rawSizeCache) as Record<string, string>) : {}
+              const sizeCache = rawSizeCache
+                ? (JSON.parse(rawSizeCache) as Record<string, string>)
+                : {}
               let mutated = false
               for (const c of changed) {
                 if (sizeCache[c]) {

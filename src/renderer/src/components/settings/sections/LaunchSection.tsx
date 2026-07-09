@@ -21,8 +21,6 @@ const LaunchSection = ({
   const [showTitlebarButtons, setShowTitlebarButtons] = useState(() =>
     getSetting('showTitlebarButtons')
   )
-  
-
 
   const handleClearLogs = async (): Promise<void> => {
     if (!confirm('Clear all saved app log files?')) return

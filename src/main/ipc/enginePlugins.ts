@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { ensureSaveDir, getSaveDir } from '../store/storePaths'
 import { getNative } from '../utils/native'
+import { createPersistentWorker } from '../workers/pluginPersistentWorker'
 import { logger } from '../logger'
 
 export interface EnginePlugin {
@@ -20,7 +21,7 @@ export interface EnginePlugin {
 const enginePluginCache = new Map<string, { signature: string; plugins: EnginePlugin[] }>()
 
 // On-disk cache for engine plugins to survive restarts and avoid frequent scans.
-const PLUGIN_CACHE_TTL = 1000 * 60 * 60 // 1 hour default TTL
+let pluginCacheTTL = 1000 * 60 * 60 // 1 hour default TTL
 
 function getPluginCachePath(): string {
   try {
@@ -63,6 +64,14 @@ export function clearEnginePluginCache(): void {
   enginePluginCache.clear()
 }
 
+export function getEnginePluginCacheTTL(): number {
+  return pluginCacheTTL
+}
+
+export function setEnginePluginCacheTTL(ms: number): void {
+  if (typeof ms === 'number' && ms > 0) pluginCacheTTL = ms
+}
+
 function getEnginePluginSignature(engineDir: string): string {
   try {
     const pluginsRoot = path.join(engineDir, 'Engine', 'Plugins')
@@ -88,7 +97,7 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
   try {
     const disk = loadPluginCacheFromDisk()
     const entry = disk[cacheKey]
-    if (entry && entry.signature === signature && Date.now() - entry.ts < PLUGIN_CACHE_TTL) {
+    if (entry && entry.signature === signature && Date.now() - entry.ts < pluginCacheTTL) {
       enginePluginCache.set(cacheKey, { signature, plugins: entry.plugins })
       return entry.plugins
     }
@@ -144,9 +153,10 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
  * JavaScript fallback for scanning engine plugins (async, non-blocking)
  * Uses a worker thread to avoid blocking the main thread.
  */
+let _pluginsPersistentWorker: ReturnType<typeof createPersistentWorker> | null = null
+
 function getOrCreatePluginsWorker() {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { Worker } = require('worker_threads')
+  if (_pluginsPersistentWorker) return _pluginsPersistentWorker
   const code = `
     const { parentPort } = require('worker_threads')
     const fs = require('fs'), path = require('path')
@@ -215,24 +225,17 @@ function getOrCreatePluginsWorker() {
     })
   `
 
-  const w = new Worker(code, { eval: true })
-  return w
+  _pluginsPersistentWorker = createPersistentWorker(code)
+  return _pluginsPersistentWorker
 }
 
 async function scanEnginePluginsJS(engineDir: string): Promise<EnginePlugin[]> {
   // persistent worker lifecycle — create, send job, await response, terminate
-  return new Promise<EnginePlugin[]>((resolve, reject) => {
-    const w = getOrCreatePluginsWorker()
-    const reqId = Date.now() ^ Math.floor(Math.random() * 100000)
-    const onMessage = (msg: any) => {
-      if (msg.reqId !== reqId) return
-      w.off('message', onMessage)
-      w.terminate()
-      if (msg.error) return reject(new Error(msg.error))
-      return resolve(msg.plugins || [])
-    }
-    w.on('message', onMessage)
-    w.on('error', (err: Error) => { w.off('message', onMessage); w.terminate(); reject(err) })
-    w.postMessage({ reqId, engineDir })
-  })
+  const worker = getOrCreatePluginsWorker()
+  try {
+    const plugins = await worker.run({ engineDir })
+    return plugins as EnginePlugin[]
+  } catch (err) {
+    throw err
+  }
 }

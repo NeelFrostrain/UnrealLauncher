@@ -97,8 +97,16 @@ if (process.contextIsolated) {
       loadSavedProjects: () => ipcRenderer.invoke('load-saved-projects'),
       scanEnginePlugins: (engineDir: string) =>
         ipcRenderer.invoke('scan-engine-plugins', engineDir),
+      clearEnginePluginCache: () => ipcRenderer.invoke('clear-engine-plugin-cache'),
+      getEnginePluginCacheTTL: () => ipcRenderer.invoke('get-engine-plugin-cache-ttl'),
+      setEnginePluginCacheTTL: (ms: number) =>
+        ipcRenderer.invoke('set-engine-plugin-cache-ttl', ms),
       projectScanPlugins: (projectPath: string) =>
         ipcRenderer.invoke('project-scan-plugins', projectPath),
+      clearProjectPluginCache: () => ipcRenderer.invoke('clear-project-plugin-cache'),
+      getProjectPluginCacheTTL: () => ipcRenderer.invoke('get-project-plugin-cache-ttl'),
+      setProjectPluginCacheTTL: (ms: number) =>
+        ipcRenderer.invoke('set-project-plugin-cache-ttl', ms),
       projectTogglePlugin: (projectPath: string, pluginName: string, enabled: boolean) =>
         ipcRenderer.invoke('project-toggle-plugin', projectPath, pluginName, enabled),
       fabGetDefaultPath: () => ipcRenderer.invoke('fab-get-default-path'),

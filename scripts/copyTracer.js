@@ -61,7 +61,14 @@ async function copyWithRetries(src, dst, attempts = 6, delay = 500) {
   }
 }
 
-const src = path.join(__dirname, '..', 'tracer', 'target', 'release', process.platform === 'win32' ? 'unreal_launcher_tracer.exe' : 'unreal_launcher_tracer')
+const src = path.join(
+  __dirname,
+  '..',
+  'tracer',
+  'target',
+  'release',
+  process.platform === 'win32' ? 'unreal_launcher_tracer.exe' : 'unreal_launcher_tracer'
+)
 const dst = path.join(__dirname, '..', 'resources', path.basename(src))
 
 copyWithRetries(src, dst).catch((e) => console.error(e))

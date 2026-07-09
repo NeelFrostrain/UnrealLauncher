@@ -200,7 +200,13 @@ declare global {
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>
       scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
+      clearEnginePluginCache: () => Promise<void>
+      getEnginePluginCacheTTL: () => Promise<number>
+      setEnginePluginCacheTTL: (ms: number) => Promise<void>
       projectScanPlugins: (projectPath: string) => Promise<ProjectPlugin[]>
+      clearProjectPluginCache: () => Promise<void>
+      getProjectPluginCacheTTL: () => Promise<number>
+      setProjectPluginCacheTTL: (ms: number) => Promise<void>
       projectTogglePlugin: (
         projectPath: string,
         pluginName: string,
