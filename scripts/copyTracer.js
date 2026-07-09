@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/explicit-function-return-type */
 const fs = require('fs')
 const path = require('path')
 
@@ -47,7 +48,7 @@ async function copyWithRetries(src, dst, attempts = 6, delay = 500) {
               /* ignore: no pids or failure */
             }
           }
-        } catch (e) {
+        } catch {
           /* ignore */
         }
         if (i < attempts - 1) {

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type { Project } from '../../types'
+import { getEngineCompatibilitySync } from '../../hooks/useEngineCompatibility'
 
 export const formatVersion = (v: string): string => {
   if (!v || v === 'Unknown') return '?'
@@ -166,6 +167,19 @@ export function filterProjectsByEngineVersion(
   filter: EngineVersionFilter
 ): Project[] {
   if (!filter || filter === 'all') return projects
+
+  if (filter === 'unsupported') {
+    return projects.filter((project) => {
+      const version = normalizeEngineVersion(project.version)
+      if (version === 'unspecified') return false
+      const compat = getEngineCompatibilitySync(project.version || '')
+      if (!compat) {
+        // Engines not loaded yet — conservatively include projects that have a specified version
+        return version !== 'unspecified'
+      }
+      return compat.status === 'missing'
+    })
+  }
 
   return projects.filter((project) => {
     const version = normalizeEngineVersion(project.version)

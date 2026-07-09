@@ -26,6 +26,14 @@ let _loadPromise: Promise<EngineData[]> | null = null
 export function setEnginesCache(engines: EngineData[]): void {
   _engines = engines
   _loadPromise = Promise.resolve(engines) // satisfy pending callers immediately
+  // Clear per-version result cache since engine availability changed
+  _resultCache.clear()
+  try {
+    // Notify any listeners so mounted hooks re-evaluate compatibility immediately
+    window.dispatchEvent(new CustomEvent('engines-updated', { detail: engines }))
+  } catch {
+    /* ignore: non-browser env */
+  }
 }
 
 function loadEnginesOnce(): Promise<EngineData[]> {
@@ -117,10 +125,26 @@ export function useEngineCompatibility(projectVersion: string): EngineCompatibil
       _resultCache.set(projectVersion, r)
       setCompat(r)
     })
+    const listener = (): void => {
+      const r = computeCompatibility(projectVersion, _engines)
+      _resultCache.set(projectVersion, r)
+      setCompat(r)
+    }
+    window.addEventListener('engines-updated', listener)
     return () => {
       cancelled = true
+      window.removeEventListener('engines-updated', listener)
     }
   }, [projectVersion])
 
   return compat
+}
+
+/**
+ * Synchronous compatibility check using the currently-cached engines.
+ * Returns null when the engines cache is not yet populated.
+ */
+export function getEngineCompatibilitySync(version: string): EngineCompatibility | null {
+  if (!_engines.length) return null
+  return computeCompatibility(version, _engines)
 }

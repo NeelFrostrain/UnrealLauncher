@@ -109,17 +109,29 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
   const native = getNative()
   if (native?.scanEnginePlugins) {
     try {
-      const result = native.scanEnginePlugins(engineDir)
-      const plugins = result.map((p: any) => ({
-        name: p.name,
-        path: p.path,
-        description: p.description,
-        version: p.version,
-        category: p.category,
-        isBeta: p.isBeta,
-        isExperimental: p.isExperimental,
+      const result = native.scanEnginePlugins(engineDir) as unknown
+      type NativePlugin = {
+        name?: string
+        path?: string
+        description?: string
+        version?: string
+        category?: string
+        isBeta?: boolean
+        isExperimental?: boolean
+        icon?: string | null
+        createdBy?: string
+      }
+      const arr = Array.isArray(result) ? (result as NativePlugin[]) : []
+      const plugins = arr.map((p) => ({
+        name: p.name || '',
+        path: p.path || '',
+        description: p.description || '',
+        version: p.version || '',
+        category: p.category || 'Other',
+        isBeta: !!p.isBeta,
+        isExperimental: !!p.isExperimental,
         icon: p.icon ?? null,
-        createdBy: p.createdBy
+        createdBy: p.createdBy || ''
       }))
       enginePluginCache.set(cacheKey, { signature, plugins })
       try {
@@ -155,7 +167,7 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
  */
 let _pluginsPersistentWorker: ReturnType<typeof createPersistentWorker> | null = null
 
-function getOrCreatePluginsWorker() {
+function getOrCreatePluginsWorker(): ReturnType<typeof createPersistentWorker> {
   if (_pluginsPersistentWorker) return _pluginsPersistentWorker
   const code = `
     const { parentPort } = require('worker_threads')
@@ -232,10 +244,6 @@ function getOrCreatePluginsWorker() {
 async function scanEnginePluginsJS(engineDir: string): Promise<EnginePlugin[]> {
   // persistent worker lifecycle — create, send job, await response, terminate
   const worker = getOrCreatePluginsWorker()
-  try {
-    const plugins = await worker.run({ engineDir })
-    return plugins as EnginePlugin[]
-  } catch (err) {
-    throw err
-  }
+  const plugins = await worker.run({ engineDir })
+  return plugins as EnginePlugin[]
 }

@@ -61,7 +61,7 @@ import { createPersistentWorker } from '../workers/pluginPersistentWorker'
 
 let _projectPluginsWorker: ReturnType<typeof createPersistentWorker> | null = null
 
-function getOrCreateProjectPluginsWorker() {
+function getOrCreateProjectPluginsWorker(): ReturnType<typeof createPersistentWorker> {
   if (_projectPluginsWorker) return _projectPluginsWorker
   const code = `
     const { parentPort } = require('worker_threads')
@@ -145,12 +145,8 @@ function getOrCreateProjectPluginsWorker() {
 
 async function scanProjectPluginsJS(projectPath: string): Promise<ProjectPlugin[]> {
   const worker = getOrCreateProjectPluginsWorker()
-  try {
-    const plugins = await worker.run({ projectPath })
-    return plugins as ProjectPlugin[]
-  } catch (err) {
-    throw err
-  }
+  const plugins = await worker.run({ projectPath })
+  return plugins as ProjectPlugin[]
 }
 
 function getProjectPluginSignature(projectPath: string): string {

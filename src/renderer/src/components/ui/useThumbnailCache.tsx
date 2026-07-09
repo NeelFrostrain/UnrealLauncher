@@ -4,11 +4,10 @@ import { useEffect, useState } from 'react'
 // Stores results in localStorage under `thumbCache:<key>` where key is the source path.
 
 export function useThumbnailCache(src: string | undefined, cacheKey?: string): string | undefined {
-  const [url, setUrl] = useState<string | undefined>(src)
+  const [url, setUrl] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     if (!src) {
-      setUrl(undefined)
       return
     }
 
@@ -16,7 +15,8 @@ export function useThumbnailCache(src: string | undefined, cacheKey?: string): s
     try {
       const cached = localStorage.getItem(key)
       if (cached) {
-        setUrl(cached)
+        // schedule setState asynchronously to avoid cascading renders inside effect
+        Promise.resolve().then(() => setUrl(cached))
         return
       }
     } catch {

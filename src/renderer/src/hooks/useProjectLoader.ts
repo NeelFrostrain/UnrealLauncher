@@ -244,7 +244,7 @@ export function useProjectLoader({
     const pending = new Map<string, string>()
     let flushTimer: ReturnType<typeof setTimeout> | null = null
 
-    const scheduleFlush = () => {
+    const scheduleFlush = (): void => {
       if (flushTimer) return
       flushTimer = setTimeout(() => {
         if (pending.size > 0) {
