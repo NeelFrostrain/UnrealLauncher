@@ -77,11 +77,25 @@ fn spawn_hotkey_thread() {
         }
 
         thread::spawn(move || {
+            let log_path = std::env::temp_dir().join("unreal_launcher_hotkey_debug.log");
+
             unsafe {
                 let hmod = GetModuleHandleW(None).unwrap_or_default();
                 let hook = match SetWindowsHookExW(WH_KEYBOARD_LL, Some(ll_hook), hmod, 0) {
-                    Ok(h) => h,
-                    Err(_) => return,
+                    Ok(h) => {
+                        if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open(&log_path) {
+                            let _ = writeln!(f, "[{}] Hook installed OK ({:?})",
+                                chrono::Utc::now().format("%H:%M:%S"), h.0);
+                        }
+                        h
+                    }
+                    Err(e) => {
+                        if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open(&log_path) {
+                            let _ = writeln!(f, "[{}] Hook install FAILED: {}",
+                                chrono::Utc::now().format("%H:%M:%S"), e);
+                        }
+                        return;
+                    }
                 };
 
                 let mut msg = MSG::default();

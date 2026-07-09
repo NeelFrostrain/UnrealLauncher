@@ -13,16 +13,46 @@ export interface ProjectPlugin {
   enabled: boolean
 }
 
+const projectPluginCache = new Map<string, { signature: string; plugins: ProjectPlugin[] }>()
+
+function getProjectPluginSignature(projectPath: string): string {
+  try {
+    let uprojectMtime = 0
+    const files = fs.readdirSync(projectPath)
+    const uprojectFile = files.find((f) => f.endsWith('.uproject'))
+    if (uprojectFile) {
+      uprojectMtime = fs.statSync(path.join(projectPath, uprojectFile)).mtimeMs
+    }
+
+    const pluginsDir = path.join(projectPath, 'Plugins')
+    const pluginsMtime = fs.existsSync(pluginsDir) ? fs.statSync(pluginsDir).mtimeMs : 0
+    return `${uprojectMtime}:${pluginsMtime}`
+  } catch {
+    return `${Date.now()}`
+  }
+}
+
 export async function scanProjectPlugins(projectPath: string): Promise<ProjectPlugin[]> {
+  const cacheKey = path.normalize(projectPath).toLowerCase()
+  const signature = getProjectPluginSignature(projectPath)
+  const cached = projectPluginCache.get(cacheKey)
+  if (cached && cached.signature === signature) {
+    return cached.plugins
+  }
+
   // projectPath may be a folder OR a direct .uproject file path
   let uprojectFile = projectPath
   if (!projectPath.endsWith('.uproject')) {
     try {
       const files = fs.readdirSync(projectPath)
       const found = files.find((f) => f.endsWith('.uproject'))
-      if (!found) return []
+      if (!found) {
+        projectPluginCache.set(cacheKey, { signature, plugins: [] })
+        return []
+      }
       uprojectFile = path.join(projectPath, found)
     } catch {
+      projectPluginCache.set(cacheKey, { signature, plugins: [] })
       return []
     }
   }
@@ -115,6 +145,7 @@ export async function scanProjectPlugins(projectPath: string): Promise<ProjectPl
   }
 
   plugins.sort((a, b) => a.name.localeCompare(b.name))
+  projectPluginCache.set(cacheKey, { signature, plugins })
   return plugins
 }
 
@@ -157,6 +188,7 @@ export async function toggleProjectPlugin(
     }
 
     fs.writeFileSync(uprojectFile, JSON.stringify(uprojectData, null, 2), 'utf8')
+    projectPluginCache.delete(path.normalize(projectPath).toLowerCase())
     return { success: true }
   } catch (error) {
     console.error('Failed to toggle project plugin:', error)

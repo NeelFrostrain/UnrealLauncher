@@ -1,7 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
   Save,
@@ -146,16 +145,12 @@ export default function ProjectFileEditorDialog({
   const iconColor = mode === 'config' ? '#94a3b8' : 'var(--color-accent)'
 
   return createPortal(
-    <motion.div
+    <div
       className="fixed inset-0 z-10002 flex items-center justify-center p-6"
       style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(6px)' }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !isDirty) onClose()
-      }}
+      onClick={(e) => { if (e.target === e.currentTarget && !isDirty) onClose() }}
     >
-      <motion.div
+      <div
         ref={dialogRef}
         className="flex flex-col w-full max-w-3xl"
         style={{
@@ -165,9 +160,6 @@ export default function ProjectFileEditorDialog({
           borderRadius: 'var(--radius)',
           boxShadow: '0 32px 96px rgba(0,0,0,0.7)'
         }}
-        initial={{ scale: 0.96, y: 16 }}
-        animate={{ scale: 1, y: 0 }}
-        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -276,19 +268,11 @@ export default function ProjectFileEditorDialog({
         )}
 
         {/* Find bar */}
-        <AnimatePresence>
-          {find.open && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="shrink-0 overflow-hidden"
-              style={{
-                borderBottom: '1px solid var(--color-border)',
-                backgroundColor: 'var(--color-surface-elevated)'
-              }}
-            >
+        {find.open && (
+          <div
+            className="shrink-0 overflow-hidden transition-all"
+            style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-elevated)' }}
+          >
               <div className="px-3 py-2 flex flex-col gap-1.5">
                 <div className="flex items-center gap-2">
                   <Search size={12} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
@@ -378,15 +362,8 @@ export default function ProjectFileEditorDialog({
                     <X size={12} />
                   </button>
                 </div>
-                <AnimatePresence>
                   {find.showReplace && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.12 }}
-                      className="flex items-center gap-2 overflow-hidden"
-                    >
+                    <div className="flex items-center gap-2 overflow-hidden">
                       <Replace
                         size={12}
                         style={{ color: 'var(--color-text-muted)', flexShrink: 0 }}
@@ -429,13 +406,11 @@ export default function ProjectFileEditorDialog({
                       >
                         Replace All
                       </button>
-                    </motion.div>
+                    </div>
                   )}
-                </AnimatePresence>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          </div>
+        )}
 
         {/* Body */}
         <div className="flex-1 overflow-hidden flex flex-col" style={{ minHeight: 0 }}>
@@ -535,8 +510,8 @@ export default function ProjectFileEditorDialog({
             )}
           </button>
         </div>
-      </motion.div>
-    </motion.div>,
+      </div>
+    </div>,
     document.body
   )
 }

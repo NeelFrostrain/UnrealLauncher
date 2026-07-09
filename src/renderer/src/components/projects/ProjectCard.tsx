@@ -1,6 +1,5 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { memo } from 'react'
-import { motion } from 'framer-motion'
 import type { Project } from '../../types'
 import { Play, Gamepad2, MoreVertical, Clock, Database, GitBranch } from 'lucide-react'
 import { formatVersion, formatDate } from './projectUtils'
@@ -24,8 +23,6 @@ const ProjectCard = memo(
     isHidden,
     // Use a per-project thumbnailKey so only cards with changed thumbnails re-render
     thumbnailKey,
-    // Index used to limit entrance animations to the first few cards
-    index,
     onToggleFavorite,
     onLaunch,
     onOpenDir,
@@ -40,7 +37,6 @@ const ProjectCard = memo(
     onOpenDir: (p: string) => void
     onHide: (p: string) => void
   }) => {
-    // Removed scanEpoch here; git status cache handles invalidation
     const state = useProjectCardState(projectPath)
     const handlers = useProjectCardHandlers(
       projectPath,
@@ -60,17 +56,13 @@ const ProjectCard = memo(
 
     return (
       <>
-        <motion.div
+        <div
           className="w-full"
           style={{
             backgroundColor: 'var(--color-surface-card)',
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius)'
           }}
-          // Only animate the first 8 cards to avoid many simultaneous animations
-          initial={index !== undefined && index < 8 ? { opacity: 0, y: 8 } : false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
           onContextMenu={handlers.handleContextMenu}
         >
           <div className="flex items-center gap-3 px-3 py-2.5">
@@ -84,7 +76,13 @@ const ProjectCard = memo(
               }}
             >
               {imageSrc ? (
-                <img src={imageSrc} alt={displayName} className="w-full h-full object-cover" />
+                <img
+                  src={imageSrc}
+                  alt={displayName}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <span className="text-2xl font-black" style={{ color: 'var(--color-border)' }}>
                   {displayName.charAt(0).toUpperCase()}
@@ -153,9 +151,7 @@ const ProjectCard = memo(
               className="shrink-0 flex items-center gap-2 pl-3"
               style={{ borderLeft: '1px solid var(--color-border)' }}
             >
-              <motion.button
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
+              <button
                 onClick={handlers.handleLaunchGame}
                 className="flex items-center p-1.5 cursor-pointer"
                 style={{
@@ -168,11 +164,9 @@ const ProjectCard = memo(
                 aria-label="Launch as Game"
               >
                 <Gamepad2 size={14} />
-              </motion.button>
+              </button>
 
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={handlers.handleClick}
                 disabled={state.launching}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold cursor-pointer disabled:opacity-60"
@@ -187,12 +181,10 @@ const ProjectCard = memo(
               >
                 <Play size={13} className={state.launching ? 'animate-pulse' : ''} />
                 {state.launching ? 'Launching…' : 'Launch'}
-              </motion.button>
+              </button>
 
               {/* ⋮ button — opens the same context menu as right-click */}
-              <motion.button
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.92 }}
+              <button
                 onClick={(e) => {
                   e.stopPropagation()
                   const rect = e.currentTarget.getBoundingClientRect()
@@ -210,10 +202,10 @@ const ProjectCard = memo(
                 aria-haspopup="menu"
               >
                 <MoreVertical size={16} />
-              </motion.button>
+              </button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Same full dialog set as the grid card */}
         <ProjectCardDialogs

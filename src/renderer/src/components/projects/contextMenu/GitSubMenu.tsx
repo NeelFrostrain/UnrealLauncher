@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { motion } from 'framer-motion'
 import { GitMerge, GitBranch, FileText, Database, GitCommit, Globe, Copy } from 'lucide-react'
 import { useToast } from '../../ui/ToastContext'
 import { MenuItem, MenuSeparator, MENU_STYLE } from './contextMenuComponents'
@@ -66,7 +65,7 @@ export const GitSubMenu = ({
   }, [projectPath, addToast])
 
   return createPortal(
-    <motion.div
+    <div
       ref={subRef}
       data-menu-panel
       role="menu"
@@ -75,10 +74,6 @@ export const GitSubMenu = ({
       style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 250 }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      initial={{ opacity: 0, x: -6 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -6 }}
-      transition={{ duration: 0.1 }}
     >
       <div className="py-1">
         {/* Repo init — only show when not yet initialized */}
@@ -173,7 +168,7 @@ export const GitSubMenu = ({
           </>
         )}
       </div>
-    </motion.div>,
+    </div>,
     document.body
   )
 }

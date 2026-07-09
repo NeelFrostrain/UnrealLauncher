@@ -49,6 +49,13 @@ const EnginesPage = (): React.ReactElement => {
 
       setLoading(true)
       try {
+        const savedEngines = await window.electronAPI.loadSavedEngines()
+        if (savedEngines.length > 0) {
+          setEngines(savedEngines)
+          setEnginesCache(savedEngines)
+          setLoading(false)
+        }
+
         const engines = await window.electronAPI.scanEngines()
         setEngines(engines)
         // Keep the compatibility badge cache in sync — free since data is already loaded

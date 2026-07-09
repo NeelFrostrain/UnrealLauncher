@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
 import {
   X,
@@ -52,16 +51,12 @@ export default function GitBranchDialog({
   } = useGitBranchState(projectPath, currentBranch, onClose, onBranchChanged)
 
   return createPortal(
-    <motion.div
+    <div
       className="fixed inset-0 z-10001 flex items-center justify-center p-6"
       style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <motion.div
+      <div
         ref={dialogRef}
         className="flex flex-col w-full max-w-md"
         style={{
@@ -72,9 +67,6 @@ export default function GitBranchDialog({
           maxHeight: '72vh',
           minHeight: 0
         }}
-        initial={{ scale: 0.96, y: 12 }}
-        animate={{ scale: 1, y: 0 }}
-        transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Header */}
         <div
@@ -125,16 +117,9 @@ export default function GitBranchDialog({
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-4 py-3" style={{ minHeight: 0 }}>
-          <AnimatePresence mode="wait">
-            {/* ── Conflict panel ── */}
+          <>
             {conflict ? (
-              <motion.div
-                key="conflict"
-                initial={{ opacity: 0, x: 16 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -16 }}
-                transition={{ duration: 0.15 }}
-              >
+              <div key="conflict">
                 <div
                   className="mb-4 p-3 rounded"
                   style={{
@@ -247,16 +232,9 @@ export default function GitBranchDialog({
                     </div>
                   </button>
                 </div>
-              </motion.div>
+              </div>
             ) : (
-              /* ── Branch list ── */
-              <motion.div
-                key="list"
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 16 }}
-                transition={{ duration: 0.15 }}
-              >
+              <div key="list">
                 {loading ? (
                   <div
                     className="flex items-center justify-center py-10 gap-2"
@@ -393,9 +371,9 @@ export default function GitBranchDialog({
                     </div>
                   </>
                 )}
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          </>
         </div>
 
         {/* Footer */}
@@ -428,8 +406,8 @@ export default function GitBranchDialog({
             Close
           </button>
         </div>
-      </motion.div>
-    </motion.div>,
+      </div>
+    </div>,
     document.body
   )
 }

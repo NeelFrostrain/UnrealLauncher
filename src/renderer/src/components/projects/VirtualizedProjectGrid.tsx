@@ -12,7 +12,7 @@ interface VirtualizedProjectGridProps {
 }
 
 const CARD_WIDTH = 212 // 200px card + 12px gap
-const CARD_HEIGHT = 212 // 200px card + 12px gap
+const CARD_HEIGHT = 180 // 200px card + 12px gap
 const BUFFER_SIZE = 3 // Extra rows to render outside viewport
 
 export const VirtualizedProjectGrid = ({
@@ -68,7 +68,6 @@ export const VirtualizedProjectGrid = ({
     []
   )
 
-  // Render only visible items
   const visibleItems: React.ReactElement[] = []
   for (let row = firstVisibleRow; row < Math.min(lastVisibleRow, rowCount); row++) {
     for (let col = 0; col < columnCount; col++) {
@@ -78,15 +77,18 @@ export const VirtualizedProjectGrid = ({
       const item = items[index]
       if (!item?.projectPath) continue
 
+      // Distribute cards evenly across the full container width
+      const colWidthPct = 100 / columnCount
+
       visibleItems.push(
         <div
           key={`${item.projectPath}-${index}`}
           style={{
             position: 'absolute',
-            left: col * CARD_WIDTH,
+            left: `${col * colWidthPct}%`,
             top: row * CARD_HEIGHT,
-            width: 200,
-            height: 200,
+            width: `${colWidthPct}%`,
+            height: CARD_HEIGHT,
             padding: 6
           }}
         >
@@ -111,19 +113,16 @@ export const VirtualizedProjectGrid = ({
       ref={containerRef}
       onScroll={handleScroll}
       className="relative overflow-y-auto h-full"
-      style={{
-        width: '100%'
-      }}
+      style={{ width: '100%' }}
     >
-      {/* Virtual container for scrollbar and layout */}
+      {/* Virtual container — full width so cards spread evenly across the row */}
       <div
         style={{
           position: 'relative',
-          width: columnCount * CARD_WIDTH,
+          width: '100%',
           height: rowCount * CARD_HEIGHT
         }}
       >
-        {/* Rendered items positioned absolutely */}
         {visibleItems}
       </div>
     </div>

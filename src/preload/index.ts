@@ -7,6 +7,7 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('electronAPI', {
       scanEngines: () => ipcRenderer.invoke('scan-engines'),
+      loadSavedEngines: () => ipcRenderer.invoke('load-saved-engines'),
       scanProjects: () => ipcRenderer.invoke('scan-projects'),
       launchEngine: (exePath) => ipcRenderer.invoke('launch-engine', exePath),
       launchProject: (projectPath) => ipcRenderer.invoke('launch-project', projectPath),

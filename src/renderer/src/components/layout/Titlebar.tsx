@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState } from 'react'
 import { Minus, Square, Minimize2, X, MessageSquarePlus, MessageCircle } from 'lucide-react'
-import { AnimatePresence } from 'framer-motion'
 import FeedbackDialog from './FeedbackDialog'
 import { getSetting } from '../../utils/settings'
 import { usePageVisibility } from '../../hooks/usePageVisibility'
@@ -177,9 +176,9 @@ const Titlebar = (): React.ReactElement => {
         </div>
       </div>
 
-      <AnimatePresence>
-        {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
-      </AnimatePresence>
+      <>
+      {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
+    </>
     </>
   )
 }

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { motion } from 'framer-motion'
 import { FolderOpen, Terminal, ExternalLink, Copy } from 'lucide-react'
 import { useToast } from '../../ui/ToastContext'
 import { MenuItem, MenuSeparator, MENU_STYLE } from './contextMenuComponents'
@@ -37,7 +36,7 @@ export const OrganizeSubMenu = ({
   const { addToast } = useToast()
 
   return createPortal(
-    <motion.div
+    <div
       ref={subRef}
       data-menu-panel
       role="menu"
@@ -46,10 +45,6 @@ export const OrganizeSubMenu = ({
       style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 230 }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      initial={{ opacity: 0, x: -6 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -6 }}
-      transition={{ duration: 0.1 }}
     >
       <div className="py-1">
         <MenuItem
@@ -92,7 +87,7 @@ export const OrganizeSubMenu = ({
           onClose={onClose}
         />
       </div>
-    </motion.div>,
+    </div>,
     document.body
   )
 }

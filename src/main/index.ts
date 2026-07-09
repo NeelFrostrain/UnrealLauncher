@@ -12,6 +12,7 @@ import { setupAutoUpdaterEvents, checkForUpdatesOnStartup } from './updater'
 import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
 import { loadMainSettings, loadProjects, loadEngines } from './store'
 import { getNative } from './utils/native'
+import { getThumbnailCacheRoot } from './utils/thumbnailCache'
 import { setupDiscordRichPresence } from './discordPresence'
 import { initializeLogging, logger } from './logger'
 import { getSystemInfo, createSystemInfoEmbed } from './utils/systemInfo'
@@ -223,7 +224,8 @@ if (!gotTheLock) {
 
         const allowedDirs = [
           path.resolve(path.join(app.getAppPath(), 'resources')),
-          path.resolve(path.join(app.getAppPath(), 'out', 'renderer'))
+          path.resolve(path.join(app.getAppPath(), 'out', 'renderer')),
+          path.resolve(getThumbnailCacheRoot())
         ].map((p) => p.replace(/\\/g, '/').toLowerCase())
 
         // Check if path is in allowed app directories

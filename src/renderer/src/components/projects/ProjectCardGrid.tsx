@@ -1,6 +1,5 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { memo, useCallback } from 'react'
-import { motion } from 'framer-motion'
 import type { Project } from '../../types'
 import { resolveAsset, toLocalAssetUrl } from '../../utils/resolveAsset'
 import { useProjectCardState } from './card/projectCardState'
@@ -21,8 +20,6 @@ const ProjectCardGrid = memo(
     isHidden,
     // Use a per-project thumbnailKey so only cards with changed thumbnails re-render
     thumbnailKey,
-    // Index used to limit entrance animations to the first few cards
-    index,
     onToggleFavorite,
     onLaunch,
     onOpenDir,
@@ -37,7 +34,6 @@ const ProjectCardGrid = memo(
     onOpenDir: (p: string) => void
     onHide: (p: string) => void
   }) => {
-    // Removed scanEpoch; git status cache handles invalidation
     const state = useProjectCardState(projectPath)
     const handlers = useProjectCardHandlers(
       projectPath,
@@ -58,21 +54,16 @@ const ProjectCardGrid = memo(
 
     return (
       <>
-        <motion.div
-          className="relative w-full h-48 overflow-hidden cursor-pointer select-none border-2"
+        <div
+          className="relative w-full h-full overflow-hidden cursor-pointer select-none border-2"
           style={{
             borderRadius: 'var(--radius)',
             backgroundColor: 'var(--color-surface-card)',
             borderColor: state.hovered ? 'var(--color-accent)' : 'transparent',
             transition: 'border-color 150ms ease'
           }}
-          // Only animate the first 8 cards to reduce simultaneous animations
-          initial={index !== undefined && index < 8 ? { opacity: 0, y: 12 } : false}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -2 }}
-          transition={{ duration: 0.22, ease: 'easeOut' }}
-          onHoverStart={() => state.setHovered(true)}
-          onHoverEnd={() => state.setHovered(false)}
+          onMouseEnter={() => state.setHovered(true)}
+          onMouseLeave={() => state.setHovered(false)}
           onClick={handlers.handleClick}
           onContextMenu={handlers.handleContextMenu}
         >
@@ -89,7 +80,7 @@ const ProjectCardGrid = memo(
             launching={state.launching}
             onImageError={handleImageError}
           />
-        </motion.div>
+        </div>
 
         <ProjectCardDialogs
           ctxMenu={state.ctxMenu}

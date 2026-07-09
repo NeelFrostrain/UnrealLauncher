@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { motion } from 'framer-motion'
 import {
   X,
   RefreshCw,
@@ -62,16 +61,12 @@ export default function ProjectLogDialog({
   } = useProjectLogState(projectPath, onClose)
 
   return createPortal(
-    <motion.div
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(6px)' }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <motion.div
+      <div
         ref={dialogRef}
         className="flex flex-col w-full"
         style={{
@@ -82,9 +77,6 @@ export default function ProjectLogDialog({
           borderRadius: 'var(--radius)',
           boxShadow: '0 32px 96px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04)'
         }}
-        initial={{ scale: 0.96, y: 16 }}
-        animate={{ scale: 1, y: 0 }}
-        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* ── Title bar ── */}
         <div
@@ -414,8 +406,8 @@ export default function ProjectLogDialog({
             <span>Esc to close</span>
           </div>
         </div>
-      </motion.div>
-    </motion.div>,
+      </div>
+    </div>,
     document.body
   )
 }

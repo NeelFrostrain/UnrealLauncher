@@ -17,16 +17,34 @@ interface EnginePlugin {
   createdBy: string
 }
 
+const enginePluginCache = new Map<string, { signature: string; plugins: EnginePlugin[] }>()
+
+function getEnginePluginSignature(engineDir: string): string {
+  try {
+    const pluginsRoot = path.join(engineDir, 'Engine', 'Plugins')
+    return fs.existsSync(pluginsRoot) ? String(fs.statSync(pluginsRoot).mtimeMs) : 'missing'
+  } catch {
+    return `${Date.now()}`
+  }
+}
+
 /**
  * Scans engine plugins using native module or JS fallback (async, non-blocking)
  */
 export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin[]> {
+  const cacheKey = path.normalize(engineDir).toLowerCase()
+  const signature = getEnginePluginSignature(engineDir)
+  const cached = enginePluginCache.get(cacheKey)
+  if (cached && cached.signature === signature) {
+    return cached.plugins
+  }
+
   // Try native Rust module first (fast, parallel I/O)
   const native = getNative()
   if (native?.scanEnginePlugins) {
     try {
       const result = native.scanEnginePlugins(engineDir)
-      return result.map((p) => ({
+      const plugins = result.map((p) => ({
         name: p.name,
         path: p.path,
         description: p.description,
@@ -37,6 +55,8 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
         icon: p.icon ?? null,
         createdBy: p.createdBy
       }))
+      enginePluginCache.set(cacheKey, { signature, plugins })
+      return plugins
     } catch (error) {
       logger.warn('engine-plugins', 'Native plugin scan failed, falling back to JS', { error })
       /* fall through to JS implementation */
@@ -44,7 +64,9 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
   }
 
   // JS fallback — same logic as the Rust implementation (async to avoid blocking)
-  return scanEnginePluginsJS(engineDir)
+  const plugins = await scanEnginePluginsJS(engineDir)
+  enginePluginCache.set(cacheKey, { signature, plugins })
+  return plugins
 }
 
 /**

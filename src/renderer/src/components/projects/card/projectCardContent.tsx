@@ -1,5 +1,4 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { motion, AnimatePresence } from 'framer-motion'
 import { Clock, Database, GitBranch } from 'lucide-react'
 import { formatVersion, formatDate } from '../projectUtils'
 
@@ -42,6 +41,8 @@ export function ProjectCardContent({
       <img
         src={imageSrc}
         alt={displayName}
+        loading="lazy"
+        decoding="async"
         className="absolute inset-0 w-full h-full object-cover bg-center"
         style={{
           transform: hovered ? 'scale(1.04)' : 'scale(1)',
@@ -83,44 +84,39 @@ export function ProjectCardContent({
       </div>
 
       {/* Launching overlay */}
-      <AnimatePresence>
-        {launching && (
-          <motion.div
-            className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div
-              className="w-8 h-8 rounded-full border-2 animate-spin mb-2"
-              style={{
-                borderColor: 'color-mix(in srgb, var(--color-accent) 30%, transparent)',
-                borderTopColor: 'var(--color-accent)'
-              }}
-            />
-            <p className="text-xs tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
-              Launching…
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div
+        className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm"
+        style={{
+          opacity: launching ? 1 : 0,
+          pointerEvents: launching ? 'auto' : 'none',
+          transition: 'opacity 0.15s ease'
+        }}
+      >
+        <div
+          className="w-8 h-8 rounded-full border-2 animate-spin mb-2"
+          style={{
+            borderColor: 'color-mix(in srgb, var(--color-accent) 30%, transparent)',
+            borderTopColor: 'var(--color-accent)'
+          }}
+        />
+        <p className="text-xs tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
+          Launching…
+        </p>
+      </div>
 
       {/* Hover overlay */}
-      <AnimatePresence>
-        {hovered && !launching && (
-          <motion.div
-            className="absolute bottom-0 inset-x-0 z-20 flex items-center justify-between px-3 gap-2 py-3 bg-linear-to-t from-black/85 to-transparent"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-          >
-            <p className="w-full text-center text-xs opacity-60">
-              L-Click: Launch | R-Click: Options
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div
+        className="absolute bottom-0 inset-x-0 z-20 flex items-center justify-between px-3 gap-2 py-3 bg-linear-to-t from-black/85 to-transparent"
+        style={{
+          opacity: hovered && !launching ? 1 : 0,
+          transform: hovered && !launching ? 'translateY(0)' : 'translateY(16px)',
+          transition: 'opacity 0.18s ease, transform 0.18s ease'
+        }}
+      >
+        <p className="w-full text-center text-xs opacity-60">
+          L-Click: Launch | R-Click: Options
+        </p>
+      </div>
 
       {/* Bottom info */}
       <div

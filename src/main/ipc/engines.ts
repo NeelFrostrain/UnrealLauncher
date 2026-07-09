@@ -9,7 +9,8 @@ import {
   calculateEngineSize,
   scanAndMergeEngines,
   scanEnginePlugins,
-  handleUpdateEngineAlias
+  handleUpdateEngineAlias,
+  loadSavedEngines
 } from './engineHandlers'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
 
@@ -18,6 +19,8 @@ import type { LaunchConfig } from '../utils/launchConfigArgs'
  */
 export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('scan-engines', scanAndMergeEngines)
+
+  ipcMain_.handle('load-saved-engines', loadSavedEngines)
 
   ipcMain_.handle('select-engine-folder', handleSelectEngineFolder)
 

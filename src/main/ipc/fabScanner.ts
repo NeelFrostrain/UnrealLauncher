@@ -6,6 +6,7 @@ import { createFabAsset, type FabAsset } from '../utils/fabAssetDetection'
 import { loadMainSettings } from '../store'
 
 const SKIP_FOLDERS = new Set(['FabLibrary', 'Manifests', '.cache', 'temp', 'Temp'])
+const fabScanCache = new Map<string, { mtimeMs: number; assets: FabAsset[] }>()
 
 /**
  * Gets default FAB cache paths for the current platform
@@ -30,6 +31,16 @@ export async function scanFabFolder(rootDir: string): Promise<FabAsset[]> {
     await fsPromises.access(rootDir)
   } catch {
     return assets
+  }
+
+  const cacheKey = path.normalize(rootDir).toLowerCase()
+  let rootMtime = 0
+  try {
+    rootMtime = fs.statSync(rootDir).mtimeMs
+    const cached = fabScanCache.get(cacheKey)
+    if (cached && cached.mtimeMs === rootMtime) return cached.assets
+  } catch {
+    /* continue without cache */
   }
 
   const settings = loadMainSettings()
@@ -86,5 +97,7 @@ export async function scanFabFolder(rootDir: string): Promise<FabAsset[]> {
 
   await traverse(rootDir)
 
-  return assets.sort((a, b) => a.name.localeCompare(b.name))
+  const sorted = assets.sort((a, b) => a.name.localeCompare(b.name))
+  if (rootMtime) fabScanCache.set(cacheKey, { mtimeMs: rootMtime, assets: sorted })
+  return sorted
 }

@@ -123,6 +123,7 @@ declare global {
     electronAPI: {
       // Engines
       scanEngines: () => Promise<EngineData[]>
+      loadSavedEngines: () => Promise<EngineData[]>
       launchEngine: (exePath: string) => Promise<{ success: boolean; error?: string }>
       selectEngineFolder: () => Promise<EngineSelectionResult | null>
       deleteEngine: (directoryPath: string) => Promise<boolean>
