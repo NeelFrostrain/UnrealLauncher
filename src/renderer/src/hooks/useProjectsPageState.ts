@@ -155,7 +155,9 @@ export function useProjectsPageState() {
         { value: 'unsupported', label: 'Unsupported' }
       ] as Array<{ value: string; label: string }>
       const extrasArr = [...extras].filter((v) => !base.has(v))
-      extrasArr.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
+      extrasArr.sort((a, b) =>
+        a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+      )
       for (const v of extrasArr) merged.push({ value: v, label: formatVersion(v) })
       setEngineVersionOptions(merged)
     } catch {
