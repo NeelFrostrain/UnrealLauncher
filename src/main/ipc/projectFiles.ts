@@ -110,7 +110,13 @@ export async function handleProjectGenerateFiles(
   else if (process.platform !== 'win32' && fs.existsSync(scriptUnix)) script = scriptUnix
   if (script) {
     try {
-      spawn(script, [], { cwd: safeProjectPath, detached: true, stdio: 'ignore' }).unref()
+      spawn(script, [], {
+        cwd: safeProjectPath,
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true,
+        shell: false // Prevent shell window creation
+      }).unref()
       return { success: true }
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }

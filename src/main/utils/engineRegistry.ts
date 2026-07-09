@@ -37,7 +37,8 @@ function regQuery(key: string, extra: string[] = []): Promise<string> {
     let out = ''
     const proc = spawn('reg', ['query', key, ...extra], {
       stdio: ['ignore', 'pipe', 'ignore'],
-      windowsHide: true
+      windowsHide: true,
+      shell: false // Prevent shell window creation
     })
     proc.stdout?.on('data', (d: Buffer) => {
       out += d.toString()

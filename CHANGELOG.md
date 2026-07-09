@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.6] - 2026-07-09 — `bugfix · ux · startup`
+
+### 🐛 Fixed
+
+- Fixed terminal/PowerShell window flickering during app startup by comprehensively addressing all command execution sources - added `shell: false` to 15+ JavaScript spawn/execFile calls, implemented CREATE_NO_WINDOW flags in Rust native module, and restructured startup sequence with strategic delays.
+- Fixed immediate Discord Rich Presence initialization causing early process detection by moving setup from pre-ready phase to 7 seconds after window creation, with additional 2-second delay before first presence update.
+- Fixed Rust native module `wmic` and `tasklist` commands showing console windows by adding Windows-specific `creation_flags(0x08000000)` (CREATE_NO_WINDOW) to all Command executions in `find_running_unreal_projects_windows()`.
+- Fixed tracer startup sequence by increasing delay to 5 seconds and adding 500ms spacing between registry operations and process checking to prevent rapid command execution overlap.
+- Fixed system information collection and Discord webhook notifications by delaying to 8 seconds after app initialization, ensuring no conflict with other startup operations.
+- Fixed all remaining spawn calls across engine launching, project operations, terminal handling, file operations, and process utilities by adding consistent `shell: false` and `windowsHide: true` options.
+
+## [2.4.5] - 2026-07-09 — `bugfix · ux · perf`
+
+### 🐛 Fixed
+
+- Fixed **ALL** unwanted terminal/PowerShell windows appearing when running the packaged exe. Added `windowsHide: true` to every process spawn call across 6 files: `index.ts` (tracer registry, process detection), `engineLaunching.ts`, `projectFiles.ts`, `projectLaunching.ts`, `projectTerminal.ts` (Windows Terminal, cmd, macOS Terminal, Linux terminals), and `processUtils.ts` (file/directory opening). Every system call now runs silently.
+- Fixed module resolution error for engine plugin cache handlers by removing dynamic `require()` calls and using static ES6 imports in `engines.ts`.
+- Reduced Discord RPC polling frequency from 10 seconds to 30 seconds to minimize process spawning overhead.
+
 ## [2.4.3] - 2026-07-09 — `bugfix · rpc`
 
 ### 🐛 Fixed

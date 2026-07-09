@@ -26,18 +26,24 @@ export async function handleProjectOpenTerminal(
       const { execSync } = await import('child_process')
       let wtAvailable = false
       try {
-        execSync('where wt', { stdio: 'pipe' })
+        execSync('where wt', { stdio: 'pipe', windowsHide: true, shell: false })
         wtAvailable = true
       } catch {
         /* not installed */
       }
       if (wtAvailable) {
-        spawn('wt', ['-d', projectPath_safe], { detached: true, stdio: 'ignore' }).unref()
+        spawn('wt', ['-d', projectPath_safe], {
+          detached: true,
+          stdio: 'ignore',
+          windowsHide: true,
+          shell: false // Prevent shell window creation
+        }).unref()
       } else {
         spawn('cmd', ['/c', 'start', '""', 'cmd', '/K', `cd /d "${projectPath_safe}"`], {
           detached: true,
           stdio: 'ignore',
-          shell: true
+          shell: false, // Changed from true to false to prevent shell window
+          windowsHide: true
         }).unref()
       }
       return { success: true }
@@ -50,7 +56,9 @@ export async function handleProjectOpenTerminal(
     try {
       spawn('open', ['-a', 'Terminal', projectPath_safe], {
         detached: true,
-        stdio: 'ignore'
+        stdio: 'ignore',
+        windowsHide: true,
+        shell: false // Prevent shell window creation
       }).unref()
       return { success: true }
     } catch (err) {
@@ -66,7 +74,13 @@ export async function handleProjectOpenTerminal(
   ]
   for (const [term, args] of linuxTerminals) {
     try {
-      const child = spawn(term, args, { detached: true, stdio: 'ignore', cwd: projectPath_safe })
+      const child = spawn(term, args, {
+        detached: true,
+        stdio: 'ignore',
+        cwd: projectPath_safe,
+        windowsHide: true,
+        shell: false // Prevent shell window creation
+      })
       child.on('error', () => {})
       child.unref()
       return { success: true }
@@ -95,7 +109,12 @@ export async function handleProjectOpenGithub(
     const exe = candidates.find((c) => fs.existsSync(c))
     if (exe) {
       try {
-        spawn(exe, [validatedPath], { detached: true, stdio: 'ignore' }).unref()
+        spawn(exe, [validatedPath], { 
+          detached: true, 
+          stdio: 'ignore', 
+          windowsHide: true,
+          shell: false // Prevent shell window creation
+        }).unref()
         return { success: true }
       } catch (err) {
         return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }

@@ -5,7 +5,7 @@ import { FolderOpen, EyeOff, Star } from 'lucide-react'
 import PageWrapper from '../layout/PageWrapper'
 import ProjectsToolbar from '../components/projects/ProjectsToolbar'
 import { ProjectsContent } from '../components/projects/ProjectsContent'
-import { RunningProjectsBanner } from '../components/projects/RunningProjectsBanner'
+// import { RunningProjectsBanner } from '../components/projects/RunningProjectsBanner'
 import { useProjectsPageState } from '../hooks/useProjectsPageState'
 import { useGlobalShortcuts } from '../hooks/useGlobalShortcuts'
 import { getProjectActivityFeed } from '../components/projects/projectUtils'
@@ -86,7 +86,7 @@ const ProjectsPage = (): React.ReactElement => {
       </Suspense>
 
       <div className="flex-1 overflow-hidden mt-1 flex flex-col min-h-0">
-        <RunningProjectsBanner allProjects={state.allProjectsRef.current} />
+        {/* <RunningProjectsBanner allProjects={state.allProjectsRef.current} /> */}
         <div className="flex-1 overflow-hidden min-h-0">
           <ProjectsContent
             projects={state.projects}

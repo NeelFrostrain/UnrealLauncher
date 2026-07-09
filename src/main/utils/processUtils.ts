@@ -52,7 +52,10 @@ export async function isProcessRunning(processName: string): Promise<boolean> {
         ['/FI', `IMAGENAME eq ${processName}`, '/FO', 'CSV', '/NH'],
         {
           encoding: 'utf8',
-          timeout: 5000
+          timeout: 5000,
+          windowsHide: true,
+          stdio: ['ignore', 'pipe', 'ignore'],
+          shell: false // Prevent shell window creation
         }
       )
       return (
@@ -84,7 +87,10 @@ export async function killProcess(processName: string): Promise<void> {
         ['/FI', `IMAGENAME eq ${processName}`, '/FO', 'CSV', '/NH'],
         {
           encoding: 'utf8',
-          timeout: 5000
+          timeout: 5000,
+          windowsHide: true,
+          stdio: ['ignore', 'pipe', 'ignore'],
+          shell: false // Prevent shell window creation
         }
       )
       if (
@@ -94,7 +100,11 @@ export async function killProcess(processName: string): Promise<void> {
         logger.debug('process', 'Process not found', { processName })
         return
       }
-      await execFileAsync('taskkill', ['/F', '/IM', processName], { timeout: 5000 })
+      await execFileAsync('taskkill', ['/F', '/IM', processName], {
+        timeout: 5000,
+        windowsHide: true,
+        shell: false // Prevent shell window creation
+      })
       logger.info('process', 'Process killed successfully', { processName })
     } else {
       // pkill -f with end-anchor to avoid matching the electron process itself
@@ -144,9 +154,19 @@ export function openFileOrDirectory(filePath: string): void {
     logger.info('process', 'Opening file or directory', { filePath, platform: process.platform })
 
     if (process.platform === 'win32') {
-      spawn('cmd', ['/c', 'start', '""', resolved], { detached: true, stdio: 'ignore' }).unref()
+      spawn('cmd', ['/c', 'start', '""', resolved], {
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true,
+        shell: false // Prevent shell window creation
+      }).unref()
     } else if (process.platform === 'darwin') {
-      spawn('open', [resolved], { detached: true, stdio: 'ignore' }).unref()
+      spawn('open', [resolved], { 
+        detached: true, 
+        stdio: 'ignore', 
+        windowsHide: true,
+        shell: false // Prevent shell window creation
+      }).unref()
     } else {
       // Linux: executables must be spawned directly — xdg-open is blocked by KIO for binaries
       let isExecutable = false
@@ -161,10 +181,17 @@ export function openFileOrDirectory(filePath: string): void {
         spawn(resolved, [], {
           detached: true,
           stdio: 'ignore',
-          env: { ...process.env }
+          env: { ...process.env },
+          windowsHide: true,
+          shell: false // Prevent shell window creation
         }).unref()
       } else {
-        spawn('xdg-open', [resolved], { detached: true, stdio: 'ignore' }).unref()
+        spawn('xdg-open', [resolved], {
+          detached: true,
+          stdio: 'ignore',
+          windowsHide: true,
+          shell: false // Prevent shell window creation
+        }).unref()
       }
     }
   } catch (error) {

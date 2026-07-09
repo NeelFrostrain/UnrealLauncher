@@ -74,6 +74,21 @@ export function setEnginePluginCacheTTL(ms: number): void {
 
 function getEnginePluginSignature(engineDir: string): string {
   try {
+    // Use Rust native module for fast mtime check (zero-copy, native speed)
+    const native = getNative()
+    if (native?.getPluginCacheSignature) {
+      try {
+        const result = native.getPluginCacheSignature(engineDir) as {
+          signature: string
+          engine_dir: string
+        }
+        return result.signature
+      } catch {
+        // Fall back to JS implementation
+      }
+    }
+
+    // JavaScript fallback if native not available
     const pluginsRoot = path.join(engineDir, 'Engine', 'Plugins')
     return fs.existsSync(pluginsRoot) ? String(fs.statSync(pluginsRoot).mtimeMs) : 'missing'
   } catch {
