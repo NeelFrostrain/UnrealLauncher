@@ -53,9 +53,7 @@ export async function isProcessRunning(processName: string): Promise<boolean> {
         {
           encoding: 'utf8',
           timeout: 5000,
-          windowsHide: true,
-          stdio: ['ignore', 'pipe', 'ignore'],
-          shell: false // Prevent shell window creation
+          windowsHide: true
         }
       )
       return (
@@ -88,9 +86,7 @@ export async function killProcess(processName: string): Promise<void> {
         {
           encoding: 'utf8',
           timeout: 5000,
-          windowsHide: true,
-          stdio: ['ignore', 'pipe', 'ignore'],
-          shell: false // Prevent shell window creation
+          windowsHide: true
         }
       )
       if (
@@ -102,8 +98,7 @@ export async function killProcess(processName: string): Promise<void> {
       }
       await execFileAsync('taskkill', ['/F', '/IM', processName], {
         timeout: 5000,
-        windowsHide: true,
-        shell: false // Prevent shell window creation
+        windowsHide: true
       })
       logger.info('process', 'Process killed successfully', { processName })
     } else {
@@ -161,9 +156,9 @@ export function openFileOrDirectory(filePath: string): void {
         shell: false // Prevent shell window creation
       }).unref()
     } else if (process.platform === 'darwin') {
-      spawn('open', [resolved], { 
-        detached: true, 
-        stdio: 'ignore', 
+      spawn('open', [resolved], {
+        detached: true,
+        stdio: 'ignore',
         windowsHide: true,
         shell: false // Prevent shell window creation
       }).unref()

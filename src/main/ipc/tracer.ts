@@ -53,17 +53,17 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
         )
 
         // Small delay to prevent rapid command execution
-        await new Promise(resolve => setTimeout(resolve, 100))
+        await new Promise((resolve) => setTimeout(resolve, 100))
 
         // Start the tracer now if it isn't already running
         const isRunning = await isProcessRunning(tracerBinaryName)
         if (!isRunning) {
           logger.info('tracer', 'Starting tracer from settings', { tracerExe })
-          spawn(tracerExe, [], { 
-            detached: true, 
-            stdio: 'ignore', 
+          spawn(tracerExe, [], {
+            detached: true,
+            stdio: 'ignore',
             windowsHide: true,
-            shell: false 
+            shell: false
           }).unref()
         }
       } else {

@@ -80,7 +80,7 @@ function getEnginePluginSignature(engineDir: string): string {
       try {
         const result = native.getPluginCacheSignature(engineDir) as {
           signature: string
-          engine_dir: string
+          engineDir: string
         }
         return result.signature
       } catch {

@@ -349,8 +349,8 @@ if (!gotTheLock) {
         const regProcess = spawn(
           'reg',
           ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
-          { 
-            stdio: 'ignore', 
+          {
+            stdio: 'ignore',
             windowsHide: true,
             shell: false // Prevent shell window creation
           }
@@ -363,15 +363,15 @@ if (!gotTheLock) {
         })
 
         // Delay between operations to prevent rapid command execution
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise((resolve) => setTimeout(resolve, 500))
 
         // Check if tracer is already running — async via spawn instead of execSync
         await new Promise<void>((resolve) => {
           const check = spawn(
             'tasklist',
             ['/FI', 'IMAGENAME eq unreal_launcher_tracer.exe', '/NH', '/FO', 'CSV'],
-            { 
-              stdio: ['ignore', 'pipe', 'ignore'], 
+            {
+              stdio: ['ignore', 'pipe', 'ignore'],
               windowsHide: true,
               shell: false // Prevent shell window creation
             }

@@ -41,8 +41,7 @@ function safeExec(command: string, defaultValue: string = 'Unknown'): string {
       encoding: 'utf-8',
       timeout: 5000,
       windowsHide: true,
-      stdio: ['ignore', 'pipe', 'ignore'],
-      shell: false // Prevent shell window creation
+      stdio: ['ignore', 'pipe', 'ignore']
     })
     return output.trim()
   } catch {

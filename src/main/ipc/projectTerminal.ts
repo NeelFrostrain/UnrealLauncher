@@ -26,7 +26,7 @@ export async function handleProjectOpenTerminal(
       const { execSync } = await import('child_process')
       let wtAvailable = false
       try {
-        execSync('where wt', { stdio: 'pipe', windowsHide: true, shell: false })
+        execSync('where wt', { stdio: 'pipe', windowsHide: true })
         wtAvailable = true
       } catch {
         /* not installed */
@@ -109,9 +109,9 @@ export async function handleProjectOpenGithub(
     const exe = candidates.find((c) => fs.existsSync(c))
     if (exe) {
       try {
-        spawn(exe, [validatedPath], { 
-          detached: true, 
-          stdio: 'ignore', 
+        spawn(exe, [validatedPath], {
+          detached: true,
+          stdio: 'ignore',
           windowsHide: true,
           shell: false // Prevent shell window creation
         }).unref()

@@ -84,12 +84,10 @@ function findRunningUnrealCommandsWithCim(): Promise<string[]> {
           'Select-Object -ExpandProperty CommandLine'
         ].join(' ')
       ],
-      { 
-        encoding: 'utf8', 
-        windowsHide: true, 
-        timeout: 5000, 
-        stdio: ['ignore', 'pipe', 'ignore'],
-        shell: false // Prevent shell window creation
+      {
+        encoding: 'utf8',
+        windowsHide: true,
+        timeout: 5000
       },
       (_error, stdout) => {
         resolve(
@@ -308,7 +306,7 @@ export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {
       rpcReady = true
       reconnectDelayMs = DISCORD_RECONNECT_INITIAL_MS
       logger.info('discord', 'Rich Presence connected')
-      
+
       // Add initial delay before first presence update to prevent immediate command execution
       setTimeout(() => {
         if (rpcReady && !shuttingDown) {
