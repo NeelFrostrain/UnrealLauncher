@@ -24,12 +24,12 @@ async function copyWithRetries(src, dst, attempts = 6, delay = 500) {
         try {
           if (process.platform === 'win32') {
             // taskkill may require elevation; still attempt
-            const { execSync } = require('child_process')
+            const { execFileSync } = require('child_process')
             const name = path.basename(src)
-            const out = execSync(`tasklist /FI "IMAGENAME eq ${name}" /NH`, { encoding: 'utf8' })
+            const out = execFileSync('tasklist', ['/FI', `IMAGENAME eq ${name}`, '/NH'], { encoding: 'utf8' })
             if (!out.includes('No tasks')) {
               try {
-                execSync(`taskkill /F /IM ${name}`)
+                execFileSync('taskkill', ['/F', '/IM', name])
                 console.log('Terminated running tracer process')
               } catch (killErr) {
                 console.warn('Failed to terminate tracer process:', killErr && killErr.message)
@@ -37,11 +37,11 @@ async function copyWithRetries(src, dst, attempts = 6, delay = 500) {
             }
           } else {
             // Unix: pgrep + kill
-            const { execSync } = require('child_process')
+            const { execFileSync } = require('child_process')
             try {
-              const pidOut = execSync(`pgrep -f ${path.basename(src)}`, { encoding: 'utf8' }).trim()
+              const pidOut = execFileSync('pgrep', ['-f', path.basename(src)], { encoding: 'utf8' }).trim()
               if (pidOut) {
-                execSync(`pkill -f ${path.basename(src)}`)
+                execFileSync('pkill', ['-f', path.basename(src)])
                 console.log('Terminated running tracer process')
               }
             } catch {
