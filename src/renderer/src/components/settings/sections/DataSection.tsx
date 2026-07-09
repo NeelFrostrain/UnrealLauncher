@@ -3,12 +3,17 @@ import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { Card, SettingRow } from '../SectionHelpers'
 import { getSetting, setSetting } from '../../../utils/settings'
+import { useEffect } from 'react'
+import { useToast } from '../../ui/ToastContext'
 
 const LOG_PRESETS = [500, 1000, 2000, 5000, 10000]
 
 const DataSection = (): React.ReactElement => {
   const [clearing, setClearing] = useState<'app' | 'tracer' | null>(null)
   const [logMaxLines, setLogMaxLines] = useState(() => getSetting('logMaxLines'))
+  const [engineTtlMinutes, setEngineTtlMinutes] = useState<number | null>(null)
+  const [projectTtlMinutes, setProjectTtlMinutes] = useState<number | null>(null)
+  const { addToast } = useToast()
 
   const handleClearAppData = async (): Promise<void> => {
     if (!confirm('Clear all saved engines and projects? This cannot be undone.')) return
@@ -29,6 +34,80 @@ const DataSection = (): React.ReactElement => {
   const handleLogLines = (val: number): void => {
     setLogMaxLines(val)
     setSetting('logMaxLines', val)
+  }
+
+  useEffect(() => {
+    const load = async (): Promise<void> => {
+      if (!window.electronAPI) return
+      try {
+        const settings = await window.electronAPI.getMainSettings()
+        const savedEngine =
+          typeof settings?.enginePluginCacheTTL === 'number' ? settings.enginePluginCacheTTL : null
+        const savedProject =
+          typeof settings?.projectPluginCacheTTL === 'number'
+            ? settings.projectPluginCacheTTL
+            : null
+        if (savedEngine !== null) setEngineTtlMinutes(Math.round(savedEngine / 60000))
+        if (savedProject !== null) setProjectTtlMinutes(Math.round(savedProject / 60000))
+        // fallback to current runtime TTLs
+        if (savedEngine === null) {
+          const eMs = await window.electronAPI.getEnginePluginCacheTTL()
+          setEngineTtlMinutes(eMs ? Math.round(Number(eMs) / 60000) : null)
+        }
+        if (savedProject === null) {
+          const pMs = await window.electronAPI.getProjectPluginCacheTTL()
+          setProjectTtlMinutes(pMs ? Math.round(Number(pMs) / 60000) : null)
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    load()
+  }, [])
+
+  const handleClearEnginePluginCache = async (): Promise<void> => {
+    if (!confirm('Clear engine plugin cache?')) return
+    await window.electronAPI.clearEnginePluginCache()
+    // reload TTLs
+    const eMs = await window.electronAPI.getEnginePluginCacheTTL()
+    setEngineTtlMinutes(eMs ? Math.round(Number(eMs) / 60000) : null)
+    addToast('Engine plugin cache cleared', 'success')
+  }
+
+  const handleClearProjectPluginCache = async (): Promise<void> => {
+    if (!confirm('Clear project plugin cache?')) return
+    await window.electronAPI.clearProjectPluginCache()
+    const pMs = await window.electronAPI.getProjectPluginCacheTTL()
+    setProjectTtlMinutes(pMs ? Math.round(Number(pMs) / 60000) : null)
+    addToast('Project plugin cache cleared', 'success')
+  }
+
+  const handleSaveEngineTTL = async (): Promise<void> => {
+    if (engineTtlMinutes === null) return
+    const ms = engineTtlMinutes * 60000
+    await window.electronAPI.setEnginePluginCacheTTL(ms)
+    try {
+      const settings = await window.electronAPI.getMainSettings()
+      settings.enginePluginCacheTTL = ms
+      await window.electronAPI.saveMainSettings(settings)
+    } catch {
+      /* ignore */
+    }
+    addToast('Engine plugin TTL saved', 'success')
+  }
+
+  const handleSaveProjectTTL = async (): Promise<void> => {
+    if (projectTtlMinutes === null) return
+    const ms = projectTtlMinutes * 60000
+    await window.electronAPI.setProjectPluginCacheTTL(ms)
+    try {
+      const settings = await window.electronAPI.getMainSettings()
+      settings.projectPluginCacheTTL = ms
+      await window.electronAPI.saveMainSettings(settings)
+    } catch {
+      /* ignore */
+    }
+    addToast('Project plugin TTL saved', 'success')
   }
 
   return (
@@ -107,6 +186,80 @@ const DataSection = (): React.ReactElement => {
             <Trash2 size={12} />
             {clearing === 'tracer' ? 'Clearing…' : 'Clear'}
           </button>
+        </SettingRow>
+
+        <SettingRow
+          label="Plugin caches"
+          description="Clear or adjust TTLs for engine/project plugin scan caches."
+          last
+        >
+          <div className="space-y-3 w-full max-w-sm">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleClearEnginePluginCache}
+                className="px-3 py-1.5 text-xs font-medium"
+                style={{
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'var(--color-surface-elevated)',
+                  border: '1px solid var(--color-border)'
+                }}
+              >
+                Clear Engine Plugin Cache
+              </button>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  value={engineTtlMinutes ?? ''}
+                  onChange={(e) =>
+                    setEngineTtlMinutes(e.target.value ? Number(e.target.value) : null)
+                  }
+                  className="w-20 px-2 py-1 text-xs"
+                />
+                <button
+                  onClick={handleSaveEngineTTL}
+                  className="px-2 py-1 text-xs"
+                  title="Save engine plugin cache TTL (minutes)"
+                >
+                  Save
+                </button>
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  minutes
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleClearProjectPluginCache}
+                className="px-3 py-1.5 text-xs font-medium"
+                style={{
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'var(--color-surface-elevated)',
+                  border: '1px solid var(--color-border)'
+                }}
+              >
+                Clear Project Plugin Cache
+              </button>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  value={projectTtlMinutes ?? ''}
+                  onChange={(e) =>
+                    setProjectTtlMinutes(e.target.value ? Number(e.target.value) : null)
+                  }
+                  className="w-20 px-2 py-1 text-xs"
+                />
+                <button onClick={handleSaveProjectTTL} className="px-2 py-1 text-xs">
+                  Save
+                </button>
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  minutes
+                </span>
+              </div>
+            </div>
+          </div>
         </SettingRow>
       </Card>
     </section>

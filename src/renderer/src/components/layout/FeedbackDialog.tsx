@@ -1,6 +1,5 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef } from 'react'
-import { motion } from 'framer-motion'
 import { X, Paperclip, Send, Loader2, CheckCircle, AlertCircle, Trash2 } from 'lucide-react'
 import { useFeedbackState } from './useFeedbackState'
 import type { Mode } from './useFeedbackState'
@@ -41,7 +40,7 @@ export default function FeedbackDialog({ onClose }: { onClose: () => void }): Re
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <motion.div
+      <div
         ref={dialogRef}
         className="w-full max-w-lg mx-4 flex flex-col overflow-hidden"
         style={{
@@ -50,10 +49,6 @@ export default function FeedbackDialog({ onClose }: { onClose: () => void }): Re
           border: '1px solid var(--color-border)',
           maxHeight: '90vh'
         }}
-        initial={{ opacity: 0, scale: 0.96, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 8 }}
-        transition={{ duration: 0.18 }}
       >
         {/* Accent line */}
         <div
@@ -293,7 +288,7 @@ export default function FeedbackDialog({ onClose }: { onClose: () => void }): Re
             </button>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }

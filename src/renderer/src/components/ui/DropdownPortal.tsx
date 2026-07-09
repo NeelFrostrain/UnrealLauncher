@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 
 interface DropdownPortalProps {
   open: boolean
@@ -45,9 +44,9 @@ const DropdownPortal = ({
   }, [open, onClose, anchorRef])
 
   return createPortal(
-    <AnimatePresence>
+    <>
       {open && (
-        <motion.div
+        <div
           ref={dropRef}
           className="fixed z-9999 w-44 border shadow-xl overflow-hidden"
           style={{
@@ -57,15 +56,11 @@ const DropdownPortal = ({
             borderColor: 'var(--color-border)',
             borderRadius: 'var(--radius)'
           }}
-          initial={{ opacity: 0, scale: 0.95, y: -4 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: -4 }}
-          transition={{ duration: 0.12 }}
         >
           {children}
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>,
+    </>,
     document.body
   )
 }

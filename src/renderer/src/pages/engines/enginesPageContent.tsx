@@ -1,9 +1,10 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import type { EngineCardProps } from '../../types'
 import EngineCard from '@renderer/components/engines/EngineCard'
-import InstalledPluginsTab from '@renderer/components/engines/InstalledPluginsTab'
-import FabTab from '@renderer/components/engines/FabTab'
+
+const InstalledPluginsTab = lazy(() => import('@renderer/components/engines/InstalledPluginsTab'))
+const FabTab = lazy(() => import('@renderer/components/engines/FabTab'))
 
 interface EnginesPageContentProps {
   activeTab: 'engines' | 'plugins' | 'fab'
@@ -41,6 +42,18 @@ export function EnginesPageContent({
   onScan,
   scanning
 }: EnginesPageContentProps): React.ReactElement {
+  const tabLoader = (
+    <div className="flex items-center justify-center h-full">
+      <div
+        className="w-5 h-5 rounded-full border-2 animate-spin"
+        style={{
+          borderColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
+          borderTopColor: 'var(--color-accent)'
+        }}
+      />
+    </div>
+  )
+
   if (activeTab === 'engines') {
     return (
       <div className="flex-1 overflow-hidden">
@@ -104,10 +117,12 @@ export function EnginesPageContent({
       <div className="flex flex-col flex-1 overflow-hidden">
         <div className="flex-1 overflow-hidden">
           {activeEngine ? (
-            <InstalledPluginsTab
-              engineDir={activeEngine.directoryPath}
-              engineVersion={activeEngine.version}
-            />
+            <Suspense fallback={tabLoader}>
+              <InstalledPluginsTab
+                engineDir={activeEngine.directoryPath}
+                engineVersion={activeEngine.version}
+              />
+            </Suspense>
           ) : (
             <div
               className="flex items-center justify-center h-full"
@@ -123,7 +138,9 @@ export function EnginesPageContent({
 
   return (
     <div className="flex-1 overflow-hidden">
-      <FabTab />
+      <Suspense fallback={tabLoader}>
+        <FabTab />
+      </Suspense>
     </div>
   )
 }

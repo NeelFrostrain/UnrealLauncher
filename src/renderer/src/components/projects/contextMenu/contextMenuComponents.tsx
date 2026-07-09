@@ -5,7 +5,9 @@ export const MENU_STYLE: React.CSSProperties = {
   backgroundColor: 'var(--color-surface-elevated)',
   border: '1px solid var(--color-border)',
   borderRadius: 'var(--radius)',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.55)'
+  boxShadow: '0 16px 40px rgba(0,0,0,0.45)',
+  backdropFilter: 'blur(10px)',
+  overflow: 'hidden'
 }
 
 /**
@@ -45,32 +47,42 @@ export const MenuItem = ({
     }}
     disabled={disabled}
     onMouseEnter={(e) => {
-      if (!disabled)
+      if (!disabled) {
         e.currentTarget.style.backgroundColor = danger
-          ? 'rgba(248,113,113,0.08)'
-          : 'var(--color-surface-card)'
+          ? 'color-mix(in srgb, #f87171 12%, transparent)'
+          : 'color-mix(in srgb, var(--color-accent) 10%, var(--color-surface-card))'
+        e.currentTarget.style.borderColor = danger
+          ? 'color-mix(in srgb, #f87171 26%, transparent)'
+          : 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+      }
       onHoverIn?.()
     }}
     onMouseLeave={(e) => {
       e.currentTarget.style.backgroundColor = 'transparent'
+      e.currentTarget.style.borderColor = 'transparent'
       onHoverOut?.()
     }}
-    className="flex items-center gap-2 px-2.5 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default rounded-sm outline-none focus:outline-none"
+    className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer transition-all duration-150 disabled:opacity-40 disabled:cursor-default rounded-md border border-transparent outline-none focus:outline-none"
     style={{
       color: danger ? '#f87171' : 'var(--color-text-secondary)',
       width: 'calc(100% - 8px)',
       margin: '0 4px',
-      paddingTop: sub ? '5px' : '4px',
-      paddingBottom: sub ? '5px' : '4px'
+      paddingTop: sub ? '6px' : '5px',
+      paddingBottom: sub ? '6px' : '5px'
     }}
   >
     <span className="shrink-0 w-3.5 flex items-center justify-center self-start mt-px">{icon}</span>
     <span className="flex-1 text-left min-w-0">
-      <span className="block text-[11px] leading-tight truncate">{label}</span>
+      <span
+        className="block text-[11px] leading-tight truncate"
+        style={{ color: danger ? '#f87171' : 'var(--color-text-primary)' }}
+      >
+        {label}
+      </span>
       {sub && (
         <span
           className="block text-[9px] leading-tight mt-0.5 truncate"
-          style={{ color: danger ? 'rgba(248,113,113,0.6)' : 'var(--color-text-muted)' }}
+          style={{ color: danger ? 'rgba(248,113,113,0.7)' : 'var(--color-text-muted)' }}
         >
           {sub}
         </span>
@@ -91,8 +103,8 @@ export const MenuSeparator = (): React.ReactElement => (
  */
 export const MenuCategory = ({ label }: { label: string }): React.ReactElement => (
   <p
-    className="px-2.5 pt-1.5 pb-0.5 text-[9px] font-semibold uppercase tracking-widest select-none"
-    style={{ color: 'var(--color-text-muted)', opacity: 0.5 }}
+    className="px-2.5 pt-2 pb-1 text-[9px] font-semibold uppercase tracking-[0.2em] select-none"
+    style={{ color: 'color-mix(in srgb, var(--color-text-muted) 80%, var(--color-text-primary))' }}
   >
     {label}
   </p>
@@ -131,10 +143,15 @@ export const SubMenuTrigger = ({
         onOpen()
       }
     }}
-    className="flex items-center gap-2 px-2.5 py-1 text-[11px] cursor-pointer transition-colors rounded-sm outline-none focus:outline-none"
+    className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] cursor-pointer transition-all duration-150 rounded-md border border-transparent outline-none focus:outline-none"
     style={{
       color: isOpen ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-      backgroundColor: isOpen ? 'var(--color-surface-card)' : 'transparent',
+      backgroundColor: isOpen
+        ? 'color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-card))'
+        : 'transparent',
+      borderColor: isOpen
+        ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+        : 'transparent',
       width: 'calc(100% - 8px)',
       margin: '0 4px'
     }}

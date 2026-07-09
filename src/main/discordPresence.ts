@@ -6,7 +6,7 @@ import path from 'path'
 import { getNative } from './utils/native'
 import { logger } from './logger'
 
-const PRESENCE_POLL_MS = 10000
+const PRESENCE_POLL_MS = 30000 // 30 seconds instead of 10 seconds to reduce PowerShell calls
 const DISCORD_RECONNECT_INITIAL_MS = 5000
 const DISCORD_RECONNECT_MAX_MS = 60000
 const DISCORD_APP_NAME = 'Unreal Launcher'
@@ -15,6 +15,18 @@ const TRACER_ACTIVE_MAX_AGE_MS = 30000
 
 interface DiscordRichPresenceOptions {
   clientId?: string
+  // Added optional buttons array
+  buttons?: { label: string; url: string }[]
+}
+
+interface DiscordActivity {
+  details?: string
+  state?: string
+  largeImageKey?: string
+  largeImageText?: string
+  startTimestamp?: number
+  instance?: boolean
+  buttons?: { label: string; url: string }[]
 }
 
 interface TracerActiveSession {
@@ -56,10 +68,6 @@ function uniqueNames(names: Array<string | null | undefined>): string[] {
   return unique
 }
 
-function hasProjectCommand(commands: string[]): boolean {
-  return commands.some((command) => /\.uproject\b/i.test(command))
-}
-
 function findRunningUnrealCommandsWithCim(): Promise<string[]> {
   return new Promise((resolve) => {
     execFile(
@@ -76,7 +84,11 @@ function findRunningUnrealCommandsWithCim(): Promise<string[]> {
           'Select-Object -ExpandProperty CommandLine'
         ].join(' ')
       ],
-      { encoding: 'utf8', windowsHide: true, timeout: 3000 },
+      {
+        encoding: 'utf8',
+        windowsHide: true,
+        timeout: 5000
+      },
       (_error, stdout) => {
         resolve(
           stdout
@@ -91,19 +103,23 @@ function findRunningUnrealCommandsWithCim(): Promise<string[]> {
 
 async function findRunningUnrealCommands(): Promise<string[]> {
   const native = getNative()
-  let runningProjects: string[] = []
+  // Prioritize Rust native module (zero process spawns, native speed)
   try {
-    runningProjects = native?.findRunningUnrealProjects?.() || []
-  } catch {
-    runningProjects = []
+    const runningProjects = native?.findRunningUnrealProjects?.()
+    if (runningProjects && Array.isArray(runningProjects) && runningProjects.length > 0) {
+      return runningProjects
+    }
+  } catch (err) {
+    logger.warn('discord', 'Native process detection failed', { error: err })
   }
 
-  if (process.platform !== 'win32' || hasProjectCommand(runningProjects)) {
-    return runningProjects
+  // Fallback: PowerShell CIM only on Windows if native didn't return results
+  if (process.platform !== 'win32') {
+    return []
   }
 
   const cimProjects = await findRunningUnrealCommandsWithCim()
-  return cimProjects.length > 0 ? cimProjects : runningProjects
+  return cimProjects
 }
 
 function findTracerActiveProjectNames(): string[] {
@@ -253,18 +269,24 @@ export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {
       if (presenceKey === lastPresenceKey) return
       lastPresenceKey = presenceKey
 
-      await rpc
-        .setActivity({
-          details: presence.details,
-          state: presence.state,
-          largeImageKey: 'icon',
-          largeImageText: DISCORD_APP_NAME,
-          startTimestamp: activityStartedAt,
-          instance: false
-        })
-        .catch(() => {
-          lastPresenceKey = ''
-        })
+      // Build the base activity payload
+      const activityPayload: DiscordActivity = {
+        details: presence.details,
+        state: presence.state,
+        largeImageKey: 'icon',
+        largeImageText: DISCORD_APP_NAME,
+        startTimestamp: activityStartedAt,
+        instance: false
+      }
+
+      // Inject custom buttons if provided (safely limited to 2)
+      if (options.buttons && options.buttons.length > 0) {
+        activityPayload.buttons = options.buttons.slice(0, 2)
+      }
+
+      await rpc.setActivity(activityPayload).catch(() => {
+        lastPresenceKey = ''
+      })
     } catch {
       lastPresenceKey = ''
     } finally {
@@ -284,8 +306,14 @@ export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {
       rpcReady = true
       reconnectDelayMs = DISCORD_RECONNECT_INITIAL_MS
       logger.info('discord', 'Rich Presence connected')
-      setDiscordPresenceDynamic()
-      pollTimer = setInterval(setDiscordPresenceDynamic, PRESENCE_POLL_MS)
+
+      // Add initial delay before first presence update to prevent immediate command execution
+      setTimeout(() => {
+        if (rpcReady && !shuttingDown) {
+          setDiscordPresenceDynamic()
+          pollTimer = setInterval(setDiscordPresenceDynamic, PRESENCE_POLL_MS)
+        }
+      }, 2000) // Wait 2 seconds before first presence update
     })
 
     rpc.on('disconnected', () => {

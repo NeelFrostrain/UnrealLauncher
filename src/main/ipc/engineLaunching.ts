@@ -62,7 +62,12 @@ export async function handleLaunchEngineWithConfig(
   try {
     const args = buildLaunchArgs(config)
     logger.info('engine', 'Engine launch args built', { exePath: safeExePath, args })
-    spawn(safeExePath, args, { detached: true, stdio: 'ignore' }).unref()
+    spawn(safeExePath, args, {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: true,
+      shell: false // Prevent shell window creation
+    }).unref()
 
     const engines = loadEngines()
     const engine = engines.find((e) => e.exePath === safeExePath)

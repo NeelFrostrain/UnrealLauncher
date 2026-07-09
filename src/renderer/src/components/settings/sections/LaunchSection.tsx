@@ -1,8 +1,7 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { FolderOpen, Trash2 } from 'lucide-react'
 import { Card, SettingRow, Toggle } from '../SectionHelpers'
-import { useAnimations } from '../../../utils/AnimationContext'
 import { getSetting, setSetting } from '../../../utils/settings'
 
 interface LaunchSectionProps {
@@ -18,23 +17,10 @@ const LaunchSection = ({
   backgroundCloseOnClose,
   onToggleBackgroundClose
 }: LaunchSectionProps): React.ReactElement => {
-  const [registryEngines, setRegistryEngines] = useState(true)
-  const { animationsEnabled, toggleAnimations } = useAnimations()
+  const [clearingLogs, setClearingLogs] = useState(false)
   const [showTitlebarButtons, setShowTitlebarButtons] = useState(() =>
     getSetting('showTitlebarButtons')
   )
-  const [clearingLogs, setClearingLogs] = useState(false)
-  const platform = window.electronAPI.platform
-
-  useEffect(() => {
-    window.electronAPI.getRegistryEngines().then(setRegistryEngines)
-  }, [])
-
-  const handleRegistryToggle = async (): Promise<void> => {
-    const next = !registryEngines
-    setRegistryEngines(next)
-    await window.electronAPI.setRegistryEngines(next)
-  }
 
   const handleClearLogs = async (): Promise<void> => {
     if (!confirm('Clear all saved app log files?')) return
@@ -61,20 +47,7 @@ const LaunchSection = ({
         >
           <Toggle on={backgroundCloseOnClose} onChange={onToggleBackgroundClose} />
         </SettingRow>
-        {platform === 'win32' && (
-          <SettingRow
-            label="Scan registry for engines"
-            description="Detect Unreal Engine installations registered in the Windows registry (HKLM\\SOFTWARE\\EpicGames)."
-          >
-            <Toggle on={registryEngines} onChange={handleRegistryToggle} />
-          </SettingRow>
-        )}
-        <SettingRow
-          label="Extra UI Animations"
-          description="Enable transitions and motion effects. Disable to reduce CPU/GPU usage and improve performance."
-        >
-          <Toggle on={animationsEnabled} onChange={toggleAnimations} />
-        </SettingRow>
+        {/* Registry scan and extra animations toggles removed per request */}
         <SettingRow
           label="Show Feedback & Discord buttons"
           description="Display the Feedback and Discord buttons in the titlebar."

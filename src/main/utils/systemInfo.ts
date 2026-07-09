@@ -37,7 +37,12 @@ export interface SystemInfo {
  */
 function safeExec(command: string, defaultValue: string = 'Unknown'): string {
   try {
-    const output = execSync(command, { encoding: 'utf-8', timeout: 5000 })
+    const output = execSync(command, {
+      encoding: 'utf-8',
+      timeout: 5000,
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'ignore']
+    })
     return output.trim()
   } catch {
     return defaultValue

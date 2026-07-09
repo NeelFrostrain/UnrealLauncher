@@ -1,0 +1,849 @@
+{
+  "project": "Unreal Launcher",
+  "versions": [
+    {
+      "version": "2.4.0",
+      "date": null,
+      "tags": ["perf", "ui", "grid"],
+      "sections": [
+        {
+          "category": "Performance & Memory",
+          "emoji": "⚡",
+          "items": [
+            "Removed unused dependencies react-window, react-virtualized-auto-sizer, zustand, and @types/react-window — all were listed but never imported.",
+            "Moved framer-motion from devDependencies to dependencies (used in production renderer components).",
+            "Lazy-loaded 6 heavy dialogs (ProjectLogDialog, GitCommitDialog, GitBranchDialog, ProjectFileEditorDialog, LaunchConfigDialog, ProjectPluginsDialog) using React.lazy() + Suspense; ~113 KB excluded from initial bundle.",
+            "Fixed memory leak in useTracerSettings — 4 floating IPC promises now guarded by isMounted flag.",
+            "Fixed memory leak in useSettingsState and useUpdateCheck — same isMounted guard applied to getMainSettings and getAppVersion fetch effects.",
+            "Fixed memory leak in EngineCard — 3-second launch-button timeout stored in a ref and cleared in useEffect cleanup.",
+            "Fixed memory leak in useProjectsPageState — initial loadProjects('saved') → loadProjects('scan') chain is now cancellable.",
+            "Fixed duplicate before-quit listener in folderOps.ts — changed app.on → app.once; moved mid-file import { app } to the top of the file.",
+            "Replaced dynamic await import('https') in main/index.ts with a static top-level import. Removed dead data variable accumulation in Discord webhook response handler.",
+            "Fixed re-render loop in useGlobalShortcuts — keyboard listener registered once (on navigate / location.pathname change only); handlers stored in a ref.",
+            "Fixed stale closure + unnecessary re-registration in ProjectsPage palette-action handler — searchOpen tracked via ref; deps narrowed to three stable useCallback refs.",
+            "Fixed O(n²) → O(1) lookup in ProjectsContent — favoritePaths and hiddenPaths converted to Set before the .map() loop; wrapped component in React.memo().",
+            "Throttled VirtualizedProjectGrid scroll handler with requestAnimationFrame — limits setState calls to ≤60/sec during fast scroll.",
+            "Removed erroneous await from calculateAllProjectSizes() call in useProjectActions — size updates stream back via IPC push events.",
+            "Wrapped useProjectFavorites handlers in useCallback with stable [] deps; toggleFavoritePath uses functional setState updater form. Removed dead getFavoritePaths function.",
+            "Wrapped all three useUpdateCheck handlers in useCallback.",
+            "Extracted magic number 98 (list item height) to named constant LIST_ITEM_HEIGHT in useProjectsPageState.",
+            "Stable onImageError callback in ProjectCardGrid via useCallback.",
+            "Removed duplicate backgroundColor: 'var(--color-surface)' style on inner #app-scale-root div in layout/index.tsx."
+          ]
+        },
+        {
+          "category": "UI Redesign",
+          "emoji": "🎨",
+          "items": [
+            "Project grid layout: Grid view in ProjectsContent now uses native CSS grid with repeat(auto-fill, minmax(200px, 1fr)) and gap-3 content-start instead of the hand-rolled absolute-positioned virtualizer.",
+            "Settings page: Replaced horizontal top tab bar with a vertical sidebar navigation (160px wide) with color-coded icons, labels, and accent dot for active section; sidebar and content scroll independently. useMemo for JSX replaced with plain renderContent() function.",
+            "About page: Completely redesigned with a compact two-column layout — gradient hero card with live version stats, feature list column, tech-stack chips, social/documentation link buttons. Added horizontal padding when viewed as a modal inside Settings.",
+            "Command Palette: Ctrl+K palette is now preloaded silently in background on app startup and hidden instead of destroyed on close; opens instantly with no white flash. Input state and search results correctly reset when re-shown."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.3.3",
+      "date": null,
+      "tags": ["ux", "palette"],
+      "sections": [
+        {
+          "category": "Added",
+          "emoji": "✨",
+          "items": [
+            "Palette: Shift+Enter and Shift+Click now open the selected project using the built-in 'Skeleton (Lowest)' launch config (builtin-skeleton) for faster, low-footprint testing.",
+            "Exposed palette-launch-project-config IPC and paletteAPI.launchProjectWithConfig(projectPath, configId) in the palette preload; falls back to normal open behaviour if config not found.",
+            "Palette UI footer now shows a Shift+↵ hint labelled 'open (Lowest)'."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🐛",
+          "items": [
+            "Fixed Windows project launch so Unreal Editor is spawned fully detached from Electron using cmd /c start \"\" ..., preventing the editor from remaining a child process of the app.",
+            "Fixed renderer manual chunk logic in electron.vite.config.ts by removing unsafe react-core grouping and avoiding circular vendor -> react-core -> vendor chunk during production build.",
+            "Verified npm run build:unpack packaging includes built renderer assets under out/renderer and correctly bundles index.html/palette.html into app.asar.",
+            "Robust engine executable resolution: launcher now searches common subpaths (e.g. Engine/Binaries/<platform>) and scans folders for editor-like executables when a stored engine path points to a directory.",
+            "Improved Windows detached spawn logic: cmd start used without manual quoting, windowsHide set; falls back to spawning executable directly if start fails.",
+            "Logging and guidance: launch flow now logs the resolved editorExe path; misspelled stored paths must be corrected manually in the Engines tab."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.3.2",
+      "date": null,
+      "tags": ["bugfix", "build", "launch"],
+      "sections": []
+    },
+    {
+      "version": "2.3.1",
+      "date": null,
+      "tags": ["ux", "features", "arch", "testing"],
+      "sections": [
+        {
+          "category": "Added — UX & Accessibility (Section 4)",
+          "emoji": "✨",
+          "items": [
+            "Toast announcements — ToastContext container now has role=\"status\" + aria-live=\"polite\" for screen reader announcements.",
+            "Sidebar <nav> landmark — Sidebar wrapper changed from <div> to <nav aria-label=\"Main navigation\">.",
+            "aria-label added on icon-only buttons: Gamepad2 (Launch as Game), MoreVertical (More options), log viewer Refresh/Close, error/warning count filter buttons, Sort dropdown.",
+            "Context menu keyboard access — SubMenuTrigger opens sub-menus on Enter, Space, and ArrowRight in addition to hover; aria-haspopup=\"menu\" corrected on all triggers.",
+            "role=\"menu\" added on sub-menus — OrganizeSubMenu, ProjectToolsSubMenu, GitSubMenu panels all have role=\"menu\" + aria-label.",
+            "aria-haspopup=\"menu\" on More options button — project card ⋮ button now declares it opens a menu."
+          ]
+        },
+        {
+          "category": "Added — New Features (Section 5)",
+          "emoji": "✨",
+          "items": [
+            "Recent Projects tab — fourth tab in Projects toolbar; shows up to 20 most-recently opened projects sorted descending by lastOpenedAt; route /projects/recent persisted across sessions.",
+            "Engine compatibility badges — each project card shows a coloured icon beside the version pill: green ✓ (matched), yellow △ (partial/minor match), red ✗ (no engine found); GUID-based associations show nothing; badge cache shared across card instances.",
+            "Running projects banner — slim animated banner above project list when Unreal Editor processes are detected via getRunningProjects; polls every 6s; dismissible.",
+            "Bulk git status — after every project scan, projectGitStatusBulk called once with all project paths; cards hit pre-populated cache synchronously.",
+            "primeGitCache(paths[]) — new export from useGitStatus feeding bulk results into the existing generation-safe cache."
+          ]
+        },
+        {
+          "category": "Added — Global Command Palette",
+          "emoji": "✨",
+          "items": [
+            "Ctrl+K in-app — opens a full-featured command palette modal over any page; fuzzy search across 13 commands grouped by category; keyboard nav, shortcut hints, animated open/close.",
+            "Standalone palette window (palette.html / palette.tsx / PaletteWindow.tsx) — when app is in system tray, Ctrl+K opens a dedicated 580×420 frameless alwaysOnTop BrowserWindow with its own minimal React tree via a second Vite entry point.",
+            "Engine + project search in palette — fetches saved engines/projects from the store instantly; shows thumbnails with Package icon fallback; engines and projects appear first when no query typed.",
+            "Direct launch from palette — selecting an engine or project launches it immediately; main window focused and navigated; palette closes after execution.",
+            "palette-navigate / palette-action IPC push events — main process routes executed commands to the main window; ProjectsPage and EnginesPage listen for palette-action CustomEvents.",
+            "Background OS global shortcut — CommandOrControl+K registered when window closes to tray, unregistered when restored; globalShortcut.unregisterAll() called in before-quit."
+          ]
+        },
+        {
+          "category": "Added — Keyboard Shortcuts Settings (Section 4)",
+          "emoji": "✨",
+          "items": [
+            "Settings → Shortcuts tab — new section listing all keyboard shortcuts in five groups (Global, Projects, Log Viewer, File Editor, Dialogs & Menus); styled kbd chips with copy-to-clipboard button; footer note mentions rebinding is planned."
+          ]
+        },
+        {
+          "category": "Architecture & Technical Debt (Section 6)",
+          "emoji": "🏗️",
+          "items": [
+            "Deleted dead code — removed src/main/scanWorker.ts and the entire src/main/scanWorker/ folder (4 files); logic was duplicated in the active inline worker strings.",
+            "Deleted dead Zustand store — removed src/renderer/src/store/usePagesStore.ts; React Router is the sole navigation layer.",
+            "Fixed resolveAsset.ts file:/// branch — switched to local-asset:/// (registered custom protocol); path segments now encodeURIComponent-encoded.",
+            "Removed dead api = {} from preload — empty const api = {} and its contextBridge.exposeInMainWorld('api', api) call removed from preload/index.ts.",
+            "Removed developer-specific hardcoded paths — D:\\\\Engine\\\\UnrealEditors and D:\\\\Unreal removed from engineScanWorker.ts Windows fallback; D:\\\\Unreal\\\\Projects removed from projectScanWorker.ts.",
+            "Fixed Discord webhook domain bypass — isValidDiscordWebhookUrl used .endsWith('discord.com') which accepted not-discord.com; fixed to require exact match discord.com or subdomain .discord.com; function now exported for testability.",
+            "Fixed formatDate for invalid input — added isNaN(dt.getTime()) guard to return raw input unchanged instead of 'Invalid Date'."
+          ]
+        },
+        {
+          "category": "Testing & CI (Section 7)",
+          "emoji": "🧪",
+          "items": [
+            "58 unit tests passing (was 8).",
+            "launchConfigArgs.test.ts (21 tests) — buildLaunchArgs flag generation, security validation on extraArgs, SKELETON_CONFIG, DEFAULT_CONFIG, isRhiAvailable, getSkeletonRhi.",
+            "projectUtils.test.ts (19 tests) — formatVersion, formatDate (including invalid-date fix), sortProjects across all 5 sort keys and both directions, immutability, edge cases.",
+            "discordWebhook.test.ts (10 tests) — valid URLs, HTTP rejection, domain spoofing, wrong path, empty string, javascript: scheme.",
+            ".github/workflows/ci.yml — four-job pipeline: Typecheck (node + web), Lint, Test (vitest run), Build (electron-vite build with stubbed native + tracer); concurrency cancellation per branch/PR; runs on push and PR to main/master/develop."
+          ]
+        },
+        {
+          "category": "Documentation (Section 8)",
+          "emoji": "📝",
+          "items": [
+            "README — fixed inaccurate coverage-94% badge → tests-58 passing; added CI status badge; updated Zustand description; marked react-window as planned; removed dead scanWorker/ from project structure; added palette.tsx and preload/palette.ts; added 6 new System & UX features; updated feature count 50 → 56; added test:run to Available Scripts table."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.3.0",
+      "date": "2026-05-30",
+      "tags": ["feature", "performance", "ui"],
+      "sections": [
+        {
+          "category": "Added — Launch Configuration Profiles",
+          "emoji": "✨",
+          "items": [
+            "Launch Config dialog — new per-engine and per-project launch profile system; access via ⚙ icon on engine cards or 'Launch with Config' in project context menu.",
+            "Built-in profiles — 'Default' (no overrides) and 'Skeleton (Lowest)' (DX11, scalability Low, all heavy rendering features disabled).",
+            "Custom profiles — create, rename, clone, delete; saved to userData/save/launch-configs.json and persist across restarts.",
+            "Graphics API (RHI) — force DirectX 11, DirectX 12, Vulkan, or OpenGL via -dx11/-dx12/-vulkan/-opengl flags.",
+            "Scalability preset — set all sg.* quality groups at startup (Low/Medium/High/Epic/Cinematic).",
+            "Rendering feature toggles — individual on/off switches for Lumen GI, Nanite, Virtual Shadow Maps, Ray Tracing, SSR, TAA/TSR, Bloom, Ambient Occlusion, Motion Blur, Lens Flare, Auto Exposure, Depth of Field, each mapped to the correct r.* console variable via -ini:Engine: args.",
+            "Startup flags — -nosplash, -noloadingscreen, -noshadercompile, -unattended.",
+            "Extra arguments — free-form field for additional CLI flags.",
+            "Live summary pills — footer and panel header show active RHI and scalability level.",
+            "Built-in profiles are read-only — clone to customise; stale saved values are overridden automatically on load.",
+            "launch-engine-with-config IPC — spawns the engine executable directly with built CLI args, bypassing OS file association.",
+            "launch-project-with-config IPC — resolves engine from .uproject EngineAssociation, then spawns with config args; works on all platforms.",
+            "launch-configs-get / launch-configs-save IPC — full CRUD for the config list.",
+            "project-removed push event — emitted by calculateAllProjectSizes when a project folder is found missing; renderer removes the card immediately without manual refresh."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🐛",
+          "items": [
+            "Splash screen suppressed when launching from Skeleton preset — SKELETON_CONFIG.noSplash was true by default; changed to false.",
+            "Deleted project folder shows 0 B size — calculateProjectSize/calculateAllProjectSizes now check fs.existsSync before walking the folder.",
+            "Deleted project card stays in UI — calculateAllProjectSizes separates existing from missing projects; missing ones removed from store and renderer notified in real time."
+          ]
+        },
+        {
+          "category": "UI / Theme",
+          "emoji": "🎨",
+          "items": [
+            "Launch Config dialog — full rewrite matching app design language: correct surface tokens, modal shadow matching ProjectLogDialog/GitCommitDialog, two-panel layout with sidebar profile list, colour-coded scalability pills, inline save/discard bar, Escape closes dialog; sized 980px wide, 86vh fixed height, sidebar w-64, fonts text-sm, feature rows py-3.5, toggles w-11 h-6.",
+            "Project Log dialog — widened to 1100px, height 88vh, title bar px-5 py-4, toolbar fonts bumped to text-xs, filter tabs px-3 py-1.5, status bar text-xs px-5 py-2.",
+            "Full theme sync — eliminated hardcoded text-white/x and bg-white/x Tailwind classes across layout/index.tsx, PageTitlebar.tsx, ProjectsContent.tsx, ErrorBoundary.tsx, and multiple About* components, replaced with CSS variable equivalents; main.css global override rules added to auto-correct any remaining instances."
+          ]
+        },
+        {
+          "category": "Performance — Main Process",
+          "emoji": "⚡",
+          "items": [
+            "All git operations fully async — replaced every execSync/execFileSync in projectGit.ts with shared runGitAsync helper.",
+            "Tracer IPC fully async — tracer-get-startup and tracer-set-startup replaced execSync('reg query/add/delete ...') with async execFileAsync.",
+            "Branch name validation zero-cost — assertValidBranchName replaced git check-ref-format spawn with an inline regex.",
+            "fab-scan-folder async — scanFabFolder converted from fs.readdirSync to fs.promises.readdir with parallel Promise.all.",
+            "Project size calculation batches store writes — calculateAllProjectSizes collects all results in memory, single loadProjects()+saveProjects() at end; 50 projects: 100 disk ops → 2.",
+            "Restored hardware acceleration — removed app.disableHardwareAcceleration() introduced in 2.2.5.",
+            "Removed V8 heap cap — removed --max-old-space-size=192 (was causing aggressive GC cycles and visible freezes).",
+            "Restored Direct Composition — removed disable-direct-composition and DirectCompositionVideoOverlays from disabled Chromium features.",
+            "Fixed plugin scanner regression — removed per-directory setImmediate yield in JS plugin scanner fallback; now yields once per top-level category (~15 total) instead of per directory (200+)."
+          ]
+        },
+        {
+          "category": "Performance — Project Scanning",
+          "emoji": "⚡",
+          "items": [
+            "Scan result cache — scan roots cached by folder mtime, persisted to project-scan-cache.json; unchanged folders return results instantly on relaunch.",
+            "Reduced scan depth — maxDepth 5 → 3.",
+            "Reduced max file cap — maxFiles 1000 → 500.",
+            "Lazy lastOpenedAt — findLatestLogTimestamp skipped for newly discovered projects during cold scan; only called for already-saved projects.",
+            "Deduplicated search paths — scan roots normalised and deduplicated before scanning."
+          ]
+        },
+        {
+          "category": "Performance — Renderer",
+          "emoji": "⚡",
+          "items": [
+            "Removed broken JSON.stringify in useMemo deps — stableFavoritePaths/stableHiddenPaths no longer run O(n) serialization on every render.",
+            "3 useEffect ref syncs replaced with direct assignment — currentTabRef, hiddenPathsRef, favoritePathsRef now assigned in render body.",
+            "Removed redundant useCallback identity wrappers — stableLaunch/stableOpenDir in ProjectsContent removed.",
+            "Git status cache no longer busted on every card mount — clearGitCacheForPath now called once per path per scan cycle.",
+            "Fab asset filter memoized with debounce — filtered array in fabTabState wrapped in useMemo with 200ms debounce on search input.",
+            "FabFilterBar counts memoized — assets.reduce() for type counts memoized on [assets].",
+            "AssetListCard / AssetGridCard wrapped in memo — skip re-render when asset prop unchanged.",
+            "SettingsPage section content memoized — renderSection() now useMemo([activeSection, settingsState, platform]).",
+            "Tracer status polling 5s → 30s.",
+            "Sidebar collapse animation — AnimatePresence mode=\"wait\" → mode=\"sync\"; enter/exit run simultaneously.",
+            "TextEncoder instance reused — single module-level instance instead of new TextEncoder() on every log poll tick.",
+            "onSizeCalculated also updates allProjectsRef — tab switches no longer revert to stale sizes."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.2.5",
+      "date": "2026-05-24",
+      "tags": ["hotfix"],
+      "sections": [
+        {
+          "category": "Security Fixes",
+          "emoji": "🔒",
+          "items": [
+            "Path traversal vulnerability in protocol handler — added directory whitelist validation to local-asset:// protocol handler; all file access restricted to resources/ and out/renderer/; unauthorized attempts return 403 with security logging.",
+            "Unvalidated Discord webhook URLs — added URL validation (protocol HTTPS, hostname discord.com, path structure) to prevent sending webhooks to malicious URLs.",
+            "Path traversal protection refinement — normalized path separators to forward slashes for consistent validation, allowing legitimate files while blocking malicious access."
+          ]
+        },
+        {
+          "category": "Critical Fixes",
+          "emoji": "🐛",
+          "items": [
+            "Engine plugins tab freeze — fixed critical UI freeze when navigating to Engines → Plugins tab by converting synchronous plugin scanning to async with fs.promises and event loop yields.",
+            "Engine plugin icons not loading — fixed path traversal protection blocking plugin icons at Engine/Plugins/*/Resources/Icon128.png.",
+            "Project thumbnails not loading — fixed path traversal protection blocking thumbnails at Saved/AutoScreenshot.png and Saved/Thumbnail.png."
+          ]
+        },
+        {
+          "category": "Memory & Resource Leaks Fixed",
+          "emoji": "🧠",
+          "items": [
+            "Git status cache memory leak — added AbortController for in-flight git status requests, cancelled when cache is cleared.",
+            "Memory leak in Discord Rich Presence — added clearReconnectTimer() cleanup in resetConnectionState().",
+            "Unbounded toast history memory leak — added timeout tracking with Map; timeouts cleared on unmount/manual removal; limited to 5 toasts max.",
+            "Missing cleanup in useTracerSettings hook — added timeout tracking with useRef; pending timeouts cleared before new ones and on unmount.",
+            "Missing cleanup in useProjectActions — added timeout tracking in handleAddProject() to prevent leaks during folder selection.",
+            "Missing cleanup in useEngineActions — added timeout tracking in handleAddEngine() to prevent leaks during engine folder selection."
+          ]
+        },
+        {
+          "category": "Performance Optimizations",
+          "emoji": "⚡",
+          "items": [
+            "Inefficient project deduplication — optimized from O(n²) to O(n) using Map-based approach; 100+ items deduplicate 50-70% faster.",
+            "Synchronous file operations blocking main thread — converted isProcessRunning() and killProcess() to async using execFile; added 5-second timeout.",
+            "Reduced memory allocations — optimized store operations and project list handling for faster startup."
+          ]
+        },
+        {
+          "category": "Reliability Improvements",
+          "emoji": "🛠️",
+          "items": [
+            "Race condition in concurrent project scans — replaced mutable property flag with promise-based approach; concurrent scan requests return the existing promise.",
+            "Silent failures in store operations — added comprehensive error logging to saveEngines(), saveProjects(), saveMainSettings().",
+            "Child processes not tracked — added tracking of all spawned child processes; all properly killed on app quit.",
+            "Unhandled promise rejections in useTracerSettings — added .catch() handlers to all IPC calls.",
+            "Missing error handling in useEngineActions — added error logging to handleDelete() and handleAddEngine()."
+          ]
+        },
+        {
+          "category": "Performance Improvements",
+          "emoji": "📊",
+          "items": [
+            "Engine plugins tab loads without freezing UI.",
+            "Plugin scanning no longer blocks main thread.",
+            "Project deduplication 50-70% faster for large lists.",
+            "Reduced memory usage from proper cleanup.",
+            "Faster startup with optimized store operations.",
+            "Better error logging for debugging."
+          ]
+        },
+        {
+          "category": "Security Improvements",
+          "emoji": "🔒",
+          "items": [
+            "Path traversal vulnerability eliminated with directory whitelist.",
+            "All file access through local-asset:// protocol now validated.",
+            "Security logging for all blocked access attempts.",
+            "Discord webhook URLs validated before HTTP requests.",
+            "Proper cleanup prevents resource leaks.",
+            "Normalized path validation for consistent security."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.2.4",
+      "date": "2026-05-24",
+      "tags": ["main"],
+      "sections": [
+        {
+          "category": "Added",
+          "emoji": "✨",
+          "items": [
+            "Centralized logging system — new logger.ts module with structured logging across all main process modules; log levels info/warn/error/debug; categorized by module; timestamp and context included.",
+            "Discord Rich Presence — new discordPresence.ts module showing current activity in Discord; configurable via DISCORD_CLIENT_ID env var; graceful fallback if Discord unavailable."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Corrupted projects.json crash — added automatic recovery: logs error, backs up corrupted file with timestamp, creates fresh empty array, logs recovery action; empty file detection prevents re-initialization on every load.",
+            "Project deletion showing 0KB size — fixed incorrect size display before removal.",
+            "Project not removing from list — ensured deleted projects properly removed from All, Favorites, Hidden tabs.",
+            "Engine card scrolling — improved scrolling behavior and performance.",
+            "Favorites handling — fixed edge cases with favorite/unfavorite operations during scans.",
+            "Startup performance — optimized startup sequence with deferred background tasks."
+          ]
+        },
+        {
+          "category": "Changed",
+          "emoji": "🔧",
+          "items": [
+            "Package.json updates — added discord-rpc for Discord integration; updated Electron to 39.2.6, React to 19.2.1, Tailwind CSS to 4.2.1, Vite to 7.2.6."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.2.3",
+      "date": "2026-05-22",
+      "tags": ["main"],
+      "sections": [
+        {
+          "category": "Added",
+          "emoji": "✨",
+          "items": [
+            "Per-project thumbnail keys — thumbnailKey (${projectPath}:${thumbnail}) passed to project cards so only cards whose thumbnails change re-render."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Avoid excess re-renders — removed global scanEpoch from ProjectCard hook/call-sites and from useEffect dependency arrays.",
+            "Stable filters & refs — stabilized favorites/hidden arrays using refs and memoization keyed on .join(',').",
+            "Worker error handling — spawnWorker now listens for 'error' and terminates/deregisters the worker to prevent leaked worker threads.",
+            "Immutable project updates — project size updates now use immutable saveProjects(projects.map(...)) instead of mutating saved arrays in place.",
+            "Worker-pool for sizing — calculateAllProjectSizes refactored to a queue + concurrency worker-pool.",
+            "Concurrent-scan guard — added _inFlight guards to engine/project scan entrypoints to prevent concurrent runs and race conditions.",
+            "Lint & type cleanup — removed unused scanEpoch props/call-sites and fixed several TypeScript and ESLint warnings."
+          ]
+        },
+        {
+          "category": "Changed",
+          "emoji": "🔧",
+          "items": [
+            "Rendering performance — limit initial entry animations to the first ~8 project cards to reduce paint churn on large lists.",
+            "ProjectsContent improvements — hoisted search and filtering, used projectPath as React key, passed thumbnailKey and index to cards, wrapped callbacks with useCallback.",
+            "Window config — removed deprecated backgroundThrottling: true option from windowConfig."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.2.2",
+      "date": "2026-05-16",
+      "tags": ["hotfix"],
+      "sections": [
+        {
+          "category": "Added",
+          "emoji": "✨",
+          "items": [
+            "Engine custom alias — set a nickname for any engine instance; alias displays as primary title on engine card; click title or pencil icon on hover to inline-edit; 32-character limit, sanitized on save; stored in engines.json; persists across restarts and never overwritten by rescan.",
+            "Project sorting — full sort system on Projects page: Name (A-Z), Last Opened, Date Created, Size, Engine Version; ascending/descending toggle per key; sort preference persisted to localStorage; size sort parses '~35-45 GB' range strings and MB/KB/GB units correctly.",
+            "Hidden projects tab — replaces 'Remove from list' with non-destructive hide system; new Hidden tab replaces Recent tab; 'Hide from List' moves a project out of All/Favorites without touching projects.json or disk; hidden paths stored in localStorage under projectHidden."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Registry scan broken — replaced regedit (VBS-based, silently returned exists: false for HKLM keys) with direct reg.exe CLI calls via child_process.spawn.",
+            "Registry sub-key parser using wrong hive format — fixed by expandHive() mapping short hive names (HKLM) to full names (HKEY_LOCAL_MACHINE) before comparison.",
+            "Registry scan not verifying directory on disk — now calls fs.existsSync(installedDir) before resolving the binary; stale registry entries silently skipped.",
+            "Engine alias lost on rescan — clarified that alias, gradient, folderSize, and lastLaunch are all preserved via ...s spread in scanAndMergeEngines.",
+            "Registry-only engines missing alias field — changed from 'as Engine' cast to 'satisfies Engine' with explicit alias: undefined.",
+            "ERR_FILE_NOT_FOUND console spam — local-asset:// protocol handler now returns a clean 404 for missing files instead of forwarding to net.fetch regardless of existence.",
+            "Typecheck: 38 pre-existing errors cleared across 16 files (unused imports, wrong import sources, missing types, type mismatches, missing preload declarations)."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.2.1",
+      "date": "2026-05-07",
+      "tags": ["main"],
+      "sections": [
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Windows registry engine scan not working — getInstalledEngines() was never called during the scan flow; scanAndMergeEngines now runs filesystem worker and registry scan in parallel via Promise.all and merges results; registry wins for version/exePath on Windows.",
+            "Registry scan only checked one key — now also checks HKCU\\SOFTWARE\\EpicGames\\Unreal Engine (per-user) and HKLM\\SOFTWARE\\WOW6432Node\\EpicGames\\Unreal Engine (32-bit view); deduplicates by directory path.",
+            "Registry scan used wrong binary platform — was resolving Win64/Mac/Linux based on process.platform inside a Windows-only path; hardcoded to Win64 since this code only runs on Windows."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.2.0",
+      "date": "2026-05-03",
+      "tags": ["main"],
+      "sections": [
+        {
+          "category": "Added",
+          "emoji": "✨",
+          "items": [
+            "In-app file editor — edit DefaultEngine.ini and .uproject files directly in the launcher; find bar (Ctrl+F) with match counter and prev/next nav; Find & Replace (Ctrl+H); unsaved indicator; Ctrl+S to save; JSON validation before saving .uproject.",
+            "Rich project context menu — Git Tools (init repo + LFS + .gitignore, commit, switch/create branch, open/copy remote URL), Project Tools (edit config, edit .uproject, view logs, clean intermediate), Organize (open in Explorer, open Terminal, open in GitHub Desktop).",
+            "Git commit dialog — stage all and commit with file diff preview showing changed files.",
+            "Git branch dialog — switch branches, create new branch, stash or discard conflict resolution.",
+            "Open Terminal — launches Windows Terminal/cmd on Windows, gnome-terminal/konsole/xfce4-terminal on Linux, Terminal.app on macOS.",
+            "Open in GitHub Desktop — finds GitHub Desktop exe on Windows, falls back to protocol URL on macOS/Linux.",
+            "Project list card — now uses the same full context menu as the grid card (previously a basic 6-item dropdown).",
+            "About page rebuilt — new sections: Architecture, IPC Modules, Data Storage, Tech Stack.",
+            "Navigation persistence — last visited page and tab restored on relaunch.",
+            "App version synced from package.json — always matches the real build, no hardcoded strings.",
+            "VITE_APP_VERSION in .env — build-time fallback so version shows instantly before IPC resolves."
+          ]
+        },
+        {
+          "category": "Refactored",
+          "emoji": "🏗️",
+          "items": [
+            "Full codebase split — every file over 200 lines broken into focused single-responsibility modules (IPC handlers, main window, engine utils, theme utils, worker scripts, frontend components).",
+            "Settings page — reusable Card/SectionHeader helpers, improved layout consistency.",
+            "Folder reorganization — card/, git/, log/, contextMenu/, sidebar/, fab/, plugins/ subfolders for related files."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Linux: project launch opens text editor — handleLaunchProject was calling xdg-open on the .uproject file; now spawns UnrealEditor directly.",
+            "Linux: engine auto-discovery — projects can be launched without manually adding the engine; falls back to live scan of common paths and UE_ROOT.",
+            "Linux: window controls broken — handleWindowMinimize/handleWindowMaximize now wrapped to call getMainWindow() at invocation time.",
+            "Linux: preload path wrong — corrected from ../../preload/index.js to ../preload/index.js.",
+            "onLaunching is not defined — stale variable name in projectCardHandlers.ts useCallback dependency array.",
+            "fabTabContent/fabTabState import errors — fixed after files moved into fab/ subfolder.",
+            "projectCardContent import error — fixed projectUtils path after moving into card/ subfolder.",
+            "Preload crash on startup — require('electron').app is undefined in preload context; replaced with empty string fallback.",
+            "Version showing '…' in Settings — SystemInfoGrid was using useState initializer as an effect; fixed to useEffect.",
+            "Context menu URL overflow — remote URL subtitle changed from whitespace-nowrap to truncate with ellipsis.",
+            "File editor dialog closes on click inside — added missing stopPropagation on the modal div.",
+            "File editor dialog not opening — state moved from ProjectToolsSubMenu (which unmounted before dialog could render) to ProjectCardDialogs."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.1.2",
+      "date": "2026-04-26",
+      "tags": ["v2.1.2"],
+      "sections": [
+        {
+          "category": "Added",
+          "emoji": "✨",
+          "items": [
+            "Linux support — full Linux compatibility with platform-specific adaptations: disabled hardware acceleration on Linux to prevent GPU errors in VMs, native Rust module builds for Linux (x64), System section in settings showing version/platform/native module status, sandbox fix (--no-sandbox flag for dev script)."
+          ]
+        },
+        {
+          "category": "UI/UX",
+          "emoji": "🎨",
+          "items": [
+            "System info section — compact badge-style section at top of settings showing app version, platform, native module status, tracer status (Windows only).",
+            "Theme-aware badges — system badges use theme colors and respect --radius variable.",
+            "Responsive layout — compact horizontal badge layout instead of grid to save vertical space."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Tracer not stopping on Linux toggle-off — removed outer try/catch swallowing pkill's expected exit code 1; separated systemctl calls from killProcess call.",
+            "pgrep -x failing for long binary names on Linux — switched to pgrep -f matching full command line path (Linux truncates process names to 15 chars).",
+            "Tracer status not updating after toggle — status poll delay after toggle increased from 1.5s to 2.5s.",
+            "'Rust module unavailable' shown on Linux — status now shows 'JS fallback active' on Linux to clarify everything still works.",
+            "Tracer tracer-get-startup always returning false on Linux — now reads directly from settings.json via loadMainSettings().tracerStartupEnabled instead of querying systemctl.",
+            "Tracer disabled on Linux — session tracer feature is now Windows-only; Linux shows no tracer UI or background processes.",
+            "Process detection on Linux — fixed pgrep/pkill patterns to avoid false matches with electron process.",
+            "Native module loading — proper fallback to JS implementation when Rust module unavailable.",
+            "Build warnings — suppressed unused split_csv_line function warning in tracer."
+          ]
+        },
+        {
+          "category": "Performance",
+          "emoji": "⚡",
+          "items": [
+            "App startup speed — splash screen created as the very first thing inside app.whenReady(); heavy work (native module warmup, tracer startup, update check) deferred via setImmediate/setTimeout; execSync calls replaced with async spawn-based equivalents; removed duplicate app.whenReady() chain; update check deferred to 8s after ready.",
+            "Renderer startup speed — applyRadius()/applyScale() run synchronously before React mounts (in main.tsx); removed 400ms fade-in on LayoutWrapper; removed artificial 1000ms splash delay; removed paintWhenInitiallyHidden: false which was preventing ready-to-show from firing.",
+            "Vite build config — added externalizeDepsPlugin() for main and preload; reduced terser passes from 2 to 1.",
+            "Window creation — backgroundColor set to #121214 matching --color-surface to prevent white flash; setupAppLifecycle() no longer wraps in a second app.whenReady()."
+          ]
+        },
+        {
+          "category": "Fixed (additional)",
+          "emoji": "🛠️",
+          "items": [
+            "App stuck on splash screen — removed paintWhenInitiallyHidden: false which suppressed the ready-to-show event.",
+            "Project launch spinner freezing — removed backdrop-blur-sm GPU compositor stall; replaced Tailwind animate-spin with a named @keyframes launcher-spin using willChange: transform; deferred IPC call via MessageChannel.postMessage until after paint is flushed; increased autoCloseOnLaunch delay to 2 seconds.",
+            "Project launch overlay minimum duration — overlay now stays visible for at least 1.5 seconds.",
+            "handleLaunch blocking renderer — changed from async/await to fire-and-forget .then() so the IPC round-trip never blocks the renderer event loop."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.1.1",
+      "date": "2026-04-20",
+      "tags": ["v2.1.1"],
+      "sections": [
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Linux engine launch blocked by KIO — engine executables now spawned directly instead of via xdg-open; xdg-open only used for non-executable files; spawned processes call .unref().",
+            "Engine detection ignores folder name — scanner no longer requires folders named UE_*; any directory containing Engine/Build/Build.version is recognised regardless of name.",
+            "Engine version read from Build.version — version always resolved from Engine/Build/Build.version instead of being stripped from the folder name.",
+            "Engine root vs parent path ambiguity — dual-mode scan logic: if the path itself is an engine root it is used directly, otherwise its subdirectories are scanned.",
+            "Linux engine scan paths stored as dedicated JSON — engine-scan-paths.json in the save folder, consistent with engines.json and projects.json.",
+            "Linux project scan paths stored as dedicated JSON — project-scan-paths.json, same pattern as engine scan paths.",
+            "Settings page engine scan section Linux-only — engine scan folder UI and UE_ROOT hint only shown on Linux.",
+            "UE_ROOT environment variable support (Linux only) — picked up automatically on every scan without needing the settings UI.",
+            "Native module loading in packaged builds — native/dist/index.js now resolves .node files from app.asar.unpacked when running inside an asar archive; falls back gracefully to null instead of throwing.",
+            "asarUnpack covers entire native/dist/ — all native module files unpacked from the asar so they can be loaded at runtime.",
+            "Linux build script missing electron-builder call — build:linux now runs electron-builder --linux --publish=never after the vite build; added build:linux:unpack for fast unpacked-only builds.",
+            "electron-builder.yml schema errors — removed invalid desktop.Name/Comment/Categories block, non-existent dmg.background reference, invalid artifactBuildStarted: null field; fixed linux.target to proper object form with arch; changed compression from maximum to normal.",
+            "asar: false + asarUnpack contradiction — changed to asar: true with asarUnpack so native modules are correctly extracted.",
+            "Rust validate_engine_folder hardcoded to Win64 — now uses #[cfg] platform conditionals to check the correct binary directory on Linux and macOS.",
+            "Glob patterns in Linux scan paths — removed paths like /usr/local/UnrealEngine* that fs.existsSync cannot expand; replaced with explicit directory scanning of common parent paths.",
+            "Duplicate const os / const platform in engine scan worker — fixed variable redeclaration causing a runtime error in the JS fallback scan path.",
+            "Projects page load order — saved projects shown immediately on page open; background scan runs after and only appends newly discovered projects without overwriting existing entries.",
+            "Unused imports removed — exec from child_process in projects.ts, os in fabScanner.ts and scanWorker.ts.",
+            "Missing fs import in platformPaths.ts — caused TypeScript errors when the Linux parent-directory scan code ran."
+          ]
+        },
+        {
+          "category": "Added",
+          "emoji": "✅",
+          "items": [
+            "Engine scan folder settings (Linux) — new 'Engines' section in Settings (Linux only) to add custom parent directories for engine scanning.",
+            "UE_ROOT env var hint in settings — informational row explaining the UE_ROOT alternative to the UI-configured paths."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.1.0",
+      "date": "2026-04-20",
+      "tags": ["v2.1.0"],
+      "sections": [
+        {
+          "category": "Added",
+          "emoji": "✅",
+          "items": [
+            "Linux Support — full cross-platform compatibility with Linux (AppImage and .deb packages).",
+            "Cross-platform path utilities (src/main/utils/platformPaths.ts) — platform-aware directory handling for AppData, Cache, Config, Engine installs, and project scanning paths.",
+            "Cross-platform process management (src/main/utils/processUtils.ts) — replaces Windows tasklist/taskkill with pgrep/pkill for Linux.",
+            "Linux build scripts — added build-linux.sh and updated package.json with Linux-specific build commands.",
+            "Native module cross-compilation — support for building native modules for Windows, Linux, and macOS.",
+            "Tracer binary cross-platform support — Linux process enumeration via /proc filesystem.",
+            "Platform-aware UI elements — registry settings hidden on non-Windows platforms.",
+            "Auto project scan using folder mention settings — configurable custom directories for automatic project discovery.",
+            "Project scan path configuration — new settings section for custom project scan directories.",
+            "Automatic update checking on app startup.",
+            "Electron Updater Guide — comprehensive documentation for auto-update functionality.",
+            "Project Analysis Documentation — detailed project structure and architecture analysis.",
+            "Added more details in Fab tab — asset cards now show thumbnails; clicking an asset goes directly to its Fab page."
+          ]
+        },
+        {
+          "category": "Changed",
+          "emoji": "🔧",
+          "items": [
+            "Build system — updated to support multi-platform native module compilation.",
+            "File operations — cross-platform file/directory opening using xdg-open on Linux.",
+            "Engine scanning — platform-specific binary paths and executable names.",
+            "IPC handlers — enhanced with platform-aware path handling.",
+            "UI layout — improved responsive design and cross-platform compatibility.",
+            "Configuration system — migrated from hardcoded config to environment variables (.env)."
+          ]
+        },
+        {
+          "category": "Documentation",
+          "emoji": "📚",
+          "items": [
+            "Added .env.example template for environment variable configuration.",
+            "Updated BUILD.md and BUILD_INSTRUCTIONS.md with Linux build instructions.",
+            "Enhanced README.md with improved documentation."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.0.4",
+      "date": "2026-04-13",
+      "tags": ["v2.0.4"],
+      "sections": [
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Enhanced project deduplication logic to handle path variations (case sensitivity, backslash/forward slash differences) by normalizing project paths before comparison.",
+            "Added normalizeProjectPath function in src/main/store.ts and src/main/scanWorker.ts to convert paths to lowercase and standardize separators.",
+            "Used a Map with normalized keys in scanWorker.ts for deduping scanned projects; consistent normalized comparisons during merge operations.",
+            "Added renderer-side deduplication in src/renderer/src/pages/ProjectsPage.tsx with dedupeProjectList function to prevent duplicate cards when switching tabs or refreshing."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.0.3",
+      "date": "2026-04-12",
+      "tags": ["v2.0.3"],
+      "sections": [
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Prevent duplicate project cards when switching between tabs or pressing refresh by deduplicating scanned projects."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.0.2",
+      "date": "2026-04-12",
+      "tags": ["v2.0.2"],
+      "sections": [
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Checks only directory path (guaranteed unique) for preventing duplicate engines."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.0.1",
+      "date": "2026-04-11",
+      "tags": ["v2.0.1"],
+      "sections": [
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Prevent duplicate project import entries by deduplicating saved projects by projectPath and project ID.",
+            "Use actual .uproject filenames for project scans, imports, and launch paths.",
+            "Resolve Rust native module path more reliably in development and packaged builds."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.9.0",
+      "date": "2026-04-09",
+      "tags": ["v1.9_dev"],
+      "sections": [
+        {
+          "category": "Added",
+          "emoji": "✅",
+          "items": [
+            "Theme System — built-in themes (Dark, Darker, Midnight Blue, Warm Dark), per-token color overrides, saveable custom profiles.",
+            "Font Customization — choose font family and font size for the entire UI from Settings.",
+            "Border Radius Control — slider in Settings syncs border radius across all cards and UI elements.",
+            "Theme Profiles — save, apply, rename, and delete custom theme combinations.",
+            "Splash Screen — animated loading screen on app startup.",
+            "Resizable Sidebar — drag handle to resize or collapse the sidebar.",
+            "UE Tracer — Rust background process (unreal_launcher_tracer.exe) tracking engine and project usage, merges data on each scan.",
+            "Worker Threads — engine scanning, project scanning, and size calculation run in worker threads off the main process.",
+            "local-asset:// Protocol — serves local files directly to the renderer without base64 round-trips.",
+            "calculateAllProjectSizes IPC — batch size calculation for all projects at once.",
+            "Updates in Settings — auto-update and GitHub version check moved from About page to Settings.",
+            "BUILD.md — comprehensive build guide for developers."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Border radius not syncing on card components (was using hardcoded Tailwind classes).",
+            "Native module compilation and path resolution in packaged app.",
+            "Tracer executable path in packaged installer.",
+            "All require() imports replaced with ES6 imports.",
+            "All ESLint warnings and TypeScript diagnostics cleared."
+          ]
+        },
+        {
+          "category": "Changed",
+          "emoji": "🏗️",
+          "items": [
+            "Replaced MUI icons with Lucide icons throughout.",
+            "Main process refactored into index.ts, window.ts, updater.ts, ipcHandlers.ts, store.ts, utils.ts, types.ts."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.8.0",
+      "date": "2026-04-05",
+      "tags": [],
+      "sections": [
+        {
+          "category": "Added",
+          "emoji": "✅",
+          "items": [
+            "List & Grid View — toggle between flat list and thumbnail grid for projects; preference persisted.",
+            "Batch Project Import — import up to 20 projects at a time; toast shows how many were skipped.",
+            "Redesigned Project Cards — list row with thumbnail, name, version badge, date, size, 3-dot menu; grid card with hover overlay.",
+            "3-dot Dropdown Menu — per-card actions via React portal (never clipped by scroll containers).",
+            "Neon Border on Hover — grid cards show accent glow on hover.",
+            "Stacking Toasts — colored accent bar, auto-dismiss after 4s, close button, max 5 visible.",
+            "Persist Last Page & View Mode — restored on next launch.",
+            "Error Boundary — recoverable crash screen instead of blank window.",
+            "openExternal Validation — only allows https: URLs.",
+            "Settings Cache — getSetting caches results in memory."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "Favorites tab showing nothing — stale closure in filterForTab.",
+            "Dropdown menus clipped by scroll container — now via ReactDOM.createPortal.",
+            "Toast X button blocked by select-none — fixed pointer-events.",
+            "sandbox: true breaking IPC — reverted to sandbox: false.",
+            "Relative import paths broken after component folder reorganization.",
+            "ProjectsPage scanning on every tab switch — now scans once, filters client-side.",
+            "favoritePaths breaking useMemo — moved to React state."
+          ]
+        },
+        {
+          "category": "Changed",
+          "emoji": "🏗️",
+          "items": [
+            "Components reorganized into layout/, engines/, projects/, ui/, about/ subfolders.",
+            "Vite-bundled packages moved to devDependencies."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.7.0",
+      "date": "2026-04-05",
+      "tags": [],
+      "sections": [
+        {
+          "category": "Added",
+          "emoji": "✅",
+          "items": [
+            "Recent Projects Tab — sorted by last-opened time from Saved/Logs timestamps.",
+            "App Version IPC — get-app-version exposes real app version to renderer.",
+            "GitHub Version Check — compares installed version against latest GitHub release.",
+            "Settings Page — initial settings interface.",
+            "Favorites System — mark and access favorite projects.",
+            "Toast Notifications — real-time feedback for user actions.",
+            "Single Instance Lock — prevents multiple app instances."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🛠️",
+          "items": [
+            "lastOpenedAt missing from ProjectData type.",
+            "ProjectCard useEffect missing async wrapper.",
+            "Log scanner recursing into subdirectories.",
+            "Recent tab falling back to createdAt."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-03-14",
+      "tags": [],
+      "sections": [
+        {
+          "category": "Added",
+          "emoji": "✅",
+          "items": [
+            "Full Electron + React launcher UI with engine/project management.",
+            "Auto-update support via electron-updater.",
+            "Tailwind dark UI with custom gradients."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": null,
+      "tags": ["Initial Release"],
+      "sections": [
+        {
+          "category": "Added",
+          "emoji": "✅",
+          "items": ["Initial MVP with engine detection and one-click launch."]
+        }
+      ]
+    }
+  ]
+}

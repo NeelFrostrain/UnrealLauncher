@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
   Search,
@@ -212,18 +211,14 @@ export function CommandPalette({
   }
 
   return createPortal(
-    <AnimatePresence>
+    <>
       {open && (
-        <motion.div
+        <div
           className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh]"
           style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.12 }}
           onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-          <motion.div
+          <div
             role="dialog"
             aria-label="Command palette"
             aria-modal="true"
@@ -236,10 +231,6 @@ export function CommandPalette({
               borderRadius: 'var(--radius)',
               boxShadow: '0 24px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04)'
             }}
-            initial={{ scale: 0.96, y: -12, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.96, y: -12, opacity: 0 }}
-            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
           >
             {/* Search bar */}
             <div
@@ -391,10 +382,10 @@ export function CommandPalette({
                 </span>
               ))}
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-    </AnimatePresence>,
+    </>,
     document.body
   )
 }

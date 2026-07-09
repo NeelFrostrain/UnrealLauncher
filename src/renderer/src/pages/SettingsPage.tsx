@@ -83,7 +83,7 @@ const SettingsPage = (): React.ReactElement => {
         return (
           <div className="space-y-6">
             <ProjectsSection />
-            {platform === 'linux' && <EnginesSection />}
+            <EnginesSection />
             <ExclusionsSection />
           </div>
         )

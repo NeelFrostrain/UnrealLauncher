@@ -64,6 +64,24 @@ function scanEnginePaths() {
   for (const p of extra) {
     if (!bases.includes(p)) bases.push(p);
   }
+
+  const cachePath = workerData.scanCachePath || null;
+  const existingBases = bases.filter(p => {
+    try { return fs.existsSync(p); } catch { return false; }
+  });
+  const signature = JSON.stringify(existingBases.map(p => {
+    try {
+      return [path.normalize(p).toLowerCase(), fs.statSync(p).mtimeMs];
+    } catch {
+      return [path.normalize(p).toLowerCase(), 0];
+    }
+  }));
+  if (cachePath) {
+    try {
+      const cached = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+      if (cached.signature === signature && Array.isArray(cached.engines)) return cached.engines;
+    } catch {}
+  }
   
   const results = [];
   const seen = new Set();
@@ -110,6 +128,12 @@ function scanEnginePaths() {
       for (const item of fs.readdirSync(base)) {
         tryAddEngine(path.join(base, item));
       }
+    } catch {}
+  }
+  if (cachePath) {
+    try {
+      fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+      fs.writeFileSync(cachePath, JSON.stringify({ signature, engines: results }), 'utf8');
     } catch {}
   }
   return results;

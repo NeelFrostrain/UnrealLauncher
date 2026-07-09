@@ -15,7 +15,11 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     define: {
       __DISCORD_STARTUP_WEBHOOK__: JSON.stringify(env.DISCORD_STARTUP_WEBHOOK_URL || ''),
-      __DISCORD_WEBHOOK__: JSON.stringify(env.DISCORD_WEBHOOK_URL || '')
+      __DISCORD_WEBHOOK__: JSON.stringify(env.DISCORD_WEBHOOK_URL || ''),
+      // Embed Discord client ID so it's available in production builds without .env
+      'process.env.DISCORD_CLIENT_ID': JSON.stringify(
+        env.DISCORD_CLIENT_ID || env.VITE_DISCORD_CLIENT_ID || '1507980570725191740'
+      )
     },
     build: {
       target: 'node22.20',
@@ -71,7 +75,6 @@ export default defineConfig({
             if (!id) return undefined
             const normalizedId = id.replace(/\\\\/g, '/')
             if (normalizedId.includes('/node_modules/')) {
-              if (normalizedId.includes('framer-motion')) return 'framer'
               if (normalizedId.includes('lucide-react')) return 'lucide'
               if (normalizedId.includes('zustand')) return 'state'
               return 'vendor'
@@ -92,14 +95,7 @@ export default defineConfig({
     },
     plugins: [react(), tailwindcss()],
     optimizeDeps: {
-      include: [
-        'react',
-        'react-dom',
-        'react-router-dom',
-        'zustand',
-        'framer-motion',
-        'lucide-react'
-      ]
+      include: ['react', 'react-dom', 'react-router-dom', 'zustand', 'lucide-react']
     }
   }
 })

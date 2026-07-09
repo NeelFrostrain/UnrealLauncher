@@ -1,10 +1,9 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useEffect, lazy, Suspense } from 'react'
-import ProjectContextMenu from '../ProjectContextMenu'
 
-// Heavy dialogs: lazy-loaded so they are excluded from the initial bundle chunk.
-// They are only ever opened on explicit user action, so the extra async chunk load
-// is imperceptible in practice.
+// All dialogs and the context menu are lazy-loaded — excluded from the initial
+// bundle chunk and only fetched on first user interaction.
+const ProjectContextMenu = lazy(() => import('../ProjectContextMenu'))
 const ProjectLogDialog = lazy(() => import('../ProjectLogDialog'))
 const GitCommitDialog = lazy(() => import('../GitCommitDialog'))
 const GitBranchDialog = lazy(() => import('../GitBranchDialog'))
@@ -105,34 +104,36 @@ export function ProjectCardDialogs({
   return (
     <>
       {ctxMenu && projectPath && (
-        <ProjectContextMenu
-          x={ctxMenu.x}
-          y={ctxMenu.y}
-          name={projectName ?? ''}
-          projectPath={projectPath}
-          projectVersion={projectVersion}
-          isFavorite={isFavorite}
-          isHidden={isHidden}
-          gitInitialized={gitInitialized}
-          gitBranch={gitBranch}
-          gitRemoteUrl={gitRemoteUrl}
-          onLaunch={onLaunch}
-          onLaunchGame={onLaunchGame}
-          onLaunchWithConfig={() => {
-            onLaunchWithConfig()
-            setShowLaunchConfig(true)
-          }}
-          onFavorite={onFavorite}
-          onOpenDir={onOpenDir}
-          onHide={onHide}
-          onViewLogs={onViewLogs}
-          onGitInit={onGitInit}
-          onOpenCommitDialog={onOpenCommitDialog}
-          onOpenBranchDialog={onOpenBranchDialog}
-          onOpenFileEditor={setFileEditorMode}
-          onOpenPlugins={() => setShowPlugins(true)}
-          onClose={onCloseCtxMenu}
-        />
+        <Suspense fallback={null}>
+          <ProjectContextMenu
+            x={ctxMenu.x}
+            y={ctxMenu.y}
+            name={projectName ?? ''}
+            projectPath={projectPath}
+            projectVersion={projectVersion}
+            isFavorite={isFavorite}
+            isHidden={isHidden}
+            gitInitialized={gitInitialized}
+            gitBranch={gitBranch}
+            gitRemoteUrl={gitRemoteUrl}
+            onLaunch={onLaunch}
+            onLaunchGame={onLaunchGame}
+            onLaunchWithConfig={() => {
+              onLaunchWithConfig()
+              setShowLaunchConfig(true)
+            }}
+            onFavorite={onFavorite}
+            onOpenDir={onOpenDir}
+            onHide={onHide}
+            onViewLogs={onViewLogs}
+            onGitInit={onGitInit}
+            onOpenCommitDialog={onOpenCommitDialog}
+            onOpenBranchDialog={onOpenBranchDialog}
+            onOpenFileEditor={setFileEditorMode}
+            onOpenPlugins={() => setShowPlugins(true)}
+            onClose={onCloseCtxMenu}
+          />
+        </Suspense>
       )}
 
       {showLogs && projectPath && (

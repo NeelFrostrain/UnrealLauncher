@@ -1,5 +1,4 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { motion, AnimatePresence } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import { Zap, Package, Settings } from 'lucide-react'
 import Engine_BG from '@renderer/assets/Engines_BG.webp'
@@ -68,13 +67,11 @@ interface CollapsedItemProps {
  * Renders a collapsed sidebar icon button
  */
 const CollapsedItem: FC<CollapsedItemProps> = ({ item, isActive, onClick }) => (
-  <motion.button
+  <button
     onClick={onClick}
     title={item.title}
     aria-label={`Navigate to ${item.title}`}
     aria-current={isActive ? 'page' : undefined}
-    whileHover={{ scale: 1.08 }}
-    whileTap={{ scale: 0.92 }}
     className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer"
     style={{
       backgroundColor: isActive ? 'var(--color-accent)' : undefined,
@@ -82,7 +79,7 @@ const CollapsedItem: FC<CollapsedItemProps> = ({ item, isActive, onClick }) => (
     }}
   >
     {item.icon}
-  </motion.button>
+  </button>
 )
 
 interface SidebarCardsProps {
@@ -103,46 +100,32 @@ export function SidebarCards({
     <div
       className={`flex-1 overflow-hidden ${collapsed ? 'flex flex-col items-center gap-1.5 pt-3 px-1.5' : 'p-3'}`}
     >
-      <AnimatePresence mode="sync" initial={false}>
-        {collapsed ? (
-          <motion.div
-            key="collapsed"
-            className="flex flex-col items-center gap-1.5 w-full"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            {NAV_ITEMS.map((item) => (
-              <CollapsedItem
-                key={item.basePath}
-                item={item}
-                isActive={currentPath.startsWith(item.basePath)}
-                onClick={() => onNavClick(item.basePath)}
-              />
-            ))}
-          </motion.div>
-        ) : (
-          <motion.div
-            key="expanded"
-            className="w-full h-fit p-2 rounded-sm flex flex-col gap-2"
-            style={{ backgroundColor: 'var(--color-surface-card)' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            {NAV_ITEMS.map((item) => (
-              <ExpandedCard
-                key={item.basePath}
-                item={item}
-                isActive={currentPath.startsWith(item.basePath)}
-                onClick={() => onNavClick(item.basePath)}
-              />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {collapsed ? (
+        <div className="flex flex-col items-center gap-1.5 w-full">
+          {NAV_ITEMS.map((item) => (
+            <CollapsedItem
+              key={item.basePath}
+              item={item}
+              isActive={currentPath.startsWith(item.basePath)}
+              onClick={() => onNavClick(item.basePath)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div
+          className="w-full h-fit p-2 rounded-sm flex flex-col gap-2"
+          style={{ backgroundColor: 'var(--color-surface-card)' }}
+        >
+          {NAV_ITEMS.map((item) => (
+            <ExpandedCard
+              key={item.basePath}
+              item={item}
+              isActive={currentPath.startsWith(item.basePath)}
+              onClick={() => onNavClick(item.basePath)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

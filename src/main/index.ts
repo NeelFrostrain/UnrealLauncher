@@ -12,6 +12,7 @@ import { setupAutoUpdaterEvents, checkForUpdatesOnStartup } from './updater'
 import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
 import { loadMainSettings, loadProjects, loadEngines } from './store'
 import { getNative } from './utils/native'
+import { getThumbnailCacheRoot } from './utils/thumbnailCache'
 import { setupDiscordRichPresence } from './discordPresence'
 import { initializeLogging, logger } from './logger'
 import { getSystemInfo, createSystemInfoEmbed } from './utils/systemInfo'
@@ -131,12 +132,6 @@ if (!gotTheLock) {
   logger.warn('app', 'Second instance detected before lock; quitting this process')
   app.quit()
 } else {
-  // ── Discord Rich Presence ───────────────────────────────────────────────────
-  setupDiscordRichPresence({
-    clientId: process.env.DISCORD_CLIENT_ID || process.env.VITE_DISCORD_CLIENT_ID
-  })
-  logger.info('discord', 'Rich Presence setup requested')
-
   // ── Child process registry ──────────────────────────────────────────────────
   const childProcesses: ChildProcess[] = []
 
@@ -219,7 +214,8 @@ if (!gotTheLock) {
 
         const allowedDirs = [
           path.resolve(path.join(app.getAppPath(), 'resources')),
-          path.resolve(path.join(app.getAppPath(), 'out', 'renderer'))
+          path.resolve(path.join(app.getAppPath(), 'out', 'renderer')),
+          path.resolve(getThumbnailCacheRoot())
         ].map((p) => p.replace(/\\/g, '/').toLowerCase())
 
         // Check if path is in allowed app directories
@@ -287,18 +283,31 @@ if (!gotTheLock) {
         }
       })
 
-      // 10. Send system startup notification to Discord (async, optional)
-      setImmediate(() => {
+      // 11. Setup Discord Rich Presence after window is ready (delayed to prevent command flickering)
+      setTimeout(() => {
+        setupDiscordRichPresence({
+          clientId: process.env.DISCORD_CLIENT_ID || process.env.VITE_DISCORD_CLIENT_ID,
+          buttons: [
+            { label: 'Join Discord', url: `${process.env.VITE_DISCORD_INVITE_URL}` },
+            { label: 'Download Launcher', url: `${process.env.VITE_WEBSITE_URL}` }
+          ]
+        })
+        logger.info('discord', 'Rich Presence setup requested')
+      }, 7000) // Delay by 7 seconds to ensure no overlap with other startup operations
+
+      // 12. Send system startup notification to Discord (async, optional)
+      // Delay Discord startup notification to prevent command flickering
+      setTimeout(() => {
         sendSystemStartupNotification().catch((error) => {
           logger.warn('discord', 'Failed to send startup notification', error)
         })
-      })
+      }, 8000) // Increased delay to 8 seconds to ensure no overlap with Rich Presence setup
     })
     .catch((error) => {
       logger.error('app', 'App ready startup failed', error)
     })
 
-  // ── Tracer startup — async, no execSync ────────────────────────────────────
+  // ── Tracer startup — delayed to prevent flickering ────────────────────────────────────
   async function startTracerAsync(): Promise<void> {
     // Tracer only supported on Windows
     if (process.platform !== 'win32') {
@@ -312,55 +321,88 @@ if (!gotTheLock) {
       return
     }
 
-    // Always start the tracer — it owns the Ctrl+K hotkey and the named pipe.
-    // The tracerStartupEnabled setting only controls the Windows Run registry
-    // entry (whether it auto-starts at login), not whether it runs now.
-    let tracerStartupEnabled = true
+    // Respect user preference: only start the tracer at app startup if the
+    // `tracerStartupEnabled` setting is enabled. Previously we always started
+    // the tracer (regardless of the setting) which forced the background
+    // tracer to run for all users.
+    let tracerStartupEnabled = false
     try {
       tracerStartupEnabled = loadMainSettings().tracerStartupEnabled
     } catch {
-      // If settings can't be read, default to enabled
+      // If settings can't be read, default to disabled
+      tracerStartupEnabled = false
     }
 
     const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
     const KEY_NAME = 'Unreal Launcher Tracer'
 
-    // Only manage the registry Run entry based on user preference
-    if (tracerStartupEnabled) {
-      logger.info('tracer', 'Ensuring tracer startup registry entry')
-      const regProcess = spawn(
-        'reg',
-        ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
-        { stdio: 'ignore' }
-      )
-      childProcesses.push(regProcess)
+    if (!tracerStartupEnabled) {
+      logger.info('tracer', 'Tracer startup disabled by settings — skipping start')
+      return
     }
 
-    // Check if tracer is already running — async via spawn instead of execSync
-    await new Promise<void>((resolve) => {
-      const check = spawn(
-        'tasklist',
-        ['/FI', 'IMAGENAME eq unreal_launcher_tracer.exe', '/NH', '/FO', 'CSV'],
-        { stdio: ['ignore', 'pipe', 'ignore'] }
-      )
-      childProcesses.push(check)
+    // Delay tracer operations by 5 seconds to completely prevent terminal flickering during app startup
+    setTimeout(async () => {
+      try {
+        // Ensure the registry Run entry is present when the user enabled startup
+        logger.info('tracer', 'Ensuring tracer startup registry entry')
+        const regProcess = spawn(
+          'reg',
+          ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
+          {
+            stdio: 'ignore',
+            windowsHide: true,
+            shell: false // Prevent shell window creation
+          }
+        )
+        childProcesses.push(regProcess)
 
-      let output = ''
-      check.stdout?.on('data', (d: Buffer) => {
-        output += d.toString()
-      })
-      check.once('close', () => {
-        if (!output.toLowerCase().includes('unreal_launcher_tracer.exe')) {
-          logger.info('tracer', 'Starting tracer process', { tracerExe })
-          const tracerProcess = spawn(tracerExe, [], { detached: true, stdio: 'ignore' })
-          childProcesses.push(tracerProcess)
-          tracerProcess.unref()
-        } else {
-          logger.info('tracer', 'Tracer already running')
-        }
-        resolve()
-      })
-    })
+        // Wait for registry operation to complete before checking processes
+        await new Promise<void>((resolve) => {
+          regProcess.once('close', () => resolve())
+        })
+
+        // Delay between operations to prevent rapid command execution
+        await new Promise((resolve) => setTimeout(resolve, 500))
+
+        // Check if tracer is already running — async via spawn instead of execSync
+        await new Promise<void>((resolve) => {
+          const check = spawn(
+            'tasklist',
+            ['/FI', 'IMAGENAME eq unreal_launcher_tracer.exe', '/NH', '/FO', 'CSV'],
+            {
+              stdio: ['ignore', 'pipe', 'ignore'],
+              windowsHide: true,
+              shell: false // Prevent shell window creation
+            }
+          )
+          childProcesses.push(check)
+
+          let output = ''
+          check.stdout?.on('data', (d: Buffer) => {
+            output += d.toString()
+          })
+          check.once('close', () => {
+            if (!output.toLowerCase().includes('unreal_launcher_tracer.exe')) {
+              logger.info('tracer', 'Starting tracer process', { tracerExe })
+              const tracerProcess = spawn(tracerExe, [], {
+                detached: true,
+                stdio: 'ignore',
+                windowsHide: true,
+                shell: false // Prevent shell window creation
+              })
+              childProcesses.push(tracerProcess)
+              tracerProcess.unref()
+            } else {
+              logger.info('tracer', 'Tracer already running')
+            }
+            resolve()
+          })
+        })
+      } catch (error) {
+        logger.error('tracer', 'Error during delayed tracer startup', { error })
+      }
+    }, 5000) // Increased delay from 2 seconds to 5 seconds to allow main window to fully load and settle
   }
 
   // ── Send system startup notification to Discord ─────────────────────────────

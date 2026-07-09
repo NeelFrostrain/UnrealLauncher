@@ -1,6 +1,5 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Activity, FolderOpen, X } from 'lucide-react'
 import type { Project } from '../../types'
 import { usePageVisibility } from '../../hooks/usePageVisibility'
@@ -54,16 +53,9 @@ export function RunningProjectsBanner({
   }
 
   return (
-    <AnimatePresence>
+    <>
       {visible && (
-        <motion.div
-          key="running-banner"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.18, ease: 'easeOut' }}
-          className="overflow-hidden shrink-0"
-        >
+        <div className="overflow-hidden shrink-0">
           <div
             className="flex items-center gap-2.5 px-3 py-2 mb-2"
             style={{
@@ -121,8 +113,8 @@ export function RunningProjectsBanner({
               <X size={13} />
             </button>
           </div>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   )
 }

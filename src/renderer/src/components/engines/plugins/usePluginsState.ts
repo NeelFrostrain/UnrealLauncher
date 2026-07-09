@@ -47,7 +47,30 @@ export function usePluginsState(engineDir: string): UsePluginsStateReturn {
     setLoading(true)
     setError(null)
     try {
-      setPlugins(await window.electronAPI.scanEnginePlugins(engineDir))
+      // Try cached plugins first (fast) and then refresh in background
+      const cacheKey = `pluginsCache:${encodeURIComponent(engineDir)}`
+      // Try cache first
+      try {
+        const raw = localStorage.getItem(cacheKey)
+        if (raw) {
+          const parsed = JSON.parse(raw) as { scannedAt: number; plugins: EnginePlugin[] }
+          // Consider cache valid for 60 minutes
+          if (Date.now() - (parsed.scannedAt ?? 0) < 1000 * 60 * 60) {
+            setPlugins(parsed.plugins)
+          }
+        }
+      } catch {
+        /* ignore cache */
+      }
+
+      const fresh = await window.electronAPI.scanEnginePlugins(engineDir)
+      setPlugins(fresh)
+      // Persist fresh scan
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify({ scannedAt: Date.now(), plugins: fresh }))
+      } catch {
+        /* ignore */
+      }
     } catch (err) {
       setPlugins([])
       const msg = err instanceof Error ? err.message : String(err)

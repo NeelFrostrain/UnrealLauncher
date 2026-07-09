@@ -54,7 +54,6 @@ const TECH = [
   { label: 'TypeScript', color: '#3178c6' },
   { label: 'Vite', color: '#fbbf24' },
   { label: 'Tailwind CSS', color: '#38bdf8' },
-  { label: 'framer-motion', color: '#e879f9' },
   { label: 'lucide-react', color: '#f472b6' },
   { label: 'Rust (Tracer)', color: '#fb923c' },
   { label: 'NAPI-RS', color: '#4ade80' }

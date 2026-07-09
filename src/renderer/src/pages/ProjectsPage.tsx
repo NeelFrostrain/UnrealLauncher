@@ -1,16 +1,23 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
-import { useEffect, useRef, useLayoutEffect } from 'react'
+import { useEffect, useRef, useLayoutEffect, useState, lazy, Suspense } from 'react'
 import { FolderOpen, EyeOff, Star } from 'lucide-react'
 import PageWrapper from '../layout/PageWrapper'
 import ProjectsToolbar from '../components/projects/ProjectsToolbar'
 import { ProjectsContent } from '../components/projects/ProjectsContent'
-import { RunningProjectsBanner } from '../components/projects/RunningProjectsBanner'
+// import { RunningProjectsBanner } from '../components/projects/RunningProjectsBanner'
 import { useProjectsPageState } from '../hooks/useProjectsPageState'
 import { useGlobalShortcuts } from '../hooks/useGlobalShortcuts'
+import { getProjectActivityFeed } from '../components/projects/projectUtils'
+const ProjectHistoryDialog = lazy(async () => {
+  const mod = await import('../components/projects/ProjectHistoryDialog')
+  return { default: mod.ProjectHistoryDialog }
+})
 
 const ProjectsPage = (): React.ReactElement => {
   const state = useProjectsPageState()
+  const [showHistory, setShowHistory] = useState(false)
+  const historyFeed = getProjectActivityFeed()
 
   useGlobalShortcuts({
     onFocusSearch: () => {
@@ -59,15 +66,27 @@ const ProjectsPage = (): React.ReactElement => {
         onSearchChange={state.setSearchQuery}
         onAddProject={state.handleAddProjectClick}
         onRefresh={state.handleRefreshClick}
+        onOpenHistory={() => setShowHistory(true)}
         backgroundScanning={state.backgroundScanning}
         viewMode={state.viewMode}
         onViewChange={state.handleViewChange}
         sortConfig={state.sortConfig}
         onSortChange={state.handleSortChange}
+        engineVersionFilter={state.engineVersionFilter}
+        engineVersionOptions={state.engineVersionOptions}
+        onEngineVersionChange={state.setEngineVersionFilter}
       />
 
+      <Suspense fallback={null}>
+        <ProjectHistoryDialog
+          isOpen={showHistory}
+          onClose={() => setShowHistory(false)}
+          historyFeed={historyFeed}
+        />
+      </Suspense>
+
       <div className="flex-1 overflow-hidden mt-1 flex flex-col min-h-0">
-        <RunningProjectsBanner allProjects={state.allProjectsRef.current} />
+        {/* <RunningProjectsBanner allProjects={state.allProjectsRef.current} /> */}
         <div className="flex-1 overflow-hidden min-h-0">
           <ProjectsContent
             projects={state.projects}
@@ -85,6 +104,7 @@ const ProjectsPage = (): React.ReactElement => {
             onLaunch={state.handleLaunch}
             onOpenDir={state.handleOpenDir}
             onListScroll={state.handleListScroll}
+            engineVersionFilter={state.engineVersionFilter}
           />
         </div>
       </div>

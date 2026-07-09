@@ -23,7 +23,8 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
     try {
       const { stdout } = await execFileAsync('reg', ['query', RUN_KEY, '/v', TRACER_KEY_NAME], {
         encoding: 'utf8',
-        timeout: 3000
+        timeout: 3000,
+        windowsHide: true
       })
       return stdout.includes(TRACER_KEY_NAME)
     } catch {
@@ -48,21 +49,31 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
         await execFileAsync(
           'reg',
           ['add', RUN_KEY, '/v', TRACER_KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
-          { timeout: 5000 }
+          { timeout: 5000, windowsHide: true, shell: false }
         )
+
+        // Small delay to prevent rapid command execution
+        await new Promise((resolve) => setTimeout(resolve, 100))
 
         // Start the tracer now if it isn't already running
         const isRunning = await isProcessRunning(tracerBinaryName)
         if (!isRunning) {
           logger.info('tracer', 'Starting tracer from settings', { tracerExe })
-          spawn(tracerExe, [], { detached: true, stdio: 'ignore' }).unref()
+          spawn(tracerExe, [], {
+            detached: true,
+            stdio: 'ignore',
+            windowsHide: true,
+            shell: false
+          }).unref()
         }
       } else {
         // Remove from startup registry — but do NOT kill the running tracer.
         // The tracer owns the Ctrl+K hotkey pipe; killing it breaks the hotkey.
         try {
           await execFileAsync('reg', ['delete', RUN_KEY, '/v', TRACER_KEY_NAME, '/f'], {
-            timeout: 5000
+            timeout: 5000,
+            windowsHide: true,
+            shell: false
           })
         } catch {
           /* key didn't exist */

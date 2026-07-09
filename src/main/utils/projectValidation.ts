@@ -8,9 +8,17 @@ import { getNativeModulePath } from '../utils/native'
 import { loadProjectScanPaths } from '../store'
 import type { Project } from '../types'
 import { logger } from '../logger'
+import { cacheProjectThumbnail } from './thumbnailCache'
 
 function getScanCachePath(): string {
   return path.join(app.getPath('userData'), 'save', 'project-scan-cache.json')
+}
+
+function cacheProjectThumbnails(projects: Project[]): Project[] {
+  return projects.map((project) => ({
+    ...project,
+    thumbnail: cacheProjectThumbnail(project.thumbnail)
+  }))
 }
 
 // Prevent concurrent scans using a promise-based approach
@@ -98,14 +106,15 @@ async function _doScanAndMergeProjects(): Promise<Project[]> {
       merged.push(...newProjects)
     }
 
-    saveProjects(merged)
+    const optimized = cacheProjectThumbnails(merged)
+    saveProjects(optimized)
     logger.info('project-scan', 'Project scan merged and saved', {
       savedCount: saved.length,
       scannedCount: scanned.length,
       newCount: newProjects.length,
       mergedCount: merged.length
     })
-    return merged
+    return optimized
   } catch (error) {
     logger.error('project-scan', 'Project scan failed', error)
     throw error
@@ -119,7 +128,7 @@ async function _doScanAndMergeProjects(): Promise<Project[]> {
  */
 export async function loadSavedProjects(): Promise<Project[]> {
   const raw = mergeTracerProjects(loadProjects())
-  const projects = Array.isArray(raw) ? raw : []
+  const projects = cacheProjectThumbnails(Array.isArray(raw) ? raw : [])
   logger.info('project', 'Loaded saved projects', { count: projects.length })
   return projects
 }

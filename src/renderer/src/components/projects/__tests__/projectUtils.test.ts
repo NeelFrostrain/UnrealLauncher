@@ -1,6 +1,16 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { describe, it, expect } from 'vitest'
-import { formatVersion, formatDate, sortProjects } from '../projectUtils'
+// @vitest-environment jsdom
+import { beforeEach, describe, it, expect } from 'vitest'
+import {
+  formatVersion,
+  formatDate,
+  sortProjects,
+  matchesProjectQuery,
+  addProjectActivity,
+  getProjectActivityFeed,
+  getProjectActivitySummary,
+  filterProjectsByEngineVersion
+} from '../projectUtils'
 
 // Minimal project shape used for sort tests.
 // Cast to satisfy the global ProjectData type which requires thumbnail: string | undefined.
@@ -52,6 +62,71 @@ describe('formatDate', () => {
 })
 
 // ── sortProjects ──────────────────────────────────────────────────────────────
+
+describe('matchesProjectQuery', () => {
+  const project = p({ name: 'My Project', version: '5.4', lastOpenedAt: '2024-06-15' })
+
+  it('matches project names, engine versions, paths, and dates', () => {
+    expect(matchesProjectQuery(project, 'my project')).toBe(true)
+    expect(matchesProjectQuery(project, '5.4')).toBe(true)
+    expect(matchesProjectQuery(project, '/some/path')).toBe(true)
+    expect(matchesProjectQuery(project, 'jun')).toBe(true)
+    expect(matchesProjectQuery(project, 'does-not-match')).toBe(false)
+  })
+
+  it('matches everything when the query is empty', () => {
+    expect(matchesProjectQuery(project, '')).toBe(true)
+  })
+})
+
+describe('filterProjectsByEngineVersion', () => {
+  const projects = [
+    p({ name: 'A', version: '5.4' }),
+    p({ name: 'B', version: '5.3' }),
+    p({ name: 'C', version: 'Unknown' }),
+    p({ name: 'D', version: '' })
+  ]
+
+  it('filters to an exact engine version', () => {
+    expect(filterProjectsByEngineVersion(projects, '5.4').map((project) => project.name)).toEqual([
+      'A'
+    ])
+  })
+
+  it('supports the unspecified bucket', () => {
+    expect(
+      filterProjectsByEngineVersion(projects, 'unspecified').map((project) => project.name)
+    ).toEqual(['C', 'D'])
+  })
+
+  it('returns all projects for the all-versions filter', () => {
+    expect(filterProjectsByEngineVersion(projects, 'all')).toHaveLength(4)
+  })
+})
+
+describe('project activity helpers', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('stores and summarizes recent activity', () => {
+    addProjectActivity('/path', 'My Project', 'launch', 'Editor launch')
+    addProjectActivity('/path', 'My Project', 'config-edit', 'Edited config')
+
+    const summary = getProjectActivitySummary('/path')
+    expect(summary).toContain('Config')
+  })
+
+  it('returns the recent activity feed across projects', () => {
+    addProjectActivity('/path-a', 'Alpha', 'launch', 'Opened in Editor')
+    addProjectActivity('/path-b', 'Beta', 'git-commit', 'Initialized Git repo')
+
+    const feed = getProjectActivityFeed()
+    expect(feed).toHaveLength(2)
+    expect(feed[0].projectName).toBe('Beta')
+    expect(feed[1].projectName).toBe('Alpha')
+  })
+})
 
 describe('sortProjects — by name', () => {
   const projects = [p({ name: 'Zebra' }), p({ name: 'Alpha' }), p({ name: 'Mango' })]

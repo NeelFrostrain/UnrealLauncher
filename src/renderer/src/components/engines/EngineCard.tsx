@@ -1,11 +1,11 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { motion } from 'framer-motion'
 import type { FC, ReactElement, KeyboardEvent } from 'react'
-import { useState, useRef, memo, useCallback, useEffect } from 'react'
+import { useState, useRef, memo, useCallback, useEffect, lazy, Suspense } from 'react'
 import { Play, FolderOpen, XCircle, Pencil, Settings2 } from 'lucide-react'
 import type { EngineCardProps } from '../../types'
 import { generateGradient } from '@renderer/utils/generateGradient'
-import LaunchConfigDialog from './LaunchConfigDialog'
+
+const LaunchConfigDialog = lazy(() => import('./LaunchConfigDialog'))
 
 const MAX_ALIAS = 32
 
@@ -25,7 +25,6 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     folderSize,
     gradient,
     alias,
-    index,
     onLaunch,
     onOpenDir,
     onDelete,
@@ -104,17 +103,13 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
 
     return (
       <>
-        <motion.div
+        <div
           className="w-full h-36 overflow-hidden flex select-text"
-          initial={index !== undefined && index < 8 ? { opacity: 0, y: 12 } : false}
           style={{
             backgroundColor: 'var(--color-surface-card)',
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius)'
           }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -1 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
         >
           {/* ── Gradient panel ─────────────────────────────────────────── */}
           <div
@@ -302,14 +297,16 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {showConfigDialog && (
-          <LaunchConfigDialog
-            exePath={exePath}
-            displayName={alias || `Unreal Engine ${version}`}
-            onClose={() => setShowConfigDialog(false)}
-          />
+          <Suspense fallback={null}>
+            <LaunchConfigDialog
+              exePath={exePath}
+              displayName={alias || `Unreal Engine ${version}`}
+              onClose={() => setShowConfigDialog(false)}
+            />
+          </Suspense>
         )}
       </>
     )

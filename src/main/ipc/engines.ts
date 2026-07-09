@@ -9,8 +9,14 @@ import {
   calculateEngineSize,
   scanAndMergeEngines,
   scanEnginePlugins,
-  handleUpdateEngineAlias
+  handleUpdateEngineAlias,
+  loadSavedEngines
 } from './engineHandlers'
+import {
+  clearEnginePluginCache,
+  getEnginePluginCacheTTL,
+  setEnginePluginCacheTTL
+} from './enginePlugins'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
 
 /**
@@ -18,6 +24,8 @@ import type { LaunchConfig } from '../utils/launchConfigArgs'
  */
 export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('scan-engines', scanAndMergeEngines)
+
+  ipcMain_.handle('load-saved-engines', loadSavedEngines)
 
   ipcMain_.handle('select-engine-folder', handleSelectEngineFolder)
 
@@ -55,6 +63,18 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
       return []
     }
     return scanEnginePlugins(validatedPath)
+  })
+
+  ipcMain_.handle('clear-engine-plugin-cache', (): void => {
+    clearEnginePluginCache()
+  })
+
+  ipcMain_.handle('get-engine-plugin-cache-ttl', (): number => {
+    return getEnginePluginCacheTTL()
+  })
+
+  ipcMain_.handle('set-engine-plugin-cache-ttl', (_event, ms: number) => {
+    setEnginePluginCacheTTL(Number(ms) || 0)
   })
 
   ipcMain_.handle('update-engine-alias', (_event, directoryPath: string, alias: string) =>

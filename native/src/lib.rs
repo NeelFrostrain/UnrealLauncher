@@ -441,9 +441,12 @@ pub fn find_running_unreal_projects() -> Vec<String> {
 
 #[cfg(target_os = "windows")]
 fn find_running_unreal_projects_windows() -> Vec<String> {
+  use std::os::windows::process::CommandExt;
+  
   let mut results = Vec::new();
   let output = Command::new("wmic")
     .args(["process", "where", "Name='UnrealEditor.exe' or Name='UE4Editor.exe'", "get", "CommandLine"] )
+    .creation_flags(0x08000000) // CREATE_NO_WINDOW flag to hide console window
     .output();
 
   let text = match output.and_then(|o| Ok(String::from_utf8_lossy(&o.stdout).into_owned())) {
@@ -460,6 +463,7 @@ fn find_running_unreal_projects_windows() -> Vec<String> {
   if results.is_empty() {
     let fallback = Command::new("tasklist")
       .args(["/FI", "IMAGENAME eq UnrealEditor.exe", "/FI", "IMAGENAME eq UE4Editor.exe", "/NH", "/FO", "CSV"])
+      .creation_flags(0x08000000) // CREATE_NO_WINDOW flag to hide console window
       .output();
     if let Ok(output) = fallback {
       let text = String::from_utf8_lossy(&output.stdout);
@@ -585,6 +589,37 @@ fn walk_size(dir: &Path) -> u64 {
     }
   }
   total
+}
+
+// ── Plugin cache helpers ──────────────────────────────────────────────────────
+
+#[napi(object)]
+pub struct PluginCacheSignature {
+  pub signature: String,
+  pub engine_dir: String,
+}
+
+/// Get a fast signature (mtime of Engine/Plugins) to check if plugin cache is still valid.
+/// Used by JavaScript cache layer to determine if a re-scan is needed.
+#[napi]
+pub fn get_plugin_cache_signature(engine_dir: String) -> PluginCacheSignature {
+  let plugins_root = Path::new(&engine_dir).join("Engine").join("Plugins");
+  let signature = match fs::metadata(&plugins_root) {
+    Ok(meta) => {
+      match meta.modified() {
+        Ok(mtime) => {
+          match mtime.duration_since(std::time::UNIX_EPOCH) {
+            Ok(dur) => dur.as_millis().to_string(),
+            Err(_) => "0".to_string(),
+          }
+        }
+        Err(_) => "0".to_string(),
+      }
+    }
+    Err(_) => "missing".to_string(),
+  };
+  
+  PluginCacheSignature { signature, engine_dir }
 }
 
 // ── Validation ────────────────────────────────────────────────────────────────

@@ -50,6 +50,7 @@ export interface NativeModule {
   getFolderSize: (folderPath: string) => number
   scanEnginePlugins: (engineDir: string) => NativeEnginePlugin[]
   findRunningUnrealProjects: () => string[]
+  getPluginCacheSignature?: (engineDir: string) => { signature: string; engineDir: string }
 }
 
 export interface NativeEnginePlugin {

@@ -1,6 +1,5 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React, { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
 
 type ToastType = 'success' | 'error' | 'warning' | 'info'
@@ -43,31 +42,23 @@ const ToastItem = ({
   const { icon: Icon, bar, iconCls } = config[toast.type]
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, x: 60, scale: 0.95 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 60, scale: 0.95 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
+    <div
       className="flex items-center gap-3 w-80 border shadow-2xl overflow-hidden pr-3"
       style={{
         backgroundColor: 'var(--color-surface-elevated)',
         borderColor: 'var(--color-border)',
-        borderRadius: 'var(--radius)'
+        borderRadius: 'var(--radius)',
+        animation: 'toast-in 0.2s ease-out'
       }}
     >
-      {/* Left accent bar */}
       <div className={`w-1 self-stretch shrink-0 ${bar}`} />
-
       <Icon size={18} className={`shrink-0 ${iconCls}`} />
-
       <p
         className="flex-1 text-xs py-3 leading-relaxed"
         style={{ color: 'var(--color-text-secondary)' }}
       >
         {toast.message}
       </p>
-
       <button
         onClick={() => onRemove(toast.id)}
         className="shrink-0 p-1 rounded cursor-pointer transition-colors"
@@ -75,7 +66,7 @@ const ToastItem = ({
       >
         <X size={14} />
       </button>
-    </motion.div>
+    </div>
   )
 }
 
@@ -86,24 +77,16 @@ export const ToastProvider = ({ children }: { children: ReactNode }): ReactNode 
 
   const addToast = useCallback((message: string, type: ToastType): void => {
     const id = String(++counter.current)
-
-    // Add toast and limit to 5 maximum
     setToasts((prev) => [...prev, { id, message, type }].slice(-5))
-
-    // Set timeout for auto-removal
     const timeoutId = setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
       timeoutRefs.current.delete(id)
     }, 4000)
-
-    // Track timeout for cleanup
     timeoutRefs.current.set(id, timeoutId)
   }, [])
 
   const removeToast = useCallback((id: string): void => {
     setToasts((prev) => prev.filter((t) => t.id !== id))
-
-    // Clear timeout if still pending
     const timeoutId = timeoutRefs.current.get(id)
     if (timeoutId) {
       clearTimeout(timeoutId)
@@ -111,13 +94,10 @@ export const ToastProvider = ({ children }: { children: ReactNode }): ReactNode 
     }
   }, [])
 
-  // Cleanup all timeouts on unmount
   React.useEffect(() => {
     const refs = timeoutRefs.current
     return () => {
-      for (const timeoutId of refs.values()) {
-        clearTimeout(timeoutId)
-      }
+      for (const timeoutId of refs.values()) clearTimeout(timeoutId)
       refs.clear()
     }
   }, [])
@@ -131,11 +111,9 @@ export const ToastProvider = ({ children }: { children: ReactNode }): ReactNode 
         aria-label="Notifications"
         className="fixed bottom-4 right-4 z-9999 flex flex-col gap-2 items-end select-auto pointer-events-auto"
       >
-        <AnimatePresence mode="popLayout">
-          {toasts.map((t) => (
-            <ToastItem key={t.id} toast={t} onRemove={removeToast} />
-          ))}
-        </AnimatePresence>
+        {toasts.map((t) => (
+          <ToastItem key={t.id} toast={t} onRemove={removeToast} />
+        ))}
       </div>
     </ToastContext.Provider>
   )

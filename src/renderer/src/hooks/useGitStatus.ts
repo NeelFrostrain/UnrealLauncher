@@ -17,6 +17,17 @@ const pending = new Map<string, Promise<GitStatus>>()
 const abortControllers = new Map<string, AbortController>()
 let generation = 0 // bumped on every clearGitCache call
 
+// Try to restore a persisted git status cache to avoid IPC on cold start
+try {
+  const raw = localStorage.getItem('gitStatusCache')
+  if (raw) {
+    const parsed = JSON.parse(raw) as Record<string, GitStatus>
+    for (const [k, v] of Object.entries(parsed)) cache.set(k, v)
+  }
+} catch {
+  /* ignore parse errors */
+}
+
 export async function getGitStatus(projectPath: string): Promise<GitStatus> {
   if (cache.has(projectPath)) return cache.get(projectPath)!
   if (pending.has(projectPath)) return pending.get(projectPath)!
@@ -91,6 +102,14 @@ export async function primeGitCache(projectPaths: string[]): Promise<void> {
           remoteUrl: s.remoteUrl ?? ''
         })
       }
+    }
+    // Persist cache after bulk prime to speed up next app start
+    try {
+      const obj: Record<string, GitStatus> = {}
+      for (const [k, v] of cache.entries()) obj[k] = v
+      localStorage.setItem('gitStatusCache', JSON.stringify(obj))
+    } catch {
+      /* ignore */
     }
   } catch {
     /* non-fatal — individual cards will fall back to per-path IPC */

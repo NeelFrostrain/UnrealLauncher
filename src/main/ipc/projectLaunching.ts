@@ -22,7 +22,12 @@ function spawnDetachedProcess(executable: string, args: string[]): void {
     return
   }
 
-  spawn(executable, args, { detached: true, stdio: 'ignore', shell: false }).unref()
+  spawn(executable, args, {
+    detached: true,
+    stdio: 'ignore',
+    shell: false,
+    windowsHide: true
+  }).unref()
 }
 
 /**

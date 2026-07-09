@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { motion } from 'framer-motion'
 import { X, GitCommit, RefreshCw } from 'lucide-react'
 import { useGitCommitState } from './git/gitCommitState'
 import { useGitCommitHandlers } from './git/gitCommitHandlers'
@@ -31,16 +30,14 @@ export default function GitCommitDialog({
   )
 
   return createPortal(
-    <motion.div
+    <div
       className="fixed inset-0 z-10001 flex items-center justify-center p-6"
       style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <motion.div
+      <div
         ref={dialogRef}
         className="flex flex-col w-full max-w-lg"
         style={{
@@ -51,9 +48,6 @@ export default function GitCommitDialog({
           maxHeight: '80vh',
           minHeight: 0
         }}
-        initial={{ scale: 0.96, y: 12 }}
-        animate={{ scale: 1, y: 0 }}
-        transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Header */}
         <div
@@ -146,8 +140,8 @@ export default function GitCommitDialog({
             </button>
           )}
         </div>
-      </motion.div>
-    </motion.div>,
+      </div>
+    </div>,
     document.body
   )
 }

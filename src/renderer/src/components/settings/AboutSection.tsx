@@ -1,8 +1,9 @@
 ﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Info, X } from 'lucide-react'
-import AboutPage from '../../pages/AboutPage'
 import { SystemInfoGrid } from './SystemInfoGrid'
+
+const AboutPage = lazy(() => import('../../pages/AboutPage'))
 
 export interface AboutSectionProps {
   onClose?: () => void
@@ -85,7 +86,21 @@ export const AboutSection = ({ onClose: _onClose }: AboutSectionProps): React.Re
               </button>
             </div>
             <div className="overflow-y-auto max-h-[calc(90vh-56px)]">
-              <AboutPage modal />
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center h-48">
+                    <div
+                      className="w-5 h-5 rounded-full border-2 animate-spin"
+                      style={{
+                        borderColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
+                        borderTopColor: 'var(--color-accent)'
+                      }}
+                    />
+                  </div>
+                }
+              >
+                <AboutPage modal />
+              </Suspense>
             </div>
           </div>
         </div>

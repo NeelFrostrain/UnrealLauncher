@@ -1,7 +1,7 @@
 {
   "name": "unreal-launcher",
   "productName": "Unreal Launcher",
-  "version": "2.4.0",
+  "version": "2.4.6",
   "description": "A lightweight Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects",
   "main": "./out/main/index.js",
   "author": "NeelFrostrain",
@@ -31,7 +31,7 @@
     "build:fast": "npm run build:app",
     "build:package": "electron-builder --publish=never",
     "build": "npm run build:tracer && npm run build:app && npm run copy:tracer",
-    "copy:tracer": "node -e \"const fs=require('fs'),p=require('path'),src=p.join('tracer','target','release',process.platform==='win32'?'unreal_launcher_tracer.exe':'unreal_launcher_tracer'),dst=p.join('resources',p.basename(src));if(fs.existsSync(src))fs.copyFileSync(src,dst);else console.warn('tracer binary not found:',src)\"",
+    "copy:tracer": "node ./scripts/copyTracer.js",
     "copy:tracer:linux": "node -e \"const fs=require('fs'),p=require('path'),src=p.join('tracer','target','release','unreal_launcher_tracer'),dst=p.join('resources','unreal_launcher_tracer');if(fs.existsSync(src))fs.copyFileSync(src,dst);else console.warn('tracer binary not found:',src)\"",
     "build:analyze": "npm run build && npx vite-bundle-analyzer out/renderer/assets/*.js",
     "postinstall": "electron-builder install-app-deps",
@@ -50,7 +50,6 @@
     "discord-rpc": "^4.0.1",
     "dotenv": "^17.4.2",
     "electron-updater": "^6.8.3",
-    "framer-motion": "^12.38.0",
     "lucide-react": "^1.8.0",
     "react-router-dom": "^7.14.0"
   },

@@ -2,6 +2,70 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.6] - 2026-07-09 — `bugfix · ux · startup`
+
+### 🐛 Fixed
+
+- Fixed terminal/PowerShell window flickering during app startup by comprehensively addressing all command execution sources - added `shell: false` to 15+ JavaScript spawn/execFile calls, implemented CREATE_NO_WINDOW flags in Rust native module, and restructured startup sequence with strategic delays.
+- Fixed immediate Discord Rich Presence initialization causing early process detection by moving setup from pre-ready phase to 7 seconds after window creation, with additional 2-second delay before first presence update.
+- Fixed Rust native module `wmic` and `tasklist` commands showing console windows by adding Windows-specific `creation_flags(0x08000000)` (CREATE_NO_WINDOW) to all Command executions in `find_running_unreal_projects_windows()`.
+- Fixed tracer startup sequence by increasing delay to 5 seconds and adding 500ms spacing between registry operations and process checking to prevent rapid command execution overlap.
+- Fixed system information collection and Discord webhook notifications by delaying to 8 seconds after app initialization, ensuring no conflict with other startup operations.
+- Fixed all remaining spawn calls across engine launching, project operations, terminal handling, file operations, and process utilities by adding consistent `shell: false` and `windowsHide: true` options.
+
+## [2.4.5] - 2026-07-09 — `bugfix · ux · perf`
+
+### 🐛 Fixed
+
+- Fixed **ALL** unwanted terminal/PowerShell windows appearing when running the packaged exe. Added `windowsHide: true` to every process spawn call across 6 files: `index.ts` (tracer registry, process detection), `engineLaunching.ts`, `projectFiles.ts`, `projectLaunching.ts`, `projectTerminal.ts` (Windows Terminal, cmd, macOS Terminal, Linux terminals), and `processUtils.ts` (file/directory opening). Every system call now runs silently.
+- Fixed module resolution error for engine plugin cache handlers by removing dynamic `require()` calls and using static ES6 imports in `engines.ts`.
+- Reduced Discord RPC polling frequency from 10 seconds to 30 seconds to minimize process spawning overhead.
+
+## [2.4.3] - 2026-07-09 — `bugfix · rpc`
+
+### 🐛 Fixed
+
+- Fixed Discord Rich Presence not working in packaged builds (`build:win`, `build:unpack`). Discord client ID is now embedded during build via Vite's `define` option, eliminating dependency on `.env` file in production.
+- Dev mode (`npm run dev`) continues to work as before, loading `.env` at runtime.
+
+## [2.4.2] - 2026-07-09 — `refactor · ui · perf`
+
+### ❌ Removed
+
+- Removed usage of Framer Motion `motion` components and global runtime animations; replaced dynamic motion-based UI transitions with CSS-based, preference-respecting transitions.
+- Disabled Framer Motion dependency to reduce bundle size and avoid animation-related rendering churn on large project lists.
+
+### 🐛 Fixed
+
+- Fixed inconsistent reduced-motion handling by honoring the user's `prefers-reduced-motion` setting and the app 'Animations' toggle via the `AnimationContext` API.
+- Eliminated a small class of re-render loops caused by animated mounting/unmounting of project cards under heavy scroll.
+
+### ℹ️ Notes
+
+- If you still need page-level entrance/exit animation, prefer CSS transitions or lightweight `requestAnimationFrame`-driven helpers that respect `prefers-reduced-motion`.
+- Next: remove Framer Motion from `package.json` and the lockfile once code references are fully replaced.
+
+## [2.4.1] - 2026-07-09 — `merge · release`
+
+### 🔀 Summary
+
+- Merge of release branch into main: reconciled UI, performance, and packaging fixes.
+- Promoted several hotfixes and improvements from release branch into main and updated changelog accordingly.
+
+### 🛠️ Notable Fixes & Improvements
+
+- **Engine-version filter** — Added 'Unsupported' option and included project-linked versions in the dropdown so projects targeting uninstalled engines remain searchable.
+- **Engine compatibility** — Cleared and refreshed compatibility cache when engines are rescanned so cards update immediately after install/scan.
+- **Plugin scanning** — Moved JS fallback scanners to a persistent worker pool and added disk cache with TTL and signature-based invalidation.
+- **Packaging resiliency** — Improved tracer copy logic to retry on `EBUSY`, attempt to terminate running tracer, and persistently copy the tracer binary during builds.
+- **Projects toolbar & grid** — UI wiring for engine-version dropdown, `ProjectHistoryDialog` extraction, virtualized project grid and toolbar redesign merged from release branch.
+- **Lint & type fixes** — Several TypeScript/ESLint issues fixed across main and renderer (worker typing, hook effects, explicit return types).
+
+### ℹ️ Notes
+
+- A temporary saved engine entry (UE 5.7) was added locally for testing compatibility behavior during the merge — remove it if you prefer only detected installations.
+- Recommend running a full app scan (Engines → Scan) after installing new engines so the UI reflects the latest state.
+
 ## [2.4.0] — `perf · ui · grid`
 
 ### ⚡ Performance & Memory

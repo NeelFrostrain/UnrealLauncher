@@ -1,7 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   Play,
   Gamepad2,
@@ -10,9 +9,9 @@ import {
   Wrench,
   AlertTriangle,
   GitBranch,
-  Settings2
+  Settings2,
+  EyeOff
 } from 'lucide-react'
-import { useToast } from '../ui/ToastContext'
 import {
   MenuItem,
   MenuSeparator,
@@ -23,6 +22,7 @@ import {
 import { OrganizeSubMenu } from './contextMenu/OrganizeSubMenu'
 import { ProjectToolsSubMenu } from './contextMenu/ProjectToolsSubMenu'
 import { GitSubMenu } from './contextMenu/GitSubMenu'
+import { useEngineCompatibility } from '../../hooks/useEngineCompatibility'
 
 export interface ProjectContextMenuProps {
   x: number
@@ -55,10 +55,10 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
   const organizeTriggerRef = useRef<HTMLButtonElement>(null)
   const toolsTriggerRef = useRef<HTMLButtonElement>(null)
   const gitTriggerRef = useRef<HTMLButtonElement>(null)
-  const [pos, setPos] = useState({ top: p.y, left: p.x, width: 220 })
+  const [pos, setPos] = useState({ top: p.y, left: p.x, width: 248 })
   const [activeSub, setActiveSub] = useState<'organize' | 'tools' | 'git' | null>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const { addToast } = useToast()
+  const compatibility = useEngineCompatibility(p.projectVersion)
 
   // Position menu within viewport bounds
   useEffect(() => {
@@ -139,54 +139,124 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
     p.onOpenBranchDialog()
   }, [p])
 
-  // Suppress unused warning
-  void addToast
-
   return createPortal(
     <>
-      <motion.div
+      <div
         ref={ref}
         data-menu-panel
         role="menu"
         aria-label={`${p.name} context menu`}
         className="fixed z-9999 select-none"
-        style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 220 }}
-        initial={{ opacity: 0, scale: 0.95, y: -4 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.1 }}
+        style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 248 }}
       >
         {/* Header */}
-        <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-          <p
-            className="text-xs font-semibold truncate"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            {p.name}
-          </p>
-          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-            <span
-              className="text-[9px] font-mono px-1 py-px"
-              style={{
-                borderRadius: 'calc(var(--radius) * 0.4)',
-                backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, transparent)',
-                color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
-                border: '1px solid color-mix(in srgb, var(--color-accent) 22%, transparent)'
-              }}
-            >
-              UE {p.projectVersion}
-            </span>
-            {p.gitInitialized && (
-              <span className="flex items-center gap-1">
-                <GitBranch size={9} style={{ color: '#34d399' }} />
-                <span className="text-[9px] font-mono" style={{ color: '#34d399' }}>
-                  {p.gitBranch}
+        <div
+          className="px-3 py-2.5"
+          style={{
+            borderBottom: '1px solid var(--color-border)',
+            background:
+              'linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 8%, transparent) 0%, transparent 100%)'
+          }}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p
+                className="text-[12px] font-semibold truncate"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                {p.name}
+              </p>
+              <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                <span
+                  className="text-[9px] font-mono px-1.5 py-px"
+                  style={{
+                    borderRadius: 'calc(var(--radius) * 0.4)',
+                    backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, transparent)',
+                    color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
+                    border: '1px solid color-mix(in srgb, var(--color-accent) 22%, transparent)'
+                  }}
+                >
+                  UE {p.projectVersion}
                 </span>
-              </span>
-            )}
+                <span
+                  className="flex items-center gap-1 rounded-full px-1.5 py-px text-[9px]"
+                  style={{
+                    backgroundColor:
+                      compatibility.status === 'matched'
+                        ? 'color-mix(in srgb, #34d399 12%, transparent)'
+                        : compatibility.status === 'partial'
+                          ? 'color-mix(in srgb, #f59e0b 12%, transparent)'
+                          : compatibility.status === 'missing'
+                            ? 'color-mix(in srgb, #f87171 12%, transparent)'
+                            : 'color-mix(in srgb, var(--color-text-muted) 12%, transparent)',
+                    color:
+                      compatibility.status === 'matched'
+                        ? '#34d399'
+                        : compatibility.status === 'partial'
+                          ? '#f59e0b'
+                          : compatibility.status === 'missing'
+                            ? '#f87171'
+                            : 'var(--color-text-secondary)',
+                    border: '1px solid color-mix(in srgb, currentColor 24%, transparent)'
+                  }}
+                  title={compatibility.tooltip}
+                >
+                  {compatibility.status === 'matched'
+                    ? 'Ready'
+                    : compatibility.status === 'partial'
+                      ? 'Compatible'
+                      : compatibility.status === 'missing'
+                        ? 'Engine Missing'
+                        : 'Unknown'}
+                </span>
+                {p.isFavorite && (
+                  <span
+                    className="flex items-center gap-1 rounded-full px-1.5 py-px text-[9px]"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, #facc15 12%, transparent)',
+                      color: '#facc15',
+                      border: '1px solid color-mix(in srgb, #facc15 24%, transparent)'
+                    }}
+                  >
+                    <Star size={9} fill="currentColor" />
+                    Favorite
+                  </span>
+                )}
+                {p.isHidden && (
+                  <span
+                    className="flex items-center gap-1 rounded-full px-1.5 py-px text-[9px]"
+                    style={{
+                      backgroundColor:
+                        'color-mix(in srgb, var(--color-text-muted) 12%, transparent)',
+                      color: 'var(--color-text-secondary)',
+                      border: '1px solid color-mix(in srgb, var(--color-border) 80%, transparent)'
+                    }}
+                  >
+                    <EyeOff size={9} />
+                    Hidden
+                  </span>
+                )}
+                {p.gitInitialized && (
+                  <span
+                    className="flex items-center gap-1 rounded-full px-1.5 py-px text-[9px]"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, #34d399 12%, transparent)',
+                      color: '#34d399',
+                      border: '1px solid color-mix(in srgb, #34d399 24%, transparent)'
+                    }}
+                  >
+                    <GitBranch size={9} />
+                    Git
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="py-1">
+          <MenuSeparator />
+
           {/* Launch */}
           <MenuCategory label="Launch" />
           <MenuItem
@@ -296,9 +366,9 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             onClose={p.onClose}
           />
         </div>
-      </motion.div>
+      </div>
 
-      <AnimatePresence>
+      <>
         {activeSub === 'organize' && (
           <OrganizeSubMenu
             projectPath={p.projectPath}
@@ -344,7 +414,7 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             onMouseLeave={closeSub}
           />
         )}
-      </AnimatePresence>
+      </>
     </>,
     document.body
   )

@@ -5,6 +5,7 @@
 
 import fs from 'fs'
 import path from 'path'
+import { app } from 'electron'
 import { getNative } from './native'
 import { getBinaryExtension } from './platformPaths'
 import { loadEngines, saveEngines, loadEngineScanPaths } from '../store'
@@ -21,6 +22,10 @@ export interface EngineValidationResult {
   version: string
   exePath: string
   reason?: string
+}
+
+function getScanCachePath(): string {
+  return path.join(app.getPath('userData'), 'save', 'engine-scan-cache.json')
 }
 
 export function validateEngineInstallation(folder: string): EngineValidationResult {
@@ -142,7 +147,8 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
           const w = spawnWorker(ENGINE_SCAN_WORKER, {
             saved,
             nativePath: getNativeModulePath(),
-            engineScanPaths
+            engineScanPaths,
+            scanCachePath: getScanCachePath()
           })
           w.once('message', (msg) => {
             logger.debug('engine-scan', 'Engine scan worker returned message')
