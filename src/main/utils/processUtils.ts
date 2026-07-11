@@ -149,12 +149,19 @@ export function openFileOrDirectory(filePath: string): void {
     logger.info('process', 'Opening file or directory', { filePath, platform: process.platform })
 
     if (process.platform === 'win32') {
-      spawn('cmd', ['/c', 'start', '""', resolved], {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true,
-        shell: false // Prevent shell window creation
-      }).unref()
+      const child = execFile(
+        'explorer.exe',
+        [resolved],
+        {
+          windowsHide: true
+        },
+        (error) => {
+          if (error) {
+            logger.error('process', 'Failed to open path on Windows', { path: resolved, error })
+          }
+        }
+      )
+      child.unref()
     } else if (process.platform === 'darwin') {
       spawn('open', [resolved], {
         detached: true,
