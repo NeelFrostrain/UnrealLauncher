@@ -48,6 +48,8 @@ export interface ProjectContextMenuProps {
   onOpenBranchDialog: () => void
   onOpenFileEditor: (mode: 'config' | 'uproject') => void
   onOpenPlugins: () => void
+  onOpenHealthReport: () => void
+  onOpenAssetAnalyzer: () => void
 }
 
 export default function ProjectContextMenu(p: ProjectContextMenuProps): React.ReactElement {
@@ -392,6 +394,8 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             onViewLogs={p.onViewLogs}
             onOpenFileEditor={p.onOpenFileEditor}
             onOpenPlugins={p.onOpenPlugins}
+            onOpenHealthReport={p.onOpenHealthReport}
+            onOpenAssetAnalyzer={p.onOpenAssetAnalyzer}
             onClose={p.onClose}
             onMouseEnter={keepSub}
             onMouseLeave={closeSub}

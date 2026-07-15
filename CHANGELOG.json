@@ -14,6 +14,25 @@
             "Removed developer-specific paths (`D:\\Engine\\UnrealEditors`, `D:\\Unreal`, `D:\\Unreal\\Projects`) from default search locations.",
             "Updated documentation (`AboutKnownIssues.tsx`) to match the new default scan paths."
           ]
+        },
+        {
+          "category": "Added",
+          "emoji": "✨",
+          "items": [
+            "Added Project Health Dashboard analyzing Unreal Engine project structures, checking configurations (DefaultEngine, DefaultGame, DefaultInput config files), identifying missing source/content directories, validating engine compatibility, and tracking generated directory sizes (Intermediate and Saved).",
+            "Implemented the core diagnostics engine and file scanning heuristics directly inside the native Rust backend module (`native/src/lib.rs`) for optimized, non-blocking folder sizes and heuristics analysis.",
+            "Added Unreal Engine Asset Usage Analyzer backend telemetry scanner inside native Rust (`native/src/lib.rs`), recursively scanning `Content` directories, grouping files by extension/naming prefixes, tracking largest assets, and detecting byte-level file duplicates using SipHash.",
+            "Added visual health score badges (0–100%) directly to project cards.",
+            "Added detailed, interactive Health Report dialog with structural analysis breakdown, recommendation logs, and a direct click-to-clean generated cache utility."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🐛",
+          "items": [
+            "Fixed path security validation checking (`isRegisteredProjectPath`) rejecting tracer-discovered projects, restoring health checking, Git status, and other tool operations for projects discovered dynamically by the background tracer.",
+            "Fixed Project Health Dialog styling and alignment issues by utilizing `createPortal` to render the modal correctly at the document body level with glassmorphism backdrop blurs, and centered the score gauge circle using proper SVG `viewBox` coordinates."
+          ]
         }
       ]
     },

@@ -3,7 +3,7 @@
 
 use napi_derive::napi;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -786,3 +786,400 @@ fn read_ahead_behind(git_dir: &Path, branch: &str) -> (u32, u32) {
     _ => (0, 0),
   }
 }
+
+
+// ── Project Health Analyzer ───────────────────────────────────────────────────
+
+#[napi(object)]
+pub struct HealthIssue {
+  pub category: String,
+  pub severity: String,
+  pub message: String,
+  pub fix_suggestion: Option<String>,
+}
+
+#[napi(object)]
+pub struct ProjectHealthReport {
+  pub score: u32,
+  pub status: String,
+  pub intermediate_size_bytes: f64,
+  pub saved_size_bytes: f64,
+  pub issues: Vec<HealthIssue>,
+  pub is_cpp: bool,
+  pub has_engine: bool,
+  pub engine_version: String,
+}
+
+fn is_dir_empty(path: &Path) -> bool {
+  if let Ok(mut entries) = fs::read_dir(path) {
+    entries.next().is_none()
+  } else {
+    true
+  }
+}
+
+/// Recursively checks directory sizes and scans config/structure constraints.
+#[napi]
+pub fn check_project_health(project_path: String) -> ProjectHealthReport {
+  let root = Path::new(&project_path);
+  let mut issues: Vec<HealthIssue> = Vec::new();
+  let mut score: i32 = 100;
+
+  // 1. Locate uproject descriptor
+  let mut engine_version = "Unknown".to_string();
+  let mut is_cpp = false;
+  let mut has_uproject = false;
+
+  if let Ok(entries) = fs::read_dir(root) {
+    for entry in entries.flatten() {
+      let p = entry.path();
+      if p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("uproject") {
+        has_uproject = true;
+        if let Some(json) = read_json_string(&p) {
+          if let Some(ea) = json.get("EngineAssociation").and_then(|v| v.as_str()) {
+            engine_version = ea.to_string();
+          }
+          if let Some(modules) = json.get("Modules").and_then(|v| v.as_array()) {
+            is_cpp = !modules.is_empty();
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  if !has_uproject {
+    issues.push(HealthIssue {
+      category: "Structure".to_string(),
+      severity: "Critical".to_string(),
+      message: "Failed to locate project descriptor (.uproject file)".to_string(),
+      fix_suggestion: Some("Ensure the folder contains a valid .uproject file at the root.".to_string()),
+    });
+    score -= 40;
+  }
+
+  // 2. Engine check (handled by caller, but we check if version is known)
+  let has_engine = engine_version != "Unknown";
+
+  // 3. Core Structure verification (Config / Content / Source)
+  let config_dir = root.join("Config");
+  let content_dir = root.join("Content");
+  let source_dir = root.join("Source");
+
+  // Config Folder Check
+  if !config_dir.exists() {
+    issues.push(HealthIssue {
+      category: "Config".to_string(),
+      severity: "Critical".to_string(),
+      message: "Missing Config directory".to_string(),
+      fix_suggestion: Some("Unreal Engine projects require config files for inputs, maps, and packages. Create a Config directory.".to_string()),
+    });
+    score -= 30;
+  } else {
+    // Check specific critical configs
+    let critical_configs = vec![
+      ("DefaultEngine.ini", 20, "Critical", "Default Engine config"),
+      ("DefaultGame.ini", 10, "Warning", "Default Game config"),
+      ("DefaultInput.ini", 10, "Warning", "Default Input bindings"),
+    ];
+    for (filename, weight, severity, desc) in critical_configs {
+      let conf_file = config_dir.join(filename);
+      if !conf_file.exists() {
+        issues.push(HealthIssue {
+          category: "Config".to_string(),
+          severity: severity.to_string(),
+          message: format!("Missing configuration file: {}", filename),
+          fix_suggestion: Some(format!("{} is missing. Unreal Engine will recreate this with defaults, but custom settings are lost.", desc)),
+        });
+        score -= weight;
+      }
+    }
+  }
+
+  // Content Folder Check
+  if !content_dir.exists() {
+    issues.push(HealthIssue {
+      category: "Structure".to_string(),
+      severity: "Critical".to_string(),
+      message: "Missing Content directory".to_string(),
+      fix_suggestion: Some("Every Unreal Engine project requires a Content folder for assets. Create a Content directory.".to_string()),
+    });
+    score -= 40;
+  } else if is_dir_empty(&content_dir) {
+    issues.push(HealthIssue {
+      category: "Structure".to_string(),
+      severity: "Warning".to_string(),
+      message: "Content directory is empty".to_string(),
+      fix_suggestion: Some("Your project does not contain any game assets or maps yet. Import assets or create a level.".to_string()),
+    });
+    score -= 20;
+  }
+
+  // Source Folder Check
+  if is_cpp {
+    if !source_dir.exists() {
+      issues.push(HealthIssue {
+        category: "Structure".to_string(),
+        severity: "Critical".to_string(),
+        message: "Missing Source directory for a C++ project".to_string(),
+        fix_suggestion: Some("This project lists C++ modules but the Source folder is missing. You may need to restore code files.".to_string()),
+      });
+      score -= 30;
+    } else if is_dir_empty(&source_dir) {
+      issues.push(HealthIssue {
+        category: "Structure".to_string(),
+        severity: "Critical".to_string(),
+        message: "Source directory is empty".to_string(),
+        fix_suggestion: Some("C++ source directory exists but contains no code modules or source files.".to_string()),
+      });
+      score -= 25;
+    }
+  }
+
+  // 4. Storage Bloat
+  let intermediate_dir = root.join("Intermediate");
+  let saved_dir = root.join("Saved");
+
+  let intermediate_size_bytes = if intermediate_dir.exists() { walk_size(&intermediate_dir) } else { 0 };
+  let saved_size_bytes = if saved_dir.exists() { walk_size(&saved_dir) } else { 0 };
+
+  // Flag Intermediate if > 10 GB
+  if intermediate_size_bytes > 10_737_418_240 {
+    issues.push(HealthIssue {
+      category: "Storage".to_string(),
+      severity: "Warning".to_string(),
+      message: format!("Oversized Intermediate folder ({:.2} GB)", (intermediate_size_bytes as f64 / 1024.0 / 1024.0 / 1024.0)),
+      fix_suggestion: Some("The Intermediate folder contains temporary build files. Clean the project to reclaim disk space.".to_string()),
+    });
+    score -= 15;
+  }
+
+  // Flag Saved if > 5 GB
+  if saved_size_bytes > 5_368_709_120 {
+    issues.push(HealthIssue {
+      category: "Storage".to_string(),
+      severity: "Warning".to_string(),
+      message: format!("Oversized Saved folder ({:.2} GB)", (saved_size_bytes as f64 / 1024.0 / 1024.0 / 1024.0)),
+      fix_suggestion: Some("The Saved folder holds local autosaves, backups, and logs. Consider cleaning it up.".to_string()),
+    });
+    score -= 10;
+  }
+
+  fn get_score_status(s: u32) -> String {
+    if s >= 80 { "Healthy".to_string() }
+    else if s >= 50 { "Warning".to_string() }
+    else { "Critical".to_string() }
+  }
+  let final_score_clamped = score.max(0).min(100) as u32;
+  let status = get_score_status(final_score_clamped);
+
+  ProjectHealthReport {
+    score: final_score_clamped,
+    status,
+    intermediate_size_bytes: intermediate_size_bytes as f64,
+    saved_size_bytes: saved_size_bytes as f64,
+    issues,
+    is_cpp,
+    has_engine,
+    engine_version,
+  }
+}
+
+
+// ── Unreal Engine Asset Usage Analyzer ────────────────────────────────────────
+
+#[napi(object)]
+#[derive(Clone)]
+pub struct AssetInfo {
+  pub name: String,
+  pub path: String,
+  pub size_bytes: f64,
+}
+
+#[napi(object)]
+pub struct CategoryInfo {
+  pub category: String,
+  pub count: u32,
+  pub size_bytes: f64,
+}
+
+#[napi(object)]
+pub struct AssetReport {
+  pub total_assets: u32,
+  pub total_size_bytes: f64,
+  pub categories: Vec<CategoryInfo>,
+  pub largest_assets: Vec<AssetInfo>,
+  pub duplicates: Vec<Vec<AssetInfo>>,
+}
+
+fn walk_assets(dir: &Path, files: &mut Vec<PathBuf>) {
+  if let Ok(entries) = fs::read_dir(dir) {
+    for entry in entries.flatten() {
+      let p = entry.path();
+      if p.is_dir() {
+        walk_assets(&p, files);
+      } else if p.is_file() {
+        if let Some(ext) = p.extension().and_then(|e| e.to_str()) {
+          if ext == "uasset" || ext == "umap" {
+            files.push(p);
+          }
+        }
+      }
+    }
+  }
+}
+
+fn hash_file(path: &Path) -> std::io::Result<String> {
+  let mut file = fs::File::open(path)?;
+  let mut hasher = std::collections::hash_map::DefaultHasher::new();
+  let mut buffer = [0; 65536];
+  loop {
+    let n = std::io::Read::read(&mut file, &mut buffer)?;
+    if n == 0 {
+      break;
+    }
+    hasher.write(&buffer[..n]);
+  }
+  use std::hash::Hasher;
+  Ok(format!("{:016x}", hasher.finish()))
+}
+
+/// Recursively scans Unreal Engine project Content directory, gathering asset sizes, categorizations, and duplicates.
+#[napi]
+pub async fn analyze_asset_usage(project_path: String) -> napi::Result<AssetReport> {
+  let root = Path::new(&project_path);
+  let content_dir = root.join("Content");
+
+  let mut report = AssetReport {
+    total_assets: 0,
+    total_size_bytes: 0.0,
+    categories: Vec::new(),
+    largest_assets: Vec::new(),
+    duplicates: Vec::new(),
+  };
+
+  if !content_dir.exists() || !content_dir.is_dir() {
+    return Ok(report);
+  }
+
+  let mut files: Vec<PathBuf> = Vec::new();
+  walk_assets(&content_dir, &mut files);
+
+  let mut all_assets: Vec<(AssetInfo, String)> = Vec::new(); // (AssetInfo, Hash)
+  
+  // Categorization counters
+  let mut texture_count = 0;
+  let mut texture_size = 0.0;
+  let mut material_count = 0;
+  let mut material_size = 0.0;
+  let mut mesh_count = 0;
+  let mut mesh_size = 0.0;
+  let mut animation_count = 0;
+  let mut animation_size = 0.0;
+  let mut audio_count = 0;
+  let mut audio_size = 0.0;
+  let mut blueprint_count = 0;
+  let mut blueprint_size = 0.0;
+  let mut niagara_count = 0;
+  let mut niagara_size = 0.0;
+  let mut map_count = 0;
+  let mut map_size = 0.0;
+  let mut other_count = 0;
+  let mut other_size = 0.0;
+
+  for file in files {
+    if let Ok(metadata) = file.metadata() {
+      let size = metadata.len() as f64;
+      let filename = file.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string();
+      let extension = file.extension().and_then(|e| e.to_str()).unwrap_or("");
+      
+      // Calculate hash
+      let hash = hash_file(&file).unwrap_or_else(|_| "".to_string());
+
+      // Relativize path for display (relative to Content folder or project root)
+      let display_path = file.strip_prefix(root).unwrap_or(&file).to_string_lossy().to_string();
+      
+      // Determine category
+      let category = if extension == "umap" {
+        "Maps"
+      } else if filename.starts_with("T_") || display_path.contains("/Textures/") || display_path.contains("\\Textures\\") {
+        "Textures"
+      } else if filename.starts_with("M_") || filename.starts_with("MI_") {
+        "Materials"
+      } else if filename.starts_with("SM_") || filename.starts_with("SK_") {
+        "Meshes"
+      } else if filename.starts_with("Anim_") || filename.starts_with("AS_") || display_path.contains("/Animations/") || display_path.contains("\\Animations\\") {
+        "Animations"
+      } else if filename.starts_with("A_") || display_path.contains("/Audio/") || display_path.contains("\\Audio\\") {
+        "Audio"
+      } else if filename.starts_with("BP_") {
+        "Blueprints"
+      } else if filename.starts_with("NS_") || filename.starts_with("NE_") {
+        "Niagara"
+      } else {
+        "Other"
+      };
+
+      match category {
+        "Textures" => { texture_count += 1; texture_size += size; },
+        "Materials" => { material_count += 1; material_size += size; },
+        "Meshes" => { mesh_count += 1; mesh_size += size; },
+        "Animations" => { animation_count += 1; animation_size += size; },
+        "Audio" => { audio_count += 1; audio_size += size; },
+        "Blueprints" => { blueprint_count += 1; blueprint_size += size; },
+        "Niagara" => { niagara_count += 1; niagara_size += size; },
+        "Maps" => { map_count += 1; map_size += size; },
+        _ => { other_count += 1; other_size += size; },
+      }
+
+      let asset = AssetInfo {
+        name: filename,
+        path: display_path,
+        size_bytes: size,
+      };
+
+      all_assets.push((asset, hash));
+    }
+  }
+
+  report.total_assets = all_assets.len() as u32;
+  report.total_size_bytes = all_assets.iter().map(|(a, _)| a.size_bytes).sum();
+
+  // Populate categories list
+  report.categories = vec![
+    CategoryInfo { category: "Textures".to_string(), count: texture_count, size_bytes: texture_size },
+    CategoryInfo { category: "Materials".to_string(), count: material_count, size_bytes: material_size },
+    CategoryInfo { category: "Meshes".to_string(), count: mesh_count, size_bytes: mesh_size },
+    CategoryInfo { category: "Animations".to_string(), count: animation_count, size_bytes: animation_size },
+    CategoryInfo { category: "Audio".to_string(), count: audio_count, size_bytes: audio_size },
+    CategoryInfo { category: "Blueprints".to_string(), count: blueprint_count, size_bytes: blueprint_size },
+    CategoryInfo { category: "Niagara".to_string(), count: niagara_count, size_bytes: niagara_size },
+    CategoryInfo { category: "Maps".to_string(), count: map_count, size_bytes: map_size },
+    CategoryInfo { category: "Other".to_string(), count: other_count, size_bytes: other_size },
+  ];
+
+  // Largest assets
+  let mut sorted_assets: Vec<AssetInfo> = all_assets.iter().map(|(a, _)| a.clone()).collect();
+  sorted_assets.sort_by(|a, b| b.size_bytes.partial_cmp(&a.size_bytes).unwrap_or(std::cmp::Ordering::Equal));
+  report.largest_assets = sorted_assets.into_iter().take(10).collect();
+
+  // Duplicate detection
+  use std::collections::HashMap;
+  let mut hash_groups: HashMap<String, Vec<AssetInfo>> = HashMap::new();
+  for (asset, hash) in all_assets {
+    if !hash.is_empty() {
+      hash_groups.entry(hash).or_default().push(asset);
+    }
+  }
+
+  // Filter groups with > 1 element and collect
+  for (_, group) in hash_groups {
+    if group.len() > 1 {
+      report.duplicates.push(group);
+    }
+  }
+
+  Ok(report)
+}
+
+

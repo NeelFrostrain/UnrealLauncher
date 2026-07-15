@@ -1,7 +1,7 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Settings2, FileCode2, ScrollText, Trash2, Package } from 'lucide-react'
+import { Settings2, FileCode2, ScrollText, Trash2, Package, Heart, Database } from 'lucide-react'
 import { useToast } from '../../ui/ToastContext'
 import { MenuItem, MenuSeparator, MENU_STYLE } from './contextMenuComponents'
 import { useContextMenuPosition } from './useContextMenuPosition'
@@ -15,6 +15,8 @@ export const ProjectToolsSubMenu = ({
   onViewLogs,
   onOpenFileEditor,
   onOpenPlugins,
+  onOpenHealthReport,
+  onOpenAssetAnalyzer,
   onClose,
   onMouseEnter,
   onMouseLeave
@@ -27,6 +29,8 @@ export const ProjectToolsSubMenu = ({
   onViewLogs: () => void
   onOpenFileEditor: (mode: 'config' | 'uproject') => void
   onOpenPlugins: () => void
+  onOpenHealthReport: () => void
+  onOpenAssetAnalyzer: () => void
   onClose: () => void
   onMouseEnter?: () => void
   onMouseLeave?: () => void
@@ -94,6 +98,28 @@ export const ProjectToolsSubMenu = ({
           sub="Enable / disable project plugins"
           onClick={() => {
             onOpenPlugins()
+            onClose()
+          }}
+          noClose
+          onClose={onClose}
+        />
+        <MenuItem
+          icon={<Heart size={11} style={{ color: '#ec4899' }} />}
+          label="Health Report"
+          sub="Check configuration, size and compatibility"
+          onClick={() => {
+            onOpenHealthReport()
+            onClose()
+          }}
+          noClose
+          onClose={onClose}
+        />
+        <MenuItem
+          icon={<Database size={11} style={{ color: '#06b6d4' }} />}
+          label="Asset Analyzer"
+          sub="Scan categories and detect duplicates"
+          onClick={() => {
+            onOpenAssetAnalyzer()
             onClose()
           }}
           noClose

@@ -1,7 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import fs from 'fs'
-import { loadEngines, loadProjectScanPaths, loadProjects } from '../store'
+import { loadEngines, loadProjectScanPaths, loadProjects, mergeTracerProjects } from '../store'
 import { getSettingsPath } from '../store/storePaths'
 import { getTracerDataDir } from './platformPaths'
 
@@ -292,7 +292,7 @@ export function isRegisteredProjectPath(dirPath: string): string | undefined {
     const resolvedLower = resolved.toLowerCase()
 
     try {
-      const projects = loadProjects()
+      const projects = mergeTracerProjects(loadProjects())
 
       if (projects && Array.isArray(projects) && projects.length > 0) {
         for (const proj of projects) {

@@ -2,6 +2,44 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
 declare global {
+  interface HealthIssue {
+    type: 'info' | 'warning' | 'critical'
+    message: string
+    recommendation: string
+  }
+
+  interface HealthReport {
+    score: number
+    status: 'healthy' | 'warning' | 'critical'
+    issues: HealthIssue[]
+    intermediateSize: number
+    savedSize: number
+    isCpp: boolean
+    hasEngine: boolean
+    engineVersion: string
+  }
+
+  interface AssetInfo {
+    name: string
+    path: string
+    sizeBytes: number
+  }
+
+  interface CategoryInfo {
+    category: string
+    count: number
+    sizeBytes: number
+  }
+
+  interface AssetReport {
+    totalAssets: number
+    totalSizeBytes: number
+    categories: CategoryInfo[]
+    largestAssets: AssetInfo[]
+    duplicates: AssetInfo[][]
+    error?: string
+  }
+
   interface ProjectData {
     name: string
     version: string
@@ -217,7 +255,6 @@ declare global {
       fabScanFolder: (folderPath: string) => Promise<FabAsset[]>
       fabSavePath: (folderPath: string) => Promise<void>
       fabLoadPath: () => Promise<string>
-      // Project tools
       projectReadLog: (
         projectPath: string,
         fromByte?: number
@@ -227,6 +264,13 @@ declare global {
         sizeBytes: number
         startByte: number
       } | null>
+      projectCheckHealth: (projectPath: string) => Promise<HealthReport>
+      projectAnalyzeAssets: (projectPath: string) => Promise<AssetReport>
+      projectExportAssetReport: (
+        projectPath: string,
+        reportContent: string,
+        format: 'json' | 'md'
+      ) => Promise<{ success?: boolean; canceled?: boolean; filePath?: string; error?: string }>
       projectGitStatus: (projectPath: string) => Promise<{
         initialized: boolean
         branch: string

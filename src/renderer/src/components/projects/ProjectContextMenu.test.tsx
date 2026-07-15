@@ -42,6 +42,8 @@ describe('ProjectContextMenu', () => {
           onOpenBranchDialog={vi.fn()}
           onOpenFileEditor={vi.fn()}
           onOpenPlugins={vi.fn()}
+          onOpenHealthReport={vi.fn()}
+          onOpenAssetAnalyzer={vi.fn()}
         />
       </ToastProvider>
     )
@@ -79,6 +81,8 @@ describe('ProjectContextMenu', () => {
           onOpenBranchDialog={vi.fn()}
           onOpenFileEditor={vi.fn()}
           onOpenPlugins={vi.fn()}
+          onOpenHealthReport={vi.fn()}
+          onOpenAssetAnalyzer={vi.fn()}
         />
       </ToastProvider>
     )
@@ -113,6 +117,8 @@ describe('ProjectContextMenu', () => {
           onOpenBranchDialog={vi.fn()}
           onOpenFileEditor={vi.fn()}
           onOpenPlugins={vi.fn()}
+          onOpenHealthReport={vi.fn()}
+          onOpenAssetAnalyzer={vi.fn()}
         />
       </ToastProvider>
     )

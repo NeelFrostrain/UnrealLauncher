@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
@@ -116,6 +116,12 @@ if (process.contextIsolated) {
       fabLoadPath: () => ipcRenderer.invoke('fab-load-path'),
       projectReadLog: (projectPath: string, fromByte?: number) =>
         ipcRenderer.invoke('project-read-log', projectPath, fromByte ?? 0),
+      projectCheckHealth: (projectPath: string) =>
+        ipcRenderer.invoke('project-check-health', projectPath),
+      projectAnalyzeAssets: (projectPath: string) =>
+        ipcRenderer.invoke('project-analyze-assets', projectPath),
+      projectExportAssetReport: (projectPath: string, reportContent: string, format: 'json' | 'md') =>
+        ipcRenderer.invoke('project-export-asset-report', projectPath, reportContent, format),
       projectGitStatus: (projectPath: string) =>
         ipcRenderer.invoke('project-git-status', projectPath),
       projectGitStatusBulk: (projectPaths: string[]) =>

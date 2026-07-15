@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
@@ -51,6 +51,42 @@ export interface NativeModule {
   scanEnginePlugins: (engineDir: string) => NativeEnginePlugin[]
   findRunningUnrealProjects: () => string[]
   getPluginCacheSignature?: (engineDir: string) => { signature: string; engineDir: string }
+  checkProjectHealth: (projectPath: string) => {
+    score: number
+    status: string
+    intermediateSizeBytes: number
+    savedSizeBytes: number
+    issues: {
+      category: string
+      severity: string
+      message: string
+      fixSuggestion: string | null
+    }[]
+    isCpp: boolean
+    hasEngine: boolean
+    engineVersion: string
+  }
+  analyzeAssetUsage: (projectPath: string) => Promise<AssetReport>
+}
+
+export interface AssetInfo {
+  name: string
+  path: string
+  sizeBytes: number
+}
+
+export interface CategoryInfo {
+  category: string
+  count: number
+  sizeBytes: number
+}
+
+export interface AssetReport {
+  totalAssets: number
+  totalSizeBytes: number
+  categories: CategoryInfo[]
+  largestAssets: AssetInfo[]
+  duplicates: AssetInfo[][]
 }
 
 export interface NativeEnginePlugin {
