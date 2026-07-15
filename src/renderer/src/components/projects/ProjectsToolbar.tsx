@@ -161,10 +161,12 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         <div
           role="tablist"
           aria-label="Project tabs"
-          className="flex items-center gap-0.5 px-1 py-1 rounded-lg"
+          className="flex items-center gap-0.5 px-1 py-1"
           style={{
             backgroundColor: 'var(--color-surface-card)',
-            border: '1px solid var(--color-border)'
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius)',
+            fontSize: 'var(--font-size)'
           }}
         >
           {tabs.map((tab) => {
@@ -175,13 +177,15 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => onTabClick(tab.id)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1 font-medium transition-all cursor-pointer"
                 style={{
                   color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
                   backgroundColor: isActive
                     ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
                     : 'transparent',
-                  boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.3)' : 'none'
+                  boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.3)' : 'none',
+                  borderRadius: 'calc(var(--radius) * 0.85)',
+                  fontSize: 'calc(var(--font-size) * 0.85)'
                 }}
               >
                 {tab.icon && (
@@ -308,16 +312,17 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
           <button
             onClick={onRefresh}
             disabled={refreshing}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1.5 font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
             style={{
               borderRadius: 'var(--radius)',
               backgroundColor: 'var(--color-surface-card)',
               color: 'var(--color-text-secondary)',
-              border: '1px solid var(--color-border)'
+              border: '1px solid var(--color-border)',
+              fontSize: 'calc(var(--font-size) * 0.85)'
             }}
           >
             <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
-            <span className="ml-1 text-sm">
+            <span className="ml-1" style={{ fontSize: 'calc(var(--font-size) * 0.85)' }}>
               {refreshing
                 ? 'Refreshing…'
                 : calculatingSizes

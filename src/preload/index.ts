@@ -122,6 +122,14 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-analyze-assets', projectPath),
       projectExportAssetReport: (projectPath: string, reportContent: string, format: 'json' | 'md') =>
         ipcRenderer.invoke('project-export-asset-report', projectPath, reportContent, format),
+      projectGetSnapshots: (projectPath: string) =>
+        ipcRenderer.invoke('project-get-snapshots', projectPath),
+      projectCreateSnapshot: (projectPath: string, name: string) =>
+        ipcRenderer.invoke('project-create-snapshot', projectPath, name),
+      projectRestoreSnapshot: (projectPath: string, snapshotId: string) =>
+        ipcRenderer.invoke('project-restore-snapshot', projectPath, snapshotId),
+      projectDeleteSnapshot: (projectPath: string, snapshotId: string) =>
+        ipcRenderer.invoke('project-delete-snapshot', projectPath, snapshotId),
       projectGitStatus: (projectPath: string) =>
         ipcRenderer.invoke('project-git-status', projectPath),
       projectGitStatusBulk: (projectPaths: string[]) =>
@@ -216,7 +224,9 @@ if (process.contextIsolated) {
         return (): void => {
           ipcRenderer.removeListener('palette-action', listener)
         }
-      }
+      },
+      taskManagerGetProcesses: () => ipcRenderer.invoke('task-manager-get-processes'),
+      taskManagerKillProcess: (pid: number) => ipcRenderer.invoke('task-manager-kill-process', pid)
     })
   } catch (error) {
     console.error(error)

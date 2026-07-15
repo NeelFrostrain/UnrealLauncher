@@ -1,7 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Settings2, FileCode2, ScrollText, Trash2, Package, Heart, Database } from 'lucide-react'
+import { Settings2, FileCode2, ScrollText, Trash2, Package, Heart, Database, Camera } from 'lucide-react'
 import { useToast } from '../../ui/ToastContext'
 import { MenuItem, MenuSeparator, MENU_STYLE } from './contextMenuComponents'
 import { useContextMenuPosition } from './useContextMenuPosition'
@@ -17,6 +17,7 @@ export const ProjectToolsSubMenu = ({
   onOpenPlugins,
   onOpenHealthReport,
   onOpenAssetAnalyzer,
+  onOpenSnapshots,
   onClose,
   onMouseEnter,
   onMouseLeave
@@ -31,6 +32,7 @@ export const ProjectToolsSubMenu = ({
   onOpenPlugins: () => void
   onOpenHealthReport: () => void
   onOpenAssetAnalyzer: () => void
+  onOpenSnapshots: () => void
   onClose: () => void
   onMouseEnter?: () => void
   onMouseLeave?: () => void
@@ -120,6 +122,17 @@ export const ProjectToolsSubMenu = ({
           sub="Scan categories and detect duplicates"
           onClick={() => {
             onOpenAssetAnalyzer()
+            onClose()
+          }}
+          noClose
+          onClose={onClose}
+        />
+        <MenuItem
+          icon={<Camera size={11} style={{ color: '#f43f5e' }} />}
+          label="Snapshots"
+          sub="Backup and restore project state"
+          onClick={() => {
+            onOpenSnapshots()
             onClose()
           }}
           noClose

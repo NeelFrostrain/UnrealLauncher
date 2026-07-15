@@ -50,6 +50,7 @@ export interface ProjectContextMenuProps {
   onOpenPlugins: () => void
   onOpenHealthReport: () => void
   onOpenAssetAnalyzer: () => void
+  onOpenSnapshots: () => void
 }
 
 export default function ProjectContextMenu(p: ProjectContextMenuProps): React.ReactElement {
@@ -396,6 +397,7 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             onOpenPlugins={p.onOpenPlugins}
             onOpenHealthReport={p.onOpenHealthReport}
             onOpenAssetAnalyzer={p.onOpenAssetAnalyzer}
+            onOpenSnapshots={p.onOpenSnapshots}
             onClose={p.onClose}
             onMouseEnter={keepSub}
             onMouseLeave={closeSub}

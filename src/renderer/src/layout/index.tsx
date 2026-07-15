@@ -19,10 +19,16 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
   useGlobalShortcuts({ onCommandPalette: openPalette })
 
   // When the window was hidden (tray) the palette opened in its own mini-window.
-  // If the user somehow triggers open-command-palette in the main window, open inline.
+  // If the user triggers trigger-open-command-palette or open-command-palette, open inline.
   useEffect(() => {
     if (!window.electronAPI?.onOpenCommandPalette) return
     return window.electronAPI.onOpenCommandPalette(openPalette)
+  }, [openPalette])
+
+  useEffect(() => {
+    const handler = () => openPalette()
+    window.addEventListener('trigger-open-command-palette', handler)
+    return () => window.removeEventListener('trigger-open-command-palette', handler)
   }, [openPalette])
 
   // palette-navigate: routed here after the mini palette window executes a nav command

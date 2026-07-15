@@ -67,6 +67,8 @@ export interface NativeModule {
     engineVersion: string
   }
   analyzeAssetUsage: (projectPath: string) => Promise<AssetReport>
+  createProjectSnapshot: (projectPath: string, archivePath: string) => Promise<number>
+  restoreProjectSnapshot: (projectPath: string, archivePath: string) => Promise<void>
 }
 
 export interface AssetInfo {

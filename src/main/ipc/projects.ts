@@ -16,6 +16,7 @@ import {
 } from './projectHandlers'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
 import { registerProjectAssetHandlers } from './projectAssets'
+import { registerProjectSnapshotHandlers } from './projectSnapshots'
 
 /**
  * Registers all project-related IPC handlers
@@ -71,4 +72,5 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   registerProjectAssetHandlers(ipcMain_)
+  registerProjectSnapshotHandlers(ipcMain_)
 }

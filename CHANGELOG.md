@@ -17,6 +17,9 @@ All notable changes to this project will be documented in this file.
 - Added Unreal Engine Asset Usage Analyzer backend telemetry scanner inside native Rust (`native/src/lib.rs`), recursively scanning `Content` directories, grouping files by extension/naming prefixes, tracking largest assets, and detecting byte-level file duplicates using SipHash.
 - Added visual health score badges (0–100%) directly to project cards.
 - Added detailed, interactive Health Report dialog with structural analysis breakdown, recommendation logs, and a direct click-to-clean generated cache utility.
+- Added Unreal Engine Snapshot Manager: A lightweight backup and restore utility that packages essential project directories (`Config`, `Content`, `Source` and the `.uproject` file) into compressed ZIP archives stored in application data, while strictly ignoring bloating folders.
+- Implemented non-blocking async backend zip compression and extraction in Rust (`native/src/lib.rs`) running on worker pools via napi's `tokio_rt`.
+- Added interactive Snapshot Manager UI dialog allowing developers to capture checkpoints, view history logs, rollback to specific snapshots, and manage backups.
 
 ### 🐛 Fixed
 

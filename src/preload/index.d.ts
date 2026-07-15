@@ -40,6 +40,15 @@ declare global {
     error?: string
   }
 
+  interface SnapshotMeta {
+    id: string
+    name: string
+    timestamp: string
+    fileSizeBytes: number
+    archivePath: string
+    projectPath: string
+  }
+
   interface ProjectData {
     name: string
     version: string
@@ -78,6 +87,15 @@ declare global {
     type: 'engine' | 'project'
     path: string
     size: string
+  }
+
+  interface SystemProcess {
+    pid: number
+    name: string
+    memoryBytes: number
+    cpuSeconds?: number
+    path?: string
+    type: 'editor' | 'build' | 'service' | 'other'
   }
 
   interface UpdateInfo {
@@ -271,6 +289,19 @@ declare global {
         reportContent: string,
         format: 'json' | 'md'
       ) => Promise<{ success?: boolean; canceled?: boolean; filePath?: string; error?: string }>
+      projectGetSnapshots: (projectPath: string) => Promise<SnapshotMeta[] | { error: string }>
+      projectCreateSnapshot: (
+        projectPath: string,
+        name: string
+      ) => Promise<{ success?: boolean; snapshot?: SnapshotMeta; error?: string }>
+      projectRestoreSnapshot: (
+        projectPath: string,
+        snapshotId: string
+      ) => Promise<{ success?: boolean; error?: string }>
+      projectDeleteSnapshot: (
+        projectPath: string,
+        snapshotId: string
+      ) => Promise<{ success?: boolean; error?: string }>
       projectGitStatus: (projectPath: string) => Promise<{
         initialized: boolean
         branch: string
@@ -370,6 +401,8 @@ declare global {
       onOpenCommandPalette: (callback: () => void) => () => void
       onPaletteNavigate: (callback: (route: string) => void) => () => void
       onPaletteAction: (callback: (commandId: string) => void) => () => void
+      taskManagerGetProcesses: () => Promise<SystemProcess[]>
+      taskManagerKillProcess: (pid: number) => Promise<{ success: boolean; error?: string }>
     }
   }
 }

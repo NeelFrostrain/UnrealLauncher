@@ -11,6 +11,7 @@ const LaunchConfigDialog = lazy(() => import('../../engines/LaunchConfigDialog')
 const ProjectPluginsDialog = lazy(() => import('../ProjectPluginsDialog'))
 const ProjectHealthDialog = lazy(() => import('../ProjectHealthDialog'))
 const ProjectAssetsDialog = lazy(() => import('../ProjectAssetsDialog'))
+const ProjectSnapshotsDialog = lazy(() => import('../ProjectSnapshotsDialog'))
 
 interface ProjectCardDialogsProps {
   ctxMenu: { x: number; y: number } | null
@@ -84,6 +85,7 @@ export function ProjectCardDialogs({
   const [showPlugins, setShowPlugins] = useState(false)
   const [showHealth, setShowHealth] = useState(false)
   const [showAssets, setShowAssets] = useState(false)
+  const [showSnapshots, setShowSnapshots] = useState(false)
   const showLaunchConfig =
     externalShowLaunchConfig !== undefined ? externalShowLaunchConfig : internalShowLaunchConfig
   const setShowLaunchConfig = externalSetShowLaunchConfig ?? internalSetShowLaunchConfig
@@ -133,6 +135,21 @@ export function ProjectCardDialogs({
     return () => window.removeEventListener('open-project-assets-analysis', handler as EventListener)
   }, [projectPath])
 
+  useEffect(() => {
+    const handler = (ev: Event): void => {
+      try {
+        const detail = (ev as CustomEvent).detail
+        if (!detail) return
+        if (!projectPath) return
+        if (detail.projectPath === projectPath) setShowSnapshots(true)
+      } catch {
+        /* ignore */
+      }
+    }
+    window.addEventListener('open-project-snapshots', handler as EventListener)
+    return () => window.removeEventListener('open-project-snapshots', handler as EventListener)
+  }, [projectPath])
+
   return (
     <>
       {ctxMenu && projectPath && (
@@ -165,6 +182,7 @@ export function ProjectCardDialogs({
             onOpenPlugins={() => setShowPlugins(true)}
             onOpenHealthReport={() => setShowHealth(true)}
             onOpenAssetAnalyzer={() => setShowAssets(true)}
+            onOpenSnapshots={() => setShowSnapshots(true)}
             onClose={onCloseCtxMenu}
           />
         </Suspense>
@@ -254,6 +272,17 @@ export function ProjectCardDialogs({
             projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
             projectPath={projectPath}
             onClose={() => setShowAssets(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Snapshots dialog */}
+      {showSnapshots && projectPath && (
+        <Suspense fallback={null}>
+          <ProjectSnapshotsDialog
+            projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            projectPath={projectPath}
+            onClose={() => setShowSnapshots(false)}
           />
         </Suspense>
       )}
