@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.7] - 2026-07-15 — `refactor · pathing`
+
+### ⚙️ Changed
+
+- Centralized default Unreal Engine scan paths by removing duplicate, hardcoded platform-specific lists from the Rust native module and setting TypeScript (`platformPaths.ts`) as the single source of truth.
+- Removed developer-specific paths (`D:\Engine\UnrealEditors`, `D:\Unreal`, `D:\Unreal\Projects`) from default search locations.
+- Updated documentation (`AboutKnownIssues.tsx`) to match the new default scan paths.
+
 ## [2.4.6] - 2026-07-09 — `bugfix · ux · startup`
 
 ### 🐛 Fixed

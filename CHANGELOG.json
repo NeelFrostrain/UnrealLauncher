@@ -2,6 +2,22 @@
   "project": "Unreal Launcher",
   "versions": [
     {
+      "version": "2.4.7",
+      "date": "2026-07-15",
+      "tags": ["refactor", "pathing"],
+      "sections": [
+        {
+          "category": "Changed",
+          "emoji": "⚙️",
+          "items": [
+            "Centralized default Unreal Engine scan paths by removing duplicate, hardcoded platform-specific lists from the Rust native module and setting TypeScript (`platformPaths.ts`) as the single source of truth.",
+            "Removed developer-specific paths (`D:\\Engine\\UnrealEditors`, `D:\\Unreal`, `D:\\Unreal\\Projects`) from default search locations.",
+            "Updated documentation (`AboutKnownIssues.tsx`) to match the new default scan paths."
+          ]
+        }
+      ]
+    },
+    {
       "version": "2.4.6",
       "date": "2026-07-09",
       "tags": ["bugfix", "ux", "startup"],

@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { AlertTriangle } from 'lucide-react'
 
 const knownIssues = [
   'Size calculation may take time for large folders (30+ GB). The app remains responsive during calculation.',
   'Removing engines or projects from the list does NOT delete files from disk - only removes them from the launcher.',
   'Project thumbnails are loaded from Saved/AutoScreenshot.png if available.',
-  'The app scans these default paths: D:\\Engine\\UnrealEditors, C:\\Program Files\\Epic Games, Documents\\Unreal Projects'
+  'The app scans these default paths: C:\\Program Files\\Epic Games, C:\\Program Files (x86)\\Epic Games, Documents\\Unreal Projects'
 ]
 
 export const AboutKnownIssues = (): React.ReactElement => (

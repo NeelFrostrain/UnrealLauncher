@@ -26,69 +26,18 @@ pub struct EngineEntry {
   pub directory_path: String,
 }
 
-/// Scan common Unreal Engine installation paths and return found engines.
+/// Scan the given paths for Unreal Engine installations and return found engines.
 /// Returns only entries where the editor executable actually exists.
-/// Each path in base_paths is treated two ways:
+///
+/// Default platform-specific paths are managed by the TypeScript caller
+/// (`platformPaths.ts`) so that a single source of truth is maintained.
+///
+/// Each path is treated two ways:
 ///   1. If it IS an engine root (contains Engine/Build/Build.version) → use directly
 ///   2. Otherwise → scan its subdirectories for engine roots
 #[napi]
-pub fn scan_engines(extra_paths: Vec<String>) -> Vec<EngineEntry> {
-  let mut base_paths = vec![];
-
-  // Add platform-specific default paths
-  #[cfg(target_os = "windows")]
-  {
-    base_paths.extend(vec![
-      r"D:\Engine\UnrealEditors".to_string(),
-      r"C:\Program Files\Epic Games".to_string(),
-      r"C:\Program Files (x86)\Epic Games".to_string(),
-      r"D:\Unreal".to_string(),
-    ]);
-  }
-  #[cfg(target_os = "linux")]
-  {
-    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
-    base_paths.extend(vec![
-      "/opt/Epic Games".to_string(),
-      format!("{}/.local/share/UnrealEngine", home),
-      format!("{}/UnrealEngine", home),
-      "/usr/local/UnrealEngine".to_string(),
-      "/opt/UnrealEngine".to_string(),
-    ]);
-
-    // Scan common parent directories for any engine subdirectories
-    let parent_dirs = vec![
-      "/opt".to_string(),
-      format!("{}/.local/share", home),
-      home.clone(),
-    ];
-    for parent in parent_dirs {
-      if let Ok(entries) = fs::read_dir(&parent) {
-        for entry in entries.flatten() {
-          if entry.path().is_dir() {
-            base_paths.push(entry.path().to_string_lossy().into_owned());
-          }
-        }
-      }
-    }
-
-    // Check environment variables for custom UE installations
-    for version in &["UE_5_0", "UE_5_1", "UE_5_2", "UE_5_3", "UE_5_4", "UE_5_5"] {
-      if let Ok(path) = std::env::var(version) {
-        base_paths.push(path);
-      }
-    }
-  }
-  #[cfg(target_os = "macos")]
-  {
-    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
-    base_paths.extend(vec![
-      "/Applications".to_string(),
-      home.clone(),
-    ]);
-  }
-
-  base_paths.extend(extra_paths);
+pub fn scan_engines(paths: Vec<String>) -> Vec<EngineEntry> {
+  let base_paths = paths;
 
   // Platform-specific binary directory and executable names
   let (bin_platform, exe_names) = {
