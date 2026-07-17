@@ -294,6 +294,10 @@ declare global {
         projectPath: string,
         name: string
       ) => Promise<{ success?: boolean; snapshot?: SnapshotMeta; error?: string }>
+      projectCreateSnapshotWithProgress: (
+        projectPath: string,
+        name: string
+      ) => Promise<{ success?: boolean; snapshot?: SnapshotMeta; error?: string }>
       projectRestoreSnapshot: (
         projectPath: string,
         snapshotId: string
@@ -401,6 +405,12 @@ declare global {
       onOpenCommandPalette: (callback: () => void) => () => void
       onPaletteNavigate: (callback: (route: string) => void) => () => void
       onPaletteAction: (callback: (commandId: string) => void) => () => void
+      onSnapshotProgress: (callback: (data: {
+        current: number;
+        total: number;
+        message: string;
+        percentage: number;
+      }) => void) => () => void
       taskManagerGetProcesses: () => Promise<SystemProcess[]>
       taskManagerKillProcess: (pid: number) => Promise<{ success: boolean; error?: string }>
     }

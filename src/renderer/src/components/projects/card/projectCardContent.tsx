@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { Clock, Database, GitBranch } from 'lucide-react'
 import { formatVersion, formatDate } from '../projectUtils'
 
@@ -62,7 +62,7 @@ export function ProjectCardContent({
             style={{
               borderRadius: 'calc(var(--radius) * 0.5)',
               border: '1px solid rgba(255,255,255,0.12)',
-              color: 'color-mix(in srgb, var(--color-accent) 90%, white)'
+              color: 'var(--color-engine-version-text)'
             }}
           >
             UE {formatVersion(version)}

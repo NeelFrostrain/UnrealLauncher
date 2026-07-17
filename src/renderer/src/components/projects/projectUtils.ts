@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type { Project } from '../../types'
 import { getEngineCompatibilitySync } from '../../hooks/useEngineCompatibility'
 
@@ -154,7 +154,7 @@ export function matchesProjectQuery(project: Project, query: string): boolean {
   return haystacks.some((value) => value?.toLowerCase().includes(normalized))
 }
 
-export type EngineVersionFilter = 'all' | 'unspecified' | string
+export type EngineVersionFilter = 'all' | 'unspecified' | 'unsupported' | 'broken' | string
 
 function normalizeEngineVersion(value: string | undefined): string {
   const normalized = (value ?? '').trim()
@@ -167,6 +167,17 @@ export function filterProjectsByEngineVersion(
   filter: EngineVersionFilter
 ): Project[] {
   if (!filter || filter === 'all') return projects
+
+  if (filter === 'broken') {
+    // Combined: projects with no version specified OR engine not installed
+    return projects.filter((project) => {
+      const version = normalizeEngineVersion(project.version)
+      if (version === 'unspecified') return true
+      const compat = getEngineCompatibilitySync(project.version || '')
+      if (!compat) return false
+      return compat.status === 'missing'
+    })
+  }
 
   if (filter === 'unsupported') {
     return projects.filter((project) => {

@@ -1214,9 +1214,9 @@ fn walk_snapshot_files(dir: &Path, root: &Path, files: &mut Vec<PathBuf>) {
     for entry in entries.flatten() {
       let path = entry.path();
       let filename = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-      // Skip bloat directories
+      // Skip bloat directories and snapshot directory
       if path.is_dir() {
-        if filename == "Intermediate" || filename == "Saved" || filename == "Binaries" || filename == "DerivedDataCache" || filename == ".vs" {
+        if filename == "Intermediate" || filename == "Saved" || filename == "Binaries" || filename == "DerivedDataCache" || filename == ".vs" || filename == ".ul_snapshots" {
           continue;
         }
         walk_snapshot_files(&path, root, files);
@@ -1227,50 +1227,55 @@ fn walk_snapshot_files(dir: &Path, root: &Path, files: &mut Vec<PathBuf>) {
   }
 }
 
+/// Returns the total number of eligible files in a project for progress pre-calculation.
+#[napi]
+pub fn count_snapshot_files(project_path: String) -> u32 {
+  let root = Path::new(&project_path);
+  let mut files = Vec::new();
+  walk_snapshot_files(root, root, &mut files);
+  files.len() as u32
+}
+
+/// Creates a 7z snapshot of the project on a blocking thread.
+/// Progress is driven from the IPC layer via interval polling of file size.
 #[napi]
 pub async fn create_project_snapshot(project_path: String, archive_path: String) -> napi::Result<f64> {
-  let root = Path::new(&project_path);
-  let dest_path = Path::new(&archive_path);
+  napi::bindgen_prelude::spawn_blocking(move || {
+    use sevenz_rust::*;
 
-  // Ensure parent of destination exists
-  if let Some(parent) = dest_path.parent() {
-    fs::create_dir_all(parent).map_err(|e| napi::Error::from_reason(format!("Failed to create parent directory for archive: {}", e)))?;
-  }
+    let root = std::path::PathBuf::from(&project_path);
+    let dest = std::path::PathBuf::from(&archive_path);
 
-  // Gather all eligible files
-  let mut eligible_files = Vec::new();
-  walk_snapshot_files(root, root, &mut eligible_files);
+    if let Some(parent) = dest.parent() {
+      fs::create_dir_all(parent)
+        .map_err(|e| napi::Error::from_reason(format!("Failed to create parent directory: {}", e)))?;
+    }
 
-  // Open ZIP file
-  let zip_file = fs::File::create(dest_path).map_err(|e| napi::Error::from_reason(format!("Failed to create zip file: {}", e)))?;
-  let mut zip = zip::ZipWriter::new(zip_file);
-  
-  let options = zip::write::SimpleFileOptions::default()
-    .compression_method(zip::CompressionMethod::Deflated);
+    let mut files = Vec::new();
+    walk_snapshot_files(&root, &root, &mut files);
 
-  let mut buffer: Vec<u8> = Vec::new();
+    let mut sz = SevenZWriter::create(&dest)
+      .map_err(|e| napi::Error::from_reason(format!("Failed to create 7z archive: {}", e)))?;
 
-  for file_path in eligible_files {
-    let relative_path = file_path.strip_prefix(root)
-      .map_err(|e| napi::Error::from_reason(format!("Failed to calculate relative path: {}", e)))?;
-    let name_str = relative_path.to_string_lossy().replace('\\', "/");
+    for file_path in &files {
+      let relative = file_path.strip_prefix(&root)
+        .map_err(|e| napi::Error::from_reason(format!("Failed to compute relative path: {}", e)))?;
+      let name_str = relative.to_string_lossy().replace('\\', "/");
+      let content = fs::read(file_path)
+        .map_err(|e| napi::Error::from_reason(format!("Failed to read {:?}: {}", file_path, e)))?;
+      let entry = SevenZArchiveEntry::from_path(file_path, name_str);
+      sz.push_archive_entry(entry, Some(content.as_slice()))
+        .map_err(|e| napi::Error::from_reason(format!("Failed to add entry: {}", e)))?;
+    }
 
-    zip.start_file(name_str, options)
-      .map_err(|e| napi::Error::from_reason(format!("Failed to write zip entry header: {}", e)))?;
-    
-    let mut f = fs::File::open(&file_path)
-      .map_err(|e| napi::Error::from_reason(format!("Failed to open source file {:?}: {}", file_path, e)))?;
-    
-    buffer.clear();
-    std::io::copy(&mut f, &mut zip)
-      .map_err(|e| napi::Error::from_reason(format!("Failed to copy file contents to zip: {}", e)))?;
-  }
+    sz.finish()
+      .map_err(|e| napi::Error::from_reason(format!("Failed to finalize archive: {}", e)))?;
 
-  zip.finish()
-    .map_err(|e| napi::Error::from_reason(format!("Failed to finalize zip file: {}", e)))?;
-
-  let size = dest_path.metadata().map(|m| m.len()).unwrap_or(0);
-  Ok(size as f64)
+    let size = dest.metadata().map(|m| m.len()).unwrap_or(0);
+    Ok(size as f64)
+  })
+  .await
+  .map_err(|e| napi::Error::from_reason(format!("Snapshot task failed: {}", e)))?
 }
 
 #[napi]
@@ -1297,29 +1302,32 @@ pub async fn restore_project_snapshot(project_path: String, archive_path: String
     fs::remove_dir_all(&source_dir).ok();
   }
 
-  // 2. Extract ZIP archive
-  let zip_file = fs::File::open(src_path).map_err(|e| napi::Error::from_reason(format!("Failed to open archive: {}", e)))?;
-  let mut archive = zip::ZipArchive::new(zip_file).map_err(|e| napi::Error::from_reason(format!("Invalid zip archive: {}", e)))?;
+  // 2. Extract 7z archive
+  use sevenz_rust::*;
+  
+  let mut sz = SevenZReader::open(src_path, Password::empty())
+    .map_err(|e| napi::Error::from_reason(format!("Failed to open 7z archive: {}", e)))?;
 
-  for i in 0..archive.len() {
-    let mut file = archive.by_index(i).map_err(|e| napi::Error::from_reason(format!("Failed to read zip index: {}", e)))?;
-    let outpath = match file.enclosed_name() {
-      Some(path) => root.join(path),
-      None => continue,
-    };
-
-    if file.name().ends_with('/') {
-      fs::create_dir_all(&outpath).map_err(|e| napi::Error::from_reason(format!("Failed to create folder: {}", e)))?;
+  sz.for_each_entries(|entry, reader| {
+    let entry_path = entry.name();
+    let outpath = root.join(entry_path);
+    
+    if entry.is_directory() {
+      fs::create_dir_all(&outpath).ok();
     } else {
-      if let Some(p) = outpath.parent() {
-        if !p.exists() {
-          fs::create_dir_all(p).map_err(|e| napi::Error::from_reason(format!("Failed to create folder: {}", e)))?;
+      if let Some(parent) = outpath.parent() {
+        if !parent.exists() {
+          fs::create_dir_all(parent).ok();
         }
       }
-      let mut outfile = fs::File::create(&outpath).map_err(|e| napi::Error::from_reason(format!("Failed to create extracted file {:?}: {}", outpath, e)))?;
-      std::io::copy(&mut file, &mut outfile).map_err(|e| napi::Error::from_reason(format!("Failed to write extracted file contents: {}", e)))?;
+      
+      let mut buffer = Vec::new();
+      if reader.read_to_end(&mut buffer).is_ok() {
+        fs::write(&outpath, &buffer).ok();
+      }
     }
-  }
+    Ok(true) // Continue iteration
+  }).map_err(|e| napi::Error::from_reason(format!("Failed to extract 7z archive: {}", e)))?;
 
   Ok(())
 }

@@ -126,6 +126,8 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-get-snapshots', projectPath),
       projectCreateSnapshot: (projectPath: string, name: string) =>
         ipcRenderer.invoke('project-create-snapshot', projectPath, name),
+      projectCreateSnapshotWithProgress: (projectPath: string, name: string) =>
+        ipcRenderer.invoke('project-create-snapshot-with-progress', projectPath, name),
       projectRestoreSnapshot: (projectPath: string, snapshotId: string) =>
         ipcRenderer.invoke('project-restore-snapshot', projectPath, snapshotId),
       projectDeleteSnapshot: (projectPath: string, snapshotId: string) =>
@@ -223,6 +225,23 @@ if (process.contextIsolated) {
         ipcRenderer.on('palette-action', listener)
         return (): void => {
           ipcRenderer.removeListener('palette-action', listener)
+        }
+      },
+      onSnapshotProgress: (callback: (data: {
+        current: number;
+        total: number;
+        message: string;
+        percentage: number;
+      }) => void): (() => void) => {
+        const listener = (_event: Electron.IpcRendererEvent, data: {
+          current: number;
+          total: number;
+          message: string;
+          percentage: number;
+        }): void => callback(data)
+        ipcRenderer.on('snapshot-progress', listener)
+        return (): void => {
+          ipcRenderer.removeListener('snapshot-progress', listener)
         }
       },
       taskManagerGetProcesses: () => ipcRenderer.invoke('task-manager-get-processes'),

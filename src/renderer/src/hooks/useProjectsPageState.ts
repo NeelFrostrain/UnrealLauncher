@@ -98,8 +98,7 @@ export function useProjectsPageState() {
   const [engineVersionOptions, setEngineVersionOptions] = useState<
     Array<{ value: string; label: string }>
   >([
-    { value: 'all', label: 'All versions' },
-    { value: 'unspecified', label: 'Unspecified' }
+    { value: 'all', label: 'All versions' }
   ])
 
   useEffect(() => {
@@ -115,22 +114,21 @@ export function useProjectsPageState() {
           if (version && version.toLowerCase() !== 'unknown') versions.add(version)
         }
         const nextOptions = [
-          { value: 'all', label: 'All versions' },
-          { value: 'unspecified', label: 'Unspecified' },
-          { value: 'unsupported', label: 'Unsupported' }
+          { value: 'all', label: 'All versions' }
         ] as Array<{ value: string; label: string }>
         for (const version of [...versions].sort((a, b) =>
           a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
         )) {
           nextOptions.push({ value: version, label: formatVersion(version) })
         }
+        nextOptions.push({ value: '__divider__', label: '' })
+        nextOptions.push({ value: 'broken', label: 'No engine / missing' })
         setEngineVersionOptions(nextOptions)
       })
       .catch(() => {
         if (!cancelled) {
           setEngineVersionOptions([
-            { value: 'all', label: 'All versions' },
-            { value: 'unspecified', label: 'Unspecified' }
+            { value: 'all', label: 'All versions' }
           ])
         }
       })

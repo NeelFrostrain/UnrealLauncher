@@ -51,6 +51,24 @@ export interface NativeModule {
   scanEnginePlugins: (engineDir: string) => NativeEnginePlugin[]
   findRunningUnrealProjects: () => string[]
   getPluginCacheSignature?: (engineDir: string) => { signature: string; engineDir: string }
+  getGitStatus?: (projectPath: string) => {
+    initialized: boolean
+    branch: string
+    hasUncommitted: boolean
+    ahead: number
+    behind: number
+    remoteUrl: string
+  }
+  readLatestProjectLog?: (projectPath: string) => {
+    logPath: string
+    content: string
+    sizeBytes: number
+  } | null
+  tailLatestProjectLog?: (projectPath: string, lines: number) => {
+    logPath: string
+    content: string
+    sizeBytes: number
+  } | null
   checkProjectHealth: (projectPath: string) => {
     score: number
     status: string
@@ -67,6 +85,7 @@ export interface NativeModule {
     engineVersion: string
   }
   analyzeAssetUsage: (projectPath: string) => Promise<AssetReport>
+  countSnapshotFiles?: (projectPath: string) => number
   createProjectSnapshot: (projectPath: string, archivePath: string) => Promise<number>
   restoreProjectSnapshot: (projectPath: string, archivePath: string) => Promise<void>
 }

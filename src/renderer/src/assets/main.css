@@ -334,3 +334,9 @@ pre,
   transition-delay: 0ms !important;
   scroll-behavior: auto !important;
 }
+
+/* ── Snapshot progress shimmer ──────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}

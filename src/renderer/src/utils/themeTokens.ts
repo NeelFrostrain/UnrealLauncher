@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Theme token definitions and built-in themes.
  */
@@ -13,6 +13,7 @@ export type ThemeToken =
   | 'text-primary'
   | 'text-secondary'
   | 'text-muted'
+  | 'engine-version-text'
   | 'font-family'
   | 'font-size'
 
@@ -38,6 +39,7 @@ export const BUILT_IN_THEMES: BuiltInTheme[] = [
       'text-primary': 'rgba(255,255,255,0.90)',
       'text-secondary': 'rgba(255,255,255,0.60)',
       'text-muted': 'rgba(255,255,255,0.40)',
+      'engine-version-text': '#60a5fa',
       'font-family':
         "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       'font-size': '15px'
@@ -56,6 +58,7 @@ export const BUILT_IN_THEMES: BuiltInTheme[] = [
       'text-primary': 'rgba(255,255,255,0.90)',
       'text-secondary': 'rgba(255,255,255,0.55)',
       'text-muted': 'rgba(255,255,255,0.35)',
+      'engine-version-text': '#60a5fa',
       'font-family':
         "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       'font-size': '15px'
@@ -74,6 +77,7 @@ export const BUILT_IN_THEMES: BuiltInTheme[] = [
       'text-primary': 'rgba(226,232,240,0.92)',
       'text-secondary': 'rgba(148,163,184,0.80)',
       'text-muted': 'rgba(100,116,139,0.70)',
+      'engine-version-text': '#7dd3fc',
       'font-family':
         "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       'font-size': '15px'
@@ -92,6 +96,7 @@ export const BUILT_IN_THEMES: BuiltInTheme[] = [
       'text-primary': 'rgba(255,248,235,0.90)',
       'text-secondary': 'rgba(214,188,150,0.70)',
       'text-muted': 'rgba(180,155,110,0.50)',
+      'engine-version-text': '#fbbf24',
       'font-family':
         "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       'font-size': '15px'
