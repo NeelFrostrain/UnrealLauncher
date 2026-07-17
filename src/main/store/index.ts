@@ -7,7 +7,7 @@
 import path from 'path'
 import type { Engine, Project } from '../types'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
-import { SKELETON_CONFIG, DEFAULT_CONFIG, getSkeletonRhi } from '../utils/launchConfigArgs'
+import { SKELETON_CONFIG, DEFAULT_CONFIG, getSkeletonRhi, HEADLESS_CI_CONFIG, RAYTRACE_SHOWCASE_CONFIG, CINEMATIC_CONFIG, BALANCED_CONFIG, PERFORMANCE_CONFIG } from '../utils/launchConfigArgs'
 import {
   getEnginesDataPath,
   getProjectsDataPath,
@@ -141,12 +141,41 @@ function makeBuiltInConfigs(): LaunchConfig[] {
       name: 'Default',
       description: 'Launch with Unreal Engine defaults — no overrides applied.',
       ...DEFAULT_CONFIG
-    },
-    {
+    },    {
       id: 'builtin-skeleton',
       name: 'Skeleton (Lowest)',
       description: getSkeletonDescription(),
       ...SKELETON_CONFIG
+    },
+    {
+      id: 'builtin-performance',
+      name: 'Performance',
+      description: 'High FPS: Lumen/VSM off, no ray tracing, post-process trimmed down.',
+      ...PERFORMANCE_CONFIG
+    },
+    {
+      id: 'builtin-balanced',
+      name: 'Balanced',
+      description: 'Modern GI and shadows on, cosmetic post-process (bloom aside) trimmed.',
+      ...BALANCED_CONFIG
+    },
+    {
+      id: 'builtin-cinematic',
+      name: 'Cinematic',
+      description: 'Everything maxed for screenshots and trailers — not for playable framerates.',
+      ...CINEMATIC_CONFIG
+    },
+    {
+      id: 'builtin-raytrace-showcase',
+      name: 'Ray Tracing Showcase',
+      description: 'DX12 + hardware ray tracing driving GI, reflections, and shadows.',
+      ...RAYTRACE_SHOWCASE_CONFIG
+    },
+    {
+      id: 'builtin-headless-ci',
+      name: 'Headless (CI)',
+      description: 'Null RHI, unattended, no shader precompile skip — built for build farms.',
+      ...HEADLESS_CI_CONFIG
     }
   ]
 }

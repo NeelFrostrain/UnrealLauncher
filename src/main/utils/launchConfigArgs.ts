@@ -120,6 +120,130 @@ export const DEFAULT_CONFIG: Omit<LaunchConfig, 'id' | 'name' | 'description'> =
   extraArgs: ''
 }
 
+/** Resolution-quality mapping used per scalability tier (matches UE's own scaling curve better than a flat 50/75/100 split) */
+const RESOLUTION_QUALITY_BY_TIER: Record<0 | 1 | 2 | 3 | 4, number> = {
+  0: 50,   // Low
+  1: 71,   // Medium
+  2: 87,   // High
+  3: 100,  // Epic
+  4: 100   // Cinematic (supersampling handled separately, not via res quality)
+}
+
+/** Lean, high-FPS preset: cheap GI, no ray tracing, minimal post-process cost */
+export const PERFORMANCE_CONFIG: Omit<LaunchConfig, 'id' | 'name' | 'description'> = {
+  rhi: 'default',
+  scalability: 1,
+  lumen: false,
+  nanite: true,
+  vsm: false,
+  rayTracing: false,
+  ssr: true,
+  taa: true,
+  bloom: false,
+  ambientOcclusion: false,
+  motionBlur: false,
+  lensFlare: false,
+  autoExposure: true,
+  depthOfField: false,
+  noSplash: true,
+  noLoadingScreen: false,
+  noShaderCompile: false,
+  unattended: false,
+  extraArgs: ''
+}
+
+/** Middle ground: modern GI/shadows on, cosmetic post-process off */
+export const BALANCED_CONFIG: Omit<LaunchConfig, 'id' | 'name' | 'description'> = {
+  rhi: 'default',
+  scalability: 2,
+  lumen: true,
+  nanite: true,
+  vsm: true,
+  rayTracing: false,
+  ssr: false,
+  taa: true,
+  bloom: true,
+  ambientOcclusion: true,
+  motionBlur: false,
+  lensFlare: false,
+  autoExposure: true,
+  depthOfField: false,
+  noSplash: true,
+  noLoadingScreen: false,
+  noShaderCompile: false,
+  unattended: false,
+  extraArgs: ''
+}
+
+/** Everything maxed for screenshots/trailers — not meant for playable framerates */
+export const CINEMATIC_CONFIG: Omit<LaunchConfig, 'id' | 'name' | 'description'> = {
+  rhi: 'default',
+  scalability: 4,
+  lumen: true,
+  nanite: true,
+  vsm: true,
+  rayTracing: true,
+  ssr: false,
+  taa: true,
+  bloom: true,
+  ambientOcclusion: true,
+  motionBlur: true,
+  lensFlare: true,
+  autoExposure: true,
+  depthOfField: true,
+  noSplash: true,
+  noLoadingScreen: true,
+  noShaderCompile: false,
+  unattended: false,
+  extraArgs: ''
+}
+
+/** Hardware ray tracing front and center, GI handled via RT instead of Lumen's software fallback */
+export const RAYTRACE_SHOWCASE_CONFIG: Omit<LaunchConfig, 'id' | 'name' | 'description'> = {
+  rhi: 'dx12',
+  scalability: 3,
+  lumen: true,
+  nanite: true,
+  vsm: true,
+  rayTracing: true,
+  ssr: false,
+  taa: true,
+  bloom: true,
+  ambientOcclusion: true,
+  motionBlur: false,
+  lensFlare: true,
+  autoExposure: true,
+  depthOfField: true,
+  noSplash: true,
+  noLoadingScreen: false,
+  noShaderCompile: false,
+  unattended: false,
+  extraArgs: ''
+}
+
+/** For build farms / commandlets: no window dressing, no rendering cost, never blocks on a dialog */
+export const HEADLESS_CI_CONFIG: Omit<LaunchConfig, 'id' | 'name' | 'description'> = {
+  rhi: 'default',
+  scalability: 0,
+  lumen: false,
+  nanite: false,
+  vsm: false,
+  rayTracing: false,
+  ssr: false,
+  taa: false,
+  bloom: false,
+  ambientOcclusion: false,
+  motionBlur: false,
+  lensFlare: false,
+  autoExposure: false,
+  depthOfField: false,
+  noSplash: true,
+  noLoadingScreen: true,
+  noShaderCompile: true,
+  unattended: true,
+  extraArgs: '-nullrhi -nosound'
+}
+
 /**
  * Returns true if a given RHI flag is valid/meaningful on the current platform.
  * Used to filter the UI options and skip invalid flags at build time.
@@ -187,8 +311,9 @@ export function buildLaunchArgs(config: LaunchConfig): string[] {
   // ── Scalability ───────────────────────────────────────────────────────────
   if (config.scalability !== 'default') {
     const level = config.scalability
+    const resQuality = RESOLUTION_QUALITY_BY_TIER[level]
     args.push(
-      `-ExecCmds=sg.ResolutionQuality ${level === 0 ? 50 : level === 1 ? 75 : 100},sg.ViewDistanceQuality ${level},sg.AntiAliasingQuality ${level},sg.ShadowQuality ${level},sg.GlobalIlluminationQuality ${level},sg.ReflectionQuality ${level},sg.PostProcessQuality ${level},sg.TextureQuality ${level},sg.EffectsQuality ${level},sg.FoliageQuality ${level},sg.ShadingQuality ${level}`
+      `-ExecCmds=sg.ResolutionQuality ${resQuality},sg.ViewDistanceQuality ${level},sg.AntiAliasingQuality ${level},sg.ShadowQuality ${level},sg.GlobalIlluminationQuality ${level},sg.ReflectionQuality ${level},sg.PostProcessQuality ${level},sg.TextureQuality ${level},sg.EffectsQuality ${level},sg.FoliageQuality ${level},sg.ShadingQuality ${level}`
     )
   }
 

@@ -480,7 +480,7 @@ export default function ProjectSnapshotsDialog({
               {filteredSnapshots.map((snapshot) => (
                 <div
                   key={snapshot.id}
-                  className="px-6 py-4 border-b hover:bg-white/[0.015] transition-all flex items-center justify-between gap-4"
+                  className="px-6 py-4 border-b hover:bg-white/1.5 transition-all flex items-center justify-between gap-4"
                   style={{ borderColor: 'var(--color-border)' }}
                 >
                   {/* Info */}
