@@ -1,7 +1,12 @@
-﻿// Apply radius/scale synchronously before first render to avoid layout shift
+// Apply radius/scale synchronously before first render to avoid layout shift
 import { loadPersistedRadius, applyRadius, loadPersistedScale, applyScale } from './utils/theme'
+import { loadSettings } from './utils/settings'
 applyRadius(loadPersistedRadius())
 applyScale(loadPersistedScale())
+// Apply no-animations class synchronously so first frame respects user preference
+if (!loadSettings().animationsEnabled) {
+  document.body.classList.add('no-animations')
+}
 
 import './assets/main.css'
 import { createRoot } from 'react-dom/client'

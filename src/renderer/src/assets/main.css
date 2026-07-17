@@ -13,6 +13,13 @@
   --color-text-muted: rgba(255, 255, 255, 0.4);
   /* Border radius token — controlled by the slider in Settings */
   --radius: 8px;
+  /* UI scale — set by applyScale() before first render */
+  --ui-scale: 1;
+}
+
+/* ── UI Scale — applied instantly via CSS var set by applyScale() ─────────── */
+#app-scale-root {
+  zoom: var(--ui-scale);
 }
 
 /* ── Override Tailwind's hardcoded blue-600/500 to follow the accent token ── */
@@ -323,10 +330,10 @@ pre,
     monospace;
 }
 
-/* ── Disable all animations when .no-animations is active ───────────────── */
-.no-animations *,
-.no-animations *::before,
-.no-animations *::after {
+/* ── Disable all animations when .no-animations is active on body ────────── */
+body.no-animations *,
+body.no-animations *::before,
+body.no-animations *::after {
   animation-duration: 0.001ms !important;
   animation-delay: 0ms !important;
   animation-iteration-count: 1 !important;

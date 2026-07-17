@@ -97,9 +97,13 @@ export function useProjectsPageState() {
 
   const [engineVersionOptions, setEngineVersionOptions] = useState<
     Array<{ value: string; label: string }>
-  >([
-    { value: 'all', label: 'All versions' }
-  ])
+  >(() => {
+    try {
+      const cached = localStorage.getItem('engineVersionOptionsCache')
+      if (cached) return JSON.parse(cached) as Array<{ value: string; label: string }>
+    } catch { /* ignore */ }
+    return [{ value: 'all', label: 'All versions' }]
+  })
 
   useEffect(() => {
     let cancelled = false
@@ -123,6 +127,7 @@ export function useProjectsPageState() {
         }
         nextOptions.push({ value: '__divider__', label: '' })
         nextOptions.push({ value: 'broken', label: 'No engine / missing' })
+        try { localStorage.setItem('engineVersionOptionsCache', JSON.stringify(nextOptions)) } catch { /* ignore */ }
         setEngineVersionOptions(nextOptions)
       })
       .catch(() => {
@@ -138,31 +143,6 @@ export function useProjectsPageState() {
     }
   }, [])
 
-  // Also include project-associated versions (even if engine not installed)
-  useEffect(() => {
-    try {
-      const extras = new Set<string>()
-      for (const p of projects) {
-        const v = (p.version ?? '').trim()
-        if (v && v.toLowerCase() !== 'unknown') extras.add(v)
-      }
-      const base = new Set(engineVersionOptions.map((o) => o.value))
-      const merged = [
-        { value: 'all', label: 'All versions' },
-        { value: 'unspecified', label: 'Unspecified' },
-        { value: 'unsupported', label: 'Unsupported' }
-      ] as Array<{ value: string; label: string }>
-      const extrasArr = [...extras].filter((v) => !base.has(v))
-      extrasArr.sort((a, b) =>
-        a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
-      )
-      for (const v of extrasArr) merged.push({ value: v, label: formatVersion(v) })
-      setEngineVersionOptions(merged)
-    } catch {
-      /* ignore */
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projects])
 
   // Sync tab ↔ URL
   useEffect(() => {

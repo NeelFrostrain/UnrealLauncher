@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
 import { getSetting, setSetting } from './settings'
 
 interface AnimationContextType {
@@ -23,6 +23,15 @@ export const AnimationProvider = ({ children }: { children: ReactNode }): React.
     return prefersReduced && saved === true ? false : saved
   })
 
+  // Keep document.body class in sync whenever animationsEnabled changes
+  useEffect(() => {
+    if (animationsEnabled) {
+      document.body.classList.remove('no-animations')
+    } else {
+      document.body.classList.add('no-animations')
+    }
+  }, [animationsEnabled])
+
   const toggleAnimations = useCallback((): void => {
     const next = !animationsEnabled
     setAnimationsEnabled(next)
@@ -31,9 +40,7 @@ export const AnimationProvider = ({ children }: { children: ReactNode }): React.
 
   return (
     <AnimationContext.Provider value={{ animationsEnabled, toggleAnimations }}>
-      <div id="animation-root" className={animationsEnabled ? '' : 'no-animations'}>
-        {children}
-      </div>
+      {children}
     </AnimationContext.Provider>
   )
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 import {
   type ThemeToken,
@@ -43,13 +43,29 @@ export const useTheme = (): ThemeContextType => {
 
 export const ThemeProvider = ({ children }: { children: ReactNode }): React.ReactElement => {
   const [activeThemeId, setActiveThemeId] = useState<string>(() => loadPersistedTheme().id)
-  const [customOverrides, setCustomOverrides] = useState<Partial<ThemeTokenMap>>(
-    () => loadPersistedTheme().overrides
-  )
+  const [customOverrides, setCustomOverrides] = useState<Partial<ThemeTokenMap>>(() => {
+    const persisted = loadPersistedTheme()
+    return persisted.overrides
+  })
   const [profiles, setProfiles] = useState<CustomProfile[]>(() => loadCustomProfiles())
-  const [activeProfileId, setActiveProfileId] = useState<string | null>(() => loadActiveProfileId())
+  const [activeProfileId, setActiveProfileId] = useState<string | null>(() => {
+    const savedProfileId = loadActiveProfileId()
+    const allProfiles = loadCustomProfiles()
+    // Apply theme synchronously before first render to avoid flash
+    if (savedProfileId) {
+      const profile = allProfiles.find((p) => p.id === savedProfileId)
+      if (profile) {
+        applyTheme(profile.tokens)
+        return savedProfileId
+      }
+    }
+    const persisted = loadPersistedTheme()
+    const base = getTheme(persisted.id)
+    applyTheme(base.tokens, persisted.overrides)
+    return null
+  })
 
-  // Apply CSS variables whenever active theme/overrides/profile changes
+  // Apply CSS variables whenever active theme/overrides/profile changes (after initial render)
   useEffect(() => {
     if (activeProfileId) {
       const profile = profiles.find((p) => p.id === activeProfileId)

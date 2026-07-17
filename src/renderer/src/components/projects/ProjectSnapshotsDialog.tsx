@@ -400,7 +400,7 @@ export default function ProjectSnapshotsDialog({
 
         {/* ── Create / Progress area ─────────────────────────────────────── */}
         <div
-          className="px-6 py-4 border-b shrink-0 flex flex-col gap-3"
+          className="px-1 py-2 border-b shrink-0 flex flex-col gap-3"
           style={{ borderColor: 'var(--color-border)' }}
         >
           {isCreating && progress ? (
