@@ -70,16 +70,27 @@ export function ProjectCardContent({
         </div>
         {gitInitialized && (
           <div
-            className="flex items-center gap-1 px-1.5 py-0.5 bg-black/65 backdrop-blur-md"
+            className="flex items-center gap-1 px-1.5 py-0.5 bg-black/50 backdrop-blur-md text-[10px] font-mono tracking-wider"
             style={{
               borderRadius: 'calc(var(--radius) * 0.5)',
-              border: '1px solid rgba(52,211,153,0.3)',
+              border: '1px solid rgba(255,255,255,0.12)',
               color: '#34d399'
             }}
           >
             <GitBranch size={9} />
             <span className="text-[9px] font-mono">{gitBranch}</span>
           </div>
+          // <div
+          //   className="flex items-center gap-1 px-1.5 py-0.5 bg-black/65 backdrop-blur-md"
+          //   style={{
+          //     borderRadius: 'calc(var(--radius) * 0.5)',
+          //     border: '1px solid rgba(52,211,153,0.3)',
+          //     color: '#34d399'
+          //   }}
+          // >
+          //   <GitBranch size={9} />
+          //   <span className="text-[9px] font-mono">{gitBranch}</span>
+          // </div>
         )}
       </div>
 
