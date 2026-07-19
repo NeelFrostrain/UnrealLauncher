@@ -1,15 +1,15 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import fs from 'fs'
 import path from 'path'
 import { getNative } from './native'
 
 // ── Project / uproject scanning ───────────────────────────────────────────────
 
-export function findUprojectFiles(dir: string, maxDepth = 5, maxFiles = 1000): string[] {
+export async function findUprojectFiles(dir: string, maxDepth = 5, maxFiles = 1000): Promise<string[]> {
   const native = getNative()
   if (native) {
     try {
-      return native.findUprojectFiles(dir, maxDepth, maxFiles)
+      return await native.findUprojectFiles(dir, maxDepth, maxFiles)
     } catch {
       /* fall through */
     }
@@ -17,7 +17,7 @@ export function findUprojectFiles(dir: string, maxDepth = 5, maxFiles = 1000): s
   return _findUprojectFilesJS(dir, maxDepth, maxFiles)
 }
 
-function _findUprojectFilesJS(dir: string, maxDepth: number, maxFiles: number): string[] {
+async function _findUprojectFilesJS(dir: string, maxDepth: number, maxFiles: number): Promise<string[]> {
   const files: string[] = []
   let count = 0
   const SKIP = new Set([
@@ -30,18 +30,23 @@ function _findUprojectFilesJS(dir: string, maxDepth: number, maxFiles: number): 
     'Plugins'
   ])
 
-  function scan(cur: string, depth: number): void {
+  async function scan(cur: string, depth: number): Promise<void> {
     if (depth > maxDepth || count >= maxFiles) return
     try {
-      for (const item of fs.readdirSync(cur)) {
+      const items = await fs.promises.readdir(cur)
+      for (const item of items) {
         if (count >= maxFiles) return
         const full = path.join(cur, item)
-        const stat = fs.statSync(full)
-        if (stat.isDirectory() && !item.startsWith('.') && !SKIP.has(item)) {
-          scan(full, depth + 1)
-        } else if (item.endsWith('.uproject')) {
-          files.push(full)
-          count++
+        try {
+          const stat = await fs.promises.stat(full)
+          if (stat.isDirectory() && !item.startsWith('.') && !SKIP.has(item)) {
+            await scan(full, depth + 1)
+          } else if (item.endsWith('.uproject')) {
+            files.push(full)
+            count++
+          }
+        } catch {
+          /* ignore stat error */
         }
       }
     } catch {
@@ -49,7 +54,7 @@ function _findUprojectFilesJS(dir: string, maxDepth: number, maxFiles: number): 
     }
   }
 
-  scan(dir, 0)
+  await scan(dir, 0)
   return files
 }
 

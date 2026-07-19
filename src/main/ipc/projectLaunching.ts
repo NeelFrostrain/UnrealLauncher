@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import fs from 'fs'
 import { spawn } from 'child_process'
@@ -73,7 +73,7 @@ async function getEngineAssociation(uprojectPath: string): Promise<string> {
  * Finds the editor executable for a given engine association.
  * Checks stored engines first, then falls back to a live scan on non-Windows.
  */
-function findEditorExecutable(engineAssociation: string): string {
+async function findEditorExecutable(engineAssociation: string): Promise<string> {
   const engines = loadEngines()
 
   // Helper: given a stored path (file or directory) attempt to resolve a real editor executable
@@ -157,7 +157,7 @@ function findEditorExecutable(engineAssociation: string): string {
 
   // 3. On non-Windows, try a live scan of common paths
   if (process.platform !== 'win32') {
-    const scanned = scanEnginePaths()
+    const scanned = await scanEnginePaths()
     if (engineAssociation) {
       const match = scanned.find(
         (e) =>
@@ -218,7 +218,7 @@ export async function handleLaunchProject(projectPath: string): Promise<Record<s
 
   // Linux / macOS: find the engine and spawn it directly
   const engineAssociation = await getEngineAssociation(uprojectPath)
-  const editorExe = findEditorExecutable(engineAssociation)
+  const editorExe = await findEditorExecutable(engineAssociation)
   logger.info('project', 'Resolved project launch target', {
     projectPath,
     uprojectPath,
@@ -274,7 +274,7 @@ export async function handleLaunchProjectWithConfig(
   }
 
   const engineAssociation = await getEngineAssociation(uprojectPath)
-  const editorExe = findEditorExecutable(engineAssociation)
+  const editorExe = await findEditorExecutable(engineAssociation)
   logger.info('project', 'Resolved project config launch target', {
     projectPath,
     uprojectPath,
@@ -335,7 +335,7 @@ export async function handleLaunchProjectGame(
   }
 
   const engineAssociation = await getEngineAssociation(uprojectPath)
-  const editorExe = findEditorExecutable(engineAssociation)
+  const editorExe = await findEditorExecutable(engineAssociation)
   logger.info('project', 'Resolved project game launch target', {
     projectPath,
     uprojectPath,

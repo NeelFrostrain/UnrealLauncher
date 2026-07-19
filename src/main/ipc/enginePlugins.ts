@@ -124,7 +124,7 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
   const native = getNative()
   if (native?.scanEnginePlugins) {
     try {
-      const result = native.scanEnginePlugins(engineDir) as unknown
+      const result = await native.scanEnginePlugins(engineDir) as unknown
       type NativePlugin = {
         name?: string
         path?: string

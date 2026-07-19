@@ -1,10 +1,10 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef, useEffect } from 'react'
 import {
   Activity,
   RefreshCw,
   Search,
-  X
+  X,
+  Trash2
 } from 'lucide-react'
 import type { ProcessFilterType } from '../../types'
 
@@ -20,6 +20,9 @@ interface TasksToolbarProps {
   onRefresh: () => void
   autoRefresh: boolean
   onAutoRefreshToggle: () => void
+  selectedCount: number
+  onBulkKill: () => void
+  onClearSelection: () => void
 }
 
 function AutoRefreshToggle({
@@ -64,7 +67,10 @@ export default function TasksToolbar({
   onSearchChange,
   onRefresh,
   autoRefresh,
-  onAutoRefreshToggle
+  onAutoRefreshToggle,
+  selectedCount,
+  onBulkKill,
+  onClearSelection
 }: TasksToolbarProps): React.ReactElement {
   const searchRef = useRef<HTMLInputElement>(null)
 
@@ -83,35 +89,71 @@ export default function TasksToolbar({
         backgroundColor: 'var(--color-surface)'
       }}
     >
-      {/* Left: Tab Navigation */}
+      {/* Left: Tab Navigation or Selection Actions */}
       <div className="flex items-center">
-        <div
-          className="flex items-center rounded-lg overflow-hidden"
-          style={{
-            backgroundColor: 'var(--color-surface-card)',
-            border: '1px solid var(--color-border)'
-          }}
-        >
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => onTabClick(tab.id)}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium transition-all cursor-pointer relative"
+        {selectedCount > 0 ? (
+          <div className="flex items-center gap-2.5 animate-in fade-in slide-in-from-left-2 duration-200">
+            <span
+              className="text-xs font-semibold px-2 py-1 rounded"
               style={{
-                backgroundColor: currentTab === tab.id ? 'var(--color-accent)' : 'transparent',
-                color:
-                  currentTab === tab.id
-                    ? 'white'
-                    : currentTab === tab.id
-                    ? 'var(--color-text-primary)'
-                    : 'var(--color-text-secondary)'
+                backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)',
+                color: 'var(--color-accent)',
+                border: '1px solid color-mix(in srgb, var(--color-accent) 30%, transparent)',
+                borderRadius: 'var(--radius)'
               }}
             >
-              {tab.icon}
-              <span>{tab.label}</span>
+              {selectedCount} selected
+            </span>
+            <button
+              onClick={onBulkKill}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium cursor-pointer transition-all hover:brightness-110 active:scale-95 text-white rounded-md bg-red-600 hover:bg-red-700"
+              style={{ borderRadius: 'var(--radius)' }}
+              title="Terminate selected processes"
+            >
+              <Trash2 size={12} />
+              <span>Kill Selected</span>
             </button>
-          ))}
-        </div>
+            <button
+              onClick={onClearSelection}
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium cursor-pointer transition-all hover:bg-white/5 active:scale-95 text-white border border-transparent rounded-md"
+              style={{
+                borderRadius: 'var(--radius)',
+                color: 'var(--color-text-secondary)'
+              }}
+            >
+              <X size={12} />
+              <span>Clear</span>
+            </button>
+          </div>
+        ) : (
+          <div
+            className="flex items-center rounded-lg overflow-hidden"
+            style={{
+              backgroundColor: 'var(--color-surface-card)',
+              border: '1px solid var(--color-border)'
+            }}
+          >
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => onTabClick(tab.id)}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium transition-all cursor-pointer relative"
+                style={{
+                  backgroundColor: currentTab === tab.id ? 'var(--color-accent)' : 'transparent',
+                  color:
+                    currentTab === tab.id
+                      ? 'white'
+                      : currentTab === tab.id
+                      ? 'var(--color-text-primary)'
+                      : 'var(--color-text-secondary)'
+                }}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Right: Controls */}
@@ -139,7 +181,7 @@ export default function TasksToolbar({
             />
             <button
               onClick={onToggleSearch}
-              className="p-1 hover:bg-white/10 transition-colors"
+              className="p-1 hover:bg-white/10 transition-colors cursor-pointer"
               style={{ borderRadius: 'var(--radius)' }}
             >
               <X size={12} style={{ color: 'var(--color-text-muted)' }} />

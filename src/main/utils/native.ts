@@ -43,12 +43,12 @@ export interface NativeModule {
     exePath: string
     reason?: string
   }
-  scanEngines: (extraPaths: string[]) => ScannedEngine[]
-  findUprojectFiles: (dir: string, maxDepth: number, maxFiles: number) => string[]
+  scanEngines: (extraPaths: string[]) => Promise<ScannedEngine[]>
+  findUprojectFiles: (dir: string, maxDepth: number, maxFiles: number) => Promise<string[]>
   findProjectScreenshot: (projectPath: string) => string | null
   findLatestLogTimestamp: (projectPath: string) => string | null
   getFolderSize: (folderPath: string) => number
-  scanEnginePlugins: (engineDir: string) => NativeEnginePlugin[]
+  scanEnginePlugins: (engineDir: string) => Promise<NativeEnginePlugin[]>
   findRunningUnrealProjects: () => string[]
   getPluginCacheSignature?: (engineDir: string) => { signature: string; engineDir: string }
   getGitStatus?: (projectPath: string) => {

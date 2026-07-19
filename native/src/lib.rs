@@ -36,7 +36,7 @@ pub struct EngineEntry {
 ///   1. If it IS an engine root (contains Engine/Build/Build.version) → use directly
 ///   2. Otherwise → scan its subdirectories for engine roots
 #[napi]
-pub fn scan_engines(paths: Vec<String>) -> Vec<EngineEntry> {
+pub async fn scan_engines(paths: Vec<String>) -> Vec<EngineEntry> {
   let base_paths = paths;
 
   // Platform-specific binary directory and executable names
@@ -174,7 +174,7 @@ pub struct EnginePlugin {
 /// Category is taken from the .uplugin `Category` field; falls back to the
 /// top-level subfolder name (e.g. "Animation", "AI", "Editor").
 #[napi]
-pub fn scan_engine_plugins(engine_dir: String) -> Vec<EnginePlugin> {
+pub async fn scan_engine_plugins(engine_dir: String) -> Vec<EnginePlugin> {
   let plugins_root = Path::new(&engine_dir).join("Engine").join("Plugins");
   if !plugins_root.exists() {
     return vec![];
@@ -321,7 +321,7 @@ pub struct ProjectEntry {
 /// Recursively find .uproject files under `root`, respecting depth and file limits.
 /// Skips heavy Unreal subdirectories that never contain project roots.
 #[napi]
-pub fn find_uproject_files(root: String, max_depth: u32, max_files: u32) -> Vec<String> {
+pub async fn find_uproject_files(root: String, max_depth: u32, max_files: u32) -> Vec<String> {
   let mut results = Vec::new();
   scan_uproject(Path::new(&root), 0, max_depth, max_files, &mut results);
   results

@@ -1,5 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   RefreshCw,
   Trash2,
@@ -7,7 +6,10 @@ import {
   AlertTriangle,
   Cpu,
   HardDrive,
-  Layers
+  Layers,
+  ChevronUp,
+  ChevronDown,
+  Clock
 } from 'lucide-react'
 import type { ProcessFilterType } from '../../types'
 
@@ -28,7 +30,14 @@ interface TasksContentProps {
   killingPid: number | null
   onKill: (pid: number, name: string) => void
   onOpenFolder: (path: string) => void
+  selectedPids: number[]
+  onToggleSelectPid: (pid: number) => void
+  onSelectAll: (pids: number[]) => void
+  onDeselectAll: () => void
 }
+
+type SortKey = 'name' | 'pid' | 'type' | 'memory' | 'cpu'
+type SortDirection = 'asc' | 'desc'
 
 export default function TasksContent({
   processes,
@@ -37,8 +46,15 @@ export default function TasksContent({
   currentTab,
   killingPid,
   onKill,
-  onOpenFolder
+  onOpenFolder,
+  selectedPids,
+  onToggleSelectPid,
+  onSelectAll,
+  onDeselectAll
 }: TasksContentProps): React.ReactElement {
+  const [sortKey, setSortKey] = useState<SortKey>('memory')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 MB'
     const mb = bytes / (1024 * 1024)
@@ -46,6 +62,14 @@ export default function TasksContent({
       return (mb / 1024).toFixed(2) + ' GB'
     }
     return mb.toFixed(1) + ' MB'
+  }
+
+  const formatCpuTime = (cpuSeconds?: number): string => {
+    if (cpuSeconds === undefined || cpuSeconds === null) return '0.0s'
+    if (cpuSeconds < 60) return cpuSeconds.toFixed(1) + 's'
+    const mins = Math.floor(cpuSeconds / 60)
+    const secs = (cpuSeconds % 60).toFixed(0)
+    return `${mins}m ${secs}s`
   }
 
   const filteredProcesses = useMemo(() => {
@@ -70,21 +94,47 @@ export default function TasksContent({
       )
     }
 
-    return filtered
-  }, [processes, searchQuery, currentTab])
+    // Sort
+    return [...filtered].sort((a, b) => {
+      let multiplier = sortDirection === 'asc' ? 1 : -1
+      if (sortKey === 'name') {
+        return multiplier * a.name.localeCompare(b.name)
+      }
+      if (sortKey === 'pid') {
+        return multiplier * (a.pid - b.pid)
+      }
+      if (sortKey === 'type') {
+        const typeOrder = { editor: 0, build: 1, service: 2, other: 3 }
+        return multiplier * (typeOrder[a.type] - typeOrder[b.type])
+      }
+      if (sortKey === 'memory') {
+        return multiplier * (a.memoryBytes - b.memoryBytes)
+      }
+      if (sortKey === 'cpu') {
+        return multiplier * ((a.cpuSeconds || 0) - (b.cpuSeconds || 0))
+      }
+      return 0
+    })
+  }, [processes, searchQuery, currentTab, sortKey, sortDirection])
 
   // Analytics metrics
   const metrics = useMemo(() => {
-    const filtered = filteredProcesses
     let totalMemVal = 0
-    filtered.forEach((p) => {
+    let maxCpuVal = -1
+    let topCpuProc: SystemProcess | null = null
+
+    filteredProcesses.forEach((p) => {
       totalMemVal += p.memoryBytes
+      if (p.cpuSeconds !== undefined && p.cpuSeconds > maxCpuVal) {
+        maxCpuVal = p.cpuSeconds
+        topCpuProc = p
+      }
     })
 
     return {
-      totalMemVal,
       totalMem: formatBytes(totalMemVal),
-      totalCount: filtered.length
+      totalCount: filteredProcesses.length,
+      topCpu: topCpuProc ? `${(topCpuProc as SystemProcess).name} (${formatCpuTime(maxCpuVal)})` : 'None'
     }
   }, [filteredProcesses])
 
@@ -131,13 +181,51 @@ export default function TasksContent({
     return maxVal > 0 ? maxVal : 1024 * 1024 * 1024
   }, [filteredProcesses])
 
+  // Get max cpu time for progress bar sizes
+  const maxCpu = useMemo(() => {
+    const maxVal = Math.max(...filteredProcesses.map((p) => p.cpuSeconds || 0), 0)
+    return maxVal > 0 ? maxVal : 1
+  }, [filteredProcesses])
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDirection('desc')
+    }
+  }
+
+  const allFilteredPids = useMemo(() => filteredProcesses.map((p) => p.pid), [filteredProcesses])
+  const isAllSelected = useMemo(() => {
+    if (allFilteredPids.length === 0) return false
+    return allFilteredPids.every((pid) => selectedPids.includes(pid))
+  }, [allFilteredPids, selectedPids])
+
+  const handleSelectAllToggle = () => {
+    if (isAllSelected) {
+      onDeselectAll()
+    } else {
+      onSelectAll(allFilteredPids)
+    }
+  }
+
+  const renderSortIndicator = (key: SortKey) => {
+    if (sortKey !== key) return null
+    return sortDirection === 'asc' ? (
+      <ChevronUp size={12} className="inline ml-1 text-blue-400" />
+    ) : (
+      <ChevronDown size={12} className="inline ml-1 text-blue-400" />
+    )
+  }
+
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden select-none">
       {/* Metrics Summary */}
       <div className="px-6 py-4 border-b shrink-0" style={{ borderColor: 'var(--color-border)' }}>
         <div className="grid grid-cols-3 gap-4">
           <div
-            className="p-4 flex items-center justify-between"
+            className="p-4 flex items-center justify-between transition-all hover:scale-[1.01]"
             style={{
               backgroundColor: 'var(--color-surface-card)',
               border: '1px solid var(--color-border)',
@@ -156,7 +244,7 @@ export default function TasksContent({
           </div>
 
           <div
-            className="p-4 flex items-center justify-between"
+            className="p-4 flex items-center justify-between transition-all hover:scale-[1.01]"
             style={{
               backgroundColor: 'var(--color-surface-card)',
               border: '1px solid var(--color-border)',
@@ -175,7 +263,7 @@ export default function TasksContent({
           </div>
 
           <div
-            className="p-4 flex items-center justify-between"
+            className="p-4 flex items-center justify-between transition-all hover:scale-[1.01]"
             style={{
               backgroundColor: 'var(--color-surface-card)',
               border: '1px solid var(--color-border)',
@@ -184,10 +272,10 @@ export default function TasksContent({
           >
             <div>
               <p className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                Filter
+                Top CPU Task
               </p>
-              <p className="text-lg font-bold mt-1 capitalize" style={{ color: 'var(--color-text-primary)' }}>
-                {currentTab === 'all' ? 'All Types' : currentTab}
+              <p className="text-sm font-semibold mt-2 truncate max-w-[180px]" style={{ color: 'var(--color-text-primary)' }} title={metrics.topCpu}>
+                {metrics.topCpu}
               </p>
             </div>
             <Cpu size={20} style={{ color: '#ec4899' }} />
@@ -216,36 +304,70 @@ export default function TasksContent({
           <div className="overflow-y-auto h-full">
             {/* Table Header */}
             <div
-              className="grid grid-cols-12 gap-4 px-6 py-3 font-medium text-xs border-b sticky top-0 z-10"
+              className="grid grid-cols-12 gap-4 px-6 py-3 font-medium text-xs border-b sticky top-0 z-10 items-center"
               style={{
                 borderColor: 'var(--color-border)',
                 backgroundColor: 'var(--color-surface-elevated)',
                 color: 'var(--color-text-muted)'
               }}
             >
-              <div className="col-span-4">Process / Executable</div>
-              <div className="col-span-2 text-right">PID</div>
-              <div className="col-span-2 text-center">Category</div>
-              <div className="col-span-3">Memory Usage</div>
+              {/* Checkbox */}
+              <div className="col-span-1 flex items-center">
+                <input
+                  type="checkbox"
+                  checked={isAllSelected}
+                  onChange={handleSelectAllToggle}
+                  className="rounded border-white/10 bg-white/5 cursor-pointer accent-blue-600 w-3.5 h-3.5"
+                />
+              </div>
+              <div className="col-span-3 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('name')}>
+                Process / Executable {renderSortIndicator('name')}
+              </div>
+              <div className="col-span-1 text-right cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('pid')}>
+                PID {renderSortIndicator('pid')}
+              </div>
+              <div className="col-span-2 text-center cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('type')}>
+                Category {renderSortIndicator('type')}
+              </div>
+              <div className="col-span-2 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('memory')}>
+                Memory Usage {renderSortIndicator('memory')}
+              </div>
+              <div className="col-span-2 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('cpu')}>
+                CPU Time {renderSortIndicator('cpu')}
+              </div>
               <div className="col-span-1 text-right">Actions</div>
             </div>
 
             {/* Process Rows */}
             {filteredProcesses.map((proc) => {
               const details = getTypeBadgeDetails(proc.type)
-              const percent = Math.min((proc.memoryBytes / maxMemory) * 100, 100)
+              const memPercent = Math.min((proc.memoryBytes / maxMemory) * 100, 100)
+              const cpuPercent = Math.min(((proc.cpuSeconds || 0) / maxCpu) * 100, 100)
+              const isSelected = selectedPids.includes(proc.pid)
 
               return (
                 <div
                   key={proc.pid}
-                  className="grid grid-cols-12 gap-4 px-6 py-3 items-center hover:bg-white/[0.015] transition-all group border-b"
+                  className={`grid grid-cols-12 gap-4 px-6 py-3 items-center hover:bg-white/[0.02] transition-all group border-b ${
+                    isSelected ? 'bg-blue-500/[0.025]' : ''
+                  }`}
                   style={{
                     fontSize: '13px',
                     borderColor: 'var(--color-border)'
                   }}
                 >
+                  {/* Checkbox Column */}
+                  <div className="col-span-1 flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => onToggleSelectPid(proc.pid)}
+                      className="rounded border-white/10 bg-white/5 cursor-pointer accent-blue-600 w-3.5 h-3.5"
+                    />
+                  </div>
+
                   {/* Process Name & Path */}
-                  <div className="col-span-4 min-w-0">
+                  <div className="col-span-3 min-w-0">
                     <div
                       className="font-medium truncate flex items-center gap-2"
                       style={{ color: 'var(--color-text-primary)' }}
@@ -272,7 +394,7 @@ export default function TasksContent({
 
                   {/* PID */}
                   <div
-                    className="col-span-2 text-right font-mono text-sm select-all"
+                    className="col-span-1 text-right font-mono text-sm select-all"
                     style={{ color: 'var(--color-text-secondary)' }}
                   >
                     {proc.pid}
@@ -293,12 +415,11 @@ export default function TasksContent({
                   </div>
 
                   {/* Memory Usage with Progress Bar */}
-                  <div className="col-span-3 flex flex-col gap-1">
+                  <div className="col-span-2 flex flex-col gap-1 pr-2">
                     <div className="flex justify-between items-baseline text-xs font-medium">
                       <span style={{ color: 'var(--color-text-primary)' }}>
                         {formatBytes(proc.memoryBytes)}
                       </span>
-                      <span className="opacity-60 font-mono text-xs">{percent.toFixed(0)}%</span>
                     </div>
                     <div
                       className="w-full h-1 rounded-full overflow-hidden"
@@ -307,9 +428,32 @@ export default function TasksContent({
                       <div
                         className="h-full rounded-full transition-all duration-500 ease-out"
                         style={{
-                          width: `${percent}%`,
+                          width: `${memPercent}%`,
                           backgroundColor: details.text,
                           boxShadow: `0 0 4px ${details.glow}`
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* CPU Time Column with subtle timeline bar */}
+                  <div className="col-span-2 flex flex-col gap-1 pr-2">
+                    <div className="flex justify-between items-baseline text-xs font-medium">
+                      <span style={{ color: 'var(--color-text-primary)' }} className="flex items-center gap-1">
+                        <Clock size={11} className="text-pink-400" />
+                        {formatCpuTime(proc.cpuSeconds)}
+                      </span>
+                    </div>
+                    <div
+                      className="w-full h-1 rounded-full overflow-hidden"
+                      style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+                    >
+                      <div
+                        className="h-full rounded-full transition-all duration-500 ease-out"
+                        style={{
+                          width: `${cpuPercent}%`,
+                          backgroundColor: '#ec4899',
+                          boxShadow: `0 0 4px rgba(236, 72, 153, 0.4)`
                         }}
                       />
                     </div>

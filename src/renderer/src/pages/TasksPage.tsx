@@ -1,4 +1,3 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React, { useEffect, useState, useCallback } from 'react'
 import {
   Activity,
@@ -30,6 +29,7 @@ export default function TasksPage(): React.ReactElement {
   const [currentTab, setCurrentTab] = useState<ProcessFilterType>('all')
   const [killingPid, setKillingPid] = useState<number | null>(null)
   const [autoRefresh, setAutoRefresh] = useState(true)
+  const [selectedPids, setSelectedPids] = useState<number[]>([])
   const { addToast } = useToast()
 
   const loadProcesses = useCallback(
@@ -99,6 +99,7 @@ export default function TasksPage(): React.ReactElement {
         addToast(`Process ${name} (PID: ${pid}) terminated successfully`, 'success')
         // Optimistic update
         setProcesses((prev) => prev.filter((p) => p.pid !== pid))
+        setSelectedPids((prev) => prev.filter((id) => id !== pid))
       } else {
         addToast(res.error || 'Failed to kill process', 'error')
       }
@@ -107,6 +108,36 @@ export default function TasksPage(): React.ReactElement {
       addToast('Error trying to kill process', 'error')
     } finally {
       setKillingPid(null)
+    }
+  }
+
+  const handleBulkKill = async () => {
+    if (selectedPids.length === 0) return
+    setLoading(true)
+    try {
+      let succeeded = 0
+      let failed = 0
+      for (const pid of selectedPids) {
+        const res = await window.electronAPI.taskManagerKillProcess(pid)
+        if (res.success) {
+          succeeded++
+        } else {
+          failed++
+        }
+      }
+      if (succeeded > 0) {
+        addToast(`Successfully terminated ${succeeded} process(es)`, 'success')
+        setProcesses((prev) => prev.filter((p) => !selectedPids.includes(p.pid)))
+        setSelectedPids([])
+      }
+      if (failed > 0) {
+        addToast(`Failed to terminate ${failed} process(es)`, 'error')
+      }
+    } catch (err) {
+      console.error(err)
+      addToast('Error during bulk termination', 'error')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -134,6 +165,28 @@ export default function TasksPage(): React.ReactElement {
     }
   }
 
+  const handleToggleSelectPid = (pid: number) => {
+    setSelectedPids((prev) =>
+      prev.includes(pid) ? prev.filter((id) => id !== pid) : [...prev, pid]
+    )
+  }
+
+  const handleSelectAll = (pids: number[]) => {
+    setSelectedPids((prev) => {
+      const next = [...prev]
+      pids.forEach((pid) => {
+        if (!next.includes(pid)) {
+          next.push(pid)
+        }
+      })
+      return next
+    })
+  }
+
+  const handleDeselectAll = () => {
+    setSelectedPids([])
+  }
+
   const tabs = [
     { id: 'all' as ProcessFilterType, label: 'All', icon: <Layers size={11} /> },
     { id: 'editors' as ProcessFilterType, label: 'Editors', icon: <Activity size={11} /> },
@@ -155,6 +208,9 @@ export default function TasksPage(): React.ReactElement {
         onRefresh={() => loadProcesses()}
         autoRefresh={autoRefresh}
         onAutoRefreshToggle={() => setAutoRefresh(!autoRefresh)}
+        selectedCount={selectedPids.length}
+        onBulkKill={handleBulkKill}
+        onClearSelection={handleDeselectAll}
       />
 
       <div className="flex-1 overflow-hidden mt-1 flex flex-col min-h-0">
@@ -167,6 +223,10 @@ export default function TasksPage(): React.ReactElement {
             killingPid={killingPid}
             onKill={handleKill}
             onOpenFolder={handleOpenFolder}
+            selectedPids={selectedPids}
+            onToggleSelectPid={handleToggleSelectPid}
+            onSelectAll={handleSelectAll}
+            onDeselectAll={handleDeselectAll}
           />
         </div>
       </div>
