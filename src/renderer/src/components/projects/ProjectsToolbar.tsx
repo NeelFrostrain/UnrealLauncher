@@ -1,15 +1,14 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
+
 import { useEffect, useRef, useState, type FC } from 'react'
 import {
   Plus,
   RefreshCw,
   Search,
-  X,
   LayoutGrid,
   LayoutList,
   History,
   Filter,
-  Check
 } from 'lucide-react'
 import type { TabType } from '../../types'
 import type { SortConfig, EngineVersionFilter } from './projectUtils'
@@ -146,7 +145,6 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
   tabs,
   currentTab,
   searchOpen,
-  searchQuery,
   refreshing,
   backgroundScanning,
   calculatingSizes,
@@ -191,15 +189,15 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => onTabClick(tab.id)}
-                className="flex items-center gap-1.5 px-3 py-1 font-medium transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1 font-normal transition-all cursor-pointer"
                 style={{
                   color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
                   backgroundColor: isActive
                     ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
                     : 'transparent',
                   boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.3)' : 'none',
-                  borderRadius: 'calc(var(--radius) * 0.85)',
-                  fontSize: 'calc(var(--font-size) * 0.85)'
+                  borderRadius: 'calc(var(--radius) * 0.75)',
+                  fontSize: 'calc(var(--font-size) * 0.75)'
                 }}
               >
                 {tab.icon && (
@@ -257,7 +255,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         <div className="flex w-full justify-end items-center gap-1">
           <div
             className="flex items-center"
-            style={{ borderRadius: 'calc(var(--radius) * 0.85)', border: '1px solid var(--color-border)' }}
+            style={{ borderRadius: 'calc(var(--radius) * 0.75)', border: '1px solid var(--color-border)' }}
           >
             <button
               onClick={() => onViewChange('list')}
@@ -331,11 +329,11 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
                 backgroundColor: 'var(--color-surface-card)',
                 color: 'var(--color-text-secondary)',
                 border: '1px solid var(--color-border)',
-                fontSize: 'calc(var(--font-size) * 0.85)'
+                fontSize: 'calc(var(--font-size) * 0.75)'
               }}
             >
               <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
-              <span className="ml-1" style={{ fontSize: 'calc(var(--font-size) * 0.85)' }}>
+              <span className="ml-1" style={{ fontSize: 'calc(var(--font-size) * 0.75)' }}>
                 {refreshing
                   ? 'Refreshing…'
                   : calculatingSizes
@@ -368,7 +366,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
               borderRadius: 'var(--radius)',
               backgroundColor: 'var(--color-accent)',
               color: 'var(--color-text-primary)',
-              fontSize: 'calc(var(--font-size) * 0.85)'
+              fontSize: 'calc(var(--font-size) * 0.75)'
             }}
           >
             <Plus size={12} />

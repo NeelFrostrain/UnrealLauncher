@@ -117,8 +117,11 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
     const disk = loadPluginCacheFromDisk()
     const entry = disk[cacheKey]
     if (entry && entry.signature === signature && Date.now() - entry.ts < pluginCacheTTL) {
-      enginePluginCache.set(cacheKey, { signature, plugins: entry.plugins })
-      return entry.plugins
+      const hasNewFields = entry.plugins.length === 0 || entry.plugins[0].enabledByDefault !== undefined
+      if (hasNewFields) {
+        enginePluginCache.set(cacheKey, { signature, plugins: entry.plugins })
+        return entry.plugins
+      }
     }
   } catch {
     /* ignore disk cache errors */
