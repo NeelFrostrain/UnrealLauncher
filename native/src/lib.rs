@@ -167,6 +167,10 @@ pub struct EnginePlugin {
   pub is_experimental: bool,
   pub icon: Option<String>,
   pub created_by: String,
+  pub enabled_by_default: Option<bool>,
+  pub dependencies: Option<Vec<String>>,
+  pub docs_url: Option<String>,
+  pub support_url: Option<String>,
 }
 
 /// Recursively scan Engine/Plugins under `engine_dir` and return all plugins
@@ -252,6 +256,10 @@ fn parse_uplugin(plugin_dir: &Path, uplugin_path: &Path, category_hint: &str) ->
   let mut is_beta = false;
   let mut is_experimental = false;
   let mut created_by = String::new();
+  let mut enabled_by_default = None;
+  let mut dependencies = None;
+  let mut docs_url = None;
+  let mut support_url = None;
 
   if let Some(json) = read_json_string(uplugin_path) {
     if let Some(v) = json.get("FriendlyName").or_else(|| json.get("Name")).and_then(|v| v.as_str()) {
@@ -282,6 +290,17 @@ fn parse_uplugin(plugin_dir: &Path, uplugin_path: &Path, category_hint: &str) ->
     if let Some(v) = json.get("CreatedBy").and_then(|v| v.as_str()) {
       created_by = v.to_string();
     }
+    enabled_by_default = json.get("EnabledByDefault").and_then(|v| v.as_bool());
+    if let Some(plugins_arr) = json.get("Plugins").and_then(|v| v.as_array()) {
+      let deps: Vec<String> = plugins_arr.iter()
+        .filter_map(|p| p.get("Name").and_then(|n| n.as_str()).map(|s| s.to_string()))
+        .collect();
+      if !deps.is_empty() {
+        dependencies = Some(deps);
+      }
+    }
+    docs_url = json.get("DocsURL").and_then(|v| v.as_str()).map(|s| s.to_string());
+    support_url = json.get("SupportURL").and_then(|v| v.as_str()).map(|s| s.to_string());
   }
 
   // Check for icon
@@ -302,6 +321,10 @@ fn parse_uplugin(plugin_dir: &Path, uplugin_path: &Path, category_hint: &str) ->
     is_experimental,
     icon,
     created_by,
+    enabled_by_default,
+    dependencies,
+    docs_url,
+    support_url,
   })
 }
 

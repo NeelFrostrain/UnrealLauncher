@@ -138,6 +138,10 @@ declare global {
     isExperimental: boolean
     icon: string | null
     createdBy: string
+    enabledByDefault?: boolean
+    dependencies?: string[]
+    docsUrl?: string
+    supportUrl?: string
   }
 
   interface ProjectPlugin {
@@ -147,6 +151,10 @@ declare global {
     description: string
     version: string
     enabled: boolean
+    enabledByDefault?: boolean
+    dependencies?: string[]
+    docsUrl?: string
+    supportUrl?: string
   }
 
   interface LaunchConfig {
@@ -256,6 +264,7 @@ declare global {
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>
       scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
+      toggleEnginePluginDefault: (pluginPath: string, enabled: boolean) => Promise<{ success: boolean; error?: string }>
       clearEnginePluginCache: () => Promise<void>
       getEnginePluginCacheTTL: () => Promise<number>
       setEnginePluginCacheTTL: (ms: number) => Promise<void>

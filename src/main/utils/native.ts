@@ -120,6 +120,10 @@ export interface NativeEnginePlugin {
   isExperimental: boolean
   icon: string | null
   createdBy: string
+  enabledByDefault?: boolean
+  dependencies?: string[]
+  docsUrl?: string
+  supportUrl?: string
 }
 
 export interface ScannedEngine {

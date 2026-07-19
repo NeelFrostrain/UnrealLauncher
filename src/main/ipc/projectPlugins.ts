@@ -12,6 +12,10 @@ export interface ProjectPlugin {
   description: string
   version: string
   enabled: boolean
+  enabledByDefault?: boolean
+  dependencies?: string[]
+  docsUrl?: string
+  supportUrl?: string
 }
 
 const projectPluginCache = new Map<string, { signature: string; plugins: ProjectPlugin[] }>()
@@ -110,14 +114,22 @@ function getOrCreateProjectPluginsWorker(): ReturnType<typeof createPersistentWo
             const content = fs.readFileSync(full, 'utf8')
             const meta = JSON.parse(content)
             const internalName = path.basename(full, '.uplugin')
+            const enabledByDefault = meta.EnabledByDefault !== undefined ? !!meta.EnabledByDefault : true
+            const dependencies = Array.isArray(meta.Plugins) ? meta.Plugins.filter(p => p && p.Name).map(p => p.Name) : []
+            const docsUrl = meta.DocsURL || ''
+            const supportUrl = meta.SupportURL || ''
             const existing = plugins.find(pl => pl.name.toLowerCase() === internalName.toLowerCase() || pl.name.toLowerCase() === (meta.FriendlyName||'').toLowerCase())
             if (existing) {
               existing.path = full
               existing.description = meta.Description || ''
               existing.version = meta.VersionName || String(meta.Version || '')
               if (meta.FriendlyName) existing.name = meta.FriendlyName
+              existing.enabledByDefault = enabledByDefault
+              existing.dependencies = dependencies
+              existing.docsUrl = docsUrl
+              existing.supportUrl = supportUrl
             } else if (!seen.has(internalName.toLowerCase())) {
-              plugins.push({ name: meta.FriendlyName || meta.Name || internalName, internalName, path: full, description: meta.Description || '', version: meta.VersionName || String(meta.Version || ''), enabled: true })
+              plugins.push({ name: meta.FriendlyName || meta.Name || internalName, internalName, path: full, description: meta.Description || '', version: meta.VersionName || String(meta.Version || ''), enabled: true, enabledByDefault, dependencies, docsUrl, supportUrl })
             }
           } catch {}
         }

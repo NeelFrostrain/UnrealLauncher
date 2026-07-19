@@ -97,6 +97,8 @@ if (process.contextIsolated) {
       loadSavedProjects: () => ipcRenderer.invoke('load-saved-projects'),
       scanEnginePlugins: (engineDir: string) =>
         ipcRenderer.invoke('scan-engine-plugins', engineDir),
+      toggleEnginePluginDefault: (pluginPath: string, enabled: boolean) =>
+        ipcRenderer.invoke('toggle-engine-plugin-default', pluginPath, enabled),
       clearEnginePluginCache: () => ipcRenderer.invoke('clear-engine-plugin-cache'),
       getEnginePluginCacheTTL: () => ipcRenderer.invoke('get-engine-plugin-cache-ttl'),
       setEnginePluginCacheTTL: (ms: number) =>
