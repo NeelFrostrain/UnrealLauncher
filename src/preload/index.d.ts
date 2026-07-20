@@ -2,6 +2,53 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
 declare global {
+  interface HealthIssue {
+    type: 'info' | 'warning' | 'critical'
+    message: string
+    recommendation: string
+  }
+
+  interface HealthReport {
+    score: number
+    status: 'healthy' | 'warning' | 'critical'
+    issues: HealthIssue[]
+    intermediateSize: number
+    savedSize: number
+    isCpp: boolean
+    hasEngine: boolean
+    engineVersion: string
+  }
+
+  interface AssetInfo {
+    name: string
+    path: string
+    sizeBytes: number
+  }
+
+  interface CategoryInfo {
+    category: string
+    count: number
+    sizeBytes: number
+  }
+
+  interface AssetReport {
+    totalAssets: number
+    totalSizeBytes: number
+    categories: CategoryInfo[]
+    largestAssets: AssetInfo[]
+    duplicates: AssetInfo[][]
+    error?: string
+  }
+
+  interface SnapshotMeta {
+    id: string
+    name: string
+    timestamp: string
+    fileSizeBytes: number
+    archivePath: string
+    projectPath: string
+  }
+
   interface ProjectData {
     name: string
     version: string
@@ -40,6 +87,15 @@ declare global {
     type: 'engine' | 'project'
     path: string
     size: string
+  }
+
+  interface SystemProcess {
+    pid: number
+    name: string
+    memoryBytes: number
+    cpuSeconds?: number
+    path?: string
+    type: 'editor' | 'build' | 'service' | 'other'
   }
 
   interface UpdateInfo {
@@ -82,6 +138,10 @@ declare global {
     isExperimental: boolean
     icon: string | null
     createdBy: string
+    enabledByDefault?: boolean
+    dependencies?: string[]
+    docsUrl?: string
+    supportUrl?: string
   }
 
   interface ProjectPlugin {
@@ -91,6 +151,10 @@ declare global {
     description: string
     version: string
     enabled: boolean
+    enabledByDefault?: boolean
+    dependencies?: string[]
+    docsUrl?: string
+    supportUrl?: string
   }
 
   interface LaunchConfig {
@@ -200,6 +264,10 @@ declare global {
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>
       scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
+      toggleEnginePluginDefault: (
+        pluginPath: string,
+        enabled: boolean
+      ) => Promise<{ success: boolean; error?: string }>
       clearEnginePluginCache: () => Promise<void>
       getEnginePluginCacheTTL: () => Promise<number>
       setEnginePluginCacheTTL: (ms: number) => Promise<void>
@@ -217,7 +285,6 @@ declare global {
       fabScanFolder: (folderPath: string) => Promise<FabAsset[]>
       fabSavePath: (folderPath: string) => Promise<void>
       fabLoadPath: () => Promise<string>
-      // Project tools
       projectReadLog: (
         projectPath: string,
         fromByte?: number
@@ -227,6 +294,30 @@ declare global {
         sizeBytes: number
         startByte: number
       } | null>
+      projectCheckHealth: (projectPath: string) => Promise<HealthReport>
+      projectAnalyzeAssets: (projectPath: string) => Promise<AssetReport>
+      projectExportAssetReport: (
+        projectPath: string,
+        reportContent: string,
+        format: 'json' | 'md'
+      ) => Promise<{ success?: boolean; canceled?: boolean; filePath?: string; error?: string }>
+      projectGetSnapshots: (projectPath: string) => Promise<SnapshotMeta[] | { error: string }>
+      projectCreateSnapshot: (
+        projectPath: string,
+        name: string
+      ) => Promise<{ success?: boolean; snapshot?: SnapshotMeta; error?: string }>
+      projectCreateSnapshotWithProgress: (
+        projectPath: string,
+        name: string
+      ) => Promise<{ success?: boolean; snapshot?: SnapshotMeta; error?: string }>
+      projectRestoreSnapshot: (
+        projectPath: string,
+        snapshotId: string
+      ) => Promise<{ success?: boolean; error?: string }>
+      projectDeleteSnapshot: (
+        projectPath: string,
+        snapshotId: string
+      ) => Promise<{ success?: boolean; error?: string }>
       projectGitStatus: (projectPath: string) => Promise<{
         initialized: boolean
         branch: string
@@ -326,6 +417,16 @@ declare global {
       onOpenCommandPalette: (callback: () => void) => () => void
       onPaletteNavigate: (callback: (route: string) => void) => () => void
       onPaletteAction: (callback: (commandId: string) => void) => () => void
+      onSnapshotProgress: (
+        callback: (data: {
+          current: number
+          total: number
+          message: string
+          percentage: number
+        }) => void
+      ) => () => void
+      taskManagerGetProcesses: () => Promise<SystemProcess[]>
+      taskManagerKillProcess: (pid: number) => Promise<{ success: boolean; error?: string }>
     }
   }
 }

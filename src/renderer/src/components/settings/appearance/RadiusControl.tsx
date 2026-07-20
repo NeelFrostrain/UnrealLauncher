@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { type CSSProperties, useEffect, useRef } from 'react'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { type CSSProperties } from 'react'
 import { applyRadius, persistRadius, applyScale, persistScale } from '../../../utils/theme'
 
 interface RadiusControlProps {
@@ -23,17 +23,10 @@ const RadiusControl = ({
   scale,
   setScale
 }: RadiusControlProps): React.ReactElement => {
-  const scaleRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    scaleRef.current?.style.setProperty('--range-pct', scalePct(scale))
-  }, [scale])
-
   const handleScale = (v: number): void => {
     setScale(v)
     applyScale(v)
     persistScale(v)
-    scaleRef.current?.style.setProperty('--range-pct', scalePct(v))
   }
 
   return (
@@ -142,7 +135,6 @@ const RadiusControl = ({
             Smaller
           </span>
           <input
-            ref={scaleRef}
             type="range"
             min={SCALE_MIN}
             max={SCALE_MAX}
@@ -150,6 +142,7 @@ const RadiusControl = ({
             value={scale}
             onChange={(e) => handleScale(Number(e.target.value))}
             className="flex-1 cursor-pointer"
+            style={{ '--range-pct': scalePct(scale) } as CSSProperties}
           />
           <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
             Bigger

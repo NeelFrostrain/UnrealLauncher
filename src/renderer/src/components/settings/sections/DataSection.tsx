@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { Card, SettingRow } from '../SectionHelpers'
@@ -190,23 +190,34 @@ const DataSection = (): React.ReactElement => {
 
         <SettingRow
           label="Plugin caches"
-          description="Clear or adjust TTLs for engine/project plugin scan caches."
+          description="Clear or adjust TTLs (Time To Live) for engine/project plugin scan caches."
           last
         >
-          <div className="space-y-3 w-full max-w-sm">
-            <div className="flex items-center gap-2">
+          <div className="w-full space-y-3">
+            {/* Engine cache TTL row */}
+            <div
+              className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border"
+              style={{
+                backgroundColor: 'var(--color-surface-card)',
+                borderColor: 'var(--color-border)'
+              }}
+            >
               <button
                 onClick={handleClearEnginePluginCache}
-                className="px-3 py-1.5 text-xs font-medium"
+                className="px-3 py-1.5 text-xs font-semibold cursor-pointer transition-all duration-200"
                 style={{
                   borderRadius: 'var(--radius)',
                   backgroundColor: 'var(--color-surface-elevated)',
-                  border: '1px solid var(--color-border)'
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-secondary)'
                 }}
               >
-                Clear Engine Plugin Cache
+                Clear Engine Cache
               </button>
               <div className="flex items-center gap-2">
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  TTL:
+                </span>
                 <input
                   type="number"
                   min={1}
@@ -214,34 +225,56 @@ const DataSection = (): React.ReactElement => {
                   onChange={(e) =>
                     setEngineTtlMinutes(e.target.value ? Number(e.target.value) : null)
                   }
-                  className="w-20 px-2 py-1 text-xs"
+                  className="w-18 px-2 py-1 text-xs font-mono text-center outline-none transition-all"
+                  style={{
+                    borderRadius: 'calc(var(--radius) * 0.5)',
+                    backgroundColor: 'var(--color-surface-elevated)',
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-text-primary)'
+                  }}
                 />
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  min
+                </span>
                 <button
                   onClick={handleSaveEngineTTL}
-                  className="px-2 py-1 text-xs"
-                  title="Save engine plugin cache TTL (minutes)"
+                  className="px-3 py-1 text-xs font-semibold cursor-pointer transition-all"
+                  style={{
+                    borderRadius: 'calc(var(--radius) * 0.5)',
+                    backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)',
+                    color: 'var(--color-accent)',
+                    border: '1px solid color-mix(in srgb, var(--color-accent) 25%, transparent)'
+                  }}
                 >
                   Save
                 </button>
-                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                  minutes
-                </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Project cache TTL row */}
+            <div
+              className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border"
+              style={{
+                backgroundColor: 'var(--color-surface-card)',
+                borderColor: 'var(--color-border)'
+              }}
+            >
               <button
                 onClick={handleClearProjectPluginCache}
-                className="px-3 py-1.5 text-xs font-medium"
+                className="px-3 py-1.5 text-xs font-semibold cursor-pointer transition-all duration-200"
                 style={{
                   borderRadius: 'var(--radius)',
                   backgroundColor: 'var(--color-surface-elevated)',
-                  border: '1px solid var(--color-border)'
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-secondary)'
                 }}
               >
-                Clear Project Plugin Cache
+                Clear Project Cache
               </button>
               <div className="flex items-center gap-2">
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  TTL:
+                </span>
                 <input
                   type="number"
                   min={1}
@@ -249,14 +282,29 @@ const DataSection = (): React.ReactElement => {
                   onChange={(e) =>
                     setProjectTtlMinutes(e.target.value ? Number(e.target.value) : null)
                   }
-                  className="w-20 px-2 py-1 text-xs"
+                  className="w-18 px-2 py-1 text-xs font-mono text-center outline-none transition-all"
+                  style={{
+                    borderRadius: 'calc(var(--radius) * 0.5)',
+                    backgroundColor: 'var(--color-surface-elevated)',
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-text-primary)'
+                  }}
                 />
-                <button onClick={handleSaveProjectTTL} className="px-2 py-1 text-xs">
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  min
+                </span>
+                <button
+                  onClick={handleSaveProjectTTL}
+                  className="px-3 py-1 text-xs font-semibold cursor-pointer transition-all"
+                  style={{
+                    borderRadius: 'calc(var(--radius) * 0.5)',
+                    backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)',
+                    color: 'var(--color-accent)',
+                    border: '1px solid color-mix(in srgb, var(--color-accent) 25%, transparent)'
+                  }}
+                >
                   Save
                 </button>
-                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                  minutes
-                </span>
               </div>
             </div>
           </div>

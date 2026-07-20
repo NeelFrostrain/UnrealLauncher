@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain, BrowserWindow } from 'electron'
 import { isRegisteredEnginePath } from '../utils/pathSanitization'
 import {
@@ -15,7 +15,8 @@ import {
 import {
   clearEnginePluginCache,
   getEnginePluginCacheTTL,
-  setEnginePluginCacheTTL
+  setEnginePluginCacheTTL,
+  toggleEnginePluginDefault
 } from './enginePlugins'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
 
@@ -79,5 +80,9 @@ export function registerEngineHandlers(ipcMain_: typeof ipcMain): void {
 
   ipcMain_.handle('update-engine-alias', (_event, directoryPath: string, alias: string) =>
     handleUpdateEngineAlias(directoryPath, alias)
+  )
+
+  ipcMain_.handle('toggle-engine-plugin-default', (_event, pluginPath: string, enabled: boolean) =>
+    toggleEnginePluginDefault(pluginPath, enabled)
   )
 }

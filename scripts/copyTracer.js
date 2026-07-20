@@ -26,7 +26,9 @@ async function copyWithRetries(src, dst, attempts = 6, delay = 500) {
             // taskkill may require elevation; still attempt
             const { execFileSync } = require('child_process')
             const name = path.basename(src)
-            const out = execFileSync('tasklist', ['/FI', `IMAGENAME eq ${name}`, '/NH'], { encoding: 'utf8' })
+            const out = execFileSync('tasklist', ['/FI', `IMAGENAME eq ${name}`, '/NH'], {
+              encoding: 'utf8'
+            })
             if (!out.includes('No tasks')) {
               try {
                 execFileSync('taskkill', ['/F', '/IM', name])
@@ -39,7 +41,9 @@ async function copyWithRetries(src, dst, attempts = 6, delay = 500) {
             // Unix: pgrep + kill
             const { execFileSync } = require('child_process')
             try {
-              const pidOut = execFileSync('pgrep', ['-f', path.basename(src)], { encoding: 'utf8' }).trim()
+              const pidOut = execFileSync('pgrep', ['-f', path.basename(src)], {
+                encoding: 'utf8'
+              }).trim()
               if (pidOut) {
                 execFileSync('pkill', ['-f', path.basename(src)])
                 console.log('Terminated running tracer process')

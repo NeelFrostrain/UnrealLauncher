@@ -1,7 +1,7 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { memo } from 'react'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { memo, useState, useEffect } from 'react'
 import type { Project } from '../../types'
-import { Play, Gamepad2, MoreVertical, Clock, Database, GitBranch } from 'lucide-react'
+import { Play, Gamepad2, MoreVertical, Clock, Database, GitBranch, Heart } from 'lucide-react'
 import { formatVersion, formatDate, getProjectActivitySummary } from './projectUtils'
 import { useProjectCardState } from './card/projectCardState'
 import { useProjectCardHandlers } from './card/projectCardHandlers'
@@ -59,14 +59,48 @@ const ProjectCard = memo(
       ? getProjectActivitySummary(projectPath)
       : 'No recent activity'
 
+    const [health, setHealth] = useState<{
+      score: number
+      status: 'healthy' | 'warning' | 'critical'
+    } | null>(null)
+
+    useEffect(() => {
+      if (!projectPath) return
+      const loadHealth = (): void => {
+        window.electronAPI
+          .projectCheckHealth(projectPath)
+          .then((h) => {
+            setHealth({ score: h.score, status: h.status })
+          })
+          .catch(() => {})
+      }
+      loadHealth()
+
+      const handler = (ev: Event): void => {
+        try {
+          const detail = (ev as CustomEvent).detail
+          if (detail && detail.projectPath === projectPath) {
+            loadHealth()
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+      window.addEventListener('project-health-updated', handler as EventListener)
+      return (): void => {
+        window.removeEventListener('project-health-updated', handler as EventListener)
+      }
+    }, [projectPath])
+
     return (
       <>
         <div
-          className="w-full"
+          className="w-full transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
           style={{
             backgroundColor: 'var(--color-surface-card)',
             border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)'
+            borderRadius: 'var(--radius)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)'
           }}
           onContextMenu={handlers.handleContextMenu}
         >
@@ -110,9 +144,11 @@ const ProjectCard = memo(
                 <span
                   className="shrink-0 text-[10px] font-mono px-1.5 py-px"
                   style={{
-                    color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
-                    backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)',
-                    border: '1px solid color-mix(in srgb, var(--color-accent) 20%, transparent)',
+                    color: 'var(--color-engine-version-text)',
+                    backgroundColor:
+                      'color-mix(in srgb, var(--color-engine-version-text) 10%, transparent)',
+                    border:
+                      '1px solid color-mix(in srgb, var(--color-engine-version-text) 20%, transparent)',
                     borderRadius: 'calc(var(--radius) * 0.5)'
                   }}
                 >
@@ -150,6 +186,39 @@ const ProjectCard = memo(
                         ? 'Engine Missing'
                         : 'Unknown'}
                 </span>
+                {health && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      window.dispatchEvent(
+                        new CustomEvent('open-project-health-report', {
+                          detail: { projectPath }
+                        })
+                      )
+                    }}
+                    className="shrink-0 text-[10px] px-1.5 py-px flex items-center gap-1 cursor-pointer transition-all hover:brightness-110 active:scale-95"
+                    style={{
+                      color:
+                        health.status === 'healthy'
+                          ? '#34d399'
+                          : health.status === 'warning'
+                            ? '#f59e0b'
+                            : '#f87171',
+                      backgroundColor:
+                        health.status === 'healthy'
+                          ? 'color-mix(in srgb, #34d399 12%, transparent)'
+                          : health.status === 'warning'
+                            ? 'color-mix(in srgb, #f59e0b 12%, transparent)'
+                            : 'color-mix(in srgb, #f87171 12%, transparent)',
+                      border: '1px solid color-mix(in srgb, currentColor 24%, transparent)',
+                      borderRadius: 'calc(var(--radius) * 0.5)'
+                    }}
+                    title={`Project Health: ${health.score}/100. Click to view detailed health report.`}
+                  >
+                    <Heart size={10} fill="currentColor" />
+                    <span>{health.score}%</span>
+                  </button>
+                )}
                 {state.git.initialized && (
                   <span
                     className="flex items-center gap-1 text-[9px] font-mono px-1.5 py-px shrink-0"
@@ -238,7 +307,11 @@ const ProjectCard = memo(
                   const rect = e.currentTarget.getBoundingClientRect()
                   state.setCtxMenu({ x: rect.left, y: rect.bottom + 4 })
                 }}
-                className="flex p-1.5 cursor-pointer"
+                onMouseEnter={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  state.setCtxMenu({ x: rect.left, y: rect.bottom + 4 })
+                }}
+                className="flex p-1.5 cursor-pointer transition-colors duration-200 hover:bg-white/[0.015] hover:text-[var(--color-text-primary)]"
                 style={{
                   borderRadius: 'var(--radius)',
                   backgroundColor: 'var(--color-surface-elevated)',

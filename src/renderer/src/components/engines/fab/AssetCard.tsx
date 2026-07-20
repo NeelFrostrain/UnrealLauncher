@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, memo, type ReactElement } from 'react'
 import { FolderOpen, Package, FileCode, Box, HelpCircle } from 'lucide-react'
 import { AssetThumb } from './AssetThumb'
@@ -149,12 +149,14 @@ export const AssetListCard = memo(({ asset }: { asset: FabAsset }): React.ReactE
 
   return (
     <div
-      className="w-full flex items-center gap-3 px-3 py-2.5"
+      className="w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
       style={{
         borderRadius: 'var(--radius)',
-        backgroundColor: hovered ? 'var(--color-surface-elevated)' : 'var(--color-surface-card)',
-        border: `1px solid ${hovered ? 'color-mix(in srgb, var(--color-accent) 30%, var(--color-border))' : 'var(--color-border)'}`,
-        transition: 'background-color 150ms ease, border-color 150ms ease'
+        background: hovered
+          ? 'rgba(255, 255, 255, 0.015)'
+          : 'linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%)',
+        border: `1px solid ${hovered ? 'color-mix(in srgb, var(--color-accent) 25%, var(--color-border))' : 'var(--color-border)'}`,
+        boxShadow: hovered ? '0 8px 24px rgba(0, 0, 0, 0.2)' : '0 4px 16px rgba(0, 0, 0, 0.15)'
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -239,12 +241,14 @@ export const AssetGridCard = memo(({ asset }: { asset: FabAsset }): React.ReactE
 
   return (
     <div
-      className="flex flex-col p-3 gap-2"
+      className="flex flex-col p-3 gap-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
       style={{
         borderRadius: 'var(--radius)',
-        backgroundColor: hovered ? 'var(--color-surface-elevated)' : 'var(--color-surface-card)',
-        border: `1px solid ${hovered ? 'color-mix(in srgb, var(--color-accent) 30%, var(--color-border))' : 'var(--color-border)'}`,
-        transition: 'background-color 150ms ease, border-color 150ms ease'
+        background: hovered
+          ? 'rgba(255, 255, 255, 0.015)'
+          : 'linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%)',
+        border: `1px solid ${hovered ? 'color-mix(in srgb, var(--color-accent) 25%, var(--color-border))' : 'var(--color-border)'}`,
+        boxShadow: hovered ? '0 8px 24px rgba(0, 0, 0, 0.2)' : '0 4px 16px rgba(0, 0, 0, 0.15)'
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

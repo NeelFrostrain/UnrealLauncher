@@ -1,8 +1,10 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /** All state and handlers for LaunchConfigDialog. */
 import { useState, useEffect, useCallback, useRef, Ref } from 'react'
 import { useToast } from '../../ui/ToastContext'
 import { UE_DEFAULTS } from './launchConfigConstants'
+
+import { getSetting, checkLaunchCooldown, recordProjectLaunch, clearLaunchCooldown } from '../../../utils/settings'
 
 export interface UseLaunchConfigStateReturn {
   configs: LaunchConfig[]
@@ -139,6 +141,18 @@ export function useLaunchConfigState(
   const handleLaunch = useCallback(async () => {
     const selected = configs.find((c) => c.id === selectedId) ?? null
     if (!selected || launching) return
+
+    if (projectPath) {
+      const cooldown = checkLaunchCooldown()
+      if (!cooldown.allowed) {
+        addToast(
+          `Launch prevented: Please wait ${cooldown.remaining}s before launching another project.`,
+          'warning'
+        )
+        return
+      }
+    }
+
     setLaunching(true)
     try {
       const result = projectPath
@@ -149,7 +163,18 @@ export function useLaunchConfigState(
       if (result.success) {
         addToast(`Launching with "${selected.name}"…`, 'success')
         onClose()
-      } else addToast(result.error ?? 'Launch failed', 'error')
+        if (projectPath) {
+          recordProjectLaunch()
+        }
+        if (getSetting('autoCloseOnLaunch')) {
+          setTimeout(() => window.electronAPI?.windowClose(), 1000)
+        }
+      } else {
+        addToast(result.error ?? 'Launch failed', 'error')
+        if (projectPath) {
+          clearLaunchCooldown()
+        }
+      }
     } finally {
       setLaunching(false)
     }

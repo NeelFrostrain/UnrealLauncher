@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Worker script for scanning Unreal Engine installations.
  * Executed in a worker thread to avoid blocking the main process.
@@ -10,7 +10,7 @@ const fs = require('fs'), path = require('path');
 let native = null;
 try { native = require(workerData.nativePath); } catch {}
 
-function scanEnginePaths() {
+async function scanEnginePaths() {
   // Collect extra paths: user-configured paths + UE_ROOT env var (Linux only)
   const extra = [];
   if (Array.isArray(workerData.engineScanPaths)) {
@@ -25,7 +25,7 @@ function scanEnginePaths() {
     if (ueRoot && !extra.includes(ueRoot)) extra.push(ueRoot);
   }
 
-  if (native) { try { return native.scanEngines(extra); } catch {} }
+  if (native) { try { return await native.scanEngines(extra); } catch {} }
 
   // Fallback engine scanning when native module is not available
   const bases = [];
@@ -148,32 +148,40 @@ function generateGradient() {
   return 'linear-gradient(' + pick(dirs) + ', ' + from + ', ' + to + ')';
 }
 
-const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
-const savedByDirectory = new Map();
-for (const engine of saved) {
-  if (!engine?.directoryPath) continue;
-  savedByDirectory.set(engine.directoryPath, engine);
-}
-const scanned = scanEnginePaths().map(e => {
-  const ex = savedByDirectory.get(e.directoryPath);
-  return { version: e.version, exePath: e.exePath, directoryPath: e.directoryPath,
-    folderSize: ex?.folderSize || '~35-45 GB',
-    lastLaunch: ex?.lastLaunch || 'Unknown',
-    gradient: ex?.gradient || generateGradient() };
-});
-const merged = [];
-for (const s of scanned) {
-  const ex = savedByDirectory.get(s.directoryPath);
-  if (ex) {
-    if (ex.gradient) s.gradient = ex.gradient;
-    if (ex.folderSize && !ex.folderSize.startsWith('~')) s.folderSize = ex.folderSize;
-    if (ex.lastLaunch) s.lastLaunch = ex.lastLaunch;
+async function run() {
+  const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
+  const savedByDirectory = new Map();
+  for (const engine of saved) {
+    if (!engine?.directoryPath) continue;
+    savedByDirectory.set(engine.directoryPath, engine);
   }
-  merged.push(s);
+  const rawScanned = await scanEnginePaths();
+  const scanned = rawScanned.map(e => {
+    const ex = savedByDirectory.get(e.directoryPath);
+    return { version: e.version, exePath: e.exePath, directoryPath: e.directoryPath,
+      folderSize: ex?.folderSize || '~35-45 GB',
+      lastLaunch: ex?.lastLaunch || 'Unknown',
+      gradient: ex?.gradient || generateGradient() };
+  });
+  const merged = [];
+  for (const s of scanned) {
+    const ex = savedByDirectory.get(s.directoryPath);
+    if (ex) {
+      if (ex.gradient) s.gradient = ex.gradient;
+      if (ex.folderSize && !ex.folderSize.startsWith('~')) s.folderSize = ex.folderSize;
+      if (ex.lastLaunch) s.lastLaunch = ex.lastLaunch;
+    }
+    merged.push(s);
+  }
+  const mergedDirectoryPaths = new Set(merged.map((m) => m.directoryPath));
+  for (const e of saved) {
+    if (!mergedDirectoryPaths.has(e.directoryPath)) merged.push(e);
+  }
+  parentPort.postMessage(merged.filter(e => fs.existsSync(e.exePath)));
 }
-const mergedDirectoryPaths = new Set(merged.map((m) => m.directoryPath));
-for (const e of saved) {
-  if (!mergedDirectoryPaths.has(e.directoryPath)) merged.push(e);
-}
-parentPort.postMessage(merged.filter(e => fs.existsSync(e.exePath)));
+
+run().catch(err => {
+  console.error("Worker error:", err);
+  process.exit(1);
+});
 `

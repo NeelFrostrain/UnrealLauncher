@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { RotateCcw } from 'lucide-react'
 import { BUILT_IN_THEMES, type ThemeToken } from '../../../utils/theme'
 
@@ -7,7 +7,8 @@ const COLOR_TOKENS: Array<{ token: ThemeToken; label: string }> = [
   { token: 'border', label: 'Border' },
   { token: 'surface', label: 'Background' },
   { token: 'surface-card', label: 'Card' },
-  { token: 'surface-elevated', label: 'Elevated' }
+  { token: 'surface-elevated', label: 'Elevated' },
+  { token: 'engine-version-text', label: 'Engine Version Text' }
 ]
 
 interface ColorOverridesProps {

@@ -34,7 +34,7 @@ export interface ProjectsContentProps {
 type ProjectWithFlags = Project & { isFavorite: boolean; isHidden: boolean }
 
 // List card height in px — must match what ProjectCard renders
-const LIST_ITEM_HEIGHT = 88 // px (64px thumb + 2×12px padding)
+const LIST_ITEM_HEIGHT = 64 // px (64px thumb + 2×12px padding)
 const LIST_GAP = 8 // gap-2
 const ROW_HEIGHT = LIST_ITEM_HEIGHT + LIST_GAP
 const BUFFER_ROWS = 4

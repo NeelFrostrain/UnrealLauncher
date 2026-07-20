@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Engine path scanning and discovery.
  */
@@ -12,7 +12,7 @@ import { logger } from '../logger'
 
 export type { ScannedEngine }
 
-export function scanEnginePaths(extraPaths: string[] = []): ScannedEngine[] {
+export async function scanEnginePaths(extraPaths: string[] = []): Promise<ScannedEngine[]> {
   logger.info('scan', 'Engine scan started', { extraPaths })
   const native = getNative()
   // Merge UE_ROOT env var into extra paths (Linux only)
@@ -20,7 +20,7 @@ export function scanEnginePaths(extraPaths: string[] = []): ScannedEngine[] {
   const allExtra = ueRoot ? [...extraPaths, ueRoot] : extraPaths
   if (native) {
     try {
-      const results = native.scanEngines([...getEngineInstallPaths(), ...allExtra])
+      const results = await native.scanEngines([...getEngineInstallPaths(), ...allExtra])
       logger.info('scan', 'Native engine scan finished', { count: results.length })
       return results
     } catch (error) {
@@ -28,12 +28,12 @@ export function scanEnginePaths(extraPaths: string[] = []): ScannedEngine[] {
       /* fall through */
     }
   }
-  const results = _scanEnginesJS([...getEngineInstallPaths(), ...allExtra])
+  const results = await _scanEnginesJS([...getEngineInstallPaths(), ...allExtra])
   logger.info('scan', 'JS engine scan finished', { count: results.length })
   return results
 }
 
-function _scanEnginesJS(basePaths: string[]): ScannedEngine[] {
+async function _scanEnginesJS(basePaths: string[]): Promise<ScannedEngine[]> {
   const results: ScannedEngine[] = []
   const seen = new Set<string>()
   const binPlatform =
@@ -41,30 +41,51 @@ function _scanEnginesJS(basePaths: string[]): ScannedEngine[] {
   const exeName = `UnrealEditor${getBinaryExtension()}`
   const ue4ExeName = `UE4Editor${getBinaryExtension()}`
 
-  const tryAddEngine = (enginePath: string): void => {
+  const tryAddEngine = async (enginePath: string): Promise<void> => {
     if (seen.has(enginePath)) return
     const buildVersionPath = path.join(enginePath, 'Engine', 'Build', 'Build.version')
-    if (!fs.existsSync(buildVersionPath)) return
+    try {
+      await fs.promises.access(buildVersionPath)
+    } catch {
+      return
+    }
     const binPath = path.join(enginePath, 'Engine', 'Binaries', binPlatform)
     let exePath = path.join(binPath, exeName)
-    if (!fs.existsSync(exePath)) exePath = path.join(binPath, ue4ExeName)
-    if (!fs.existsSync(exePath)) return
+    try {
+      await fs.promises.access(exePath)
+    } catch {
+      exePath = path.join(binPath, ue4ExeName)
+      try {
+        await fs.promises.access(exePath)
+      } catch {
+        return
+      }
+    }
     seen.add(enginePath)
-    const version = _readBuildVersion(buildVersionPath) ?? path.basename(enginePath)
+    const version = (await _readBuildVersion(buildVersionPath)) ?? path.basename(enginePath)
     results.push({ version, exePath, directoryPath: enginePath })
   }
 
   for (const basePath of basePaths) {
-    if (!fs.existsSync(basePath)) continue
-    // Case 1: the path itself is an engine root
-    if (fs.existsSync(path.join(basePath, 'Engine', 'Build', 'Build.version'))) {
-      tryAddEngine(basePath)
-      continue
-    }
-    // Case 2: scan subdirectories for engine roots
     try {
-      for (const item of fs.readdirSync(basePath)) {
-        tryAddEngine(path.join(basePath, item))
+      const exists = await fs.promises
+        .access(basePath)
+        .then(() => true)
+        .catch(() => false)
+      if (!exists) continue
+      // Case 1: the path itself is an engine root
+      const isRoot = await fs.promises
+        .access(path.join(basePath, 'Engine', 'Build', 'Build.version'))
+        .then(() => true)
+        .catch(() => false)
+      if (isRoot) {
+        await tryAddEngine(basePath)
+        continue
+      }
+      // Case 2: scan subdirectories for engine roots
+      const items = await fs.promises.readdir(basePath)
+      for (const item of items) {
+        await tryAddEngine(path.join(basePath, item))
       }
     } catch (err) {
       logger.error('scan', 'Error scanning engine path', { basePath, error: err })
@@ -73,9 +94,10 @@ function _scanEnginesJS(basePaths: string[]): ScannedEngine[] {
   return results
 }
 
-function _readBuildVersion(buildVersionPath: string): string | null {
+async function _readBuildVersion(buildVersionPath: string): Promise<string | null> {
   try {
-    const bv = JSON.parse(fs.readFileSync(buildVersionPath, 'utf8'))
+    const raw = await fs.promises.readFile(buildVersionPath, 'utf8')
+    const bv = JSON.parse(raw)
     if (bv.MajorVersion != null && bv.MinorVersion != null)
       return `${bv.MajorVersion}.${bv.MinorVersion}`
     if (typeof bv.BranchName === 'string') return bv.BranchName

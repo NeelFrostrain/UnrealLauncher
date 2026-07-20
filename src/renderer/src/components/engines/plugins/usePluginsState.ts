@@ -14,10 +14,17 @@ interface EnginePlugin {
   createdBy: string
   isBeta: boolean
   isExperimental: boolean
+  enabledByDefault?: boolean
+  dependencies?: string[]
+  source?: 'Engine' | 'Project'
+  projectName?: string
+  docsUrl?: string
+  supportUrl?: string
 }
 
 export interface UsePluginsStateReturn {
   plugins: EnginePlugin[]
+  setPlugins: React.Dispatch<React.SetStateAction<EnginePlugin[]>>
   loading: boolean
   error: string | null
   searchQuery: string
@@ -29,7 +36,7 @@ export interface UsePluginsStateReturn {
   load: () => Promise<void>
 }
 
-export function usePluginsState(engineDir: string): UsePluginsStateReturn {
+export function usePluginsState(engineDir: string, engineVersion: string): UsePluginsStateReturn {
   const { addToast } = useToast()
   const addToastRef = useRef(addToast)
   useEffect(() => {
@@ -63,11 +70,62 @@ export function usePluginsState(engineDir: string): UsePluginsStateReturn {
         /* ignore cache */
       }
 
-      const fresh = await window.electronAPI.scanEnginePlugins(engineDir)
-      setPlugins(fresh)
+      // 1. Scan engine plugins
+      const freshEngine = await window.electronAPI.scanEnginePlugins(engineDir)
+      const mappedEngine = freshEngine.map((p) => ({
+        ...p,
+        source: 'Engine' as const
+      }))
+
+      // 2. Scan project plugins
+      let mappedProjects: EnginePlugin[] = []
+      try {
+        const savedProjects = await window.electronAPI.loadSavedProjects()
+        const matchingProjects = savedProjects.filter(
+          (p) =>
+            p.projectPath && (p.version === engineVersion || p.version.startsWith(engineVersion))
+        )
+        const scanPromises = matchingProjects.map(async (p) => {
+          try {
+            const projPlugins = await window.electronAPI.projectScanPlugins(p.projectPath!)
+            return projPlugins
+              .filter((plugin) => plugin.path)
+              .map((plugin) => {
+                const normPath = plugin.path.replace(/\\/g, '/')
+                const pluginDir = normPath.substring(0, normPath.lastIndexOf('/'))
+                return {
+                  name: plugin.name,
+                  path: pluginDir,
+                  icon: null,
+                  version: plugin.version,
+                  description: plugin.description,
+                  category: 'Project: ' + p.name,
+                  createdBy: '',
+                  isBeta: false,
+                  isExperimental: false,
+                  enabledByDefault: plugin.enabledByDefault ?? true,
+                  dependencies: plugin.dependencies ?? [],
+                  docsUrl: plugin.docsUrl ?? '',
+                  supportUrl: plugin.supportUrl ?? '',
+                  source: 'Project' as const,
+                  projectName: p.name
+                }
+              })
+          } catch {
+            return []
+          }
+        })
+        const results = await Promise.all(scanPromises)
+        mappedProjects = results.flat()
+      } catch (err) {
+        console.error('Failed to load project plugins:', err)
+      }
+
+      const merged = [...mappedEngine, ...mappedProjects]
+      setPlugins(merged)
       // Persist fresh scan
       try {
-        localStorage.setItem(cacheKey, JSON.stringify({ scannedAt: Date.now(), plugins: fresh }))
+        localStorage.setItem(cacheKey, JSON.stringify({ scannedAt: Date.now(), plugins: merged }))
       } catch {
         /* ignore */
       }
@@ -78,7 +136,7 @@ export function usePluginsState(engineDir: string): UsePluginsStateReturn {
       addToastRef.current('Plugin scan failed: ' + msg, 'error')
     }
     setLoading(false)
-  }, [engineDir])
+  }, [engineDir, engineVersion])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -119,6 +177,7 @@ export function usePluginsState(engineDir: string): UsePluginsStateReturn {
 
   return {
     plugins,
+    setPlugins,
     loading,
     error,
     searchQuery,

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
@@ -85,7 +85,7 @@ export async function handleSelectProjectFolder(): Promise<ProjectSelectionResul
 
   const folder = result.filePaths[0]
   logger.info('project', 'Project folder selected', { folder })
-  const uprojectFiles = findUprojectFiles(folder, 3, 50)
+  const uprojectFiles = await findUprojectFiles(folder, 3, 50)
   logger.info('project', 'Project folder scanned for uproject files', {
     folder,
     foundCount: uprojectFiles.length

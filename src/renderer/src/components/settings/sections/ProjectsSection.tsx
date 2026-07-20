@@ -68,10 +68,10 @@ const ProjectsSection = (): React.ReactElement => {
           className="items-start pt-5"
           last
         >
-          <div className="space-y-3 w-full max-w-sm">
+          <div className="w-full space-y-3">
             {scanPaths.length === 0 ? (
               <div
-                className="border border-dashed px-4 py-4 text-xs"
+                className="w-full border border-dashed px-4 py-4 text-xs"
                 style={{
                   borderRadius: 'var(--radius)',
                   borderColor: 'var(--color-border)',
@@ -82,11 +82,11 @@ const ProjectsSection = (): React.ReactElement => {
                 No folders configured yet. Use Add Folder to select one or more folders to scan.
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="w-full space-y-2">
                 {scanPaths.map((p, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between gap-3 px-3 py-2"
+                    className="w-full flex items-center justify-between gap-3 px-3 py-2"
                     style={{
                       borderRadius: 'var(--radius)',
                       backgroundColor: 'var(--color-surface-card)',

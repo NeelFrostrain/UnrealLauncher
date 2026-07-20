@@ -1,7 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback } from 'react'
 import type { TabType } from '../types'
-import { getSetting } from '../utils/settings'
+import { getSetting, checkLaunchCooldown, recordProjectLaunch, clearLaunchCooldown } from '../utils/settings'
 import { useToast } from '../components/ui/ToastContext'
 import { logActivity } from '../utils/activityLogger'
 
@@ -58,11 +58,25 @@ export function useProjectActions({
   const handleLaunch = useCallback(
     async (projectPath: string): Promise<void> => {
       if (!window.electronAPI) return
+
+      const cooldown = checkLaunchCooldown()
+      if (!cooldown.allowed) {
+        addToast(
+          `Launch prevented: Please wait ${cooldown.remaining}s before launching another project.`,
+          'warning'
+        )
+        return
+      }
+
       const result = await window.electronAPI.launchProject(projectPath)
       if (!result.success) {
         addToast('Failed to launch project: ' + result.error, 'error')
-      } else if (getSetting('autoCloseOnLaunch')) {
-        setTimeout(() => window.electronAPI?.windowClose(), 1000)
+        clearLaunchCooldown()
+      } else {
+        recordProjectLaunch()
+        if (getSetting('autoCloseOnLaunch')) {
+          setTimeout(() => window.electronAPI?.windowClose(), 1000)
+        }
       }
     },
     [addToast]

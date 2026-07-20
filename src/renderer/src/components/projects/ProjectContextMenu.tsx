@@ -10,7 +10,8 @@ import {
   AlertTriangle,
   GitBranch,
   Settings2,
-  EyeOff
+  EyeOff,
+  Cpu
 } from 'lucide-react'
 import {
   MenuItem,
@@ -22,7 +23,9 @@ import {
 import { OrganizeSubMenu } from './contextMenu/OrganizeSubMenu'
 import { ProjectToolsSubMenu } from './contextMenu/ProjectToolsSubMenu'
 import { GitSubMenu } from './contextMenu/GitSubMenu'
+import { EngineSubMenu } from './contextMenu/EngineSubMenu'
 import { useEngineCompatibility } from '../../hooks/useEngineCompatibility'
+import { useToast } from '../ui/ToastContext'
 
 export interface ProjectContextMenuProps {
   x: number
@@ -48,6 +51,9 @@ export interface ProjectContextMenuProps {
   onOpenBranchDialog: () => void
   onOpenFileEditor: (mode: 'config' | 'uproject') => void
   onOpenPlugins: () => void
+  onOpenHealthReport: () => void
+  onOpenAssetAnalyzer: () => void
+  onOpenSnapshots: () => void
 }
 
 export default function ProjectContextMenu(p: ProjectContextMenuProps): React.ReactElement {
@@ -55,10 +61,19 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
   const organizeTriggerRef = useRef<HTMLButtonElement>(null)
   const toolsTriggerRef = useRef<HTMLButtonElement>(null)
   const gitTriggerRef = useRef<HTMLButtonElement>(null)
+  const engineTriggerRef = useRef<HTMLButtonElement>(null)
   const [pos, setPos] = useState({ top: p.y, left: p.x, width: 248 })
-  const [activeSub, setActiveSub] = useState<'organize' | 'tools' | 'git' | null>(null)
+  const [activeSub, setActiveSub] = useState<'organize' | 'tools' | 'git' | 'engine' | null>(null)
+  const [engines, setEngines] = useState<any[]>([])
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const compatibility = useEngineCompatibility(p.projectVersion)
+  const { addToast } = useToast()
+
+  useEffect(() => {
+    window.electronAPI.loadSavedEngines().then((saved) => {
+      setEngines(saved || [])
+    })
+  }, [])
 
   // Position menu within viewport bounds
   useEffect(() => {
@@ -114,7 +129,7 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
     }
   }, [p])
 
-  const openSub = useCallback((sub: 'organize' | 'tools' | 'git') => {
+  const openSub = useCallback((sub: 'organize' | 'tools' | 'git' | 'engine') => {
     if (closeTimer.current) clearTimeout(closeTimer.current)
     setActiveSub(sub)
   }, [])
@@ -138,6 +153,47 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
     p.onClose()
     p.onOpenBranchDialog()
   }, [p])
+
+  const handleSelectEngine = useCallback(async (newVersion: string) => {
+    try {
+      const pathRes = await window.electronAPI.projectResolveUprojectPath(p.projectPath)
+      if (!pathRes.success || !pathRes.filePath) {
+        addToast(pathRes.error || 'Failed to resolve uproject path', 'error')
+        return
+      }
+
+      const fileRes = await window.electronAPI.projectReadTextFile(pathRes.filePath, p.projectPath)
+      if (!fileRes.success || !fileRes.content) {
+        addToast(fileRes.error || 'Failed to read uproject file', 'error')
+        return
+      }
+
+      const uprojectJson = JSON.parse(fileRes.content)
+      uprojectJson.EngineAssociation = newVersion
+
+      const writeRes = await window.electronAPI.projectWriteTextFile(
+        pathRes.filePath,
+        JSON.stringify(uprojectJson, null, 2),
+        p.projectPath
+      )
+
+      if (!writeRes.success) {
+        addToast(writeRes.error || 'Failed to update uproject file', 'error')
+        return
+      }
+
+      addToast(`Engine version updated to ${newVersion}`, 'success')
+      window.dispatchEvent(
+        new CustomEvent('project-engine-changed', { detail: { projectPath: p.projectPath } })
+      )
+      p.onClose()
+    } catch (error) {
+      addToast(
+        'Error changing engine version: ' + (error instanceof Error ? error.message : String(error)),
+        'error'
+      )
+    }
+  }, [p, addToast])
 
   return createPortal(
     <>
@@ -354,6 +410,21 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             onOpen={() => openSub('tools')}
             onLeave={closeSub}
           />
+          <SubMenuTrigger
+            triggerRef={engineTriggerRef}
+            icon={
+              <Cpu
+                size={11}
+                style={{
+                  color: activeSub === 'engine' ? 'var(--color-accent)' : 'var(--color-text-muted)'
+                }}
+              />
+            }
+            label="Change Engine"
+            isOpen={activeSub === 'engine'}
+            onOpen={() => openSub('engine')}
+            onLeave={closeSub}
+          />
 
           <MenuSeparator />
 
@@ -392,6 +463,9 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             onViewLogs={p.onViewLogs}
             onOpenFileEditor={p.onOpenFileEditor}
             onOpenPlugins={p.onOpenPlugins}
+            onOpenHealthReport={p.onOpenHealthReport}
+            onOpenAssetAnalyzer={p.onOpenAssetAnalyzer}
+            onOpenSnapshots={p.onOpenSnapshots}
             onClose={p.onClose}
             onMouseEnter={keepSub}
             onMouseLeave={closeSub}
@@ -409,6 +483,19 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             onGitInit={p.onGitInit}
             onOpenCommit={handleOpenCommit}
             onOpenBranch={handleOpenBranch}
+            onClose={p.onClose}
+            onMouseEnter={keepSub}
+            onMouseLeave={closeSub}
+          />
+        )}
+        {activeSub === 'engine' && (
+          <EngineSubMenu
+            engines={engines}
+            currentVersion={p.projectVersion}
+            anchorRef={engineTriggerRef}
+            parentLeft={pos.left}
+            parentWidth={pos.width}
+            onSelectEngine={handleSelectEngine}
             onClose={p.onClose}
             onMouseEnter={keepSub}
             onMouseLeave={closeSub}

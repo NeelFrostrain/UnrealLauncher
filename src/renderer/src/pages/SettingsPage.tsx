@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react'
 import PageWrapper from '../layout/PageWrapper'
 import type { SectionId } from '../components/settings/SettingsNavigation'
-import { NAV_ITEMS } from '../components/settings/SettingsNavigation'
+import { SettingsNavigation } from '../components/settings/SettingsNavigation'
 import { AboutSection } from '../components/settings/AboutSection'
 import { useSettingsState } from '../hooks/useSettingsState'
 import AppearanceSection from '../components/settings/AppearanceSection'
@@ -28,11 +28,6 @@ const SettingsPage = (): React.ReactElement => {
     },
     [activeSection]
   )
-
-  const visibleNav = NAV_ITEMS.filter((item) => {
-    if (item.id === 'tracer' && platform === 'linux') return false
-    return true
-  })
 
   const renderContent = (): React.ReactNode => {
     switch (activeSection) {
@@ -104,53 +99,15 @@ const SettingsPage = (): React.ReactElement => {
 
   return (
     <PageWrapper>
-      <div className="flex h-full min-h-0 overflow-hidden">
-        {/* Vertical sidebar nav */}
-        <aside
-          className="flex flex-col gap-0.5 p-2 shrink-0 overflow-y-auto border-r"
-          style={{
-            width: 160,
-            backgroundColor: 'var(--color-surface)',
-            borderColor: 'var(--color-border)'
-          }}
-        >
-          {visibleNav.map((item) => {
-            const active = activeSection === item.id
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleSectionChange(item.id)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium text-left w-full transition-all cursor-pointer"
-                style={{
-                  color: active ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-                  backgroundColor: active
-                    ? 'color-mix(in srgb, var(--color-accent) 15%, var(--color-surface-elevated))'
-                    : 'transparent',
-                  boxShadow: active ? '0 1px 3px rgba(0,0,0,0.25)' : 'none'
-                }}
-              >
-                <span
-                  className="shrink-0 transition-colors"
-                  style={{ color: active ? item.accent : 'var(--color-text-muted)' }}
-                >
-                  {item.icon}
-                </span>
-                {item.label}
-                {active && (
-                  <span
-                    className="ml-auto w-1 h-1 rounded-full shrink-0"
-                    style={{ backgroundColor: item.accent }}
-                  />
-                )}
-              </button>
-            )
-          })}
-        </aside>
+      <SettingsNavigation
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        platform={platform}
+      />
 
-        {/* Content area */}
-        <div className="flex-1 overflow-y-auto min-h-0">
-          <div className="p-5">{renderContent()}</div>
-        </div>
+      {/* Content area */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="mt-4">{renderContent()}</div>
       </div>
     </PageWrapper>
   )

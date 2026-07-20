@@ -1,11 +1,12 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type { FC, ReactNode } from 'react'
 import { Zap, Package, Settings } from 'lucide-react'
 import Engine_BG from '@renderer/assets/Engines_BG.webp'
 import Projects_BG from '@renderer/assets/Projects_BG.jpg'
 import Settings_BG from '@renderer/assets/Settings_BG.jpg'
+// import Tasks_BG from '@renderer/assets/Tasks_BG.png'
 
-export type PageType = 'Engines' | 'Projects' | 'Settings'
+export type PageType = 'Engines' | 'Projects' | 'Tasks' | 'Settings'
 
 export interface SidebarCardData {
   title: PageType
@@ -17,6 +18,7 @@ export interface SidebarCardData {
 export const NAV_ITEMS: SidebarCardData[] = [
   { title: 'Engines', basePath: '/engines', imageSrc: Engine_BG, icon: <Zap size={16} /> },
   { title: 'Projects', basePath: '/projects', imageSrc: Projects_BG, icon: <Package size={16} /> },
+  // { title: 'Tasks', basePath: '/tasks', imageSrc: Tasks_BG, icon: <Activity size={16} /> },
   { title: 'Settings', basePath: '/settings', imageSrc: Settings_BG, icon: <Settings size={16} /> }
 ]
 

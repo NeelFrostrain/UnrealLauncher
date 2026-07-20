@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
 import { openFileOrDirectory } from '../utils/processUtils'
 import { isRegisteredProjectPath, resolveOpenableDirectory } from '../utils/pathSanitization'
@@ -11,9 +11,12 @@ import {
   calculateAllProjectSizes,
   scanAndMergeProjects,
   loadSavedProjects,
-  deleteProject
+  deleteProject,
+  checkProjectHealth
 } from './projectHandlers'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
+import { registerProjectAssetHandlers } from './projectAssets'
+import { registerProjectSnapshotHandlers } from './projectSnapshots'
 
 /**
  * Registers all project-related IPC handlers
@@ -58,4 +61,16 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   ipcMain_.handle('calculate-all-project-sizes', calculateAllProjectSizes)
+
+  ipcMain_.handle('project-check-health', async (_event, projectPath: string) => {
+    // SECURITY: Validate path is a valid existing project directory
+    const validatedPath = isRegisteredProjectPath(projectPath)
+    if (!validatedPath) {
+      return { error: 'Project path not found' }
+    }
+    return checkProjectHealth(validatedPath)
+  })
+
+  registerProjectAssetHandlers(ipcMain_)
+  registerProjectSnapshotHandlers(ipcMain_)
 }

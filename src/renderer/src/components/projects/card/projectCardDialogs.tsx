@@ -1,4 +1,3 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useEffect, lazy, Suspense } from 'react'
 
 // All dialogs and the context menu are lazy-loaded — excluded from the initial
@@ -10,6 +9,9 @@ const GitBranchDialog = lazy(() => import('../GitBranchDialog'))
 const ProjectFileEditorDialog = lazy(() => import('../ProjectFileEditorDialog'))
 const LaunchConfigDialog = lazy(() => import('../../engines/LaunchConfigDialog'))
 const ProjectPluginsDialog = lazy(() => import('../ProjectPluginsDialog'))
+const ProjectHealthDialog = lazy(() => import('../ProjectHealthDialog'))
+const ProjectAssetsDialog = lazy(() => import('../ProjectAssetsDialog'))
+const ProjectSnapshotsDialog = lazy(() => import('../ProjectSnapshotsDialog'))
 
 interface ProjectCardDialogsProps {
   ctxMenu: { x: number; y: number } | null
@@ -78,10 +80,12 @@ export function ProjectCardDialogs({
   externalShowLaunchConfig,
   externalSetShowLaunchConfig
 }: ProjectCardDialogsProps): React.ReactElement {
-  // File editor state lives here — survives context menu close
   const [fileEditorMode, setFileEditorMode] = useState<'config' | 'uproject' | null>(null)
   const [internalShowLaunchConfig, internalSetShowLaunchConfig] = useState(false)
   const [showPlugins, setShowPlugins] = useState(false)
+  const [showHealth, setShowHealth] = useState(false)
+  const [showAssets, setShowAssets] = useState(false)
+  const [showSnapshots, setShowSnapshots] = useState(false)
   const showLaunchConfig =
     externalShowLaunchConfig !== undefined ? externalShowLaunchConfig : internalShowLaunchConfig
   const setShowLaunchConfig = externalSetShowLaunchConfig ?? internalSetShowLaunchConfig
@@ -100,6 +104,52 @@ export function ProjectCardDialogs({
     window.addEventListener('open-project-launch-config', handler as EventListener)
     return () => window.removeEventListener('open-project-launch-config', handler as EventListener)
   }, [projectPath, setShowLaunchConfig])
+
+  useEffect(() => {
+    const handler = (ev: Event): void => {
+      try {
+        const detail = (ev as CustomEvent).detail
+        if (!detail) return
+        if (!projectPath) return
+        if (detail.projectPath === projectPath) setShowHealth(true)
+      } catch {
+        /* ignore */
+      }
+    }
+    window.addEventListener('open-project-health-report', handler as EventListener)
+    return () => window.removeEventListener('open-project-health-report', handler as EventListener)
+  }, [projectPath])
+
+  useEffect(() => {
+    const handler = (ev: Event): void => {
+      try {
+        const detail = (ev as CustomEvent).detail
+        if (!detail) return
+        if (!projectPath) return
+        if (detail.projectPath === projectPath) setShowAssets(true)
+      } catch {
+        /* ignore */
+      }
+    }
+    window.addEventListener('open-project-assets-analysis', handler as EventListener)
+    return () =>
+      window.removeEventListener('open-project-assets-analysis', handler as EventListener)
+  }, [projectPath])
+
+  useEffect(() => {
+    const handler = (ev: Event): void => {
+      try {
+        const detail = (ev as CustomEvent).detail
+        if (!detail) return
+        if (!projectPath) return
+        if (detail.projectPath === projectPath) setShowSnapshots(true)
+      } catch {
+        /* ignore */
+      }
+    }
+    window.addEventListener('open-project-snapshots', handler as EventListener)
+    return () => window.removeEventListener('open-project-snapshots', handler as EventListener)
+  }, [projectPath])
 
   return (
     <>
@@ -131,6 +181,9 @@ export function ProjectCardDialogs({
             onOpenBranchDialog={onOpenBranchDialog}
             onOpenFileEditor={setFileEditorMode}
             onOpenPlugins={() => setShowPlugins(true)}
+            onOpenHealthReport={() => setShowHealth(true)}
+            onOpenAssetAnalyzer={() => setShowAssets(true)}
+            onOpenSnapshots={() => setShowSnapshots(true)}
             onClose={onCloseCtxMenu}
           />
         </Suspense>
@@ -198,6 +251,39 @@ export function ProjectCardDialogs({
             projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
             projectPath={projectPath}
             onClose={() => setShowPlugins(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Health dialog */}
+      {showHealth && projectPath && (
+        <Suspense fallback={null}>
+          <ProjectHealthDialog
+            projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            projectPath={projectPath}
+            onClose={() => setShowHealth(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Assets dialog */}
+      {showAssets && projectPath && (
+        <Suspense fallback={null}>
+          <ProjectAssetsDialog
+            projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            projectPath={projectPath}
+            onClose={() => setShowAssets(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Snapshots dialog */}
+      {showSnapshots && projectPath && (
+        <Suspense fallback={null}>
+          <ProjectSnapshotsDialog
+            projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            projectPath={projectPath}
+            onClose={() => setShowSnapshots(false)}
           />
         </Suspense>
       )}

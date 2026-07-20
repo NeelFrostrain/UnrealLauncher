@@ -1,19 +1,12 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
+
 import { useEffect, useRef, useState, type FC } from 'react'
-import {
-  Plus,
-  RefreshCw,
-  Search,
-  X,
-  LayoutGrid,
-  LayoutList,
-  History,
-  Filter,
-  Check
-} from 'lucide-react'
+import { Plus, RefreshCw, Search, LayoutGrid, LayoutList, History, Filter } from 'lucide-react'
 import type { TabType } from '../../types'
 import type { SortConfig, EngineVersionFilter } from './projectUtils'
 import { SortDropdown } from './toolbar/SortDropdown'
+
+import { Tabs } from '../ui/Tabs'
 
 export type ViewMode = 'list' | 'grid'
 
@@ -68,7 +61,7 @@ function EngineVersionDropdown({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((current) => !current)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 font-medium transition-all cursor-pointer"
         aria-label={`Filter by engine version: ${activeLabel}`}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -78,7 +71,8 @@ function EngineVersionDropdown({
             ? 'color-mix(in srgb, var(--color-accent) 15%, var(--color-surface-card))'
             : 'var(--color-surface-card)',
           border: `1px solid ${open ? 'var(--color-accent)' : 'var(--color-border)'}`,
-          color: 'var(--color-text-secondary)'
+          color: 'var(--color-text-secondary)',
+          fontSize: 'calc(var(--font-size) * 0.75)'
         }}
         title="Filter projects by engine version"
       >
@@ -91,16 +85,26 @@ function EngineVersionDropdown({
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-1.5 z-50 py-1.5 w-48"
+          className="absolute right-0 top-full mt-1.5 z-50 py-1.5 px-1 w-48"
           style={{
             backgroundColor: 'var(--color-surface-elevated)',
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius)',
             boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-            fontSize: '12px'
+            fontSize: 'calc(var(--font-size) * 0.85)'
           }}
         >
           {options.map((option) => {
+            if (option.value === '__divider__') {
+              return (
+                <div
+                  key="__divider__"
+                  className="my-1 mx-2"
+                  style={{ borderTop: '1px solid var(--color-border)' }}
+                />
+              )
+            }
+            const isBroken = option.value === 'broken'
             const isActive = value === (option.value as EngineVersionFilter)
             return (
               <button
@@ -111,14 +115,19 @@ function EngineVersionDropdown({
                 }}
                 className="w-full flex items-center justify-between gap-2 px-3 py-1.5 transition-colors cursor-pointer"
                 style={{
-                  color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                  color: isActive
+                    ? 'var(--color-accent)'
+                    : isBroken
+                      ? 'color-mix(in srgb, #f87171 80%, var(--color-text-muted))'
+                      : 'var(--color-text-secondary)',
                   backgroundColor: isActive
                     ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)'
-                    : 'transparent'
+                    : 'transparent',
+                  fontSize: 'calc(var(--font-size) * 0.85)'
                 }}
               >
                 <span>{option.label}</span>
-                {isActive && <Check size={11} style={{ color: 'var(--color-accent)' }} />}
+                {/* {isActive && <Check size={11} style={{ color: 'var(--color-accent)' }} />} */}
               </button>
             )
           })}
@@ -132,7 +141,6 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
   tabs,
   currentTab,
   searchOpen,
-  searchQuery,
   refreshing,
   backgroundScanning,
   calculatingSizes,
@@ -141,7 +149,6 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
   sortConfig,
   onTabClick,
   onToggleSearch,
-  onSearchChange,
   onAddProject,
   onRefresh,
   onOpenHistory,
@@ -157,47 +164,10 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       style={{ borderColor: 'var(--color-border)' }}
     >
       {/* Left: Tabs + optional inline search */}
-      <div className="flex items-center gap-2">
-        <div
-          role="tablist"
-          aria-label="Project tabs"
-          className="flex items-center gap-0.5 px-1 py-1 rounded-lg"
-          style={{
-            backgroundColor: 'var(--color-surface-card)',
-            border: '1px solid var(--color-border)'
-          }}
-        >
-          {tabs.map((tab) => {
-            const isActive = currentTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => onTabClick(tab.id)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer"
-                style={{
-                  color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-                  backgroundColor: isActive
-                    ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
-                    : 'transparent',
-                  boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.3)' : 'none'
-                }}
-              >
-                {tab.icon && (
-                  <span
-                    style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
-                  >
-                    {tab.icon}
-                  </span>
-                )}
-                {tab.label}
-              </button>
-            )
-          })}
-        </div>
+      <div className="flex flex-wrap w-full items-center gap-2">
+        <Tabs tabs={tabs} activeTab={currentTab} onChange={onTabClick} />
 
-        {searchOpen && (
+        {/* {searchOpen && (
           <div
             className="flex items-center gap-2 px-3 py-1.5 text-xs w-56"
             style={{
@@ -222,138 +192,144 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
               </button>
             )}
           </div>
-        )}
+        )} */}
       </div>
 
-      {/* Center: Filters + sort */}
-      <div className="flex items-center gap-2 mx-auto">
-        <SortDropdown sortConfig={sortConfig} onSortChange={onSortChange} />
-        <EngineVersionDropdown
-          value={engineVersionFilter}
-          options={engineVersionOptions}
-          onChange={onEngineVersionChange}
-        />
-      </div>
-
-      {/* Right: View, history, refresh, add */}
-      <div className="flex items-center gap-2">
-        <div
-          className="flex items-center overflow-hidden"
-          style={{ borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}
-        >
-          <button
-            onClick={() => onViewChange('list')}
-            aria-label="List view"
-            aria-pressed={viewMode === 'list'}
-            className="flex items-center p-1.5 cursor-pointer transition-colors"
-            style={{
-              backgroundColor:
-                viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
-              color: viewMode === 'list' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
-            }}
-            title="List view"
-          >
-            <LayoutList size={13} />
-          </button>
-          <button
-            onClick={() => onViewChange('grid')}
-            aria-label="Grid view"
-            aria-pressed={viewMode === 'grid'}
-            className="flex items-center p-1.5 cursor-pointer transition-colors"
-            style={{
-              backgroundColor:
-                viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
-              color: viewMode === 'grid' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
-            }}
-            title="Grid view"
-          >
-            <LayoutGrid size={13} />
-          </button>
+      <div className="flex items-center ml-auto gap-1 shrink-0">
+        <div className="flex items-center gap-1">
+          <SortDropdown sortConfig={sortConfig} onSortChange={onSortChange} />
+          <EngineVersionDropdown
+            value={engineVersionFilter}
+            options={engineVersionOptions}
+            onChange={onEngineVersionChange}
+          />
         </div>
 
-        <button
-          onClick={onOpenHistory}
-          aria-label="Open project history"
-          className="flex items-center p-1.5 cursor-pointer transition-colors"
-          style={{
-            borderRadius: 'var(--radius)',
-            backgroundColor: 'var(--color-surface-card)',
-            color: 'var(--color-text-muted)',
-            border: '1px solid var(--color-border)'
-          }}
-          title="Project history"
-        >
-          <History size={14} />
-        </button>
-
-        <button
-          onClick={onToggleSearch}
-          aria-label={searchOpen ? 'Close search' : 'Open search'}
-          aria-pressed={searchOpen}
-          className="flex items-center p-1.5 cursor-pointer transition-colors"
-          style={{
-            borderRadius: 'var(--radius)',
-            backgroundColor: searchOpen
-              ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
-              : 'var(--color-surface-card)',
-            color: searchOpen ? 'var(--color-accent)' : 'var(--color-text-muted)',
-            border: '1px solid var(--color-border)'
-          }}
-          title="Search"
-        >
-          <Search size={14} />
-        </button>
-
-        <div className="relative">
-          <button
-            onClick={onRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+        {/* Right: View, history, refresh, add */}
+        <div className="flex w-full justify-end items-center gap-1">
+          <div
+            className="flex items-center"
             style={{
-              borderRadius: 'var(--radius)',
-              backgroundColor: 'var(--color-surface-card)',
-              color: 'var(--color-text-secondary)',
+              borderRadius: 'calc(var(--radius) * 0.75)',
               border: '1px solid var(--color-border)'
             }}
           >
-            <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
-            <span className="ml-1 text-sm">
-              {refreshing
-                ? 'Refreshing…'
-                : calculatingSizes
-                  ? 'Calculating sizes…'
-                  : backgroundScanning
-                    ? 'Scanning…'
-                    : 'Refresh'}
-            </span>
-          </button>
-          {calculatingSizes && (
-            <span
-              className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-semibold rounded-full"
+            <button
+              onClick={() => onViewChange('list')}
+              aria-label="List view"
+              aria-pressed={viewMode === 'list'}
+              className="flex items-center p-1.5 cursor-pointer transition-colors"
               style={{
-                backgroundColor: 'var(--color-accent)',
-                color: 'var(--color-text-primary)',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.35)'
+                backgroundColor:
+                  viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+                color: viewMode === 'list' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+              }}
+              title="List view"
+            >
+              <LayoutList size={13} />
+            </button>
+            <button
+              onClick={() => onViewChange('grid')}
+              aria-label="Grid view"
+              aria-pressed={viewMode === 'grid'}
+              className="flex items-center p-1.5 cursor-pointer transition-colors"
+              style={{
+                backgroundColor:
+                  viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+                color: viewMode === 'grid' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+              }}
+              title="Grid view"
+            >
+              <LayoutGrid size={13} />
+            </button>
+          </div>
+
+          <button
+            onClick={onOpenHistory}
+            aria-label="Open project history"
+            className="flex items-center p-1.5 cursor-pointer transition-colors"
+            style={{
+              borderRadius: 'var(--radius)',
+              backgroundColor: 'var(--color-surface-card)',
+              color: 'var(--color-text-muted)',
+              border: '1px solid var(--color-border)'
+            }}
+            title="Project history"
+          >
+            <History size={14} />
+          </button>
+
+          <button
+            onClick={onToggleSearch}
+            aria-label={searchOpen ? 'Close search' : 'Open search'}
+            aria-pressed={searchOpen}
+            className="flex items-center p-1.5 cursor-pointer transition-colors"
+            style={{
+              borderRadius: 'var(--radius)',
+              backgroundColor: searchOpen
+                ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+                : 'var(--color-surface-card)',
+              color: searchOpen ? 'var(--color-accent)' : 'var(--color-text-muted)',
+              border: '1px solid var(--color-border)'
+            }}
+            title="Search"
+          >
+            <Search size={14} />
+          </button>
+          <div className="relative">
+            <button
+              onClick={onRefresh}
+              disabled={refreshing}
+              className="flex items-center gap-1.5 px-3 py-1.5 font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+              style={{
+                borderRadius: 'var(--radius)',
+                backgroundColor: 'var(--color-surface-card)',
+                color: 'var(--color-text-secondary)',
+                border: '1px solid var(--color-border)',
+                fontSize: 'calc(var(--font-size) * 0.75)'
               }}
             >
-              Sizes
-            </span>
-          )}
-        </div>
+              <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
+              <span className="ml-1" style={{ fontSize: 'calc(var(--font-size) * 0.75)' }}>
+                {refreshing
+                  ? 'Refreshing…'
+                  : calculatingSizes
+                    ? 'Calculating sizes…'
+                    : backgroundScanning
+                      ? 'Scanning…'
+                      : 'Refresh'}
+              </span>
+            </button>
+            {calculatingSizes && (
+              <span
+                className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-semibold rounded-full"
+                style={{
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-text-primary)',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.35)'
+                }}
+              >
+                Sizes
+              </span>
+            )}
+          </div>
 
-        <button
-          onClick={onAddProject}
-          disabled={addingProject}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-          style={{
-            borderRadius: 'var(--radius)',
-            backgroundColor: 'var(--color-accent)',
-            color: 'var(--color-text-primary)'
-          }}
-        >
-          <Plus size={12} />
-          Add Project
-        </button>
+          <button
+            onClick={onAddProject}
+            disabled={addingProject}
+            // className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1.5 font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed whitespace-nowrap"
+            style={{
+              borderRadius: 'var(--radius)',
+              backgroundColor: 'var(--color-accent)',
+              color: 'var(--color-text-primary)',
+              fontSize: 'calc(var(--font-size) * 0.75)'
+            }}
+          >
+            <Plus size={12} />
+            Add Project
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -33,7 +33,15 @@ export function useSettingsState() {
 
   // General settings
   const [autoCloseOnLaunch, setAutoCloseOnLaunch] = useState(() => getSetting('autoCloseOnLaunch'))
-  const [backgroundCloseOnClose, setBackgroundCloseOnClose] = useState(false)
+  const [backgroundCloseOnClose, setBackgroundCloseOnClose] = useState(() => {
+    try {
+      const cached = localStorage.getItem('backgroundCloseEnabled')
+      if (cached !== null) return cached === 'true'
+    } catch {
+      /* ignore */
+    }
+    return false
+  })
 
   // Appearance settings
   const [radius, setRadius] = useState(() => loadPersistedRadius())
@@ -50,7 +58,6 @@ export function useSettingsState() {
   const hasAnyChanges =
     Object.keys(customOverrides).length > 0 || radius !== 8 || Math.abs(scale - 1.0) > 0.01
 
-  // Handlers
   const handleFullReset = useCallback((): void => {
     resetOverrides()
     setRadius(8)
@@ -88,6 +95,11 @@ export function useSettingsState() {
 
   const handleBackgroundCloseToggle = useCallback(async (value: boolean): Promise<void> => {
     setBackgroundCloseOnClose(value)
+    try {
+      localStorage.setItem('backgroundCloseEnabled', String(value))
+    } catch {
+      /* ignore */
+    }
     await window.electronAPI.saveMainSettings({ backgroundCloseEnabled: value })
   }, [])
 
@@ -96,7 +108,13 @@ export function useSettingsState() {
     window.electronAPI.getMainSettings().then((settings) => {
       if (!isMounted) return
       if (settings && settings.backgroundCloseEnabled !== undefined) {
-        setBackgroundCloseOnClose(settings.backgroundCloseEnabled as boolean)
+        const val = settings.backgroundCloseEnabled as boolean
+        setBackgroundCloseOnClose(val)
+        try {
+          localStorage.setItem('backgroundCloseEnabled', String(val))
+        } catch {
+          /* ignore */
+        }
       }
     })
     return () => {

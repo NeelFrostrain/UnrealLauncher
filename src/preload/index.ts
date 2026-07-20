@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
@@ -97,6 +97,8 @@ if (process.contextIsolated) {
       loadSavedProjects: () => ipcRenderer.invoke('load-saved-projects'),
       scanEnginePlugins: (engineDir: string) =>
         ipcRenderer.invoke('scan-engine-plugins', engineDir),
+      toggleEnginePluginDefault: (pluginPath: string, enabled: boolean) =>
+        ipcRenderer.invoke('toggle-engine-plugin-default', pluginPath, enabled),
       clearEnginePluginCache: () => ipcRenderer.invoke('clear-engine-plugin-cache'),
       getEnginePluginCacheTTL: () => ipcRenderer.invoke('get-engine-plugin-cache-ttl'),
       setEnginePluginCacheTTL: (ms: number) =>
@@ -116,6 +118,25 @@ if (process.contextIsolated) {
       fabLoadPath: () => ipcRenderer.invoke('fab-load-path'),
       projectReadLog: (projectPath: string, fromByte?: number) =>
         ipcRenderer.invoke('project-read-log', projectPath, fromByte ?? 0),
+      projectCheckHealth: (projectPath: string) =>
+        ipcRenderer.invoke('project-check-health', projectPath),
+      projectAnalyzeAssets: (projectPath: string) =>
+        ipcRenderer.invoke('project-analyze-assets', projectPath),
+      projectExportAssetReport: (
+        projectPath: string,
+        reportContent: string,
+        format: 'json' | 'md'
+      ) => ipcRenderer.invoke('project-export-asset-report', projectPath, reportContent, format),
+      projectGetSnapshots: (projectPath: string) =>
+        ipcRenderer.invoke('project-get-snapshots', projectPath),
+      projectCreateSnapshot: (projectPath: string, name: string) =>
+        ipcRenderer.invoke('project-create-snapshot', projectPath, name),
+      projectCreateSnapshotWithProgress: (projectPath: string, name: string) =>
+        ipcRenderer.invoke('project-create-snapshot-with-progress', projectPath, name),
+      projectRestoreSnapshot: (projectPath: string, snapshotId: string) =>
+        ipcRenderer.invoke('project-restore-snapshot', projectPath, snapshotId),
+      projectDeleteSnapshot: (projectPath: string, snapshotId: string) =>
+        ipcRenderer.invoke('project-delete-snapshot', projectPath, snapshotId),
       projectGitStatus: (projectPath: string) =>
         ipcRenderer.invoke('project-git-status', projectPath),
       projectGitStatusBulk: (projectPaths: string[]) =>
@@ -210,7 +231,31 @@ if (process.contextIsolated) {
         return (): void => {
           ipcRenderer.removeListener('palette-action', listener)
         }
-      }
+      },
+      onSnapshotProgress: (
+        callback: (data: {
+          current: number
+          total: number
+          message: string
+          percentage: number
+        }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          data: {
+            current: number
+            total: number
+            message: string
+            percentage: number
+          }
+        ): void => callback(data)
+        ipcRenderer.on('snapshot-progress', listener)
+        return (): void => {
+          ipcRenderer.removeListener('snapshot-progress', listener)
+        }
+      },
+      taskManagerGetProcesses: () => ipcRenderer.invoke('task-manager-get-processes'),
+      taskManagerKillProcess: (pid: number) => ipcRenderer.invoke('task-manager-kill-process', pid)
     })
   } catch (error) {
     console.error(error)

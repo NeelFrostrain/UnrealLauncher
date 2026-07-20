@@ -16,6 +16,10 @@ export interface EnginePlugin {
   isExperimental: boolean
   icon: string | null
   createdBy: string
+  enabledByDefault?: boolean
+  dependencies?: string[]
+  docsUrl?: string
+  supportUrl?: string
 }
 
 const enginePluginCache = new Map<string, { signature: string; plugins: EnginePlugin[] }>()
@@ -113,8 +117,12 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
     const disk = loadPluginCacheFromDisk()
     const entry = disk[cacheKey]
     if (entry && entry.signature === signature && Date.now() - entry.ts < pluginCacheTTL) {
-      enginePluginCache.set(cacheKey, { signature, plugins: entry.plugins })
-      return entry.plugins
+      const hasNewFields =
+        entry.plugins.length === 0 || entry.plugins[0].enabledByDefault !== undefined
+      if (hasNewFields) {
+        enginePluginCache.set(cacheKey, { signature, plugins: entry.plugins })
+        return entry.plugins
+      }
     }
   } catch {
     /* ignore disk cache errors */
@@ -124,7 +132,7 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
   const native = getNative()
   if (native?.scanEnginePlugins) {
     try {
-      const result = native.scanEnginePlugins(engineDir) as unknown
+      const result = (await native.scanEnginePlugins(engineDir)) as unknown
       type NativePlugin = {
         name?: string
         path?: string
@@ -135,6 +143,10 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
         isExperimental?: boolean
         icon?: string | null
         createdBy?: string
+        enabledByDefault?: boolean
+        dependencies?: string[]
+        docsUrl?: string
+        supportUrl?: string
       }
       const arr = Array.isArray(result) ? (result as NativePlugin[]) : []
       const plugins = arr.map((p) => ({
@@ -146,7 +158,11 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
         isBeta: !!p.isBeta,
         isExperimental: !!p.isExperimental,
         icon: p.icon ?? null,
-        createdBy: p.createdBy || ''
+        createdBy: p.createdBy || '',
+        enabledByDefault: p.enabledByDefault ?? true,
+        dependencies: p.dependencies ?? [],
+        docsUrl: p.docsUrl || '',
+        supportUrl: p.supportUrl || ''
       }))
       enginePluginCache.set(cacheKey, { signature, plugins })
       try {
@@ -211,6 +227,10 @@ function getOrCreatePluginsWorker(): ReturnType<typeof createPersistentWorker> {
           let isExperimental = false
           let icon = null
           let createdBy = ''
+          let enabledByDefault = true
+          let dependencies = []
+          let docsUrl = ''
+          let supportUrl = ''
           try {
             const content = fs.readFileSync(upluginPath, 'utf8')
             const meta = JSON.parse(content)
@@ -221,10 +241,16 @@ function getOrCreatePluginsWorker(): ReturnType<typeof createPersistentWorker> {
             isBeta = !!meta.IsBetaVersion
             isExperimental = !!meta.IsExperimentalVersion
             createdBy = meta.CreatedBy || ''
+            if (meta.EnabledByDefault !== undefined) enabledByDefault = !!meta.EnabledByDefault
+            if (Array.isArray(meta.Plugins)) {
+              dependencies = meta.Plugins.filter(p => p && p.Name).map(p => p.Name)
+            }
+            docsUrl = meta.DocsURL || ''
+            supportUrl = meta.SupportURL || ''
           } catch {}
           const iconPath = path.join(dir, 'Resources', 'Icon128.png')
           try { fs.accessSync(iconPath); icon = iconPath } catch {}
-          results.push({ name, path: dir, description, version, category, isBeta, isExperimental, icon, createdBy })
+          results.push({ name, path: dir, description, version, category, isBeta, isExperimental, icon, createdBy, enabledByDefault, dependencies, docsUrl, supportUrl })
           return
         }
         for (const entry of entries) {
@@ -261,4 +287,40 @@ async function scanEnginePluginsJS(engineDir: string): Promise<EnginePlugin[]> {
   const worker = getOrCreatePluginsWorker()
   const plugins = await worker.run({ engineDir })
   return plugins as EnginePlugin[]
+}
+
+export async function toggleEnginePluginDefault(
+  pluginPath: string,
+  enabled: boolean
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const files = await fs.promises.readdir(pluginPath)
+    const upluginFile = files.find((f) => f.endsWith('.uplugin'))
+    if (!upluginFile) {
+      throw new Error('No .uplugin file found in directory')
+    }
+    const fullPath = path.join(pluginPath, upluginFile)
+    const backupPath = `${fullPath}.bak`
+    try {
+      await fs.promises.copyFile(fullPath, backupPath)
+    } catch (err) {
+      logger.warn('engine-plugins', 'Failed to create backup, but continuing write', err)
+    }
+    const originalContent = await fs.promises.readFile(fullPath, 'utf8')
+    let indent: any = 4
+    const firstIndentMatch = originalContent.match(/\n([ \t]+)"/)
+    if (firstIndentMatch) {
+      const matchStr = firstIndentMatch[1]
+      indent = matchStr.includes('\t') ? '\t' : matchStr.length
+    }
+    const data = JSON.parse(originalContent)
+    data.EnabledByDefault = enabled
+    const newContent = JSON.stringify(data, null, indent)
+    await fs.promises.writeFile(fullPath, newContent, 'utf8')
+    enginePluginCache.clear()
+    return { success: true }
+  } catch (err) {
+    logger.error('engine-plugins', 'Failed to toggle EnabledByDefault', err)
+    return { success: false, error: err instanceof Error ? err.message : String(err) }
+  }
 }

@@ -4,7 +4,7 @@
  * Kept separate so they can be imported by both the dialog and tests.
  */
 
-export type RHI = 'default' | 'dx11' | 'dx12' | 'vulkan' | 'opengl'
+export type RHI = 'default' | 'dx11' | 'dx12' | 'vulkan'
 export type Scalability = 'default' | 0 | 1 | 2 | 3 | 4
 
 export const PLATFORM: string =
@@ -16,14 +16,10 @@ export const RHI_OPTIONS: { value: RHI; label: string }[] = [
     ? [
         { value: 'dx11' as RHI, label: 'DirectX 11' },
         { value: 'dx12' as RHI, label: 'DirectX 12' },
-        { value: 'vulkan' as RHI, label: 'Vulkan' },
-        { value: 'opengl' as RHI, label: 'OpenGL' }
+        { value: 'vulkan' as RHI, label: 'Vulkan' }
       ]
     : PLATFORM === 'linux'
-      ? [
-          { value: 'vulkan' as RHI, label: 'Vulkan (recommended)' },
-          { value: 'opengl' as RHI, label: 'OpenGL (legacy)' }
-        ]
+      ? [{ value: 'vulkan' as RHI, label: 'Vulkan (recommended)' }]
       : []) // macOS — Metal only
 ]
 
@@ -37,12 +33,8 @@ export const RHI_LABELS: Record<RHI, string> = {
   default: 'Default',
   dx11: 'DirectX 11',
   dx12: 'DirectX 12',
-  vulkan: 'Vulkan',
-  opengl: 'OpenGL',
-  ...Object.fromEntries(
-    RHI_OPTIONS.filter((o) => o.value !== 'default').map((o) => [o.value, o.label])
-  )
-} as Record<RHI, string>
+  vulkan: 'Vulkan'
+}
 
 export const SCAL_COLORS: Record<string, string> = {
   default: 'var(--color-text-muted)',

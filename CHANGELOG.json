@@ -2,6 +2,82 @@
   "project": "Unreal Launcher",
   "versions": [
     {
+      "version": "2.4.8",
+      "date": "2026-07-20",
+      "tags": ["feature", "bugfix", "quality"],
+      "sections": [
+        {
+          "category": "Changed",
+          "emoji": "⚙️",
+          "items": [
+            "Redesigned Settings Page navigation to use a horizontal tab-bar layout matching the Engines and Projects pages.",
+            "Refactored tab lists across Settings, Projects, Engines, and Tasks pages to utilize a single, reusable custom `Tabs` UI component, ensuring visual consistency.",
+            "Replaced blue project context menu hover states with a clean, low-opacity white background matching the settings card rows.",
+            "Upgraded Engine, Fab Asset, and Project Plugin cards to feature unified glassmorphic gradients, soft ambient shadows, and hover elevation scaling.",
+            "Simplified Plugin Grid card interactions, removing the view details info icon and allowing developers to click anywhere on the card to open its detail panel.",
+            "Updated the project context menu layout to hide the icon column space entirely for menu items without icons, aligning text cleanly to the left."
+          ]
+        },
+        {
+          "category": "Added",
+          "emoji": "✨",
+          "items": [
+            "Added `sg.LandscapeQuality` to Unreal Engine scalability presets command-line generation, ensuring landscape quality scales with chosen quality profiles (Low, Medium, etc.) in newer engine versions instead of defaulting to Epic.",
+            "Added `launchPauseDuration` setting and guard logic in project launching, warning the user and blocking consecutive launches within a user-defined safety delay (in seconds).",
+            "Added a Change Engine Version submenu to the project context menu, allowing users to switch the engine association of `.uproject` files directly from the launcher."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🐛",
+          "items": [
+            "Fixed horizontal layout and titlebar overflow bugs in narrow window views by utilizing `flex-wrap` and setting proper flex-basis limits (`min-w-0`) across the main layout columns.",
+            "Fixed layout overflow and alignment bugs on the Engine Plugins page by scaling the search input to a proportional fixed width next to the filter dropdowns.",
+            "Fixed the 'Auto-close on launch' setting being ignored when launching projects or engines with custom configurations.",
+            "Fixed safety launch cooldown locking the user out on failed launches by immediately clearing the cooldown on failure."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2.4.7",
+      "date": "2026-07-15",
+      "tags": ["refactor", "pathing"],
+      "sections": [
+        {
+          "category": "Changed",
+          "emoji": "⚙️",
+          "items": [
+            "Centralized default Unreal Engine scan paths by removing duplicate, hardcoded platform-specific lists from the Rust native module and setting TypeScript (`platformPaths.ts`) as the single source of truth.",
+            "Removed developer-specific paths (`D:\\Engine\\UnrealEditors`, `D:\\Unreal`, `D:\\Unreal\\Projects`) from default search locations.",
+            "Updated documentation (`AboutKnownIssues.tsx`) to match the new default scan paths."
+          ]
+        },
+        {
+          "category": "Added",
+          "emoji": "✨",
+          "items": [
+            "Added Project Health Dashboard analyzing Unreal Engine project structures, checking configurations (DefaultEngine, DefaultGame, DefaultInput config files), identifying missing source/content directories, validating engine compatibility, and tracking generated directory sizes (Intermediate and Saved).",
+            "Implemented the core diagnostics engine and file scanning heuristics directly inside the native Rust backend module (`native/src/lib.rs`) for optimized, non-blocking folder sizes and heuristics analysis.",
+            "Added Unreal Engine Asset Usage Analyzer backend telemetry scanner inside native Rust (`native/src/lib.rs`), recursively scanning `Content` directories, grouping files by extension/naming prefixes, tracking largest assets, and detecting byte-level file duplicates using SipHash.",
+            "Added visual health score badges (0–100%) directly to project cards.",
+            "Added detailed, interactive Health Report dialog with structural analysis breakdown, recommendation logs, and a direct click-to-clean generated cache utility.",
+            "Added Unreal Engine Snapshot Manager: A lightweight backup and restore utility that packages essential project directories (`Config`, `Content`, `Source` and the `.uproject` file) into compressed ZIP archives stored in application data, while strictly ignoring bloating folders.",
+            "Implemented non-blocking async backend zip compression and extraction in Rust (`native/src/lib.rs`) running on worker pools via napi's `tokio_rt`.",
+            "Added interactive Snapshot Manager UI dialog allowing developers to capture checkpoints, view history logs, rollback to specific snapshots, and manage backups."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "emoji": "🐛",
+          "items": [
+            "Fixed path security validation checking (`isRegisteredProjectPath`) rejecting tracer-discovered projects, restoring health checking, Git status, and other tool operations for projects discovered dynamically by the background tracer.",
+            "Fixed Project Health Dialog styling and alignment issues by utilizing `createPortal` to render the modal correctly at the document body level with glassmorphism backdrop blurs, and centered the score gauge circle using proper SVG `viewBox` coordinates."
+          ]
+        }
+      ]
+    },
+    {
       "version": "2.4.6",
       "date": "2026-07-09",
       "tags": ["bugfix", "ux", "startup"],

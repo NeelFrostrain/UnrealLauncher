@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
+import { toLocalAssetUrl } from '../../utils/resolveAsset'
 import {
   Search,
   Zap,
@@ -31,6 +32,7 @@ interface ProjectCommandData {
   projectPath: string
   name?: string
   version: string
+  thumbnail?: string
 }
 
 // Icon factories passed into buildCommands so the registry stays JSX-free
@@ -97,10 +99,11 @@ export function CommandPalette({
             typeof project.projectPath === 'string' && project.projectPath.length > 0
         )
         setProjects(
-          validProjects.map(({ projectPath, name, version }) => ({
+          validProjects.map(({ projectPath, name, version, thumbnail }) => ({
             projectPath,
             name,
-            version
+            version,
+            thumbnail
           }))
         )
       } catch {
@@ -131,7 +134,21 @@ export function CommandPalette({
       id: `project:${project.projectPath}`,
       label: project.name || project.projectPath.split(/[/\\]/).pop() || 'Unknown Project',
       description: project.projectPath,
-      icon: ICONS.projects(),
+      icon: project.thumbnail ? (
+        <img
+          src={toLocalAssetUrl(project.thumbnail)}
+          alt=""
+          style={{
+            width: '14px',
+            height: '14px',
+            borderRadius: '2px',
+            objectFit: 'cover',
+            display: 'block'
+          }}
+        />
+      ) : (
+        ICONS.projects()
+      ),
       group: 'Projects',
       action: () => {
         window.electronAPI?.launchProject(project.projectPath)

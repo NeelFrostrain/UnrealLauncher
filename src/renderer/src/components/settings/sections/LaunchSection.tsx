@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState } from 'react'
 import { FolderOpen, Trash2 } from 'lucide-react'
 import { Card, SettingRow, Toggle } from '../SectionHelpers'
@@ -20,6 +20,9 @@ const LaunchSection = ({
   const [clearingLogs, setClearingLogs] = useState(false)
   const [showTitlebarButtons, setShowTitlebarButtons] = useState(() =>
     getSetting('showTitlebarButtons')
+  )
+  const [launchPauseDuration, setLaunchPauseDuration] = useState(() =>
+    getSetting('launchPauseDuration')
   )
 
   const handleClearLogs = async (): Promise<void> => {
@@ -46,6 +49,42 @@ const LaunchSection = ({
           description="Keep Unreal Launcher running in the system tray instead of quitting when the window is closed."
         >
           <Toggle on={backgroundCloseOnClose} onChange={onToggleBackgroundClose} />
+        </SettingRow>
+        <SettingRow
+          label="Launch pause duration"
+          description="Set a safety delay (in seconds) between project launches to prevent double-launching processes."
+        >
+          <div className="flex items-center gap-3 select-none px-2 py-0.5"
+            style={{
+              backgroundColor: "var(--color-surface-card)",
+              color: "var(--color-text-primary)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius)",
+            }}>
+            <input
+              type="number"
+              min={0}
+              max={60}
+              step={5}
+              value={launchPauseDuration}
+              onChange={(e) => {
+                let val = Number(e.target.value)
+
+                if (isNaN(val)) val = 0
+                val = Math.max(0, Math.min(60, val))
+
+                setLaunchPauseDuration(val)
+                setSetting("launchPauseDuration", val)
+              }}
+              className="no-spinner w-12 px-1.5 py-0.5 text-[11px] font-mono font-semibold text-start outline-none"
+            />
+            <span
+              className="text-xs"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              Sec
+            </span>
+          </div>
         </SettingRow>
         {/* Registry scan and extra animations toggles removed per request */}
         <SettingRow

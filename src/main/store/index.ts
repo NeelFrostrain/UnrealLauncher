@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Main process data store.
  * Public API is identical to the old store.ts — all imports that used
@@ -7,7 +7,16 @@
 import path from 'path'
 import type { Engine, Project } from '../types'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
-import { SKELETON_CONFIG, DEFAULT_CONFIG, getSkeletonRhi } from '../utils/launchConfigArgs'
+import {
+  SKELETON_CONFIG,
+  DEFAULT_CONFIG,
+  getSkeletonRhi,
+  HEADLESS_CI_CONFIG,
+  RAYTRACE_SHOWCASE_CONFIG,
+  CINEMATIC_CONFIG,
+  BALANCED_CONFIG,
+  PERFORMANCE_CONFIG
+} from '../utils/launchConfigArgs'
 import {
   getEnginesDataPath,
   getProjectsDataPath,
@@ -118,12 +127,23 @@ export function saveEngines(engines: Engine[]): void {
 
 // ── Projects ──────────────────────────────────────────────────────────────────
 
+let pendingProjects: Project[] | null = null
+let saveProjectsTimer: ReturnType<typeof setTimeout> | null = null
+
 export function loadProjects(): Project[] {
+  if (pendingProjects) return pendingProjects
   const raw = readJsonArray<Project>(getProjectsDataPath(), 'projects')
   return dedupeProjects(raw)
 }
 export function saveProjects(projects: Project[]): void {
-  writeJson(getProjectsDataPath(), dedupeProjects(projects), `projects (${projects.length})`)
+  pendingProjects = dedupeProjects(projects)
+  if (saveProjectsTimer) clearTimeout(saveProjectsTimer)
+  saveProjectsTimer = setTimeout(() => {
+    if (pendingProjects) {
+      writeJson(getProjectsDataPath(), pendingProjects, `projects (${pendingProjects.length})`)
+      pendingProjects = null
+    }
+  }, 100)
 }
 
 // ── Launch configs ────────────────────────────────────────────────────────────
@@ -147,6 +167,36 @@ function makeBuiltInConfigs(): LaunchConfig[] {
       name: 'Skeleton (Lowest)',
       description: getSkeletonDescription(),
       ...SKELETON_CONFIG
+    },
+    {
+      id: 'builtin-performance',
+      name: 'Performance',
+      description: 'High FPS: Lumen/VSM off, no ray tracing, post-process trimmed down.',
+      ...PERFORMANCE_CONFIG
+    },
+    {
+      id: 'builtin-balanced',
+      name: 'Balanced',
+      description: 'Modern GI and shadows on, cosmetic post-process (bloom aside) trimmed.',
+      ...BALANCED_CONFIG
+    },
+    {
+      id: 'builtin-cinematic',
+      name: 'Cinematic',
+      description: 'Everything maxed for screenshots and trailers — not for playable framerates.',
+      ...CINEMATIC_CONFIG
+    },
+    {
+      id: 'builtin-raytrace-showcase',
+      name: 'Ray Tracing Showcase',
+      description: 'DX12 + hardware ray tracing driving GI, reflections, and shadows.',
+      ...RAYTRACE_SHOWCASE_CONFIG
+    },
+    {
+      id: 'builtin-headless-ci',
+      name: 'Headless (CI)',
+      description: 'Null RHI, unattended, no shader precompile skip — built for build farms.',
+      ...HEADLESS_CI_CONFIG
     }
   ]
 }

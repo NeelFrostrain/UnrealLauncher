@@ -104,11 +104,12 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     return (
       <>
         <div
-          className="w-full h-36 overflow-hidden flex select-text"
+          className="w-full h-36 overflow-hidden flex select-text transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
           style={{
             backgroundColor: 'var(--color-surface-card)',
             border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)'
+            borderRadius: 'var(--radius)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)'
           }}
         >
           {/* ── Gradient panel ─────────────────────────────────────────── */}
@@ -252,7 +253,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
               <div className="flex gap-2">
                 <button
                   onClick={() => onOpenDir(directoryPath)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer hover:bg-white/[0.015] hover:text-[var(--color-text-primary)]"
                   style={{
                     backgroundColor: 'var(--color-surface-elevated)',
                     border: '1px solid var(--color-border)',
@@ -283,7 +284,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                 </button>
                 <button
                   onClick={() => setShowConfigDialog(true)}
-                  className="flex items-center justify-center p-1.5 transition-all cursor-pointer hover:scale-105 ease-in-out duration-100"
+                  className="flex items-center justify-center p-1.5 transition-all cursor-pointer hover:scale-105 hover:bg-white/[0.015] hover:text-[var(--color-text-primary)] ease-in-out duration-100"
                   style={{
                     borderRadius: 'var(--radius)',
                     backgroundColor: 'var(--color-surface-elevated)',

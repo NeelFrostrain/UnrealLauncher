@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /** Sort dropdown component — extracted from ProjectsToolbar to keep it under 200 lines. */
 import { useRef, useState, useEffect } from 'react'
 import { ArrowUpDown, ArrowUp, ArrowDown, Check } from 'lucide-react'
@@ -39,7 +39,7 @@ export function SortDropdown({ sortConfig, onSortChange }: Props): React.ReactEl
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer whitespace-nowrap"
         aria-label={`Sort by ${activeLabel}`}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -63,7 +63,7 @@ export function SortDropdown({ sortConfig, onSortChange }: Props): React.ReactEl
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-1.5 z-50 py-1.5 w-44"
+          className="absolute left-0 top-full mt-1.5 z-50 py-1.5 w-44"
           style={{
             backgroundColor: 'var(--color-surface-elevated)',
             border: '1px solid var(--color-border)',

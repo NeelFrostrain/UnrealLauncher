@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
 import { registerEngineHandlers } from './ipc/engines'
 import { registerProjectHandlers } from './ipc/projects'
@@ -11,6 +11,7 @@ import { registerLaunchConfigHandlers } from './ipc/launchConfigs'
 import { registerPaletteHandlers } from './ipc/paletteHandlers'
 // 1. Add this import line right here:
 import { registerProjectPluginHandlers } from './ipc/projectPlugins'
+import { registerTaskManagerHandlers } from './ipc/taskManager'
 
 export { cleanupWorkers } from './workers/workers'
 
@@ -26,4 +27,5 @@ export function registerIpcHandlers(): void {
   registerPaletteHandlers(ipcMain)
   // 2. Add this call right here:
   registerProjectPluginHandlers(ipcMain)
+  registerTaskManagerHandlers(ipcMain)
 }

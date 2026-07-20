@@ -3,13 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { APP_VERSION } from '../utils/appVersion'
 
 type UpdateStatus =
-  | 'idle'
-  | 'checking'
-  | 'available'
-  | 'downloading'
-  | 'ready'
-  | 'no-update'
-  | 'error'
+  'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'no-update' | 'error'
 type GithubStatus = 'idle' | 'checking' | 'success' | 'error'
 
 export interface UseUpdateCheckReturn {

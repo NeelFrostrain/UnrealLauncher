@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
 import * as os from 'os'
 import * as path from 'path'
@@ -44,7 +44,7 @@ export function getConfigDir(): string {
 
 export function getEngineInstallPaths(): string[] {
   if (process.platform === 'win32') {
-    return ['C:\\Program Files\\Epic Games', 'C:\\Program Files (x86)\\Epic Games', 'D:\\Unreal']
+    return ['C:\\Program Files\\Epic Games', 'C:\\Program Files (x86)\\Epic Games']
   } else if (process.platform === 'darwin') {
     return ['/Applications/Unreal Engine *', path.join(os.homedir(), 'UE_*')]
   } else {
@@ -99,8 +99,7 @@ export function getProjectScanPaths(): string[] {
   if (process.platform === 'win32') {
     basePaths.push(
       path.join(os.homedir(), 'Documents', 'Unreal Projects'),
-      'C:\\Users\\Public\\Documents\\Unreal Projects',
-      'D:\\Unreal\\Projects'
+      'C:\\Users\\Public\\Documents\\Unreal Projects'
     )
   } else if (process.platform === 'darwin') {
     basePaths.push(

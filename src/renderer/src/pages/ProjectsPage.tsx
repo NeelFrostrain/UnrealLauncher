@@ -62,7 +62,7 @@ const ProjectsPage = (): React.ReactElement => {
         calculatingSizes={state.calculatingSizes}
         addingProject={state.addingProject}
         onTabClick={state.switchTab}
-        onToggleSearch={state.toggleSearch}
+        onToggleSearch={() => window.dispatchEvent(new CustomEvent('trigger-open-command-palette'))}
         onSearchChange={state.setSearchQuery}
         onAddProject={state.handleAddProjectClick}
         onRefresh={state.handleRefreshClick}

@@ -10,7 +10,8 @@ describe('ProjectContextMenu', () => {
     Object.defineProperty(window, 'electronAPI', {
       configurable: true,
       value: {
-        scanEngines: vi.fn().mockResolvedValue([{ version: '5.4' }])
+        scanEngines: vi.fn().mockResolvedValue([{ version: '5.4' }]),
+        loadSavedEngines: vi.fn().mockResolvedValue([{ version: '5.4' }])
       }
     })
   })
@@ -42,6 +43,9 @@ describe('ProjectContextMenu', () => {
           onOpenBranchDialog={vi.fn()}
           onOpenFileEditor={vi.fn()}
           onOpenPlugins={vi.fn()}
+          onOpenHealthReport={vi.fn()}
+          onOpenAssetAnalyzer={vi.fn()}
+          onOpenSnapshots={vi.fn()}
         />
       </ToastProvider>
     )
@@ -79,6 +83,9 @@ describe('ProjectContextMenu', () => {
           onOpenBranchDialog={vi.fn()}
           onOpenFileEditor={vi.fn()}
           onOpenPlugins={vi.fn()}
+          onOpenHealthReport={vi.fn()}
+          onOpenAssetAnalyzer={vi.fn()}
+          onOpenSnapshots={vi.fn()}
         />
       </ToastProvider>
     )
@@ -113,6 +120,9 @@ describe('ProjectContextMenu', () => {
           onOpenBranchDialog={vi.fn()}
           onOpenFileEditor={vi.fn()}
           onOpenPlugins={vi.fn()}
+          onOpenHealthReport={vi.fn()}
+          onOpenAssetAnalyzer={vi.fn()}
+          onOpenSnapshots={vi.fn()}
         />
       </ToastProvider>
     )

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Theme application and CSS utilities.
  */
@@ -24,9 +24,5 @@ export function applyRadius(px: number): void {
 }
 
 export function applyScale(scale: number): void {
-  // Apply zoom only to the app content root, not the document
-  const root = document.getElementById('app-scale-root')
-  if (root) {
-    ;(root.style as CSSStyleDeclaration & { zoom: string }).zoom = String(scale)
-  }
+  document.documentElement.style.setProperty('--ui-scale', String(scale))
 }

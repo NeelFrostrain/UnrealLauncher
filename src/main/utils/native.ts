@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
@@ -43,14 +43,74 @@ export interface NativeModule {
     exePath: string
     reason?: string
   }
-  scanEngines: (extraPaths: string[]) => ScannedEngine[]
-  findUprojectFiles: (dir: string, maxDepth: number, maxFiles: number) => string[]
+  scanEngines: (extraPaths: string[]) => Promise<ScannedEngine[]>
+  findUprojectFiles: (dir: string, maxDepth: number, maxFiles: number) => Promise<string[]>
   findProjectScreenshot: (projectPath: string) => string | null
   findLatestLogTimestamp: (projectPath: string) => string | null
   getFolderSize: (folderPath: string) => number
-  scanEnginePlugins: (engineDir: string) => NativeEnginePlugin[]
+  scanEnginePlugins: (engineDir: string) => Promise<NativeEnginePlugin[]>
   findRunningUnrealProjects: () => string[]
   getPluginCacheSignature?: (engineDir: string) => { signature: string; engineDir: string }
+  getGitStatus?: (projectPath: string) => {
+    initialized: boolean
+    branch: string
+    hasUncommitted: boolean
+    ahead: number
+    behind: number
+    remoteUrl: string
+  }
+  readLatestProjectLog?: (projectPath: string) => {
+    logPath: string
+    content: string
+    sizeBytes: number
+  } | null
+  tailLatestProjectLog?: (
+    projectPath: string,
+    lines: number
+  ) => {
+    logPath: string
+    content: string
+    sizeBytes: number
+  } | null
+  checkProjectHealth: (projectPath: string) => {
+    score: number
+    status: string
+    intermediateSizeBytes: number
+    savedSizeBytes: number
+    issues: {
+      category: string
+      severity: string
+      message: string
+      fixSuggestion: string | null
+    }[]
+    isCpp: boolean
+    hasEngine: boolean
+    engineVersion: string
+  }
+  analyzeAssetUsage: (projectPath: string) => Promise<AssetReport>
+  countSnapshotFiles?: (projectPath: string) => number
+  createProjectSnapshot: (projectPath: string, archivePath: string) => Promise<number>
+  restoreProjectSnapshot: (projectPath: string, archivePath: string) => Promise<void>
+}
+
+export interface AssetInfo {
+  name: string
+  path: string
+  sizeBytes: number
+}
+
+export interface CategoryInfo {
+  category: string
+  count: number
+  sizeBytes: number
+}
+
+export interface AssetReport {
+  totalAssets: number
+  totalSizeBytes: number
+  categories: CategoryInfo[]
+  largestAssets: AssetInfo[]
+  duplicates: AssetInfo[][]
 }
 
 export interface NativeEnginePlugin {
@@ -63,6 +123,10 @@ export interface NativeEnginePlugin {
   isExperimental: boolean
   icon: string | null
   createdBy: string
+  enabledByDefault?: boolean
+  dependencies?: string[]
+  docsUrl?: string
+  supportUrl?: string
 }
 
 export interface ScannedEngine {

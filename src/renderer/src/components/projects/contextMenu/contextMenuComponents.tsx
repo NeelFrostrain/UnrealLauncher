@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ChevronRight } from 'lucide-react'
 
 export const MENU_STYLE: React.CSSProperties = {
@@ -50,10 +50,10 @@ export const MenuItem = ({
       if (!disabled) {
         e.currentTarget.style.backgroundColor = danger
           ? 'color-mix(in srgb, #f87171 12%, transparent)'
-          : 'color-mix(in srgb, var(--color-accent) 10%, var(--color-surface-card))'
+          : 'rgba(255, 255, 255, 0.015)'
         e.currentTarget.style.borderColor = danger
           ? 'color-mix(in srgb, #f87171 26%, transparent)'
-          : 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+          : 'rgba(255, 255, 255, 0.04)'
       }
       onHoverIn?.()
     }}
@@ -62,7 +62,7 @@ export const MenuItem = ({
       e.currentTarget.style.borderColor = 'transparent'
       onHoverOut?.()
     }}
-    className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer transition-all duration-150 disabled:opacity-40 disabled:cursor-default rounded-md border border-transparent outline-none focus:outline-none"
+    className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer transition-all duration-150 disabled:opacity-40 rounded-md border border-transparent outline-none"
     style={{
       color: danger ? '#f87171' : 'var(--color-text-secondary)',
       width: 'calc(100% - 8px)',
@@ -71,7 +71,9 @@ export const MenuItem = ({
       paddingBottom: sub ? '6px' : '5px'
     }}
   >
-    <span className="shrink-0 w-3.5 flex items-center justify-center self-start mt-px">{icon}</span>
+    {icon && (
+      <span className="shrink-0 w-3.5 flex items-center justify-center self-start mt-px">{icon}</span>
+    )}
     <span className="flex-1 text-left min-w-0">
       <span
         className="block text-[11px] leading-tight truncate"
@@ -146,12 +148,8 @@ export const SubMenuTrigger = ({
     className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] cursor-pointer transition-all duration-150 rounded-md border border-transparent outline-none focus:outline-none"
     style={{
       color: isOpen ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-      backgroundColor: isOpen
-        ? 'color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-card))'
-        : 'transparent',
-      borderColor: isOpen
-        ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
-        : 'transparent',
+      backgroundColor: isOpen ? 'rgba(255, 255, 255, 0.015)' : 'transparent',
+      borderColor: isOpen ? 'rgba(255, 255, 255, 0.04)' : 'transparent',
       width: 'calc(100% - 8px)',
       margin: '0 4px'
     }}
