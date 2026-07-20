@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.4.8] - 2026-07-20 — `feature · bugfix · quality`
 
-### ⚙️ Changed
+### Changed
 
 - Redesigned Settings Page navigation to use a horizontal tab-bar layout matching the Engines and Projects pages.
 - Refactored tab lists across Settings, Projects, Engines, and Tasks pages to utilize a single, reusable custom `Tabs` UI component, ensuring visual consistency.
@@ -13,13 +13,13 @@ All notable changes to this project will be documented in this file.
 - Simplified Plugin Grid card interactions, removing the view details info icon and allowing developers to click anywhere on the card to open its detail panel.
 - Updated the project context menu layout to hide the icon column space entirely for menu items without icons, aligning text cleanly to the left.
 
-### ✨ Added
+### Added
 
 - Added `sg.LandscapeQuality` to Unreal Engine scalability presets command-line generation, ensuring landscape quality scales with chosen quality profiles (Low, Medium, etc.) in newer engine versions instead of defaulting to Epic.
 - Added `launchPauseDuration` setting and guard logic in project launching, warning the user and blocking consecutive launches within a user-defined safety delay (in seconds).
 - Added a Change Engine Version submenu to the project context menu, allowing users to switch the engine association of `.uproject` files directly from the launcher.
 
-### 🐛 Fixed
+### Fixed
 
 - Fixed horizontal layout and titlebar overflow bugs in narrow window views by utilizing `flex-wrap` and setting proper flex-basis limits (`min-w-0`) across the main layout columns.
 - Fixed layout overflow and alignment bugs on the Engine Plugins page by scaling the search input to a proportional fixed width next to the filter dropdowns.
