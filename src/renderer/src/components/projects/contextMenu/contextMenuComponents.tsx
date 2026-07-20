@@ -146,12 +146,8 @@ export const SubMenuTrigger = ({
     className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] cursor-pointer transition-all duration-150 rounded-md border border-transparent outline-none focus:outline-none"
     style={{
       color: isOpen ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-      backgroundColor: isOpen
-        ? 'rgba(255, 255, 255, 0.015)'
-        : 'transparent',
-      borderColor: isOpen
-        ? 'rgba(255, 255, 255, 0.04)'
-        : 'transparent',
+      backgroundColor: isOpen ? 'rgba(255, 255, 255, 0.015)' : 'transparent',
+      borderColor: isOpen ? 'rgba(255, 255, 255, 0.04)' : 'transparent',
       width: 'calc(100% - 8px)',
       margin: '0 4px'
     }}

@@ -18,7 +18,8 @@ export const AboutSection = ({ onClose: _onClose }: AboutSectionProps): React.Re
         <div
           className="overflow-hidden transition-all duration-300"
           style={{
-            background: 'linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%)',
+            background:
+              'linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%)',
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius)',
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'

@@ -165,11 +165,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
     >
       {/* Left: Tabs + optional inline search */}
       <div className="flex flex-wrap w-full items-center gap-2">
-        <Tabs
-          tabs={tabs}
-          activeTab={currentTab}
-          onChange={onTabClick}
-        />
+        <Tabs tabs={tabs} activeTab={currentTab} onChange={onTabClick} />
 
         {/* {searchOpen && (
           <div

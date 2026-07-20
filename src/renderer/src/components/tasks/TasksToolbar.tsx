@@ -123,11 +123,7 @@ export default function TasksToolbar({
             </button>
           </div>
         ) : (
-          <Tabs
-            tabs={tabs}
-            activeTab={currentTab}
-            onChange={onTabClick}
-          />
+          <Tabs tabs={tabs} activeTab={currentTab} onChange={onTabClick} />
         )}
 
         {/* Collapsible search box, matching projects design */}

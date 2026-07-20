@@ -47,13 +47,17 @@ export function Tabs<T extends string = string>({
                 ? 'color-mix(in srgb, var(--color-accent) 15%, var(--color-surface-elevated))'
                 : 'transparent',
               boxShadow: isActive ? '0 2px 6px rgba(0, 0, 0, 0.2)' : 'none',
-              border: isActive ? '1px solid color-mix(in srgb, var(--color-accent) 25%, transparent)' : '1px solid transparent'
+              border: isActive
+                ? '1px solid color-mix(in srgb, var(--color-accent) 25%, transparent)'
+                : '1px solid transparent'
             }}
           >
             {tab.icon && (
               <span
                 className="transition-colors duration-200"
-                style={{ color: isActive ? (tab.accent || 'var(--color-accent)') : 'var(--color-text-muted)' }}
+                style={{
+                  color: isActive ? tab.accent || 'var(--color-accent)' : 'var(--color-text-muted)'
+                }}
               >
                 {tab.icon}
               </span>

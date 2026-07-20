@@ -56,12 +56,7 @@ export const SettingsNavigation = ({
       className="flex flex-wrap items-center gap-3 py-4 shrink-0 border-b select-none"
       style={{ borderColor: 'var(--color-border)' }}
     >
-      <Tabs
-        tabs={visibleNav}
-        activeTab={activeSection}
-        onChange={onSectionChange}
-      />
+      <Tabs tabs={visibleNav} activeTab={activeSection} onChange={onSectionChange} />
     </div>
   )
 }
-

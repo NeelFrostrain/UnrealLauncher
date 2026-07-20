@@ -45,13 +45,17 @@ const Group = ({
   <div
     className="overflow-hidden transition-all duration-300"
     style={{
-      background: 'linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%)',
+      background:
+        'linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%)',
       border: '1px solid var(--color-border)',
       borderRadius: 'var(--radius)',
       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
     }}
   >
-    <div className="px-5 py-3.5 select-none" style={{ borderBottom: '1px solid var(--color-border)' }}>
+    <div
+      className="px-5 py-3.5 select-none"
+      style={{ borderBottom: '1px solid var(--color-border)' }}
+    >
       <p
         className="text-[10px] font-bold uppercase tracking-widest"
         style={{ color: 'var(--color-text-secondary)' }}

@@ -195,7 +195,8 @@ export function KeyboardShortcutsSection(): React.ReactElement {
       <div
         className="flex items-start gap-3.5 px-4.5 py-4"
         style={{
-          background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 8%, var(--color-surface-elevated)) 0%, var(--color-surface-elevated) 100%)',
+          background:
+            'linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 8%, var(--color-surface-elevated)) 0%, var(--color-surface-elevated) 100%)',
           border: '1px solid color-mix(in srgb, var(--color-accent) 20%, var(--color-border))',
           borderRadius: 'var(--radius)',
           boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
@@ -203,20 +204,22 @@ export function KeyboardShortcutsSection(): React.ReactElement {
       >
         <Command size={18} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: 1 }} />
         <div>
-          <p className="text-sm font-semibold tracking-wide" style={{ color: 'var(--color-text-primary)' }}>
+          <p
+            className="text-sm font-semibold tracking-wide"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
             Tip — Command Palette
           </p>
-          <p
-            className="text-xs mt-1 leading-relaxed"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            Press <Kbd k={MOD} /> + <Kbd k="K" /> anywhere to open the interactive command palette. It indexes all actions and shortcuts across the application, allowing you to run them instantly.
+          <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+            Press <Kbd k={MOD} /> + <Kbd k="K" /> anywhere to open the interactive command palette.
+            It indexes all actions and shortcuts across the application, allowing you to run them
+            instantly.
           </p>
         </div>
       </div>
 
       {/* Interactive Search Bar */}
-      <div 
+      <div
         className="flex items-center gap-2.5 px-3.5 py-2"
         style={{
           borderRadius: 'var(--radius)',
@@ -233,7 +236,7 @@ export function KeyboardShortcutsSection(): React.ReactElement {
           className="flex-1 bg-transparent border-none outline-none text-xs text-[var(--color-text-primary)]"
         />
         {search && (
-          <button 
+          <button
             onClick={() => setSearch('')}
             className="text-[10px] font-bold px-2 py-0.5 rounded cursor-pointer transition-colors"
             style={{
@@ -250,9 +253,12 @@ export function KeyboardShortcutsSection(): React.ReactElement {
       {/* Shortcut groups */}
       <div className="space-y-6">
         {filteredGroups.length === 0 ? (
-          <div 
+          <div
             className="text-center py-12 border border-dashed rounded-xl"
-            style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-card)' }}
+            style={{
+              borderColor: 'var(--color-border)',
+              backgroundColor: 'var(--color-surface-card)'
+            }}
           >
             <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               No shortcuts matching "{search}"
@@ -274,7 +280,9 @@ export function KeyboardShortcutsSection(): React.ReactElement {
                     <div
                       key={keysStr + s.label}
                       className="group flex items-center justify-between gap-4 px-5 py-3.5 transition-all duration-200 hover:bg-white/[0.005]"
-                      style={!isLast ? { borderBottom: '1px solid var(--color-border)' } : undefined}
+                      style={
+                        !isLast ? { borderBottom: '1px solid var(--color-border)' } : undefined
+                      }
                     >
                       {/* Label + description */}
                       <div className="min-w-0 flex-1">

@@ -18,7 +18,10 @@ export const SettingRow = ({
     style={!last ? { borderBottom: '1px solid var(--color-border)' } : undefined}
   >
     <div className="max-w-sm flex-1 min-w-0">
-      <p className="text-sm font-semibold tracking-wide" style={{ color: 'var(--color-text-primary)' }}>
+      <p
+        className="text-sm font-semibold tracking-wide"
+        style={{ color: 'var(--color-text-primary)' }}
+      >
         {label}
       </p>
       {description && (
@@ -40,9 +43,10 @@ export const Toggle = ({
   onChange: () => void
   color?: 'blue' | 'green'
 }): React.ReactElement => {
-  const activeBg = color === 'green'
-    ? 'linear-gradient(135deg, #4ade80, #22c55e)'
-    : 'linear-gradient(135deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 80%, black))'
+  const activeBg =
+    color === 'green'
+      ? 'linear-gradient(135deg, #4ade80, #22c55e)'
+      : 'linear-gradient(135deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 80%, black))'
 
   return (
     <button
@@ -51,7 +55,9 @@ export const Toggle = ({
       style={{
         background: on ? activeBg : 'var(--color-surface-card)',
         borderColor: on ? 'transparent' : 'var(--color-border)',
-        boxShadow: on ? `0 0 12px color-mix(in srgb, ${color === 'green' ? '#22c55e' : 'var(--color-accent)'} 30%, transparent)` : 'none'
+        boxShadow: on
+          ? `0 0 12px color-mix(in srgb, ${color === 'green' ? '#22c55e' : 'var(--color-accent)'} 30%, transparent)`
+          : 'none'
       }}
       role="switch"
       aria-checked={on}
@@ -77,7 +83,7 @@ export const SectionHeader = ({
   const finalAccent = accent || 'var(--color-accent)'
   return (
     <div className="flex items-center gap-3 mb-3.5 mt-2 px-1 select-none">
-      <div 
+      <div
         className="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300"
         style={{
           background: `color-mix(in srgb, ${finalAccent} 12%, var(--color-surface-elevated))`,
@@ -101,7 +107,8 @@ export const Card = ({ children }: { children: React.ReactNode }): React.ReactEl
   <div
     className="overflow-hidden transition-all duration-300"
     style={{
-      background: 'linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%)',
+      background:
+        'linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%)',
       border: '1px solid var(--color-border)',
       borderRadius: 'var(--radius)',
       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
@@ -110,4 +117,3 @@ export const Card = ({ children }: { children: React.ReactNode }): React.ReactEl
     {children}
   </div>
 )
-

@@ -195,7 +195,13 @@ const DataSection = (): React.ReactElement => {
         >
           <div className="w-full space-y-3">
             {/* Engine cache TTL row */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border" style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)' }}>
+            <div
+              className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border"
+              style={{
+                backgroundColor: 'var(--color-surface-card)',
+                borderColor: 'var(--color-border)'
+              }}
+            >
               <button
                 onClick={handleClearEnginePluginCache}
                 className="px-3 py-1.5 text-xs font-semibold cursor-pointer transition-all duration-200"
@@ -209,7 +215,9 @@ const DataSection = (): React.ReactElement => {
                 Clear Engine Cache
               </button>
               <div className="flex items-center gap-2">
-                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>TTL:</span>
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  TTL:
+                </span>
                 <input
                   type="number"
                   min={1}
@@ -225,7 +233,9 @@ const DataSection = (): React.ReactElement => {
                     color: 'var(--color-text-primary)'
                   }}
                 />
-                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>min</span>
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  min
+                </span>
                 <button
                   onClick={handleSaveEngineTTL}
                   className="px-3 py-1 text-xs font-semibold cursor-pointer transition-all"
@@ -242,7 +252,13 @@ const DataSection = (): React.ReactElement => {
             </div>
 
             {/* Project cache TTL row */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border" style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)' }}>
+            <div
+              className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border"
+              style={{
+                backgroundColor: 'var(--color-surface-card)',
+                borderColor: 'var(--color-border)'
+              }}
+            >
               <button
                 onClick={handleClearProjectPluginCache}
                 className="px-3 py-1.5 text-xs font-semibold cursor-pointer transition-all duration-200"
@@ -256,7 +272,9 @@ const DataSection = (): React.ReactElement => {
                 Clear Project Cache
               </button>
               <div className="flex items-center gap-2">
-                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>TTL:</span>
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  TTL:
+                </span>
                 <input
                   type="number"
                   min={1}
@@ -272,7 +290,9 @@ const DataSection = (): React.ReactElement => {
                     color: 'var(--color-text-primary)'
                   }}
                 />
-                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>min</span>
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  min
+                </span>
                 <button
                   onClick={handleSaveProjectTTL}
                   className="px-3 py-1 text-xs font-semibold cursor-pointer transition-all"

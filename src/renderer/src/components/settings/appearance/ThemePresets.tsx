@@ -15,7 +15,10 @@ const ThemePresets = ({
 }: ThemePresetsProps): React.ReactElement => (
   <div className="p-5">
     <div className="flex items-center justify-between mb-4">
-      <p className="text-sm font-semibold tracking-wide" style={{ color: 'var(--color-text-primary)' }}>
+      <p
+        className="text-sm font-semibold tracking-wide"
+        style={{ color: 'var(--color-text-primary)' }}
+      >
         Theme Presets
       </p>
       {hasOverrides && (
@@ -46,11 +49,13 @@ const ThemePresets = ({
               borderRadius: 'var(--radius)',
               background: `linear-gradient(180deg, ${theme.tokens['surface-elevated']} 0%, ${theme.tokens['surface-card']} 100%)`,
               borderColor: active ? theme.tokens['accent'] : 'var(--color-border)',
-              boxShadow: active ? `0 4px 14px color-mix(in srgb, ${theme.tokens['accent']} 20%, transparent)` : 'none'
+              boxShadow: active
+                ? `0 4px 14px color-mix(in srgb, ${theme.tokens['accent']} 20%, transparent)`
+                : 'none'
             }}
           >
             {/* Visual Mini Mockup */}
-            <div 
+            <div
               className="flex gap-1.5 mb-3 p-2 rounded-lg select-none border transition-colors"
               style={{
                 backgroundColor: 'rgba(0,0,0,0.15)',
@@ -58,12 +63,24 @@ const ThemePresets = ({
               }}
             >
               {/* Sidebar */}
-              <div className="w-4 h-8 rounded-sm shrink-0" style={{ background: theme.tokens['surface'] }} />
+              <div
+                className="w-4 h-8 rounded-sm shrink-0"
+                style={{ background: theme.tokens['surface'] }}
+              />
               {/* Content */}
               <div className="flex-1 flex flex-col gap-1.5 min-w-0">
-                <div className="h-2 rounded-sm w-3/4" style={{ background: theme.tokens['accent'] }} />
-                <div className="h-1 rounded-sm w-full opacity-60" style={{ background: theme.tokens['text-muted'] }} />
-                <div className="h-1 rounded-sm w-2/3 opacity-60" style={{ background: theme.tokens['text-muted'] }} />
+                <div
+                  className="h-2 rounded-sm w-3/4"
+                  style={{ background: theme.tokens['accent'] }}
+                />
+                <div
+                  className="h-1 rounded-sm w-full opacity-60"
+                  style={{ background: theme.tokens['text-muted'] }}
+                />
+                <div
+                  className="h-1 rounded-sm w-2/3 opacity-60"
+                  style={{ background: theme.tokens['text-muted'] }}
+                />
               </div>
             </div>
 
@@ -80,7 +97,9 @@ const ThemePresets = ({
 
             <p
               className="text-xs font-semibold"
-              style={{ color: active ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}
+              style={{
+                color: active ? 'var(--color-text-primary)' : 'var(--color-text-secondary)'
+              }}
             >
               {theme.name}
             </p>
@@ -101,4 +120,3 @@ const ThemePresets = ({
 )
 
 export default ThemePresets
-

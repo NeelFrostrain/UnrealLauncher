@@ -114,4 +114,3 @@ const SettingsPage = (): React.ReactElement => {
 }
 
 export default SettingsPage
-

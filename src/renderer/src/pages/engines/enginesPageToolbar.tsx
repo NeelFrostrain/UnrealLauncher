@@ -52,11 +52,7 @@ export function EnginesPageToolbar({
       className="flex flex-wrap items-center gap-3 py-3 shrink-0 border-b"
       style={{ borderColor: 'var(--color-border)' }}
     >
-      <Tabs
-        tabs={TABS}
-        activeTab={activeTab}
-        onChange={onTabChange}
-      />
+      <Tabs tabs={TABS} activeTab={activeTab} onChange={onTabChange} />
 
       <div className="flex-1" />
 
