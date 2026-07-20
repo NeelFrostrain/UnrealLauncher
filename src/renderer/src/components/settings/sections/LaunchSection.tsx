@@ -54,27 +54,35 @@ const LaunchSection = ({
           label="Launch pause duration"
           description="Set a safety delay (in seconds) between project launches to prevent double-launching processes."
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 select-none px-2 py-0.5"
+            style={{
+              backgroundColor: "var(--color-surface-card)",
+              color: "var(--color-text-primary)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius)",
+            }}>
             <input
               type="number"
-              min="0"
-              max="60"
+              min={0}
+              max={60}
+              step={5}
               value={launchPauseDuration}
               onChange={(e) => {
-                const val = Math.max(0, Math.min(60, parseInt(e.target.value, 10) || 0))
+                let val = Number(e.target.value)
+
+                if (isNaN(val)) val = 0
+                val = Math.max(0, Math.min(60, val))
+
                 setLaunchPauseDuration(val)
-                setSetting('launchPauseDuration', val)
+                setSetting("launchPauseDuration", val)
               }}
-              className="w-16 px-2 py-1 text-xs text-center rounded border transition-colors cursor-pointer"
-              style={{
-                backgroundColor: 'var(--color-surface-card)',
-                color: 'var(--color-text-primary)',
-                borderColor: 'var(--color-border)',
-                outline: 'none'
-              }}
+              className="no-spinner w-12 px-1.5 py-0.5 text-[11px] font-mono font-semibold text-start outline-none"
             />
-            <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-              seconds
+            <span
+              className="text-xs"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              Sec
             </span>
           </div>
         </SettingRow>

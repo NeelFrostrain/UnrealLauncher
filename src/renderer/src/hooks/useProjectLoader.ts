@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Handles loading, scanning, and live-update subscriptions for the project list.
  * Extracted from useProjectsPageState to keep each hook under 150 lines.
@@ -297,13 +297,19 @@ export function useProjectLoader({
       setProjects((prev) => prev.filter((p) => p.projectPath !== data.projectPath))
     })
 
+    const handleEngineChange = (): void => {
+      loadProjects('scan')
+    }
+    window.addEventListener('project-engine-changed', handleEngineChange)
+
     return () => {
       unsubSize()
       unsubRemoved()
+      window.removeEventListener('project-engine-changed', handleEngineChange)
       if (flushTimer) clearTimeout(flushTimer)
       pending.clear()
     }
-  }, [allProjectsRef, setProjects])
+  }, [allProjectsRef, setProjects, loadProjects])
 
   const refresh = useCallback(async (): Promise<void> => {
     await loadProjects('scan')

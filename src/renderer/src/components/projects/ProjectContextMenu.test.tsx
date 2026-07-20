@@ -10,7 +10,8 @@ describe('ProjectContextMenu', () => {
     Object.defineProperty(window, 'electronAPI', {
       configurable: true,
       value: {
-        scanEngines: vi.fn().mockResolvedValue([{ version: '5.4' }])
+        scanEngines: vi.fn().mockResolvedValue([{ version: '5.4' }]),
+        loadSavedEngines: vi.fn().mockResolvedValue([{ version: '5.4' }])
       }
     })
   })
