@@ -129,38 +129,38 @@ export const PluginListCard = memo(
     const isDisabled = plugin.enabledByDefault === false
     return (
       <div
-        className="w-full transition-all border"
+        className="w-full transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border"
         style={{
-          backgroundColor: selected
+          background: selected
             ? 'color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-card))'
             : hovered
-              ? 'var(--color-surface-elevated)'
-              : 'var(--color-surface-card)',
+              ? 'rgba(255, 255, 255, 0.015)'
+              : 'linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%)',
           borderColor: selected
             ? 'var(--color-accent)'
             : hovered
-              ? 'var(--color-accent)'
+              ? 'color-mix(in srgb, var(--color-accent) 25%, var(--color-border))'
               : 'var(--color-border)',
           borderRadius: 'var(--radius)',
-          opacity: isDisabled ? 0.75 : 1,
-          transition: 'background-color 120ms ease, border-color 120ms ease, opacity 120ms ease'
+          boxShadow: hovered ? '0 8px 24px rgba(0, 0, 0, 0.2)' : '0 4px 16px rgba(0, 0, 0, 0.15)',
+          opacity: isDisabled ? 0.75 : 1
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        <div className="flex items-center gap-3 px-3 py-2">
+        <div className="flex items-center gap-3 px-3 py-2.5">
           {selectMode && onSelectToggle && (
             <input
               type="checkbox"
               checked={!!selected}
               onChange={() => onSelectToggle(plugin.path)}
-              className="w-3.5 h-3.5 shrink-0 accent-[var(--color-accent)] cursor-pointer"
+              className="w-3.5 h-3.5 shrink-0 accent-(--color-accent) cursor-pointer"
             />
           )}
 
           {/* Thumbnail */}
           <div
-            className="w-11 h-11 shrink-0 overflow-hidden flex items-center justify-center"
+            className="w-11 h-11 shrink-0 overflow-hidden flex items-center justify-center transition-transform duration-300 group-hover:scale-105"
             style={{
               borderRadius: 'var(--radius)',
               backgroundColor: 'var(--color-surface-elevated)',
@@ -174,7 +174,7 @@ export const PluginListCard = memo(
           <div className="flex-1 min-w-0 flex flex-col gap-1">
             <div className="flex items-center gap-2 flex-wrap">
               <p
-                className="text-xs font-medium truncate"
+                className="text-xs font-semibold truncate"
                 style={{ color: 'var(--color-text-primary)' }}
                 title={plugin.name}
               >
@@ -230,12 +230,11 @@ export const PluginListCard = memo(
             {onShowDetails && (
               <button
                 onClick={() => onShowDetails(plugin)}
-                className="shrink-0 p-1.5 cursor-pointer transition-all"
+                className="shrink-0 p-1.5 cursor-pointer transition-all hover:bg-white/1.5 hover:text-(--color-text-primary)"
                 style={{
                   borderRadius: 'calc(var(--radius) * 0.6)',
                   color: 'var(--color-text-muted)',
-                  backgroundColor: hovered ? 'var(--color-surface-card)' : 'transparent',
-                  border: `1px solid ${hovered ? 'var(--color-border)' : 'transparent'}`
+                  border: '1px solid transparent'
                 }}
                 title="View details"
               >
@@ -245,12 +244,11 @@ export const PluginListCard = memo(
 
             <button
               onClick={() => window.electronAPI.openDirectory(plugin.path)}
-              className="shrink-0 p-1.5 cursor-pointer transition-all"
+              className="shrink-0 p-1.5 cursor-pointer transition-all hover:bg-white/1.5 hover:text-(--color-text-primary)"
               style={{
                 borderRadius: 'calc(var(--radius) * 0.6)',
                 color: 'var(--color-text-muted)',
-                backgroundColor: hovered ? 'var(--color-surface-card)' : 'transparent',
-                border: `1px solid ${hovered ? 'var(--color-border)' : 'transparent'}`
+                border: '1px solid transparent'
               }}
               title="Open folder"
             >
@@ -285,37 +283,38 @@ export const PluginGridCard = memo(
     const isDisabled = plugin.enabledByDefault === false
     return (
       <div
-        className="relative overflow-hidden w-full aspect-square border"
+        className="relative overflow-hidden w-full aspect-square border group transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
         style={{
           borderRadius: 'var(--radius)',
-          backgroundColor: selected
+          background: selected
             ? 'color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-card))'
             : 'var(--color-surface-card)',
           borderColor: selected
             ? 'var(--color-accent)'
             : hovered
-              ? 'var(--color-accent)'
+              ? 'color-mix(in srgb, var(--color-accent) 25%, var(--color-border))'
               : 'var(--color-border)',
-          opacity: isDisabled ? 0.75 : 1,
-          transition: 'border-color 150ms ease, opacity 150ms ease'
+          boxShadow: hovered ? '0 8px 24px rgba(0, 0, 0, 0.2)' : '0 4px 16px rgba(0, 0, 0, 0.15)',
+          opacity: isDisabled ? 0.75 : 1
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        onClick={() => onShowDetails?.(plugin)}
       >
         {/* Selection Checkbox */}
         {selectMode && onSelectToggle && (
-          <div className="absolute top-2.5 left-2.5 z-20">
+          <div className="absolute top-2.5 left-2.5 z-20" onClick={(e) => e.stopPropagation()}>
             <input
               type="checkbox"
               checked={!!selected}
               onChange={() => onSelectToggle(plugin.path)}
-              className="w-3.5 h-3.5 accent-[var(--color-accent)] cursor-pointer"
+              className="w-3.5 h-3.5 accent-(--color-accent) cursor-pointer"
             />
           </div>
         )}
 
         {/* Full Background Thumbnail / Fallback */}
-        <div className="absolute inset-0 z-0 opacity-20">
+        <div className="absolute inset-0 z-0 opacity-20 transition-transform duration-500 group-hover:scale-110">
           <PluginThumb icon={plugin.icon} name={plugin.name} />
         </div>
 
@@ -351,29 +350,18 @@ export const PluginGridCard = memo(
         {/* Actions Overlay */}
         {hovered && (
           <div className="absolute top-2.5 right-2.5 z-10 flex gap-1">
-            {onShowDetails && (
-              <button
-                onClick={() => onShowDetails(plugin)}
-                className="p-1 cursor-pointer"
-                style={{
-                  borderRadius: 'calc(var(--radius) * 0.5)',
-                  backgroundColor: 'rgba(0,0,0,0.65)',
-                  color: 'var(--color-text-secondary)',
-                  border: '1px solid var(--color-border)'
-                }}
-                title="View details"
-              >
-                <Info size={11} />
-              </button>
-            )}
             <button
-              onClick={() => window.electronAPI.openDirectory(plugin.path)}
-              className="p-1 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation()
+                window.electronAPI.openDirectory(plugin.path)
+              }}
+              className="p-1 cursor-pointer transition-colors hover:bg-white/[0.15]"
               style={{
                 borderRadius: 'calc(var(--radius) * 0.5)',
-                backgroundColor: 'rgba(0,0,0,0.65)',
+                backgroundColor: 'rgba(0,0,0,0.75)',
                 color: 'var(--color-text-secondary)',
-                border: '1px solid var(--color-border)'
+                border: '1px solid rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(4px)'
               }}
               title="Open folder"
             >
@@ -384,7 +372,7 @@ export const PluginGridCard = memo(
 
         {/* Bottom Info / Content Overlay */}
         <div className="absolute bottom-0 inset-x-0 p-2.5 z-10 flex flex-col gap-1 justify-end h-[60%] bg-linear-to-t from-black/90 to-transparent">
-          <p className="text-[11px] font-medium text-white truncate" title={plugin.name}>
+          <p className="text-[11px] font-semibold text-white truncate" title={plugin.name}>
             {plugin.name}
           </p>
           <p

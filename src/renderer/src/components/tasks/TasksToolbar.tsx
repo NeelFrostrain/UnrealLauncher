@@ -2,6 +2,7 @@
 import { useRef, useEffect } from 'react'
 import { Activity, RefreshCw, Search, X, Trash2 } from 'lucide-react'
 import type { ProcessFilterType } from '../../types'
+import { Tabs } from '../ui/Tabs'
 
 interface TasksToolbarProps {
   tabs: Array<{ id: ProcessFilterType; label: string; icon?: React.ReactNode }>
@@ -122,49 +123,11 @@ export default function TasksToolbar({
             </button>
           </div>
         ) : (
-          <div
-            role="tablist"
-            className="flex items-center gap-0.5 px-1 py-1"
-            style={{
-              backgroundColor: 'var(--color-surface-card)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius)',
-              fontSize: 'var(--font-size)'
-            }}
-          >
-            {tabs.map((tab) => {
-              const isActive = currentTab === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  role="tab"
-                  aria-selected={isActive}
-                  onClick={() => onTabClick(tab.id)}
-                  className="flex items-center gap-1.5 px-3 py-1 font-normal transition-all cursor-pointer whitespace-nowrap"
-                  style={{
-                    color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-                    backgroundColor: isActive
-                      ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
-                      : 'transparent',
-                    boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.3)' : 'none',
-                    borderRadius: 'calc(var(--radius) * 0.85)',
-                    fontSize: 'calc(var(--font-size) * 0.75)'
-                  }}
-                >
-                  {tab.icon && (
-                    <span
-                      style={{
-                        color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)'
-                      }}
-                    >
-                      {tab.icon}
-                    </span>
-                  )}
-                  <span>{tab.label}</span>
-                </button>
-              )
-            })}
-          </div>
+          <Tabs
+            tabs={tabs}
+            activeTab={currentTab}
+            onChange={onTabClick}
+          />
         )}
 
         {/* Collapsible search box, matching projects design */}

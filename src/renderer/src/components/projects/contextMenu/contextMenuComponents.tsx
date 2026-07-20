@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ChevronRight } from 'lucide-react'
 
 export const MENU_STYLE: React.CSSProperties = {
@@ -50,10 +50,10 @@ export const MenuItem = ({
       if (!disabled) {
         e.currentTarget.style.backgroundColor = danger
           ? 'color-mix(in srgb, #f87171 12%, transparent)'
-          : 'color-mix(in srgb, var(--color-accent) 10%, var(--color-surface-card))'
+          : 'rgba(255, 255, 255, 0.015)'
         e.currentTarget.style.borderColor = danger
           ? 'color-mix(in srgb, #f87171 26%, transparent)'
-          : 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+          : 'rgba(255, 255, 255, 0.04)'
       }
       onHoverIn?.()
     }}
@@ -147,10 +147,10 @@ export const SubMenuTrigger = ({
     style={{
       color: isOpen ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
       backgroundColor: isOpen
-        ? 'color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-card))'
+        ? 'rgba(255, 255, 255, 0.015)'
         : 'transparent',
       borderColor: isOpen
-        ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+        ? 'rgba(255, 255, 255, 0.04)'
         : 'transparent',
       width: 'calc(100% - 8px)',
       margin: '0 4px'

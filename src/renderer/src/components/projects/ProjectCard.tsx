@@ -95,11 +95,12 @@ const ProjectCard = memo(
     return (
       <>
         <div
-          className="w-full"
+          className="w-full transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
           style={{
             backgroundColor: 'var(--color-surface-card)',
             border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)'
+            borderRadius: 'var(--radius)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)'
           }}
           onContextMenu={handlers.handleContextMenu}
         >
@@ -306,7 +307,11 @@ const ProjectCard = memo(
                   const rect = e.currentTarget.getBoundingClientRect()
                   state.setCtxMenu({ x: rect.left, y: rect.bottom + 4 })
                 }}
-                className="flex p-1.5 cursor-pointer"
+                onMouseEnter={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  state.setCtxMenu({ x: rect.left, y: rect.bottom + 4 })
+                }}
+                className="flex p-1.5 cursor-pointer transition-colors duration-200 hover:bg-white/[0.015] hover:text-[var(--color-text-primary)]"
                 style={{
                   borderRadius: 'var(--radius)',
                   backgroundColor: 'var(--color-surface-elevated)',

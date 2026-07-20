@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { type RefObject } from 'react'
 import { type ThemeToken } from '../../utils/theme'
 import SavedProfilesSection from './SavedProfilesSection'
@@ -35,8 +35,6 @@ export interface AppearanceSectionProps {
   handleFinishEdit: () => void
 }
 
-// ── Shared card wrapper ───────────────────────────────────────────────────────
-
 const Group = ({
   title,
   children
@@ -45,17 +43,18 @@ const Group = ({
   children: React.ReactNode
 }): React.ReactElement => (
   <div
-    className="overflow-hidden"
+    className="overflow-hidden transition-all duration-300"
     style={{
-      backgroundColor: 'var(--color-surface-elevated)',
+      background: 'linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%)',
       border: '1px solid var(--color-border)',
-      borderRadius: 'var(--radius)'
+      borderRadius: 'var(--radius)',
+      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
     }}
   >
-    <div className="px-4 py-2.5" style={{ borderBottom: '1px solid var(--color-border)' }}>
+    <div className="px-5 py-3.5 select-none" style={{ borderBottom: '1px solid var(--color-border)' }}>
       <p
-        className="text-[10px] font-semibold uppercase tracking-widest select-none"
-        style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
+        className="text-[10px] font-bold uppercase tracking-widest"
+        style={{ color: 'var(--color-text-secondary)' }}
       >
         {title}
       </p>

@@ -106,8 +106,8 @@ const SettingsPage = (): React.ReactElement => {
       />
 
       {/* Content area */}
-      <div className="flex-1 overflow-y-auto min-h-0 mt-1">
-        <div className="mt-2">{renderContent()}</div>
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="mt-4">{renderContent()}</div>
       </div>
     </PageWrapper>
   )

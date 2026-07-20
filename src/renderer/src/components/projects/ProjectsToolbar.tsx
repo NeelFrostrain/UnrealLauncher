@@ -6,6 +6,8 @@ import type { TabType } from '../../types'
 import type { SortConfig, EngineVersionFilter } from './projectUtils'
 import { SortDropdown } from './toolbar/SortDropdown'
 
+import { Tabs } from '../ui/Tabs'
+
 export type ViewMode = 'list' | 'grid'
 
 interface ProjectsToolbarProps {
@@ -147,7 +149,6 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
   sortConfig,
   onTabClick,
   onToggleSearch,
-  onSearchChange,
   onAddProject,
   onRefresh,
   onOpenHistory,
@@ -164,48 +165,11 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
     >
       {/* Left: Tabs + optional inline search */}
       <div className="flex flex-wrap w-full items-center gap-2">
-        <div
-          role="tablist"
-          aria-label="Project tabs"
-          className="flex flex-wrap items-center gap-0.5 px-1 py-1"
-          style={{
-            backgroundColor: 'var(--color-surface-card)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)',
-            fontSize: 'var(--font-size)'
-          }}
-        >
-          {tabs.map((tab) => {
-            const isActive = currentTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => onTabClick(tab.id)}
-                className="flex items-center gap-1.5 px-3 py-1 font-normal transition-all cursor-pointer"
-                style={{
-                  color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-                  backgroundColor: isActive
-                    ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
-                    : 'transparent',
-                  boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.3)' : 'none',
-                  borderRadius: 'calc(var(--radius) * 0.75)',
-                  fontSize: 'calc(var(--font-size) * 0.75)'
-                }}
-              >
-                {tab.icon && (
-                  <span
-                    style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
-                  >
-                    {tab.icon}
-                  </span>
-                )}
-                {tab.label}
-              </button>
-            )
-          })}
-        </div>
+        <Tabs
+          tabs={tabs}
+          activeTab={currentTab}
+          onChange={onTabClick}
+        />
 
         {/* {searchOpen && (
           <div

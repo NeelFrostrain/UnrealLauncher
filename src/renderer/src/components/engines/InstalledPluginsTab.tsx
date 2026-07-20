@@ -25,6 +25,7 @@ import { usePluginsState } from './plugins/usePluginsState'
 import { CategorySection, PluginThumb, Badge } from './plugins/PluginCards'
 import { useToast } from '../../components/ui/ToastContext'
 import DropdownPortal from '../ui/DropdownPortal'
+import { Tabs } from '../../components/ui/Tabs'
 
 interface InstalledPluginsTabProps {
   engineDir: string
@@ -800,81 +801,21 @@ const InstalledPluginsTab = ({
         style={{ borderColor: 'var(--color-border)' }}
       >
         {/* Left: Tab group + inline search */}
-        <div className="flex items-center gap-2 shrink-0">
-          <div
-            role="tablist"
-            aria-label="Plugin tabs"
-            className="flex items-center gap-0.5 px-1 py-1 shrink-0"
-            style={{
-              backgroundColor: 'var(--color-surface-card)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius)',
-              fontSize: 'var(--font-size)'
-            }}
-          >
-            <button
-              onClick={() => setActiveSubTab('plugins')}
-              style={{
-                color:
-                  activeSubTab === 'plugins'
-                    ? 'var(--color-text-primary)'
-                    : 'var(--color-text-muted)',
-                backgroundColor:
-                  activeSubTab === 'plugins'
-                    ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
-                    : 'transparent',
-                boxShadow: activeSubTab === 'plugins' ? '0 1px 3px rgba(0,0,0,0.3)' : 'none',
-                borderRadius: 'calc(var(--radius) * 0.85)',
-                fontSize: 'calc(var(--font-size) * 0.75)'
-              }}
-              className="flex items-center gap-1.5 px-3 py-1 font-normal transition-all cursor-pointer whitespace-nowrap shrink-0"
-            >
-              Plugins
-            </button>
-            <button
-              onClick={() => setActiveSubTab('presets')}
-              style={{
-                color:
-                  activeSubTab === 'presets'
-                    ? 'var(--color-text-primary)'
-                    : 'var(--color-text-muted)',
-                backgroundColor:
-                  activeSubTab === 'presets'
-                    ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
-                    : 'transparent',
-                boxShadow: activeSubTab === 'presets' ? '0 1px 3px rgba(0,0,0,0.3)' : 'none',
-                borderRadius: 'calc(var(--radius) * 0.85)',
-                fontSize: 'calc(var(--font-size) * 0.75)  '
-              }}
-              className="flex items-center gap-1.5 px-3 py-1 font-normal transition-all cursor-pointer whitespace-nowrap shrink-0"
-            >
-              Presets
-            </button>
-            <button
-              onClick={() => setActiveSubTab('history')}
-              style={{
-                color:
-                  activeSubTab === 'history'
-                    ? 'var(--color-text-primary)'
-                    : 'var(--color-text-muted)',
-                backgroundColor:
-                  activeSubTab === 'history'
-                    ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
-                    : 'transparent',
-                boxShadow: activeSubTab === 'history' ? '0 1px 3px rgba(0,0,0,0.3)' : 'none',
-                borderRadius: 'calc(var(--radius) * 0.85)',
-                fontSize: 'calc(var(--font-size) * 0.75)'
-              }}
-              className="flex items-center gap-1.5 px-3 py-1 font-normal transition-all cursor-pointer whitespace-nowrap shrink-0"
-            >
-              History ({history.length})
-            </button>
-          </div>
+        <div className="flex items-center gap-2">
+          <Tabs
+            tabs={[
+              { id: 'plugins', label: 'Plugins' },
+              { id: 'presets', label: 'Presets' },
+              { id: 'history', label: `History (${history.length})` }
+            ]}
+            activeTab={activeSubTab}
+            onChange={(id) => setActiveSubTab(id as 'plugins' | 'presets' | 'history')}
+          />
 
           {/* Collapsible search box, matching the projects design */}
           {searchOpen && activeSubTab === 'plugins' && (
             <div
-              className="flex w-full items-center gap-2 px-2.5 py-1 text-xs h-9 transition-all shrink-0"
+              className="flex w-48 items-center gap-2 px-2.5 py-1 text-xs h-7.5 transition-all"
               style={{
                 borderRadius: 'var(--radius)',
                 backgroundColor: 'var(--color-surface-card)',

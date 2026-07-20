@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { lazy, Suspense, useState } from 'react'
 import { Info, X } from 'lucide-react'
 import { SystemInfoGrid } from './SystemInfoGrid'
@@ -16,11 +16,12 @@ export const AboutSection = ({ onClose: _onClose }: AboutSectionProps): React.Re
     <>
       <section>
         <div
-          className="overflow-hidden"
+          className="overflow-hidden transition-all duration-300"
           style={{
-            backgroundColor: 'var(--color-surface-elevated)',
+            background: 'linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%)',
             border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)'
+            borderRadius: 'var(--radius)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
           }}
         >
           <div

@@ -10,6 +10,8 @@ import {
   Keyboard
 } from 'lucide-react'
 
+import { Tabs } from '../ui/Tabs'
+
 export type SectionId =
   'general' | 'appearance' | 'scan' | 'tracer' | 'data' | 'updates' | 'shortcuts' | 'about'
 
@@ -51,43 +53,14 @@ export const SettingsNavigation = ({
 
   return (
     <div
-      className="flex flex-wrap items-center gap-3 py-3 shrink-0 border-b"
+      className="flex flex-wrap items-center gap-3 py-4 shrink-0 border-b select-none"
       style={{ borderColor: 'var(--color-border)' }}
     >
-      <div
-        role="tablist"
-        aria-label="Settings tabs"
-        className="flex flex-wrap items-center gap-0.5 px-1 py-1 rounded-lg"
-        style={{
-          backgroundColor: 'var(--color-surface-card)',
-          border: '1px solid var(--color-border)'
-        }}
-      >
-        {visibleNav.map((item) => {
-          const active = activeSection === item.id
-          return (
-            <button
-              key={item.id}
-              role="tab"
-              aria-selected={active}
-              onClick={() => onSectionChange(item.id)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer"
-              style={{
-                color: active ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-                backgroundColor: active
-                  ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
-                  : 'transparent',
-                boxShadow: active ? '0 1px 3px rgba(0,0,0,0.3)' : 'none'
-              }}
-            >
-              <span style={{ color: active ? item.accent : 'var(--color-text-muted)' }}>
-                {item.icon}
-              </span>
-              {item.label}
-            </button>
-          )
-        })}
-      </div>
+      <Tabs
+        tabs={visibleNav}
+        activeTab={activeSection}
+        onChange={onSectionChange}
+      />
     </div>
   )
 }
