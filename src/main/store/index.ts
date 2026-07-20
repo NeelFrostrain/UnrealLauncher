@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Main process data store.
  * Public API is identical to the old store.ts — all imports that used
@@ -127,12 +127,23 @@ export function saveEngines(engines: Engine[]): void {
 
 // ── Projects ──────────────────────────────────────────────────────────────────
 
+let pendingProjects: Project[] | null = null
+let saveProjectsTimer: ReturnType<typeof setTimeout> | null = null
+
 export function loadProjects(): Project[] {
+  if (pendingProjects) return pendingProjects
   const raw = readJsonArray<Project>(getProjectsDataPath(), 'projects')
   return dedupeProjects(raw)
 }
 export function saveProjects(projects: Project[]): void {
-  writeJson(getProjectsDataPath(), dedupeProjects(projects), `projects (${projects.length})`)
+  pendingProjects = dedupeProjects(projects)
+  if (saveProjectsTimer) clearTimeout(saveProjectsTimer)
+  saveProjectsTimer = setTimeout(() => {
+    if (pendingProjects) {
+      writeJson(getProjectsDataPath(), pendingProjects, `projects (${pendingProjects.length})`)
+      pendingProjects = null
+    }
+  }, 100)
 }
 
 // ── Launch configs ────────────────────────────────────────────────────────────
