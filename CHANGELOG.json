@@ -2,9 +2,13 @@
   "project": "Unreal Launcher",
   "versions": [
     {
-      "version": "2.4.8",
+      "version": "2.5.0",
       "date": "2026-07-20",
-      "tags": ["feature", "bugfix", "quality"],
+      "tags": [
+        "feature",
+        "bugfix",
+        "quality"
+      ],
       "sections": [
         {
           "category": "Changed",
@@ -42,7 +46,10 @@
     {
       "version": "2.4.7",
       "date": "2026-07-15",
-      "tags": ["refactor", "pathing"],
+      "tags": [
+        "refactor",
+        "pathing"
+      ],
       "sections": [
         {
           "category": "Changed",
@@ -80,7 +87,11 @@
     {
       "version": "2.4.6",
       "date": "2026-07-09",
-      "tags": ["bugfix", "ux", "startup"],
+      "tags": [
+        "bugfix",
+        "ux",
+        "startup"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -99,7 +110,11 @@
     {
       "version": "2.4.5",
       "date": "2026-07-09",
-      "tags": ["bugfix", "ux", "perf"],
+      "tags": [
+        "bugfix",
+        "ux",
+        "perf"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -115,7 +130,11 @@
     {
       "version": "2.4.4",
       "date": "2026-07-09",
-      "tags": ["perf", "rust", "plugins"],
+      "tags": [
+        "perf",
+        "rust",
+        "plugins"
+      ],
       "sections": [
         {
           "category": "Performance",
@@ -130,7 +149,10 @@
     {
       "version": "2.4.3",
       "date": "2026-07-09",
-      "tags": ["bugfix", "rpc"],
+      "tags": [
+        "bugfix",
+        "rpc"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -145,7 +167,11 @@
     {
       "version": "2.4.2",
       "date": "2026-07-09",
-      "tags": ["refactor", "ui", "perf"],
+      "tags": [
+        "refactor",
+        "ui",
+        "perf"
+      ],
       "sections": [
         {
           "category": "Removed",
@@ -176,7 +202,10 @@
     {
       "version": "2.4.1",
       "date": "2026-07-09",
-      "tags": ["merge", "release"],
+      "tags": [
+        "merge",
+        "release"
+      ],
       "sections": [
         {
           "category": "Summary",
@@ -210,7 +239,11 @@
     {
       "version": "2.4.0",
       "date": null,
-      "tags": ["perf", "ui", "grid"],
+      "tags": [
+        "perf",
+        "ui",
+        "grid"
+      ],
       "sections": [
         {
           "category": "Performance & Memory",
@@ -252,7 +285,10 @@
     {
       "version": "2.3.3",
       "date": null,
-      "tags": ["ux", "palette"],
+      "tags": [
+        "ux",
+        "palette"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -280,13 +316,22 @@
     {
       "version": "2.3.2",
       "date": null,
-      "tags": ["bugfix", "build", "launch"],
+      "tags": [
+        "bugfix",
+        "build",
+        "launch"
+      ],
       "sections": []
     },
     {
       "version": "2.3.1",
       "date": null,
-      "tags": ["ux", "features", "arch", "testing"],
+      "tags": [
+        "ux",
+        "features",
+        "arch",
+        "testing"
+      ],
       "sections": [
         {
           "category": "Added — UX & Accessibility (Section 4)",
@@ -366,7 +411,11 @@
     {
       "version": "2.3.0",
       "date": "2026-05-30",
-      "tags": ["feature", "performance", "ui"],
+      "tags": [
+        "feature",
+        "performance",
+        "ui"
+      ],
       "sections": [
         {
           "category": "Added — Launch Configuration Profiles",
@@ -455,7 +504,9 @@
     {
       "version": "2.2.5",
       "date": "2026-05-24",
-      "tags": ["hotfix"],
+      "tags": [
+        "hotfix"
+      ],
       "sections": [
         {
           "category": "Security Fixes",
@@ -536,7 +587,9 @@
     {
       "version": "2.2.4",
       "date": "2026-05-24",
-      "tags": ["main"],
+      "tags": [
+        "main"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -570,7 +623,9 @@
     {
       "version": "2.2.3",
       "date": "2026-05-22",
-      "tags": ["main"],
+      "tags": [
+        "main"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -606,7 +661,9 @@
     {
       "version": "2.2.2",
       "date": "2026-05-16",
-      "tags": ["hotfix"],
+      "tags": [
+        "hotfix"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -635,7 +692,9 @@
     {
       "version": "2.2.1",
       "date": "2026-05-07",
-      "tags": ["main"],
+      "tags": [
+        "main"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -651,7 +710,9 @@
     {
       "version": "2.2.0",
       "date": "2026-05-03",
-      "tags": ["main"],
+      "tags": [
+        "main"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -702,7 +763,9 @@
     {
       "version": "2.1.2",
       "date": "2026-04-26",
-      "tags": ["v2.1.2"],
+      "tags": [
+        "v2.1.2"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -760,7 +823,9 @@
     {
       "version": "2.1.1",
       "date": "2026-04-20",
-      "tags": ["v2.1.1"],
+      "tags": [
+        "v2.1.1"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -800,7 +865,9 @@
     {
       "version": "2.1.0",
       "date": "2026-04-20",
-      "tags": ["v2.1.0"],
+      "tags": [
+        "v2.1.0"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -847,7 +914,9 @@
     {
       "version": "2.0.4",
       "date": "2026-04-13",
-      "tags": ["v2.0.4"],
+      "tags": [
+        "v2.0.4"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -864,7 +933,9 @@
     {
       "version": "2.0.3",
       "date": "2026-04-12",
-      "tags": ["v2.0.3"],
+      "tags": [
+        "v2.0.3"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -878,7 +949,9 @@
     {
       "version": "2.0.2",
       "date": "2026-04-12",
-      "tags": ["v2.0.2"],
+      "tags": [
+        "v2.0.2"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -892,7 +965,9 @@
     {
       "version": "2.0.1",
       "date": "2026-04-11",
-      "tags": ["v2.0.1"],
+      "tags": [
+        "v2.0.1"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -908,7 +983,9 @@
     {
       "version": "1.9.0",
       "date": "2026-04-09",
-      "tags": ["v1.9_dev"],
+      "tags": [
+        "v1.9_dev"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -1042,12 +1119,16 @@
     {
       "version": "1.0.0",
       "date": null,
-      "tags": ["Initial Release"],
+      "tags": [
+        "Initial Release"
+      ],
       "sections": [
         {
           "category": "Added",
           "emoji": "✅",
-          "items": ["Initial MVP with engine detection and one-click launch."]
+          "items": [
+            "Initial MVP with engine detection and one-click launch."
+          ]
         }
       ]
     }

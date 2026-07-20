@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.4.8] - 2026-07-20 — `feature · bugfix · quality`
+## [2.5.0] - 2026-07-20 — `feature · bugfix · quality`
 
 ### Changed
 
