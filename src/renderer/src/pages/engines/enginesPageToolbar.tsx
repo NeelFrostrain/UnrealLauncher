@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React from 'react'
 import { Plus, RefreshCw, Zap, ShoppingBag, ChevronDown, Check, Store } from 'lucide-react'
 import DropdownPortal from '../../components/ui/DropdownPortal'
@@ -48,14 +48,14 @@ export function EnginesPageToolbar({
 }: EnginesPageToolbarProps): React.ReactElement {
   return (
     <div
-      className="flex items-center gap-3 py-3 shrink-0 border-b"
+      className="flex flex-wrap items-center gap-3 py-3 shrink-0 border-b"
       style={{ borderColor: 'var(--color-border)' }}
     >
       {/* Tabs */}
       <div
         role="tablist"
         aria-label="Engine tabs"
-        className="flex items-center gap-0.5 px-1 py-1 rounded-lg"
+        className="flex flex-wrap items-center gap-0.5 px-1 py-1 rounded-lg"
         style={{
           backgroundColor: 'var(--color-surface-card)',
           border: '1px solid var(--color-border)'

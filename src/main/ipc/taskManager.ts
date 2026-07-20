@@ -23,7 +23,7 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
         const { stdout } = await execAsync(cmd, { encoding: 'utf8', timeout: 8000 })
         const trimmed = stdout.trim()
         if (!trimmed) return []
-        
+
         let parsed: any
         try {
           parsed = JSON.parse(trimmed)
@@ -105,17 +105,20 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
     }
   })
 
-  ipcMain_.handle('task-manager-kill-process', async (_event, pid: number): Promise<{ success: boolean; error?: string }> => {
-    try {
-      if (process.platform === 'win32') {
-        await execAsync(`taskkill /F /PID ${pid}`, { windowsHide: true })
-      } else {
-        await execAsync(`kill -9 ${pid}`)
+  ipcMain_.handle(
+    'task-manager-kill-process',
+    async (_event, pid: number): Promise<{ success: boolean; error?: string }> => {
+      try {
+        if (process.platform === 'win32') {
+          await execAsync(`taskkill /F /PID ${pid}`, { windowsHide: true })
+        } else {
+          await execAsync(`kill -9 ${pid}`)
+        }
+        return { success: true }
+      } catch (err: any) {
+        console.error(`Failed to kill process ${pid}:`, err)
+        return { success: false, error: err.message || String(err) }
       }
-      return { success: true }
-    } catch (err: any) {
-      console.error(`Failed to kill process ${pid}:`, err)
-      return { success: false, error: err.message || String(err) }
     }
-  })
+  )
 }

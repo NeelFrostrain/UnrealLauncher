@@ -1,15 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
 import { useEffect, useRef, useState, type FC } from 'react'
-import {
-  Plus,
-  RefreshCw,
-  Search,
-  LayoutGrid,
-  LayoutList,
-  History,
-  Filter,
-} from 'lucide-react'
+import { Plus, RefreshCw, Search, LayoutGrid, LayoutList, History, Filter } from 'lucide-react'
 import type { TabType } from '../../types'
 import type { SortConfig, EngineVersionFilter } from './projectUtils'
 import { SortDropdown } from './toolbar/SortDropdown'
@@ -67,7 +59,7 @@ function EngineVersionDropdown({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((current) => !current)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 font-medium transition-all cursor-pointer"
         aria-label={`Filter by engine version: ${activeLabel}`}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -77,7 +69,8 @@ function EngineVersionDropdown({
             ? 'color-mix(in srgb, var(--color-accent) 15%, var(--color-surface-card))'
             : 'var(--color-surface-card)',
           border: `1px solid ${open ? 'var(--color-accent)' : 'var(--color-border)'}`,
-          color: 'var(--color-text-secondary)'
+          color: 'var(--color-text-secondary)',
+          fontSize: 'calc(var(--font-size) * 0.75)'
         }}
         title="Filter projects by engine version"
       >
@@ -96,7 +89,7 @@ function EngineVersionDropdown({
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius)',
             boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-            fontSize: '12px'
+            fontSize: 'calc(var(--font-size) * 0.85)'
           }}
         >
           {options.map((option) => {
@@ -127,7 +120,8 @@ function EngineVersionDropdown({
                       : 'var(--color-text-secondary)',
                   backgroundColor: isActive
                     ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)'
-                    : 'transparent'
+                    : 'transparent',
+                  fontSize: 'calc(var(--font-size) * 0.85)'
                 }}
               >
                 <span>{option.label}</span>
@@ -169,11 +163,11 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       style={{ borderColor: 'var(--color-border)' }}
     >
       {/* Left: Tabs + optional inline search */}
-      <div className="flex w-full items-center gap-2">
+      <div className="flex flex-wrap w-full items-center gap-2">
         <div
           role="tablist"
           aria-label="Project tabs"
-          className="flex items-center gap-0.5 px-1 py-1"
+          className="flex flex-wrap items-center gap-0.5 px-1 py-1"
           style={{
             backgroundColor: 'var(--color-surface-card)',
             border: '1px solid var(--color-border)',
@@ -241,7 +235,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         )} */}
       </div>
 
-      <div className='flex items-center ml-auto gap-1'>
+      <div className="flex items-center ml-auto gap-1 shrink-0">
         <div className="flex items-center gap-1">
           <SortDropdown sortConfig={sortConfig} onSortChange={onSortChange} />
           <EngineVersionDropdown
@@ -255,7 +249,10 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         <div className="flex w-full justify-end items-center gap-1">
           <div
             className="flex items-center"
-            style={{ borderRadius: 'calc(var(--radius) * 0.75)', border: '1px solid var(--color-border)' }}
+            style={{
+              borderRadius: 'calc(var(--radius) * 0.75)',
+              border: '1px solid var(--color-border)'
+            }}
           >
             <button
               onClick={() => onViewChange('list')}
@@ -361,7 +358,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
             onClick={onAddProject}
             disabled={addingProject}
             // className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-            className='flex items-center gap-1.5 px-3 py-1.5 font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed whitespace-nowrap'
+            className="flex items-center gap-1.5 px-3 py-1.5 font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed whitespace-nowrap"
             style={{
               borderRadius: 'var(--radius)',
               backgroundColor: 'var(--color-accent)',
@@ -374,7 +371,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
           </button>
         </div>
       </div>
-    </div >
+    </div>
   )
 }
 

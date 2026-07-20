@@ -1,10 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import {
-  Activity,
-  Cpu,
-  HardDrive,
-  Layers
-} from 'lucide-react'
+import { Activity, Cpu, HardDrive, Layers } from 'lucide-react'
 import { useToast } from '../components/ui/ToastContext'
 import PageWrapper from '../layout/PageWrapper'
 import TasksToolbar from '../components/tasks/TasksToolbar'

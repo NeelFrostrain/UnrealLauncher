@@ -42,11 +42,7 @@ interface SnapshotProgress {
 // ── Small reusable progress bar ────────────────────────────────────────────────
 function ProgressBar({ progress }: { progress: SnapshotProgress }): React.ReactElement {
   const hasPct = typeof progress.percentage === 'number'
-  const pct = hasPct
-    ? progress.percentage!
-    : progress.phase === 'done'
-      ? 100
-      : null // null → show shimmer
+  const pct = hasPct ? progress.percentage! : progress.phase === 'done' ? 100 : null // null → show shimmer
 
   const isDone = progress.phase === 'done'
 
@@ -82,14 +78,19 @@ function ProgressBar({ progress }: { progress: SnapshotProgress }): React.ReactE
           <div
             className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
             style={{
-              backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-card))',
+              backgroundColor:
+                'color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-card))',
               border: '1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border))'
             }}
           >
             {isDone ? (
               <Archive size={12} style={{ color: 'var(--color-accent)' }} />
             ) : (
-              <RefreshCw size={11} className="animate-spin" style={{ color: 'var(--color-accent)' }} />
+              <RefreshCw
+                size={11}
+                className="animate-spin"
+                style={{ color: 'var(--color-accent)' }}
+              />
             )}
           </div>
 
@@ -106,9 +107,11 @@ function ProgressBar({ progress }: { progress: SnapshotProgress }): React.ReactE
               <span
                 className="text-[10px] font-medium px-1.5 py-0.5 leading-none shrink-0"
                 style={{
-                  backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, var(--color-surface-card))',
+                  backgroundColor:
+                    'color-mix(in srgb, var(--color-accent) 10%, var(--color-surface-card))',
                   color: 'color-mix(in srgb, var(--color-accent) 85%, var(--color-text-primary))',
-                  border: '1px solid color-mix(in srgb, var(--color-accent) 20%, var(--color-border))',
+                  border:
+                    '1px solid color-mix(in srgb, var(--color-accent) 20%, var(--color-border))',
                   borderRadius: 'calc(var(--radius) * 0.4)'
                 }}
               >
@@ -137,10 +140,7 @@ function ProgressBar({ progress }: { progress: SnapshotProgress }): React.ReactE
             </span>
           )}
           {progress.archiveSizeBytes !== undefined && progress.archiveSizeBytes > 0 && (
-            <span
-              className="text-[11px] tabular-nums"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
+            <span className="text-[11px] tabular-nums" style={{ color: 'var(--color-text-muted)' }}>
               {formatBytes(progress.archiveSizeBytes)}
             </span>
           )}
@@ -192,7 +192,6 @@ function ProgressBar({ progress }: { progress: SnapshotProgress }): React.ReactE
     </div>
   )
 }
-
 
 // ── Main dialog ─────────────────────────────────────────────────────────────────
 export default function ProjectSnapshotsDialog({
@@ -264,7 +263,10 @@ export default function ProjectSnapshotsDialog({
     setProgress({ phase: 'scanning', current: 0, total: 0, message: 'Preparing…' })
 
     try {
-      const res = await (window.electronAPI.projectCreateSnapshotWithProgress ?? window.electronAPI.projectCreateSnapshot)(projectPath, name)
+      const res = await (
+        window.electronAPI.projectCreateSnapshotWithProgress ??
+        window.electronAPI.projectCreateSnapshot
+      )(projectPath, name)
       if (res.error) {
         addToast(res.error, 'error')
       } else {
@@ -288,9 +290,15 @@ export default function ProjectSnapshotsDialog({
     try {
       const res = await window.electronAPI.projectRestoreSnapshot(projectPath, id)
       if (res.error) addToast(res.error, 'error')
-      else { addToast('Project restored from snapshot!', 'success'); loadSnapshots() }
-    } catch { addToast('Failed to restore snapshot', 'error') }
-    finally { setActionLoading(null) }
+      else {
+        addToast('Project restored from snapshot!', 'success')
+        loadSnapshots()
+      }
+    } catch {
+      addToast('Failed to restore snapshot', 'error')
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   const handleDelete = async (id: string) => {
@@ -299,9 +307,15 @@ export default function ProjectSnapshotsDialog({
     try {
       const res = await window.electronAPI.projectDeleteSnapshot(projectPath, id)
       if (res.error) addToast(res.error, 'error')
-      else { addToast('Snapshot deleted', 'success'); loadSnapshots() }
-    } catch { addToast('Failed to delete snapshot', 'error') }
-    finally { setActionLoading(null) }
+      else {
+        addToast('Snapshot deleted', 'success')
+        loadSnapshots()
+      }
+    } catch {
+      addToast('Failed to delete snapshot', 'error')
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   const filteredSnapshots = useMemo(() => {
@@ -366,7 +380,10 @@ export default function ProjectSnapshotsDialog({
           }}
         >
           <div className="flex items-start gap-3">
-            <Info size={14} style={{ color: 'var(--color-accent)', marginTop: '2px', flexShrink: 0 }} />
+            <Info
+              size={14}
+              style={{ color: 'var(--color-accent)', marginTop: '2px', flexShrink: 0 }}
+            />
             <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
               Each snapshot is stored as a{' '}
               <span className="font-mono px-1 py-0.5 bg-black/20 rounded">.7z</span> archive with
@@ -473,7 +490,11 @@ export default function ProjectSnapshotsDialog({
         <div className="flex-1 min-h-0 overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-40">
-              <RefreshCw className="animate-spin" size={18} style={{ color: 'var(--color-accent)' }} />
+              <RefreshCw
+                className="animate-spin"
+                size={18}
+                style={{ color: 'var(--color-accent)' }}
+              />
             </div>
           ) : filteredSnapshots.length > 0 ? (
             <div className="overflow-y-auto h-full">
@@ -495,7 +516,8 @@ export default function ProjectSnapshotsDialog({
                       <span
                         className="shrink-0 text-xs px-1.5 py-0.5 font-medium"
                         style={{
-                          backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)',
+                          backgroundColor:
+                            'color-mix(in srgb, var(--color-accent) 10%, transparent)',
                           color: 'var(--color-accent)',
                           borderRadius: 'calc(var(--radius) * 0.5)'
                         }}
@@ -544,7 +566,10 @@ export default function ProjectSnapshotsDialog({
                         <button
                           onClick={() => setConfirmRestoreId(null)}
                           className="px-3 py-1.5 text-xs hover:bg-white/5 transition-colors"
-                          style={{ color: 'var(--color-text-secondary)', borderRadius: 'var(--radius)' }}
+                          style={{
+                            color: 'var(--color-text-secondary)',
+                            borderRadius: 'var(--radius)'
+                          }}
                         >
                           Cancel
                         </button>
@@ -588,7 +613,10 @@ export default function ProjectSnapshotsDialog({
             <div className="flex flex-col items-center justify-center h-40 text-center gap-3">
               <Database size={36} style={{ color: 'var(--color-text-muted)', opacity: 0.4 }} />
               <div>
-                <p className="font-medium text-sm mb-1" style={{ color: 'var(--color-text-primary)' }}>
+                <p
+                  className="font-medium text-sm mb-1"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   No snapshots yet
                 </p>
                 <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>

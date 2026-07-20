@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
 /**
  * A launch configuration profile that controls which Unreal Engine features
@@ -122,11 +122,11 @@ export const DEFAULT_CONFIG: Omit<LaunchConfig, 'id' | 'name' | 'description'> =
 
 /** Resolution-quality mapping used per scalability tier (matches UE's own scaling curve better than a flat 50/75/100 split) */
 const RESOLUTION_QUALITY_BY_TIER: Record<0 | 1 | 2 | 3 | 4, number> = {
-  0: 50,   // Low
-  1: 71,   // Medium
-  2: 87,   // High
-  3: 100,  // Epic
-  4: 100   // Cinematic (supersampling handled separately, not via res quality)
+  0: 50, // Low
+  1: 71, // Medium
+  2: 87, // High
+  3: 100, // Epic
+  4: 100 // Cinematic (supersampling handled separately, not via res quality)
 }
 
 /** Lean, high-FPS preset: cheap GI, no ray tracing, minimal post-process cost */
@@ -313,7 +313,7 @@ export function buildLaunchArgs(config: LaunchConfig): string[] {
     const level = config.scalability
     const resQuality = RESOLUTION_QUALITY_BY_TIER[level]
     args.push(
-      `-ExecCmds=sg.ResolutionQuality ${resQuality},sg.ViewDistanceQuality ${level},sg.AntiAliasingQuality ${level},sg.ShadowQuality ${level},sg.GlobalIlluminationQuality ${level},sg.ReflectionQuality ${level},sg.PostProcessQuality ${level},sg.TextureQuality ${level},sg.EffectsQuality ${level},sg.FoliageQuality ${level},sg.ShadingQuality ${level}`
+      `-ExecCmds=sg.ResolutionQuality ${resQuality},sg.ViewDistanceQuality ${level},sg.AntiAliasingQuality ${level},sg.ShadowQuality ${level},sg.GlobalIlluminationQuality ${level},sg.ReflectionQuality ${level},sg.PostProcessQuality ${level},sg.TextureQuality ${level},sg.EffectsQuality ${level},sg.FoliageQuality ${level},sg.ShadingQuality ${level},sg.LandscapeQuality ${level}`
     )
   }
 

@@ -185,8 +185,10 @@ export const PluginListCard = memo(
                   className="shrink-0 text-[8px] font-mono px-1.5 py-0.5"
                   style={{
                     color: 'var(--color-engine-version-text)',
-                    backgroundColor: 'color-mix(in srgb, var(--color-engine-version-text) 10%, transparent)',
-                    border: '1px solid color-mix(in srgb, var(--color-engine-version-text) 20%, transparent)',
+                    backgroundColor:
+                      'color-mix(in srgb, var(--color-engine-version-text) 10%, transparent)',
+                    border:
+                      '1px solid color-mix(in srgb, var(--color-engine-version-text) 20%, transparent)',
                     borderRadius: 'calc(var(--radius) * 0.5)'
                   }}
                 >
@@ -202,8 +204,12 @@ export const PluginListCard = memo(
               )}
               {isDisabled && <Badge label="Disabled" color="#ef4444" />}
             </div>
-            <p className="text-[10px] line-clamp-1 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-              {plugin.description || (plugin.createdBy ? `By ${plugin.createdBy}` : 'Engine plugin')}
+            <p
+              className="text-[10px] line-clamp-1 leading-relaxed"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              {plugin.description ||
+                (plugin.createdBy ? `By ${plugin.createdBy}` : 'Engine plugin')}
             </p>
           </div>
 
@@ -217,10 +223,7 @@ export const PluginListCard = memo(
                 <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
                   Default
                 </span>
-                <Toggle
-                  checked={!isDisabled}
-                  onChange={() => onToggleDefault(plugin)}
-                />
+                <Toggle checked={!isDisabled} onChange={() => onToggleDefault(plugin)} />
               </div>
             )}
 
@@ -399,10 +402,7 @@ export const PluginGridCard = memo(
               <span className="text-[9px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
                 EnabledByDefault
               </span>
-              <Toggle
-                checked={!isDisabled}
-                onChange={() => onToggleDefault(plugin)}
-              />
+              <Toggle checked={!isDisabled} onChange={() => onToggleDefault(plugin)} />
             </div>
           )}
         </div>
@@ -458,10 +458,22 @@ export const CategorySection = memo(
           {open ? (
             <ChevronRight
               size={12}
-              style={{ color: 'var(--color-accent)', flexShrink: 0, transform: 'rotate(90deg)', transition: 'transform 150ms' }}
+              style={{
+                color: 'var(--color-accent)',
+                flexShrink: 0,
+                transform: 'rotate(90deg)',
+                transition: 'transform 150ms'
+              }}
             />
           ) : (
-            <ChevronRight size={12} style={{ color: 'var(--color-text-muted)', flexShrink: 0, transition: 'transform 150ms' }} />
+            <ChevronRight
+              size={12}
+              style={{
+                color: 'var(--color-text-muted)',
+                flexShrink: 0,
+                transition: 'transform 150ms'
+              }}
+            />
           )}
           <span className="flex-1 text-left font-medium">{category}</span>
           <span

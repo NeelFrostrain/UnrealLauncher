@@ -48,11 +48,7 @@ export const showErrorToast = (message: string): void => {
 const ACTIVITY_STORAGE_KEY = 'unrealLauncherProjectActivity'
 
 type ProjectActivityType =
-  | 'launch'
-  | 'engine-launch'
-  | 'plugin-change'
-  | 'git-commit'
-  | 'config-edit'
+  'launch' | 'engine-launch' | 'plugin-change' | 'git-commit' | 'config-edit'
 
 export interface ProjectActivityEntry {
   id: string

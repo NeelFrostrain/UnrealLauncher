@@ -264,7 +264,10 @@ declare global {
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>
       scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
-      toggleEnginePluginDefault: (pluginPath: string, enabled: boolean) => Promise<{ success: boolean; error?: string }>
+      toggleEnginePluginDefault: (
+        pluginPath: string,
+        enabled: boolean
+      ) => Promise<{ success: boolean; error?: string }>
       clearEnginePluginCache: () => Promise<void>
       getEnginePluginCacheTTL: () => Promise<number>
       setEnginePluginCacheTTL: (ms: number) => Promise<void>
@@ -414,12 +417,14 @@ declare global {
       onOpenCommandPalette: (callback: () => void) => () => void
       onPaletteNavigate: (callback: (route: string) => void) => () => void
       onPaletteAction: (callback: (commandId: string) => void) => () => void
-      onSnapshotProgress: (callback: (data: {
-        current: number;
-        total: number;
-        message: string;
-        percentage: number;
-      }) => void) => () => void
+      onSnapshotProgress: (
+        callback: (data: {
+          current: number
+          total: number
+          message: string
+          percentage: number
+        }) => void
+      ) => () => void
       taskManagerGetProcesses: () => Promise<SystemProcess[]>
       taskManagerKillProcess: (pid: number) => Promise<{ success: boolean; error?: string }>
     }

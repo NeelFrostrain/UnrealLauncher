@@ -122,8 +122,11 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-check-health', projectPath),
       projectAnalyzeAssets: (projectPath: string) =>
         ipcRenderer.invoke('project-analyze-assets', projectPath),
-      projectExportAssetReport: (projectPath: string, reportContent: string, format: 'json' | 'md') =>
-        ipcRenderer.invoke('project-export-asset-report', projectPath, reportContent, format),
+      projectExportAssetReport: (
+        projectPath: string,
+        reportContent: string,
+        format: 'json' | 'md'
+      ) => ipcRenderer.invoke('project-export-asset-report', projectPath, reportContent, format),
       projectGetSnapshots: (projectPath: string) =>
         ipcRenderer.invoke('project-get-snapshots', projectPath),
       projectCreateSnapshot: (projectPath: string, name: string) =>
@@ -229,18 +232,23 @@ if (process.contextIsolated) {
           ipcRenderer.removeListener('palette-action', listener)
         }
       },
-      onSnapshotProgress: (callback: (data: {
-        current: number;
-        total: number;
-        message: string;
-        percentage: number;
-      }) => void): (() => void) => {
-        const listener = (_event: Electron.IpcRendererEvent, data: {
-          current: number;
-          total: number;
-          message: string;
-          percentage: number;
-        }): void => callback(data)
+      onSnapshotProgress: (
+        callback: (data: {
+          current: number
+          total: number
+          message: string
+          percentage: number
+        }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          data: {
+            current: number
+            total: number
+            message: string
+            percentage: number
+          }
+        ): void => callback(data)
         ipcRenderer.on('snapshot-progress', listener)
         return (): void => {
           ipcRenderer.removeListener('snapshot-progress', listener)

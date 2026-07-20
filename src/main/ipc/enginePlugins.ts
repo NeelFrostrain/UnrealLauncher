@@ -117,7 +117,8 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
     const disk = loadPluginCacheFromDisk()
     const entry = disk[cacheKey]
     if (entry && entry.signature === signature && Date.now() - entry.ts < pluginCacheTTL) {
-      const hasNewFields = entry.plugins.length === 0 || entry.plugins[0].enabledByDefault !== undefined
+      const hasNewFields =
+        entry.plugins.length === 0 || entry.plugins[0].enabledByDefault !== undefined
       if (hasNewFields) {
         enginePluginCache.set(cacheKey, { signature, plugins: entry.plugins })
         return entry.plugins
@@ -131,7 +132,7 @@ export async function scanEnginePlugins(engineDir: string): Promise<EnginePlugin
   const native = getNative()
   if (native?.scanEnginePlugins) {
     try {
-      const result = await native.scanEnginePlugins(engineDir) as unknown
+      const result = (await native.scanEnginePlugins(engineDir)) as unknown
       type NativePlugin = {
         name?: string
         path?: string
@@ -294,7 +295,7 @@ export async function toggleEnginePluginDefault(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const files = await fs.promises.readdir(pluginPath)
-    const upluginFile = files.find(f => f.endsWith('.uplugin'))
+    const upluginFile = files.find((f) => f.endsWith('.uplugin'))
     if (!upluginFile) {
       throw new Error('No .uplugin file found in directory')
     }

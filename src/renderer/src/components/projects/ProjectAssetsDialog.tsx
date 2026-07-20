@@ -1,14 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import {
-  X,
-  RefreshCw,
-  AlertTriangle,
-  Layers,
-  Search,
-  Download
-} from 'lucide-react'
+import { X, RefreshCw, AlertTriangle, Layers, Search, Download } from 'lucide-react'
 import { useToast } from '../ui/ToastContext'
 
 interface ProjectAssetsDialogProps {
@@ -18,15 +11,15 @@ interface ProjectAssetsDialogProps {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Textures: '#3b82f6',     // Blue
-  Materials: '#10b981',    // Emerald
-  Meshes: '#f59e0b',       // Amber
-  Animations: '#ec4899',   // Pink
-  Audio: '#8b5cf6',        // Purple
-  Blueprints: '#06b6d4',   // Cyan
-  Niagara: '#f43f5e',      // Rose
-  Maps: '#14b8a6',         // Teal
-  Other: '#6b7280'         // Gray
+  Textures: '#3b82f6', // Blue
+  Materials: '#10b981', // Emerald
+  Meshes: '#f59e0b', // Amber
+  Animations: '#ec4899', // Pink
+  Audio: '#8b5cf6', // Purple
+  Blueprints: '#06b6d4', // Cyan
+  Niagara: '#f43f5e', // Rose
+  Maps: '#14b8a6', // Teal
+  Other: '#6b7280' // Gray
 }
 
 export default function ProjectAssetsDialog({
@@ -76,7 +69,7 @@ export default function ProjectAssetsDialog({
       if (group.length <= 1) return acc
       const size = group[0].sizeBytes
       const wastedCount = group.length - 1
-      return acc + (size * wastedCount)
+      return acc + size * wastedCount
     }, 0)
   }, [report])
 
@@ -118,7 +111,7 @@ export default function ProjectAssetsDialog({
       content += `- **Total Asset Files:** ${report.totalAssets}\n`
       content += `- **Total Asset Size:** ${formatBytes(report.totalSizeBytes)}\n`
       content += `- **Total Redundant Duplicate Space:** ${formatBytes(totalWastedBytes)}\n\n`
-      
+
       content += `## Category Breakdown\n`
       content += `| Category | Count | Size |\n`
       content += `| --- | --- | --- |\n`
@@ -210,7 +203,11 @@ export default function ProjectAssetsDialog({
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-3">
-              <RefreshCw className="animate-spin text-accent" size={32} style={{ color: 'var(--color-accent)' }} />
+              <RefreshCw
+                className="animate-spin text-accent"
+                size={32}
+                style={{ color: 'var(--color-accent)' }}
+              />
               <p className="text-sm font-medium" style={{ color: 'var(--color-text-muted)' }}>
                 Scanning Content assets and calculating file hashes...
               </p>
@@ -227,10 +224,16 @@ export default function ProjectAssetsDialog({
                     border: '1px solid var(--color-border)'
                   }}
                 >
-                  <span className="block text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-muted)' }}>
+                  <span
+                    className="block text-[10px] font-bold uppercase tracking-wider mb-1"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
                     Total Assets
                   </span>
-                  <span className="text-xl font-black" style={{ color: 'var(--color-text-primary)' }}>
+                  <span
+                    className="text-xl font-black"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
                     {report.totalAssets.toLocaleString()}
                   </span>
                 </div>
@@ -242,10 +245,16 @@ export default function ProjectAssetsDialog({
                     border: '1px solid var(--color-border)'
                   }}
                 >
-                  <span className="block text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-muted)' }}>
+                  <span
+                    className="block text-[10px] font-bold uppercase tracking-wider mb-1"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
                     Total Footprint
                   </span>
-                  <span className="text-xl font-black text-accent" style={{ color: 'var(--color-accent)' }}>
+                  <span
+                    className="text-xl font-black text-accent"
+                    style={{ color: 'var(--color-accent)' }}
+                  >
                     {formatBytes(report.totalSizeBytes)}
                   </span>
                 </div>
@@ -257,18 +266,29 @@ export default function ProjectAssetsDialog({
                     border: '1px solid var(--color-border)'
                   }}
                 >
-                  <span className="block text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
+                  <span
+                    className="block text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
                     Duplicate Waste
                     {totalWastedBytes > 0 && <AlertTriangle size={12} className="text-amber-500" />}
                   </span>
-                  <span className="text-xl font-black" style={{ color: totalWastedBytes > 0 ? '#f59e0b' : 'var(--color-text-primary)' }}>
+                  <span
+                    className="text-xl font-black"
+                    style={{
+                      color: totalWastedBytes > 0 ? '#f59e0b' : 'var(--color-text-primary)'
+                    }}
+                  >
                     {formatBytes(totalWastedBytes)}
                   </span>
                 </div>
               </div>
 
               {/* Tabs */}
-              <div className="flex gap-2 shrink-0 border-b pb-3" style={{ borderColor: 'var(--color-border)' }}>
+              <div
+                className="flex gap-2 shrink-0 border-b pb-3"
+                style={{ borderColor: 'var(--color-border)' }}
+              >
                 {(['stats', 'largest', 'duplicates'] as const).map((tab) => (
                   <button
                     key={tab}
@@ -278,9 +298,14 @@ export default function ProjectAssetsDialog({
                     }}
                     className="px-4 py-1.5 text-xs font-bold rounded cursor-pointer transition-colors"
                     style={{
-                      backgroundColor: activeTab === tab ? 'var(--color-surface-elevated)' : 'transparent',
-                      color: activeTab === tab ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-                      border: activeTab === tab ? '1px solid var(--color-border)' : '1px solid transparent'
+                      backgroundColor:
+                        activeTab === tab ? 'var(--color-surface-elevated)' : 'transparent',
+                      color:
+                        activeTab === tab ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+                      border:
+                        activeTab === tab
+                          ? '1px solid var(--color-border)'
+                          : '1px solid transparent'
                     }}
                   >
                     {tab === 'stats' && 'Asset Categories'}
@@ -293,7 +318,10 @@ export default function ProjectAssetsDialog({
               {/* Tab Contents */}
               {activeTab === 'stats' && (
                 <div className="space-y-4">
-                  <h3 className="text-sm font-extrabold uppercase tracking-wide" style={{ color: 'var(--color-text-muted)' }}>
+                  <h3
+                    className="text-sm font-extrabold uppercase tracking-wide"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
                     Asset Size Breakdown
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -301,7 +329,10 @@ export default function ProjectAssetsDialog({
                       .filter((c) => c.count > 0)
                       .sort((a, b) => b.sizeBytes - a.sizeBytes)
                       .map((cat) => {
-                        const pct = report.totalSizeBytes > 0 ? (cat.sizeBytes / report.totalSizeBytes) * 100 : 0
+                        const pct =
+                          report.totalSizeBytes > 0
+                            ? (cat.sizeBytes / report.totalSizeBytes) * 100
+                            : 0
                         const themeColor = CATEGORY_COLORS[cat.category] || CATEGORY_COLORS.Other
                         return (
                           <div
@@ -321,15 +352,24 @@ export default function ProjectAssetsDialog({
                                 />
                                 {cat.category}
                               </span>
-                              <span className="text-xs font-semibold" style={{ color: 'var(--color-text-muted)' }}>
+                              <span
+                                className="text-xs font-semibold"
+                                style={{ color: 'var(--color-text-muted)' }}
+                              >
                                 {cat.count.toLocaleString()} assets
                               </span>
                             </div>
                             <div className="flex justify-between items-baseline">
-                              <span className="text-lg font-black" style={{ color: 'var(--color-text-primary)' }}>
+                              <span
+                                className="text-lg font-black"
+                                style={{ color: 'var(--color-text-primary)' }}
+                              >
                                 {formatBytes(cat.sizeBytes)}
                               </span>
-                              <span className="text-xs font-mono font-bold" style={{ color: themeColor }}>
+                              <span
+                                className="text-xs font-mono font-bold"
+                                style={{ color: themeColor }}
+                              >
                                 {pct.toFixed(1)}%
                               </span>
                             </div>
@@ -356,7 +396,14 @@ export default function ProjectAssetsDialog({
 
               {activeTab === 'largest' && (
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2 px-3 py-2" style={{ backgroundColor: 'var(--color-surface-elevated)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}>
+                  <div
+                    className="flex items-center gap-2 px-3 py-2"
+                    style={{
+                      backgroundColor: 'var(--color-surface-elevated)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius)'
+                    }}
+                  >
                     <Search size={14} style={{ color: 'var(--color-text-muted)' }} />
                     <input
                       type="text"
@@ -368,13 +415,39 @@ export default function ProjectAssetsDialog({
                     />
                   </div>
 
-                  <div className="overflow-x-auto" style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}>
+                  <div
+                    className="overflow-x-auto"
+                    style={{
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius)'
+                    }}
+                  >
                     <table className="w-full text-left border-collapse text-xs">
                       <thead>
-                        <tr style={{ backgroundColor: 'var(--color-surface-elevated)', borderBottom: '1px solid var(--color-border)' }}>
-                          <th className="p-3 font-bold" style={{ color: 'var(--color-text-muted)' }}>Asset Name</th>
-                          <th className="p-3 font-bold" style={{ color: 'var(--color-text-muted)' }}>Path</th>
-                          <th className="p-3 font-bold text-right" style={{ color: 'var(--color-text-muted)' }}>Size</th>
+                        <tr
+                          style={{
+                            backgroundColor: 'var(--color-surface-elevated)',
+                            borderBottom: '1px solid var(--color-border)'
+                          }}
+                        >
+                          <th
+                            className="p-3 font-bold"
+                            style={{ color: 'var(--color-text-muted)' }}
+                          >
+                            Asset Name
+                          </th>
+                          <th
+                            className="p-3 font-bold"
+                            style={{ color: 'var(--color-text-muted)' }}
+                          >
+                            Path
+                          </th>
+                          <th
+                            className="p-3 font-bold text-right"
+                            style={{ color: 'var(--color-text-muted)' }}
+                          >
+                            Size
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -383,22 +456,40 @@ export default function ProjectAssetsDialog({
                             <tr
                               key={i}
                               className="hover:bg-white/5 transition-colors"
-                              style={{ borderBottom: i < filteredLargest.length - 1 ? '1px solid var(--color-border)' : '0' }}
+                              style={{
+                                borderBottom:
+                                  i < filteredLargest.length - 1
+                                    ? '1px solid var(--color-border)'
+                                    : '0'
+                              }}
                             >
-                              <td className="p-3 font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                              <td
+                                className="p-3 font-bold"
+                                style={{ color: 'var(--color-text-primary)' }}
+                              >
                                 {asset.name}
                               </td>
-                              <td className="p-3 font-mono text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>
+                              <td
+                                className="p-3 font-mono text-[10px]"
+                                style={{ color: 'var(--color-text-secondary)' }}
+                              >
                                 {asset.path}
                               </td>
-                              <td className="p-3 text-right font-semibold" style={{ color: 'var(--color-accent)' }}>
+                              <td
+                                className="p-3 text-right font-semibold"
+                                style={{ color: 'var(--color-accent)' }}
+                              >
                                 {formatBytes(asset.sizeBytes)}
                               </td>
                             </tr>
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={3} className="p-8 text-center text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                            <td
+                              colSpan={3}
+                              className="p-8 text-center text-xs"
+                              style={{ color: 'var(--color-text-muted)' }}
+                            >
                               No matching assets found.
                             </td>
                           </tr>
@@ -412,7 +503,14 @@ export default function ProjectAssetsDialog({
               {activeTab === 'duplicates' && (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center gap-4 flex-wrap">
-                    <div className="flex-1 min-w-[200px] flex items-center gap-2 px-3 py-2" style={{ backgroundColor: 'var(--color-surface-elevated)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}>
+                    <div
+                      className="flex-1 min-w-[200px] flex items-center gap-2 px-3 py-2"
+                      style={{
+                        backgroundColor: 'var(--color-surface-elevated)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius)'
+                      }}
+                    >
                       <Search size={14} style={{ color: 'var(--color-text-muted)' }} />
                       <input
                         type="text"
@@ -442,20 +540,35 @@ export default function ProjectAssetsDialog({
                             }}
                           >
                             <div className="flex justify-between items-baseline flex-wrap gap-2">
-                              <span className="text-xs font-extrabold" style={{ color: 'var(--color-text-primary)' }}>
+                              <span
+                                className="text-xs font-extrabold"
+                                style={{ color: 'var(--color-text-primary)' }}
+                              >
                                 Duplicate group: {group[0].name}
                               </span>
-                              <span className="text-xs font-mono font-bold" style={{ color: '#f59e0b' }}>
+                              <span
+                                className="text-xs font-mono font-bold"
+                                style={{ color: '#f59e0b' }}
+                              >
                                 {count} copies · {formatBytes(wasted)} redundant
                               </span>
                             </div>
-                            <div className="pl-3 border-l-2 space-y-1.5" style={{ borderColor: 'var(--color-border)' }}>
+                            <div
+                              className="pl-3 border-l-2 space-y-1.5"
+                              style={{ borderColor: 'var(--color-border)' }}
+                            >
                               {group.map((asset, i) => (
                                 <div key={i} className="flex justify-between items-center gap-4">
-                                  <span className="text-[10px] font-mono truncate" style={{ color: 'var(--color-text-secondary)' }}>
+                                  <span
+                                    className="text-[10px] font-mono truncate"
+                                    style={{ color: 'var(--color-text-secondary)' }}
+                                  >
                                     {asset.path}
                                   </span>
-                                  <span className="text-[10px] font-bold tracking-wide shrink-0" style={{ color: 'var(--color-text-muted)' }}>
+                                  <span
+                                    className="text-[10px] font-bold tracking-wide shrink-0"
+                                    style={{ color: 'var(--color-text-muted)' }}
+                                  >
                                     {formatBytes(asset.sizeBytes)}
                                   </span>
                                 </div>
@@ -478,7 +591,8 @@ export default function ProjectAssetsDialog({
                       <Layers size={28} />
                       <p className="text-xs font-bold">No duplicate assets detected</p>
                       <p className="text-[10px] text-center max-w-sm">
-                        All files under the Content directory produce unique hash signatures. Excellent optimization!
+                        All files under the Content directory produce unique hash signatures.
+                        Excellent optimization!
                       </p>
                     </div>
                   )}
@@ -495,7 +609,10 @@ export default function ProjectAssetsDialog({
         {/* Footer */}
         <div
           className="flex items-center justify-between px-6 py-4 shrink-0"
-          style={{ borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-elevated)' }}
+          style={{
+            borderTop: '1px solid var(--color-border)',
+            backgroundColor: 'var(--color-surface-elevated)'
+          }}
         >
           <div className="flex gap-2">
             <button

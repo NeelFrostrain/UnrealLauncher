@@ -134,7 +134,9 @@ export default function TasksContent({
     return {
       totalMem: formatBytes(totalMemVal),
       totalCount: filteredProcesses.length,
-      topCpu: topCpuProc ? `${(topCpuProc as SystemProcess).name} (${formatCpuTime(maxCpuVal)})` : 'None'
+      topCpu: topCpuProc
+        ? `${(topCpuProc as SystemProcess).name} (${formatCpuTime(maxCpuVal)})`
+        : 'None'
     }
   }, [filteredProcesses])
 
@@ -274,7 +276,11 @@ export default function TasksContent({
               <p className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
                 Top CPU Task
               </p>
-              <p className="text-sm font-semibold mt-2 truncate max-w-[180px]" style={{ color: 'var(--color-text-primary)' }} title={metrics.topCpu}>
+              <p
+                className="text-sm font-semibold mt-2 truncate max-w-[180px]"
+                style={{ color: 'var(--color-text-primary)' }}
+                title={metrics.topCpu}
+              >
                 {metrics.topCpu}
               </p>
             </div>
@@ -289,10 +295,7 @@ export default function TasksContent({
           <div className="flex flex-col items-center justify-center h-full py-24 space-y-4">
             <RefreshCw className="animate-spin text-blue-500" size={32} />
             <div className="text-center space-y-1">
-              <p
-                className="text-sm font-bold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
+              <p className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
                 Scanning System
               </p>
               <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
@@ -320,19 +323,34 @@ export default function TasksContent({
                   className="rounded border-white/10 bg-white/5 cursor-pointer accent-blue-600 w-3.5 h-3.5"
                 />
               </div>
-              <div className="col-span-3 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('name')}>
+              <div
+                className="col-span-3 cursor-pointer hover:text-white transition-colors"
+                onClick={() => handleSort('name')}
+              >
                 Process / Executable {renderSortIndicator('name')}
               </div>
-              <div className="col-span-1 text-right cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('pid')}>
+              <div
+                className="col-span-1 text-right cursor-pointer hover:text-white transition-colors"
+                onClick={() => handleSort('pid')}
+              >
                 PID {renderSortIndicator('pid')}
               </div>
-              <div className="col-span-2 text-center cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('type')}>
+              <div
+                className="col-span-2 text-center cursor-pointer hover:text-white transition-colors"
+                onClick={() => handleSort('type')}
+              >
                 Category {renderSortIndicator('type')}
               </div>
-              <div className="col-span-2 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('memory')}>
+              <div
+                className="col-span-2 cursor-pointer hover:text-white transition-colors"
+                onClick={() => handleSort('memory')}
+              >
                 Memory Usage {renderSortIndicator('memory')}
               </div>
-              <div className="col-span-2 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('cpu')}>
+              <div
+                className="col-span-2 cursor-pointer hover:text-white transition-colors"
+                onClick={() => handleSort('cpu')}
+              >
                 CPU Time {renderSortIndicator('cpu')}
               </div>
               <div className="col-span-1 text-right">Actions</div>
@@ -439,7 +457,10 @@ export default function TasksContent({
                   {/* CPU Time Column with subtle timeline bar */}
                   <div className="col-span-2 flex flex-col gap-1 pr-2">
                     <div className="flex justify-between items-baseline text-xs font-medium">
-                      <span style={{ color: 'var(--color-text-primary)' }} className="flex items-center gap-1">
+                      <span
+                        style={{ color: 'var(--color-text-primary)' }}
+                        className="flex items-center gap-1"
+                      >
                         <Clock size={11} className="text-pink-400" />
                         {formatCpuTime(proc.cpuSeconds)}
                       </span>
@@ -501,14 +522,12 @@ export default function TasksContent({
           >
             <AlertTriangle size={48} className="opacity-50 text-amber-500" />
             <div className="space-y-2">
-              <p
-                className="text-lg font-bold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
+              <p className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
                 No Processes Found
               </p>
               <p className="text-sm max-w-sm" style={{ color: 'var(--color-text-muted)' }}>
-                No processes matching the current filter were detected. Try adjusting your search or filter settings.
+                No processes matching the current filter were detected. Try adjusting your search or
+                filter settings.
               </p>
             </div>
           </div>

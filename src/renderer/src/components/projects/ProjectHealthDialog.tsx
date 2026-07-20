@@ -158,7 +158,11 @@ export default function ProjectHealthDialog({
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-16 space-y-3">
-              <RefreshCw className="animate-spin text-accent" size={32} style={{ color: 'var(--color-accent)' }} />
+              <RefreshCw
+                className="animate-spin text-accent"
+                size={32}
+                style={{ color: 'var(--color-accent)' }}
+              />
               <p className="text-sm font-medium" style={{ color: 'var(--color-text-muted)' }}>
                 Analyzing project directories and files...
               </p>
@@ -198,10 +202,16 @@ export default function ProjectHealthDialog({
                     />
                   </svg>
                   <div className="absolute flex flex-col items-center justify-center">
-                    <span className="text-2xl font-black" style={{ color: 'var(--color-text-primary)' }}>
+                    <span
+                      className="text-2xl font-black"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
                       {report.score}
                     </span>
-                    <span className="text-[10px] uppercase font-bold" style={{ color: 'var(--color-text-muted)' }}>
+                    <span
+                      className="text-[10px] uppercase font-bold"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
                       Score
                     </span>
                   </div>
@@ -215,7 +225,10 @@ export default function ProjectHealthDialog({
                       Project Status: {statusStyle.label}
                     </h3>
                   </div>
-                  <p className="text-xs" style={{ color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>
+                  <p
+                    className="text-xs"
+                    style={{ color: 'var(--color-text-secondary)', lineHeight: '1.4' }}
+                  >
                     {report.score === 100
                       ? 'No issues detected! Your project structure is completely aligned with standard configurations and storage guidelines.'
                       : report.score >= 90
@@ -238,19 +251,31 @@ export default function ProjectHealthDialog({
               >
                 <div className="flex items-center gap-6">
                   <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                    <span
+                      className="block text-[10px] font-bold uppercase tracking-wider"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
                       Intermediate Directory
                     </span>
-                    <span className="text-sm font-mono font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                    <span
+                      className="text-sm font-mono font-semibold"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
                       {formatBytes(report.intermediateSize)}
                     </span>
                   </div>
                   <div style={{ borderLeft: '1px solid var(--color-border)', height: '24px' }} />
                   <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                    <span
+                      className="block text-[10px] font-bold uppercase tracking-wider"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
                       Saved Directory
                     </span>
-                    <span className="text-sm font-mono font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                    <span
+                      className="text-sm font-mono font-semibold"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
                       {formatBytes(report.savedSize)}
                     </span>
                   </div>
@@ -274,7 +299,10 @@ export default function ProjectHealthDialog({
 
               {/* Detailed checks / issues */}
               <div className="space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                <h4
+                  className="text-xs font-bold uppercase tracking-wider"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   Analysis &amp; Warnings ({report.issues.length})
                 </h4>
 
@@ -285,7 +313,10 @@ export default function ProjectHealthDialog({
                       <p className="text-xs font-semibold" style={{ color: '#10b981' }}>
                         All structural checks passed
                       </p>
-                      <p className="text-[11px] mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                      <p
+                        className="text-[11px] mt-0.5"
+                        style={{ color: 'var(--color-text-muted)' }}
+                      >
                         Essential configuration, directories, and dependencies are intact.
                       </p>
                     </div>
@@ -327,8 +358,14 @@ export default function ProjectHealthDialog({
                           >
                             {issue.message}
                           </p>
-                          <p className="text-[11px] mt-1" style={{ color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>
-                            <span className="font-bold text-accent mr-1" style={{ color: 'var(--color-accent)' }}>
+                          <p
+                            className="text-[11px] mt-1"
+                            style={{ color: 'var(--color-text-secondary)', lineHeight: '1.4' }}
+                          >
+                            <span
+                              className="font-bold text-accent mr-1"
+                              style={{ color: 'var(--color-accent)' }}
+                            >
                               Recommendation:
                             </span>
                             {issue.recommendation}
@@ -350,7 +387,10 @@ export default function ProjectHealthDialog({
         {/* Footer */}
         <div
           className="flex items-center justify-between px-6 py-4"
-          style={{ borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-elevated)' }}
+          style={{
+            borderTop: '1px solid var(--color-border)',
+            backgroundColor: 'var(--color-surface-elevated)'
+          }}
         >
           <button
             onClick={runAnalysis}

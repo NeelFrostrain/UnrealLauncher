@@ -1,12 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef, useEffect } from 'react'
-import {
-  Activity,
-  RefreshCw,
-  Search,
-  X,
-  Trash2
-} from 'lucide-react'
+import { Activity, RefreshCw, Search, X, Trash2 } from 'lucide-react'
 import type { ProcessFilterType } from '../../types'
 
 interface TasksToolbarProps {
@@ -158,7 +152,11 @@ export default function TasksToolbar({
                   }}
                 >
                   {tab.icon && (
-                    <span style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
+                    <span
+                      style={{
+                        color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)'
+                      }}
+                    >
                       {tab.icon}
                     </span>
                   )}
@@ -190,10 +188,7 @@ export default function TasksToolbar({
               style={{ color: 'var(--color-text-primary)' }}
             />
             {searchQuery && (
-              <button
-                onClick={() => onSearchChange('')}
-                className="cursor-pointer shrink-0"
-              >
+              <button onClick={() => onSearchChange('')} className="cursor-pointer shrink-0">
                 <X size={10} style={{ color: 'var(--color-text-muted)' }} />
               </button>
             )}
@@ -211,7 +206,9 @@ export default function TasksToolbar({
               className="flex items-center p-1.5 cursor-pointer transition-colors border shrink-0"
               style={{
                 borderRadius: 'var(--radius)',
-                backgroundColor: searchOpen ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)' : 'var(--color-surface-card)',
+                backgroundColor: searchOpen
+                  ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+                  : 'var(--color-surface-card)',
                 color: searchOpen ? 'var(--color-accent)' : 'var(--color-text-muted)',
                 borderColor: 'var(--color-border)'
               }}

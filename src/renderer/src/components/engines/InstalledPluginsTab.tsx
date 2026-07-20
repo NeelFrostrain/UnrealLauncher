@@ -1,6 +1,26 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { RefreshCw, Search, LayoutGrid, LayoutList, Package, AlertTriangle, HelpCircle, Save, Undo2, CheckSquare, Download, Upload, Trash2, CheckCircle2, XCircle, ChevronDown, Check, X, MoreVertical } from 'lucide-react'
+import {
+  RefreshCw,
+  Search,
+  LayoutGrid,
+  LayoutList,
+  Package,
+  AlertTriangle,
+  HelpCircle,
+  Save,
+  Undo2,
+  CheckSquare,
+  Download,
+  Upload,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  ChevronDown,
+  Check,
+  X,
+  MoreVertical
+} from 'lucide-react'
 import { usePluginsState } from './plugins/usePluginsState'
 import { CategorySection, PluginThumb, Badge } from './plugins/PluginCards'
 import { useToast } from '../../components/ui/ToastContext'
@@ -212,7 +232,11 @@ function MoreActionsDropdown({
               if (!loading) e.currentTarget.style.backgroundColor = 'transparent'
             }}
           >
-            <RefreshCw size={11} className={loading ? 'animate-spin' : ''} style={{ color: 'var(--color-text-muted)' }} />
+            <RefreshCw
+              size={11}
+              className={loading ? 'animate-spin' : ''}
+              style={{ color: 'var(--color-text-muted)' }}
+            />
             <span>{loading ? 'Refreshing…' : 'Refresh'}</span>
           </button>
 
@@ -233,7 +257,10 @@ function MoreActionsDropdown({
                   e.currentTarget.style.backgroundColor = 'transparent'
                 }}
               >
-                <CheckSquare size={11} style={{ color: selectMode ? 'var(--color-accent)' : 'var(--color-text-muted)' }} />
+                <CheckSquare
+                  size={11}
+                  style={{ color: selectMode ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
+                />
                 <span>{selectMode ? 'Exit Select Mode' : 'Select Mode'}</span>
               </button>
 
@@ -525,19 +552,26 @@ const InstalledPluginsTab = ({
         } else {
           failCount++
           setPlugins((prev) =>
-            prev.map((item) => (item.path === p.path ? { ...item, enabledByDefault: !targetState } : item))
+            prev.map((item) =>
+              item.path === p.path ? { ...item, enabledByDefault: !targetState } : item
+            )
           )
         }
       } catch {
         failCount++
         setPlugins((prev) =>
-          prev.map((item) => (item.path === p.path ? { ...item, enabledByDefault: !targetState } : item))
+          prev.map((item) =>
+            item.path === p.path ? { ...item, enabledByDefault: !targetState } : item
+          )
         )
       }
     }
 
     if (historyChanges.length > 0) {
-      addHistoryEntry(`Bulk ${targetState ? 'enabled' : 'disabled'} ${historyChanges.length} plugins`, historyChanges)
+      addHistoryEntry(
+        `Bulk ${targetState ? 'enabled' : 'disabled'} ${historyChanges.length} plugins`,
+        historyChanges
+      )
     }
 
     if (failCount > 0) {
@@ -572,7 +606,12 @@ const InstalledPluginsTab = ({
 
   // Reset local scan cache
   const handleResetCache = async () => {
-    if (!window.confirm('Reset local plugin scan cache? This forces a fresh scanner query of your engine directory.')) return
+    if (
+      !window.confirm(
+        'Reset local plugin scan cache? This forces a fresh scanner query of your engine directory.'
+      )
+    )
+      return
     try {
       await window.electronAPI.clearEnginePluginCache()
       addToast('Scan cache cleared successfully.', 'success')
@@ -640,13 +679,17 @@ const InstalledPluginsTab = ({
             } else {
               failCount++
               setPlugins((prev) =>
-                prev.map((p) => (p.path === change.path ? { ...p, enabledByDefault: change.oldVal } : p))
+                prev.map((p) =>
+                  p.path === change.path ? { ...p, enabledByDefault: change.oldVal } : p
+                )
               )
             }
           } catch {
             failCount++
             setPlugins((prev) =>
-              prev.map((p) => (p.path === change.path ? { ...p, enabledByDefault: change.oldVal } : p))
+              prev.map((p) =>
+                p.path === change.path ? { ...p, enabledByDefault: change.oldVal } : p
+              )
             )
           }
         }
@@ -692,7 +735,9 @@ const InstalledPluginsTab = ({
         } else {
           failCount++
           setPlugins((prev) =>
-            prev.map((p) => (p.path === change.path ? { ...p, enabledByDefault: change.newVal } : p))
+            prev.map((p) =>
+              p.path === change.path ? { ...p, enabledByDefault: change.newVal } : p
+            )
           )
         }
       } catch {
@@ -715,7 +760,8 @@ const InstalledPluginsTab = ({
   }
 
   const handleExportPresets = () => {
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(customPresets, null, 2))
+    const dataStr =
+      'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(customPresets, null, 2))
     const downloadAnchor = document.createElement('a')
     downloadAnchor.setAttribute('href', dataStr)
     downloadAnchor.setAttribute('download', `unreal_launcher_presets_${engineVersion}.json`)
@@ -769,10 +815,14 @@ const InstalledPluginsTab = ({
             <button
               onClick={() => setActiveSubTab('plugins')}
               style={{
-                color: activeSubTab === 'plugins' ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-                backgroundColor: activeSubTab === 'plugins'
-                  ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
-                  : 'transparent',
+                color:
+                  activeSubTab === 'plugins'
+                    ? 'var(--color-text-primary)'
+                    : 'var(--color-text-muted)',
+                backgroundColor:
+                  activeSubTab === 'plugins'
+                    ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
+                    : 'transparent',
                 boxShadow: activeSubTab === 'plugins' ? '0 1px 3px rgba(0,0,0,0.3)' : 'none',
                 borderRadius: 'calc(var(--radius) * 0.85)',
                 fontSize: 'calc(var(--font-size) * 0.75)'
@@ -784,10 +834,14 @@ const InstalledPluginsTab = ({
             <button
               onClick={() => setActiveSubTab('presets')}
               style={{
-                color: activeSubTab === 'presets' ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-                backgroundColor: activeSubTab === 'presets'
-                  ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
-                  : 'transparent',
+                color:
+                  activeSubTab === 'presets'
+                    ? 'var(--color-text-primary)'
+                    : 'var(--color-text-muted)',
+                backgroundColor:
+                  activeSubTab === 'presets'
+                    ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
+                    : 'transparent',
                 boxShadow: activeSubTab === 'presets' ? '0 1px 3px rgba(0,0,0,0.3)' : 'none',
                 borderRadius: 'calc(var(--radius) * 0.85)',
                 fontSize: 'calc(var(--font-size) * 0.75)  '
@@ -799,10 +853,14 @@ const InstalledPluginsTab = ({
             <button
               onClick={() => setActiveSubTab('history')}
               style={{
-                color: activeSubTab === 'history' ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-                backgroundColor: activeSubTab === 'history'
-                  ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
-                  : 'transparent',
+                color:
+                  activeSubTab === 'history'
+                    ? 'var(--color-text-primary)'
+                    : 'var(--color-text-muted)',
+                backgroundColor:
+                  activeSubTab === 'history'
+                    ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
+                    : 'transparent',
                 boxShadow: activeSubTab === 'history' ? '0 1px 3px rgba(0,0,0,0.3)' : 'none',
                 borderRadius: 'calc(var(--radius) * 0.85)',
                 fontSize: 'calc(var(--font-size) * 0.75)'
@@ -889,14 +947,19 @@ const InstalledPluginsTab = ({
               {/* View Mode Toggle */}
               <div
                 className="flex items-center overflow-hidden border shrink-0"
-                style={{ borderRadius: 'calc(var(--radius) * 0.85)', borderColor: 'var(--color-border)' }}
+                style={{
+                  borderRadius: 'calc(var(--radius) * 0.85)',
+                  borderColor: 'var(--color-border)'
+                }}
               >
                 <button
                   onClick={() => handleViewChange('list')}
                   className="flex items-center p-1.5 cursor-pointer transition-colors"
                   style={{
-                    backgroundColor: viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
-                    color: viewMode === 'list' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+                    backgroundColor:
+                      viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+                    color:
+                      viewMode === 'list' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
                   }}
                   title="List view"
                 >
@@ -906,8 +969,10 @@ const InstalledPluginsTab = ({
                   onClick={() => handleViewChange('grid')}
                   className="flex items-center p-1.5 cursor-pointer transition-colors"
                   style={{
-                    backgroundColor: viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
-                    color: viewMode === 'grid' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+                    backgroundColor:
+                      viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+                    color:
+                      viewMode === 'grid' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
                   }}
                   title="Grid view"
                 >
@@ -921,7 +986,9 @@ const InstalledPluginsTab = ({
                 className="flex items-center p-1.5 cursor-pointer transition-colors border shrink-0"
                 style={{
                   borderRadius: 'var(--radius)',
-                  backgroundColor: searchOpen ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)' : 'var(--color-surface-card)',
+                  backgroundColor: searchOpen
+                    ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
+                    : 'var(--color-surface-card)',
                   color: searchOpen ? 'var(--color-accent)' : 'var(--color-text-muted)',
                   borderColor: 'var(--color-border)'
                 }}
@@ -1018,7 +1085,9 @@ const InstalledPluginsTab = ({
               }}
             >
               <div className="flex items-center gap-3">
-                <span className="font-medium text-white text-xs">{selectedPaths.size} selected</span>
+                <span className="font-medium text-white text-xs">
+                  {selectedPaths.size} selected
+                </span>
                 <button
                   onClick={handleSelectAllVisible}
                   className="text-xs px-2.5 py-1 rounded cursor-pointer font-medium border"
@@ -1068,9 +1137,13 @@ const InstalledPluginsTab = ({
               style={{ color: 'var(--color-text-muted)', borderColor: 'var(--color-border)' }}
             >
               <div className="flex items-center gap-2 flex-wrap">
-                <span>Showing {totalVisible} of {plugins.length} plugins</span>
+                <span>
+                  Showing {totalVisible} of {plugins.length} plugins
+                </span>
                 <span>•</span>
-                <span>Total: <span style={{ color: 'var(--color-text-primary)' }}>{stats.total}</span></span>
+                <span>
+                  Total: <span style={{ color: 'var(--color-text-primary)' }}>{stats.total}</span>
+                </span>
                 <span>•</span>
                 <span style={{ color: '#10b981' }}>{stats.enabled} Enabled</span>
                 <span>•</span>
@@ -1160,8 +1233,13 @@ const InstalledPluginsTab = ({
 
       {activeSubTab === 'presets' && (
         <div className="flex-1 overflow-y-auto py-3 flex flex-col gap-4 font-normal">
-          <div className="flex items-center justify-between border-b pb-2.5 shrink-0" style={{ borderColor: 'var(--color-border)' }}>
-            <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Presets Library</h3>
+          <div
+            className="flex items-center justify-between border-b pb-2.5 shrink-0"
+            style={{ borderColor: 'var(--color-border)' }}
+          >
+            <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              Presets Library
+            </h3>
             <div className="flex items-center gap-2">
               <input
                 type="file"
@@ -1173,14 +1251,24 @@ const InstalledPluginsTab = ({
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium cursor-pointer rounded border shrink-0 whitespace-nowrap"
-                style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)', borderRadius: 'var(--radius)' }}
+                style={{
+                  backgroundColor: 'var(--color-surface-card)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-secondary)',
+                  borderRadius: 'var(--radius)'
+                }}
               >
                 <Upload size={12} /> Import
               </button>
               <button
                 onClick={handleExportPresets}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium cursor-pointer rounded border shrink-0 whitespace-nowrap"
-                style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)', borderRadius: 'var(--radius)' }}
+                style={{
+                  backgroundColor: 'var(--color-surface-card)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-secondary)',
+                  borderRadius: 'var(--radius)'
+                }}
               >
                 <Download size={12} /> Export Custom
               </button>
@@ -1189,17 +1277,28 @@ const InstalledPluginsTab = ({
 
           {/* Built-in Presets */}
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--color-text-muted)' }}>Built-in Templates</span>
+            <span
+              className="text-xs font-medium tracking-wide uppercase"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              Built-in Templates
+            </span>
             <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
               {BUILTIN_PRESETS.map((p) => (
                 <div
                   key={p.id}
                   className="p-4 flex flex-col gap-3 rounded border"
-                  style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)', borderRadius: 'var(--radius)' }}
+                  style={{
+                    backgroundColor: 'var(--color-surface-card)',
+                    borderColor: 'var(--color-border)',
+                    borderRadius: 'var(--radius)'
+                  }}
                 >
                   <span className="text-sm font-medium text-white">{p.name}</span>
                   <div className="flex items-center justify-between mt-auto pt-2">
-                    <span className="text-[10px] font-medium px-2 py-0.5 bg-cyan-950/40 border border-cyan-800 text-cyan-400 rounded">Template</span>
+                    <span className="text-[10px] font-medium px-2 py-0.5 bg-cyan-950/40 border border-cyan-800 text-cyan-400 rounded">
+                      Template
+                    </span>
                     <button
                       onClick={() => handlePrepApplyPreset(p)}
                       className="px-3 py-1 text-xs font-medium bg-indigo-600 hover:opacity-90 text-white rounded cursor-pointer shrink-0 whitespace-nowrap"
@@ -1215,10 +1314,20 @@ const InstalledPluginsTab = ({
 
           {/* Custom Presets */}
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--color-text-muted)' }}>Custom Presets</span>
+            <span
+              className="text-xs font-medium tracking-wide uppercase"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              Custom Presets
+            </span>
             {customPresets.length === 0 ? (
-              <div className="p-8 text-center border border-dashed rounded" style={{ borderColor: 'var(--color-border)', borderRadius: 'var(--radius)' }}>
-                <span className="text-sm text-neutral-400">No custom presets saved. Click "Save Preset" in the Plugins tab.</span>
+              <div
+                className="p-8 text-center border border-dashed rounded"
+                style={{ borderColor: 'var(--color-border)', borderRadius: 'var(--radius)' }}
+              >
+                <span className="text-sm text-neutral-400">
+                  No custom presets saved. Click "Save Preset" in the Plugins tab.
+                </span>
               </div>
             ) : (
               <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
@@ -1226,11 +1335,17 @@ const InstalledPluginsTab = ({
                   <div
                     key={p.id}
                     className="p-4 flex flex-col gap-3 rounded border"
-                    style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)', borderRadius: 'var(--radius)' }}
+                    style={{
+                      backgroundColor: 'var(--color-surface-card)',
+                      borderColor: 'var(--color-border)',
+                      borderRadius: 'var(--radius)'
+                    }}
                   >
                     <span className="text-sm font-medium text-white">{p.name}</span>
                     <div className="flex items-center justify-between mt-auto pt-2">
-                      <span className="text-[10px] font-medium px-2 py-0.5 bg-green-950/40 border border-green-800 text-green-400 rounded">User Custom</span>
+                      <span className="text-[10px] font-medium px-2 py-0.5 bg-green-950/40 border border-green-800 text-green-400 rounded">
+                        User Custom
+                      </span>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleDeletePreset(p.id, p.name)}
@@ -1257,8 +1372,13 @@ const InstalledPluginsTab = ({
 
       {activeSubTab === 'history' && (
         <div className="flex-1 overflow-y-auto py-3 flex flex-col gap-2 font-normal">
-          <div className="flex items-center justify-between border-b pb-2.5 mb-2" style={{ borderColor: 'var(--color-border)' }}>
-            <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Local Change History</h3>
+          <div
+            className="flex items-center justify-between border-b pb-2.5 mb-2"
+            style={{ borderColor: 'var(--color-border)' }}
+          >
+            <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              Local Change History
+            </h3>
             <button
               onClick={() => {
                 if (window.confirm('Clear all change history?')) {
@@ -1287,7 +1407,11 @@ const InstalledPluginsTab = ({
                 <div
                   key={entry.id}
                   className="p-4 border rounded flex items-start justify-between gap-4"
-                  style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)', borderRadius: 'var(--radius)' }}
+                  style={{
+                    backgroundColor: 'var(--color-surface-card)',
+                    borderColor: 'var(--color-border)',
+                    borderRadius: 'var(--radius)'
+                  }}
                 >
                   <div className="flex-1 min-w-0 flex flex-col gap-1.5 font-normal">
                     <span className="text-xs font-medium text-white">{entry.description}</span>
@@ -1298,9 +1422,21 @@ const InstalledPluginsTab = ({
                       {entry.changes.map((c, i) => (
                         <div key={i} className="flex items-center gap-1.5">
                           <span style={{ color: 'var(--color-text-muted)' }}>{c.name}:</span>
-                          <span className={c.oldVal ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>{c.oldVal ? 'ON' : 'OFF'}</span>
+                          <span
+                            className={
+                              c.oldVal ? 'text-green-400 font-medium' : 'text-red-400 font-medium'
+                            }
+                          >
+                            {c.oldVal ? 'ON' : 'OFF'}
+                          </span>
                           <span style={{ color: 'var(--color-text-muted)' }}>→</span>
-                          <span className={c.newVal ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>{c.newVal ? 'ON' : 'OFF'}</span>
+                          <span
+                            className={
+                              c.newVal ? 'text-green-400 font-medium' : 'text-red-400 font-medium'
+                            }
+                          >
+                            {c.newVal ? 'ON' : 'OFF'}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -1328,32 +1464,69 @@ const InstalledPluginsTab = ({
         <div className="absolute inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 font-normal">
           <div
             className="w-full max-w-md p-5 rounded-lg shadow-2xl flex flex-col gap-4"
-            style={{ backgroundColor: 'var(--color-surface-elevated)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
+            style={{
+              backgroundColor: 'var(--color-surface-elevated)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius)'
+            }}
           >
             <div className="flex items-start gap-2.5 text-amber-400">
               <CheckSquare size={18} />
               <div className="flex-1">
-                <h4 className="text-sm font-medium text-white">Apply Preset "{diffModal.presetName}"</h4>
-                <p className="text-xs mt-1 text-neutral-400" style={{ color: 'var(--color-text-secondary)' }}>
+                <h4 className="text-sm font-medium text-white">
+                  Apply Preset "{diffModal.presetName}"
+                </h4>
+                <p
+                  className="text-xs mt-1 text-neutral-400"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
                   Please review the modifications to plugin default settings before applying:
                 </p>
               </div>
             </div>
 
-            <div className="max-h-48 overflow-y-auto border p-3 flex flex-col gap-1 text-[10px] font-mono rounded font-normal" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-card)', borderRadius: 'var(--radius)' }}>
+            <div
+              className="max-h-48 overflow-y-auto border p-3 flex flex-col gap-1 text-[10px] font-mono rounded font-normal"
+              style={{
+                borderColor: 'var(--color-border)',
+                backgroundColor: 'var(--color-surface-card)',
+                borderRadius: 'var(--radius)'
+              }}
+            >
               {diffModal.changes.map((change, i) => (
-                <div key={i} className="flex justify-between items-center gap-2 py-1.5 border-b last:border-0" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-                  <span className="truncate text-white font-medium" title={change.name}>{change.name}</span>
+                <div
+                  key={i}
+                  className="flex justify-between items-center gap-2 py-1.5 border-b last:border-0"
+                  style={{ borderColor: 'rgba(255,255,255,0.05)' }}
+                >
+                  <span className="truncate text-white font-medium" title={change.name}>
+                    {change.name}
+                  </span>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className={change.oldVal ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>{change.oldVal ? 'ON' : 'OFF'}</span>
+                    <span
+                      className={
+                        change.oldVal ? 'text-green-400 font-medium' : 'text-red-400 font-medium'
+                      }
+                    >
+                      {change.oldVal ? 'ON' : 'OFF'}
+                    </span>
                     <span style={{ color: 'var(--color-text-muted)' }}>→</span>
-                    <span className={change.newVal ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>{change.newVal ? 'ON' : 'OFF'}</span>
+                    <span
+                      className={
+                        change.newVal ? 'text-green-400 font-medium' : 'text-red-400 font-medium'
+                      }
+                    >
+                      {change.newVal ? 'ON' : 'OFF'}
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="flex justify-between items-center text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            <div
+              className="flex justify-between items-center text-xs"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               <span>Total changes: {diffModal.changes.length} plugins</span>
             </div>
 
@@ -1361,7 +1534,12 @@ const InstalledPluginsTab = ({
               <button
                 onClick={() => setDiffModal(null)}
                 className="px-4 py-2 text-xs font-medium rounded transition-colors cursor-pointer border"
-                style={{ backgroundColor: 'var(--color-surface-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', borderRadius: 'var(--radius)' }}
+                style={{
+                  backgroundColor: 'var(--color-surface-card)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-secondary)',
+                  borderRadius: 'var(--radius)'
+                }}
               >
                 Cancel
               </button>
@@ -1402,7 +1580,9 @@ const InstalledPluginsTab = ({
               </div>
               <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <h3 className="text-sm font-medium text-white truncate">{selectedPluginDetails.name}</h3>
+                  <h3 className="text-sm font-medium text-white truncate">
+                    {selectedPluginDetails.name}
+                  </h3>
                   {selectedPluginDetails.version && (
                     <span
                       className="text-[10px] font-mono px-2 py-0.5 border"
@@ -1417,17 +1597,24 @@ const InstalledPluginsTab = ({
                     </span>
                   )}
                   {selectedPluginDetails.source === 'Project' ? (
-                    <Badge label={`Project: ${selectedPluginDetails.projectName}`} color="#10b981" />
+                    <Badge
+                      label={`Project: ${selectedPluginDetails.projectName}`}
+                      color="#10b981"
+                    />
                   ) : (
                     <Badge label="Engine" color="#06b6d4" />
                   )}
                 </div>
                 <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                  Category: <span className="font-medium text-white">{selectedPluginDetails.category}</span>
+                  Category:{' '}
+                  <span className="font-medium text-white">{selectedPluginDetails.category}</span>
                 </span>
                 {selectedPluginDetails.createdBy && (
                   <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                    Created by: <span className="text-white font-medium">{selectedPluginDetails.createdBy}</span>
+                    Created by:{' '}
+                    <span className="text-white font-medium">
+                      {selectedPluginDetails.createdBy}
+                    </span>
                   </span>
                 )}
               </div>
@@ -1436,44 +1623,71 @@ const InstalledPluginsTab = ({
             {/* Content Body */}
             <div className="flex-1 flex flex-col gap-4 py-2 overflow-y-auto">
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Description</span>
+                <span
+                  className="text-[10px] uppercase tracking-wider"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  Description
+                </span>
                 <p className="text-xs leading-relaxed text-neutral-200">
                   {selectedPluginDetails.description || 'No description provided for this plugin.'}
                 </p>
               </div>
 
-              {selectedPluginDetails.dependencies && selectedPluginDetails.dependencies.length > 0 && (
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Dependencies</span>
-                  <div className="flex flex-wrap gap-1.5 font-normal">
-                    {selectedPluginDetails.dependencies.map((d) => (
-                      <span
-                        key={d}
-                        className="px-2 py-0.5 font-mono text-[10px] border font-normal"
-                        style={{
-                          backgroundColor: 'var(--color-surface-card)',
-                          borderColor: 'var(--color-border)',
-                          borderRadius: 'calc(var(--radius) * 0.4)',
-                          color: 'var(--color-text-secondary)'
-                        }}
-                      >
-                        {d}
-                      </span>
-                    ))}
+              {selectedPluginDetails.dependencies &&
+                selectedPluginDetails.dependencies.length > 0 && (
+                  <div className="flex flex-col gap-1">
+                    <span
+                      className="text-[10px] uppercase tracking-wider"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
+                      Dependencies
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 font-normal">
+                      {selectedPluginDetails.dependencies.map((d) => (
+                        <span
+                          key={d}
+                          className="px-2 py-0.5 font-mono text-[10px] border font-normal"
+                          style={{
+                            backgroundColor: 'var(--color-surface-card)',
+                            borderColor: 'var(--color-border)',
+                            borderRadius: 'calc(var(--radius) * 0.4)',
+                            color: 'var(--color-text-secondary)'
+                          }}
+                        >
+                          {d}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Location</span>
-                <span className="text-[10px] font-mono break-all p-2 border rounded font-normal" style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)', color: 'var(--color-text-muted)', borderRadius: 'var(--radius)' }}>
+                <span
+                  className="text-[10px] uppercase tracking-wider"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  Location
+                </span>
+                <span
+                  className="text-[10px] font-mono break-all p-2 border rounded font-normal"
+                  style={{
+                    backgroundColor: 'var(--color-surface-card)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-muted)',
+                    borderRadius: 'var(--radius)'
+                  }}
+                >
                   {selectedPluginDetails.path}
                 </span>
               </div>
             </div>
 
             {/* Links and Actions */}
-            <div className="flex items-center justify-between border-t pt-3.5 mt-1" style={{ borderColor: 'var(--color-border)' }}>
+            <div
+              className="flex items-center justify-between border-t pt-3.5 mt-1"
+              style={{ borderColor: 'var(--color-border)' }}
+            >
               <div className="flex gap-2 font-normal">
                 {selectedPluginDetails.docsUrl && (
                   <button
@@ -1488,7 +1702,12 @@ const InstalledPluginsTab = ({
                   <button
                     onClick={() => window.open(selectedPluginDetails.supportUrl, '_blank')}
                     className="px-4 py-2 text-xs font-medium rounded transition-colors cursor-pointer border"
-                    style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)', borderRadius: 'var(--radius)' }}
+                    style={{
+                      backgroundColor: 'var(--color-surface-card)',
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-text-secondary)',
+                      borderRadius: 'var(--radius)'
+                    }}
                   >
                     Support URL
                   </button>
@@ -1498,7 +1717,12 @@ const InstalledPluginsTab = ({
               <button
                 onClick={() => setSelectedPluginDetails(null)}
                 className="px-5 py-2 text-xs font-medium rounded transition-colors cursor-pointer border"
-                style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)', borderRadius: 'var(--radius)' }}
+                style={{
+                  backgroundColor: 'var(--color-surface-card)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-secondary)',
+                  borderRadius: 'var(--radius)'
+                }}
               >
                 Close
               </button>

@@ -64,7 +64,10 @@ export interface NativeModule {
     content: string
     sizeBytes: number
   } | null
-  tailLatestProjectLog?: (projectPath: string, lines: number) => {
+  tailLatestProjectLog?: (
+    projectPath: string,
+    lines: number
+  ) => {
     logPath: string
     content: string
     sizeBytes: number

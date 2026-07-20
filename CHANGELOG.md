@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.8] - 2026-07-20 — `feature · bugfix · quality`
+
+### ⚙️ Changed
+
+- Redesigned Settings Page navigation to use a horizontal tab-bar layout matching the Engines and Projects pages.
+
+### ✨ Added
+
+- Added `sg.LandscapeQuality` to Unreal Engine scalability presets command-line generation, ensuring landscape quality scales with chosen quality profiles (Low, Medium, etc.) in newer engine versions instead of defaulting to Epic.
+
+### 🐛 Fixed
+
+- Fixed horizontal layout and titlebar overflow bugs in narrow window views by utilizing `flex-wrap` and setting proper flex-basis limits (`min-w-0`) across the main layout columns.
+
 ## [2.4.7] - 2026-07-15 — `refactor · pathing`
 
 ### ⚙️ Changed

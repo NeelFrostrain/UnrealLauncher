@@ -23,7 +23,6 @@ const RadiusControl = ({
   scale,
   setScale
 }: RadiusControlProps): React.ReactElement => {
-
   const handleScale = (v: number): void => {
     setScale(v)
     applyScale(v)

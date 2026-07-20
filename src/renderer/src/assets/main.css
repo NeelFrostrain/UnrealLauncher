@@ -344,6 +344,10 @@ body.no-animations *::after {
 
 /* ── Snapshot progress shimmer ──────────────────────────────────────────────── */
 @keyframes shimmer {
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(300%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
 }

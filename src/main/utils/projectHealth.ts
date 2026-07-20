@@ -73,7 +73,8 @@ export async function checkProjectHealth(projectPath: string): Promise<HealthRep
       issues.push({
         type: 'warning',
         message: 'Engine version is unknown or missing in .uproject',
-        recommendation: 'Open the project descriptor or right-click the project to set/associate a valid engine version.'
+        recommendation:
+          'Open the project descriptor or right-click the project to set/associate a valid engine version.'
       })
       finalScore = Math.max(0, finalScore - 15)
     }

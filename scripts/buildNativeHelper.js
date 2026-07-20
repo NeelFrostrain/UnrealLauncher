@@ -5,7 +5,9 @@ const { execSync } = require('child_process')
 
 console.log('Building native Rust modules...')
 try {
-  execSync('npx napi build --platform --release --manifest-path native/Cargo.toml', { stdio: 'inherit' })
+  execSync('npx napi build --platform --release --manifest-path native/Cargo.toml', {
+    stdio: 'inherit'
+  })
 } catch (err) {
   console.error('Cargo compilation failed:', err)
   process.exit(1)
@@ -29,7 +31,7 @@ files.forEach((f) => {
         const tempOld = dst + '.' + Date.now() + '.old'
         fs.renameSync(dst, tempOld)
         console.log(`Renamed active binary to temp backup: ${tempOld}`)
-        
+
         // Clean up older temp files if possible
         const parent = path.dirname(dst)
         fs.readdirSync(parent).forEach((oldFile) => {

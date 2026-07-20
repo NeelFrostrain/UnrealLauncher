@@ -68,10 +68,16 @@ async function _scanEnginesJS(basePaths: string[]): Promise<ScannedEngine[]> {
 
   for (const basePath of basePaths) {
     try {
-      const exists = await fs.promises.access(basePath).then(() => true).catch(() => false)
+      const exists = await fs.promises
+        .access(basePath)
+        .then(() => true)
+        .catch(() => false)
       if (!exists) continue
       // Case 1: the path itself is an engine root
-      const isRoot = await fs.promises.access(path.join(basePath, 'Engine', 'Build', 'Build.version')).then(() => true).catch(() => false)
+      const isRoot = await fs.promises
+        .access(path.join(basePath, 'Engine', 'Build', 'Build.version'))
+        .then(() => true)
+        .catch(() => false)
       if (isRoot) {
         await tryAddEngine(basePath)
         continue

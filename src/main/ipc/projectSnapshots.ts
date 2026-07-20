@@ -36,7 +36,10 @@ function loadProjectRegistry(projectPath: string): SnapshotMeta[] {
     const content = fs.readFileSync(registryPath, 'utf8')
     return JSON.parse(content)
   } catch (err) {
-    logger.error('snapshot-manager', 'Failed to read project snapshot registry', { projectPath, error: err })
+    logger.error('snapshot-manager', 'Failed to read project snapshot registry', {
+      projectPath,
+      error: err
+    })
     return []
   }
 }
@@ -49,13 +52,16 @@ function saveProjectRegistry(projectPath: string, registry: SnapshotMeta[]): voi
   }
   try {
     fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2), 'utf8')
-    logger.info('snapshot-manager', 'Updated project snapshot registry', { 
-      projectPath, 
+    logger.info('snapshot-manager', 'Updated project snapshot registry', {
+      projectPath,
       snapshotCount: registry.length,
-      registryPath 
+      registryPath
     })
   } catch (err) {
-    logger.error('snapshot-manager', 'Failed to save project snapshot registry', { projectPath, error: err })
+    logger.error('snapshot-manager', 'Failed to save project snapshot registry', {
+      projectPath,
+      error: err
+    })
   }
 }
 
@@ -66,16 +72,19 @@ export function registerProjectSnapshotHandlers(ipcMain_: typeof ipcMain): void 
     if (!validatedPath) {
       return { error: 'Project path not found or not registered' }
     }
-    
+
     try {
       const registry = loadProjectRegistry(validatedPath)
-      logger.info('snapshot-manager', 'Retrieved project snapshots', { 
-        projectPath: validatedPath, 
-        count: registry.length 
+      logger.info('snapshot-manager', 'Retrieved project snapshots', {
+        projectPath: validatedPath,
+        count: registry.length
       })
       return registry
     } catch (err) {
-      logger.error('snapshot-manager', 'Failed to get project snapshots', { projectPath: validatedPath, error: err })
+      logger.error('snapshot-manager', 'Failed to get project snapshots', {
+        projectPath: validatedPath,
+        error: err
+      })
       return { error: 'Failed to load snapshots from local directory' }
     }
   })
@@ -113,7 +122,10 @@ export function registerProjectSnapshotHandlers(ipcMain_: typeof ipcMain): void 
       const estimatedFinalBytes = totalFiles > 0 ? totalFiles * AVG_BYTES_PER_FILE : 0
 
       logger.info('snapshot-manager', 'Starting snapshot with progress', {
-        id, projectPath: validatedPath, totalFiles, estimatedFinalBytes
+        id,
+        projectPath: validatedPath,
+        totalFiles,
+        estimatedFinalBytes
       })
 
       // Send initial progress immediately (0%)
@@ -136,9 +148,7 @@ export function registerProjectSnapshotHandlers(ipcMain_: typeof ipcMain): void 
         pollInterval = setInterval(() => {
           pollCount++
           try {
-            const size = fs.existsSync(archivePath)
-              ? fs.statSync(archivePath).size
-              : 0
+            const size = fs.existsSync(archivePath) ? fs.statSync(archivePath).size : 0
 
             if (size !== lastSize || pollCount <= 10) {
               lastSize = size
@@ -164,7 +174,9 @@ export function registerProjectSnapshotHandlers(ipcMain_: typeof ipcMain): void 
                 message: `Compressing… ${(size / 1024 / 1024).toFixed(1)} MB written`
               })
             }
-          } catch { /* ignore stat errors during write */ }
+          } catch {
+            /* ignore stat errors during write */
+          }
         }, 150)
       }
 
@@ -200,7 +212,9 @@ export function registerProjectSnapshotHandlers(ipcMain_: typeof ipcMain): void 
         saveProjectRegistry(validatedPath, registry)
 
         logger.info('snapshot-manager', 'Snapshot with progress complete', {
-          id, projectPath: validatedPath, sizeBytes
+          id,
+          projectPath: validatedPath,
+          sizeBytes
         })
 
         return { success: true, snapshot: meta }
@@ -216,95 +230,92 @@ export function registerProjectSnapshotHandlers(ipcMain_: typeof ipcMain): void 
   )
 
   // 3. Create a snapshot (no progress, kept for API compatibility)
-  ipcMain_.handle(
-    'project-create-snapshot',
-    async (_event, projectPath: string, name: string) => {
-      const validatedPath = isRegisteredProjectPath(projectPath)
-      if (!validatedPath) {
-        return { error: 'Project path not found or not registered' }
-      }
+  ipcMain_.handle('project-create-snapshot', async (_event, projectPath: string, name: string) => {
+    const validatedPath = isRegisteredProjectPath(projectPath)
+    if (!validatedPath) {
+      return { error: 'Project path not found or not registered' }
+    }
 
-      const native = getNative()
-      if (!native) {
-        return { error: 'Native module not available for snapshot operations' }
-      }
+    const native = getNative()
+    if (!native) {
+      return { error: 'Native module not available for snapshot operations' }
+    }
 
-      const id = 'snap_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
-      const snapshotDir = getSnapshotFolderPath(validatedPath, id)
-      
-      // Ensure the snapshot directory exists
-      if (!fs.existsSync(snapshotDir)) {
-        try {
-          fs.mkdirSync(snapshotDir, { recursive: true })
-          logger.info('snapshot-manager', 'Created snapshot directory', { 
-            projectPath: validatedPath, 
-            snapshotDir 
-          })
-        } catch (err) {
-          logger.error('snapshot-manager', 'Failed to create snapshot directory', { 
-            projectPath: validatedPath, 
-            snapshotDir,
-            error: err 
-          })
-          return { error: 'Unable to create snapshot directory' }
-        }
-      }
-      
-      const archivePath = path.join(snapshotDir, `${id}.7z`)
+    const id = 'snap_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
+    const snapshotDir = getSnapshotFolderPath(validatedPath, id)
 
+    // Ensure the snapshot directory exists
+    if (!fs.existsSync(snapshotDir)) {
       try {
-        logger.info('snapshot-manager', 'Creating local project snapshot', { 
-          id, 
-          name: name.trim() || `Snapshot_${new Date().toLocaleDateString()}`, 
+        fs.mkdirSync(snapshotDir, { recursive: true })
+        logger.info('snapshot-manager', 'Created snapshot directory', {
           projectPath: validatedPath,
-          archivePath 
+          snapshotDir
         })
-        
-        const sizeBytes = await native.createProjectSnapshot(validatedPath, archivePath)
-
-        const meta: SnapshotMeta = {
-          id,
-          name: name.trim() || `Snapshot_${new Date().toLocaleDateString()}`,
-          timestamp: new Date().toISOString(),
-          fileSizeBytes: sizeBytes,
-          archivePath,
-          projectPath: validatedPath
-        }
-
-        const registry = loadProjectRegistry(validatedPath)
-        registry.push(meta)
-        saveProjectRegistry(validatedPath, registry)
-
-        logger.info('snapshot-manager', 'Successfully created local project snapshot', { 
-          id, 
-          projectPath: validatedPath, 
-          sizeBytes,
-          totalSnapshots: registry.length 
-        })
-
-        return { success: true, snapshot: meta }
       } catch (err) {
-        logger.error('snapshot-manager', 'Local snapshot creation failed', { 
-          projectPath: validatedPath, 
-          archivePath, 
-          error: err 
+        logger.error('snapshot-manager', 'Failed to create snapshot directory', {
+          projectPath: validatedPath,
+          snapshotDir,
+          error: err
         })
-        
-        // Clean up partial zip if it exists
-        if (fs.existsSync(archivePath)) {
-          try {
-            fs.unlinkSync(archivePath)
-          } catch (cleanupErr) {
-            logger.error('snapshot-manager', 'Failed to clean up partial snapshot file', { 
-              archivePath, 
-              error: cleanupErr 
-            })
-          }
-        }
-        return { error: 'Snapshot creation failed: ' + (err as Error).message }
+        return { error: 'Unable to create snapshot directory' }
       }
     }
-  )
+
+    const archivePath = path.join(snapshotDir, `${id}.7z`)
+
+    try {
+      logger.info('snapshot-manager', 'Creating local project snapshot', {
+        id,
+        name: name.trim() || `Snapshot_${new Date().toLocaleDateString()}`,
+        projectPath: validatedPath,
+        archivePath
+      })
+
+      const sizeBytes = await native.createProjectSnapshot(validatedPath, archivePath)
+
+      const meta: SnapshotMeta = {
+        id,
+        name: name.trim() || `Snapshot_${new Date().toLocaleDateString()}`,
+        timestamp: new Date().toISOString(),
+        fileSizeBytes: sizeBytes,
+        archivePath,
+        projectPath: validatedPath
+      }
+
+      const registry = loadProjectRegistry(validatedPath)
+      registry.push(meta)
+      saveProjectRegistry(validatedPath, registry)
+
+      logger.info('snapshot-manager', 'Successfully created local project snapshot', {
+        id,
+        projectPath: validatedPath,
+        sizeBytes,
+        totalSnapshots: registry.length
+      })
+
+      return { success: true, snapshot: meta }
+    } catch (err) {
+      logger.error('snapshot-manager', 'Local snapshot creation failed', {
+        projectPath: validatedPath,
+        archivePath,
+        error: err
+      })
+
+      // Clean up partial zip if it exists
+      if (fs.existsSync(archivePath)) {
+        try {
+          fs.unlinkSync(archivePath)
+        } catch (cleanupErr) {
+          logger.error('snapshot-manager', 'Failed to clean up partial snapshot file', {
+            archivePath,
+            error: cleanupErr
+          })
+        }
+      }
+      return { error: 'Snapshot creation failed: ' + (err as Error).message }
+    }
+  })
 
   // 3. Restore a snapshot
   ipcMain_.handle(
@@ -331,42 +342,42 @@ export function registerProjectSnapshotHandlers(ipcMain_: typeof ipcMain): void 
       }
 
       try {
-        logger.info('snapshot-manager', 'Restoring local project snapshot', { 
-          snapshotId, 
+        logger.info('snapshot-manager', 'Restoring local project snapshot', {
+          snapshotId,
           projectPath: validatedPath,
-          archivePath: snapshot.archivePath 
+          archivePath: snapshot.archivePath
         })
-        
+
         await native.restoreProjectSnapshot(validatedPath, snapshot.archivePath)
 
         // Trigger clean compile: Delete Intermediate and Binaries folders in project
         const intermediateDir = path.join(validatedPath, 'Intermediate')
         const binariesDir = path.join(validatedPath, 'Binaries')
-        
+
         if (fs.existsSync(intermediateDir)) {
           fs.rmSync(intermediateDir, { recursive: true, force: true })
-          logger.info('snapshot-manager', 'Cleaned Intermediate folder during restore', { 
-            projectPath: validatedPath 
+          logger.info('snapshot-manager', 'Cleaned Intermediate folder during restore', {
+            projectPath: validatedPath
           })
         }
         if (fs.existsSync(binariesDir)) {
           fs.rmSync(binariesDir, { recursive: true, force: true })
-          logger.info('snapshot-manager', 'Cleaned Binaries folder during restore', { 
-            projectPath: validatedPath 
+          logger.info('snapshot-manager', 'Cleaned Binaries folder during restore', {
+            projectPath: validatedPath
           })
         }
 
-        logger.info('snapshot-manager', 'Successfully restored local project snapshot', { 
-          snapshotId, 
-          projectPath: validatedPath 
+        logger.info('snapshot-manager', 'Successfully restored local project snapshot', {
+          snapshotId,
+          projectPath: validatedPath
         })
 
         return { success: true }
       } catch (err) {
-        logger.error('snapshot-manager', 'Local snapshot restore failed', { 
-          projectPath: validatedPath, 
-          snapshotId, 
-          error: err 
+        logger.error('snapshot-manager', 'Local snapshot restore failed', {
+          projectPath: validatedPath,
+          snapshotId,
+          error: err
         })
         return { error: 'Restore failed: ' + (err as Error).message }
       }
@@ -385,26 +396,26 @@ export function registerProjectSnapshotHandlers(ipcMain_: typeof ipcMain): void 
       try {
         const registry = loadProjectRegistry(validatedPath)
         const snapshotIndex = registry.findIndex((s) => s.id === snapshotId)
-        
+
         if (snapshotIndex === -1) {
           return { error: 'Snapshot not found in local registry' }
         }
 
         const snapshotDir = getSnapshotFolderPath(validatedPath, snapshotId)
-        
+
         // Remove the entire snapshot directory
         if (fs.existsSync(snapshotDir)) {
           try {
             fs.rmSync(snapshotDir, { recursive: true, force: true })
-            logger.info('snapshot-manager', 'Deleted local snapshot directory', { 
-              snapshotId, 
-              snapshotDir 
+            logger.info('snapshot-manager', 'Deleted local snapshot directory', {
+              snapshotId,
+              snapshotDir
             })
           } catch (err) {
-            logger.error('snapshot-manager', 'Failed to delete local snapshot directory', { 
-              snapshotId, 
-              snapshotDir, 
-              error: err 
+            logger.error('snapshot-manager', 'Failed to delete local snapshot directory', {
+              snapshotId,
+              snapshotDir,
+              error: err
             })
             return { error: 'Failed to delete snapshot directory from local storage' }
           }
@@ -414,18 +425,18 @@ export function registerProjectSnapshotHandlers(ipcMain_: typeof ipcMain): void 
         registry.splice(snapshotIndex, 1)
         saveProjectRegistry(validatedPath, registry)
 
-        logger.info('snapshot-manager', 'Successfully deleted local project snapshot', { 
-          snapshotId, 
+        logger.info('snapshot-manager', 'Successfully deleted local project snapshot', {
+          snapshotId,
           projectPath: validatedPath,
-          remainingSnapshots: registry.length 
+          remainingSnapshots: registry.length
         })
 
         return { success: true }
       } catch (err) {
-        logger.error('snapshot-manager', 'Failed to delete local snapshot', { 
-          projectPath: validatedPath, 
-          snapshotId, 
-          error: err 
+        logger.error('snapshot-manager', 'Failed to delete local snapshot', {
+          projectPath: validatedPath,
+          snapshotId,
+          error: err
         })
         return { error: 'Delete operation failed: ' + (err as Error).message }
       }

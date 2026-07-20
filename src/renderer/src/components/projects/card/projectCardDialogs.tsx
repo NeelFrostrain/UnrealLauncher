@@ -132,7 +132,8 @@ export function ProjectCardDialogs({
       }
     }
     window.addEventListener('open-project-assets-analysis', handler as EventListener)
-    return () => window.removeEventListener('open-project-assets-analysis', handler as EventListener)
+    return () =>
+      window.removeEventListener('open-project-assets-analysis', handler as EventListener)
   }, [projectPath])
 
   useEffect(() => {

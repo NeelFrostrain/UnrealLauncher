@@ -83,8 +83,7 @@ export function usePluginsState(engineDir: string, engineVersion: string): UsePl
         const savedProjects = await window.electronAPI.loadSavedProjects()
         const matchingProjects = savedProjects.filter(
           (p) =>
-            p.projectPath &&
-            (p.version === engineVersion || p.version.startsWith(engineVersion))
+            p.projectPath && (p.version === engineVersion || p.version.startsWith(engineVersion))
         )
         const scanPromises = matchingProjects.map(async (p) => {
           try {

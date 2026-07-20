@@ -101,7 +101,9 @@ export function useProjectsPageState() {
     try {
       const cached = localStorage.getItem('engineVersionOptionsCache')
       if (cached) return JSON.parse(cached) as Array<{ value: string; label: string }>
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     return [{ value: 'all', label: 'All versions' }]
   })
 
@@ -117,9 +119,10 @@ export function useProjectsPageState() {
           const version = (engine.version ?? '').trim()
           if (version && version.toLowerCase() !== 'unknown') versions.add(version)
         }
-        const nextOptions = [
-          { value: 'all', label: 'All versions' }
-        ] as Array<{ value: string; label: string }>
+        const nextOptions = [{ value: 'all', label: 'All versions' }] as Array<{
+          value: string
+          label: string
+        }>
         for (const version of [...versions].sort((a, b) =>
           a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
         )) {
@@ -127,14 +130,16 @@ export function useProjectsPageState() {
         }
         nextOptions.push({ value: '__divider__', label: '' })
         nextOptions.push({ value: 'broken', label: 'No engine / missing' })
-        try { localStorage.setItem('engineVersionOptionsCache', JSON.stringify(nextOptions)) } catch { /* ignore */ }
+        try {
+          localStorage.setItem('engineVersionOptionsCache', JSON.stringify(nextOptions))
+        } catch {
+          /* ignore */
+        }
         setEngineVersionOptions(nextOptions)
       })
       .catch(() => {
         if (!cancelled) {
-          setEngineVersionOptions([
-            { value: 'all', label: 'All versions' }
-          ])
+          setEngineVersionOptions([{ value: 'all', label: 'All versions' }])
         }
       })
 
@@ -142,7 +147,6 @@ export function useProjectsPageState() {
       cancelled = true
     }
   }, [])
-
 
   // Sync tab ↔ URL
   useEffect(() => {

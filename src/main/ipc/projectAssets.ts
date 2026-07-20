@@ -64,7 +64,9 @@ export function registerProjectAssetHandlers(ipcMain_: typeof ipcMain): void {
 
       try {
         fs.writeFileSync(result.filePath, reportContent, 'utf8')
-        logger.info('asset-analyzer', 'Asset report exported successfully', { path: result.filePath })
+        logger.info('asset-analyzer', 'Asset report exported successfully', {
+          path: result.filePath
+        })
         return { success: true, filePath: result.filePath }
       } catch (err) {
         logger.error('asset-analyzer', 'Failed to write exported asset report file', err)

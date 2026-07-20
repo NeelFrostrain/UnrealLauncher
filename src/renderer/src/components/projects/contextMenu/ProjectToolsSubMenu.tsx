@@ -1,7 +1,16 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Settings2, FileCode2, ScrollText, Trash2, Package, Heart, Database, Camera } from 'lucide-react'
+import {
+  Settings2,
+  FileCode2,
+  ScrollText,
+  Trash2,
+  Package,
+  Heart,
+  Database,
+  Camera
+} from 'lucide-react'
 import { useToast } from '../../ui/ToastContext'
 import { MenuItem, MenuSeparator, MENU_STYLE } from './contextMenuComponents'
 import { useContextMenuPosition } from './useContextMenuPosition'

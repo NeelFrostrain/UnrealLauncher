@@ -37,7 +37,9 @@ export function useSettingsState() {
     try {
       const cached = localStorage.getItem('backgroundCloseEnabled')
       if (cached !== null) return cached === 'true'
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     return false
   })
 
@@ -93,7 +95,11 @@ export function useSettingsState() {
 
   const handleBackgroundCloseToggle = useCallback(async (value: boolean): Promise<void> => {
     setBackgroundCloseOnClose(value)
-    try { localStorage.setItem('backgroundCloseEnabled', String(value)) } catch { /* ignore */ }
+    try {
+      localStorage.setItem('backgroundCloseEnabled', String(value))
+    } catch {
+      /* ignore */
+    }
     await window.electronAPI.saveMainSettings({ backgroundCloseEnabled: value })
   }, [])
 
@@ -104,7 +110,11 @@ export function useSettingsState() {
       if (settings && settings.backgroundCloseEnabled !== undefined) {
         const val = settings.backgroundCloseEnabled as boolean
         setBackgroundCloseOnClose(val)
-        try { localStorage.setItem('backgroundCloseEnabled', String(val)) } catch { /* ignore */ }
+        try {
+          localStorage.setItem('backgroundCloseEnabled', String(val))
+        } catch {
+          /* ignore */
+        }
       }
     })
     return () => {

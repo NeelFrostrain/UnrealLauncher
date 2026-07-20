@@ -59,7 +59,10 @@ const ProjectCard = memo(
       ? getProjectActivitySummary(projectPath)
       : 'No recent activity'
 
-    const [health, setHealth] = useState<{ score: number; status: 'healthy' | 'warning' | 'critical' } | null>(null)
+    const [health, setHealth] = useState<{
+      score: number
+      status: 'healthy' | 'warning' | 'critical'
+    } | null>(null)
 
     useEffect(() => {
       if (!projectPath) return
@@ -141,8 +144,10 @@ const ProjectCard = memo(
                   className="shrink-0 text-[10px] font-mono px-1.5 py-px"
                   style={{
                     color: 'var(--color-engine-version-text)',
-                    backgroundColor: 'color-mix(in srgb, var(--color-engine-version-text) 10%, transparent)',
-                    border: '1px solid color-mix(in srgb, var(--color-engine-version-text) 20%, transparent)',
+                    backgroundColor:
+                      'color-mix(in srgb, var(--color-engine-version-text) 10%, transparent)',
+                    border:
+                      '1px solid color-mix(in srgb, var(--color-engine-version-text) 20%, transparent)',
                     borderRadius: 'calc(var(--radius) * 0.5)'
                   }}
                 >

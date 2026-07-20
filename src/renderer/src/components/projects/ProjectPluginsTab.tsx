@@ -1,7 +1,15 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
 import { useState, useRef } from 'react'
-import { RefreshCw, Search, LayoutGrid, LayoutList, Package, AlertTriangle, MoreVertical } from 'lucide-react'
+import {
+  RefreshCw,
+  Search,
+  LayoutGrid,
+  LayoutList,
+  Package,
+  AlertTriangle,
+  MoreVertical
+} from 'lucide-react'
 import { useProjectPluginsState } from './plugins/useProjectPluginsState'
 import { useToast } from '../../components/ui/ToastContext'
 import DropdownPortal from '../ui/DropdownPortal'
@@ -152,7 +160,11 @@ function MoreActionsDropdown({
               if (!loading) e.currentTarget.style.backgroundColor = 'transparent'
             }}
           >
-            <RefreshCw size={11} className={loading ? 'animate-spin' : ''} style={{ color: 'var(--color-text-muted)' }} />
+            <RefreshCw
+              size={11}
+              className={loading ? 'animate-spin' : ''}
+              style={{ color: 'var(--color-text-muted)' }}
+            />
             <span>{loading ? 'Refreshing…' : 'Refresh'}</span>
           </button>
 
@@ -200,7 +212,12 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
   } = useProjectPluginsState(projectDir)
 
   const handleResetCache = async () => {
-    if (!window.confirm('Reset project plugin scan cache? This forces a fresh scanner query of your project directory.')) return
+    if (
+      !window.confirm(
+        'Reset project plugin scan cache? This forces a fresh scanner query of your project directory.'
+      )
+    )
+      return
     try {
       await window.electronAPI.clearProjectPluginCache()
       addToast('Project scan cache cleared successfully.', 'success')
@@ -273,11 +290,7 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
         </div>
 
         {/* Action Dropdown (3-Dot Component containing Refresh and Reset Cache) */}
-        <MoreActionsDropdown
-          onRefresh={load}
-          onResetCache={handleResetCache}
-          loading={loading}
-        />
+        <MoreActionsDropdown onRefresh={load} onResetCache={handleResetCache} loading={loading} />
       </div>
 
       {/* Stats */}
@@ -322,7 +335,13 @@ const ProjectPluginsTab = ({ projectDir }: ProjectPluginsTabProps): React.ReactE
             </p>
           </div>
         ) : (
-          <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-2 font-normal' : 'flex flex-col gap-1.5 font-normal'}>
+          <div
+            className={
+              viewMode === 'grid'
+                ? 'grid grid-cols-2 gap-2 font-normal'
+                : 'flex flex-col gap-1.5 font-normal'
+            }
+          >
             {filteredPlugins.map((plugin) => (
               <PluginCard
                 key={plugin.internalName}

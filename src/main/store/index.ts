@@ -7,7 +7,16 @@
 import path from 'path'
 import type { Engine, Project } from '../types'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
-import { SKELETON_CONFIG, DEFAULT_CONFIG, getSkeletonRhi, HEADLESS_CI_CONFIG, RAYTRACE_SHOWCASE_CONFIG, CINEMATIC_CONFIG, BALANCED_CONFIG, PERFORMANCE_CONFIG } from '../utils/launchConfigArgs'
+import {
+  SKELETON_CONFIG,
+  DEFAULT_CONFIG,
+  getSkeletonRhi,
+  HEADLESS_CI_CONFIG,
+  RAYTRACE_SHOWCASE_CONFIG,
+  CINEMATIC_CONFIG,
+  BALANCED_CONFIG,
+  PERFORMANCE_CONFIG
+} from '../utils/launchConfigArgs'
 import {
   getEnginesDataPath,
   getProjectsDataPath,
@@ -141,7 +150,8 @@ function makeBuiltInConfigs(): LaunchConfig[] {
       name: 'Default',
       description: 'Launch with Unreal Engine defaults — no overrides applied.',
       ...DEFAULT_CONFIG
-    },    {
+    },
+    {
       id: 'builtin-skeleton',
       name: 'Skeleton (Lowest)',
       description: getSkeletonDescription(),

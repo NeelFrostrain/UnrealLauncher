@@ -5,7 +5,11 @@ import { getNative } from './native'
 
 // ── Project / uproject scanning ───────────────────────────────────────────────
 
-export async function findUprojectFiles(dir: string, maxDepth = 5, maxFiles = 1000): Promise<string[]> {
+export async function findUprojectFiles(
+  dir: string,
+  maxDepth = 5,
+  maxFiles = 1000
+): Promise<string[]> {
   const native = getNative()
   if (native) {
     try {
@@ -17,7 +21,11 @@ export async function findUprojectFiles(dir: string, maxDepth = 5, maxFiles = 10
   return _findUprojectFilesJS(dir, maxDepth, maxFiles)
 }
 
-async function _findUprojectFilesJS(dir: string, maxDepth: number, maxFiles: number): Promise<string[]> {
+async function _findUprojectFilesJS(
+  dir: string,
+  maxDepth: number,
+  maxFiles: number
+): Promise<string[]> {
   const files: string[] = []
   let count = 0
   const SKIP = new Set([
