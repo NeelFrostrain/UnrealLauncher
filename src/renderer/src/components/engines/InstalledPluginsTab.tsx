@@ -99,6 +99,32 @@ const BUILTIN_PRESETS: Preset[] = [
       DatasmithContent: false,
       Paper2D: false
     }
+  },
+  {
+    id: 'builtin-vp-livelink',
+    name: 'Disable Virtual Production & LiveLink',
+    engineVersion: '5.x',
+    plugins: {
+      VirtualProductionUtilities: false,
+      VirtualCamera: false,
+      VirtualCameraCore: false,
+      DMXProtocol: false,
+      DMXEngine: false,
+      LiveLink: false,
+      LiveLinkXR: false
+    }
+  },
+  {
+    id: 'builtin-datasmith-ent',
+    name: 'Disable Datasmith & CAD Importers',
+    engineVersion: '5.x',
+    plugins: {
+      DatasmithContent: false,
+      DatasmithImporter: false,
+      DatasmithGLTFImporter: false,
+      DatasmithCADImporter: false,
+      DatasmithFBXImporter: false
+    }
   }
 ]
 
