@@ -14,6 +14,7 @@ interface VirtualizedProjectGridProps {
 const CARD_WIDTH = 212 // 200px card + 12px gap
 const CARD_HEIGHT = 180 // 200px card + 12px gap
 const BUFFER_SIZE = 3 // Extra rows to render outside viewport
+const PENDING_FRAME_THRESHOLD = 2 // Extra rows to render outside viewport
 
 export const VirtualizedProjectGrid = ({
   items,
@@ -89,7 +90,7 @@ export const VirtualizedProjectGrid = ({
             top: row * CARD_HEIGHT,
             width: `${colWidthPct}%`,
             height: CARD_HEIGHT,
-            padding: 6
+            padding: PENDING_FRAME_THRESHOLD
           }}
         >
           <ProjectCardGrid

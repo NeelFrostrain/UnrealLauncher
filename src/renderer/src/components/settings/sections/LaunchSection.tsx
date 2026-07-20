@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState } from 'react'
 import { FolderOpen, Trash2 } from 'lucide-react'
 import { Card, SettingRow, Toggle } from '../SectionHelpers'
@@ -20,6 +20,9 @@ const LaunchSection = ({
   const [clearingLogs, setClearingLogs] = useState(false)
   const [showTitlebarButtons, setShowTitlebarButtons] = useState(() =>
     getSetting('showTitlebarButtons')
+  )
+  const [launchPauseDuration, setLaunchPauseDuration] = useState(() =>
+    getSetting('launchPauseDuration')
   )
 
   const handleClearLogs = async (): Promise<void> => {
@@ -46,6 +49,34 @@ const LaunchSection = ({
           description="Keep Unreal Launcher running in the system tray instead of quitting when the window is closed."
         >
           <Toggle on={backgroundCloseOnClose} onChange={onToggleBackgroundClose} />
+        </SettingRow>
+        <SettingRow
+          label="Launch pause duration"
+          description="Set a safety delay (in seconds) between project launches to prevent double-launching processes."
+        >
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min="0"
+              max="60"
+              value={launchPauseDuration}
+              onChange={(e) => {
+                const val = Math.max(0, Math.min(60, parseInt(e.target.value, 10) || 0))
+                setLaunchPauseDuration(val)
+                setSetting('launchPauseDuration', val)
+              }}
+              className="w-16 px-2 py-1 text-xs text-center rounded border transition-colors cursor-pointer"
+              style={{
+                backgroundColor: 'var(--color-surface-card)',
+                color: 'var(--color-text-primary)',
+                borderColor: 'var(--color-border)',
+                outline: 'none'
+              }}
+            />
+            <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+              seconds
+            </span>
+          </div>
         </SettingRow>
         {/* Registry scan and extra animations toggles removed per request */}
         <SettingRow

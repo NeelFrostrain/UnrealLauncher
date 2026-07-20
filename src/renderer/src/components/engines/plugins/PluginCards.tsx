@@ -1,6 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, memo } from 'react'
-import { FolderOpen, Package, ChevronRight, Info } from 'lucide-react'
+import { FolderOpen, Package, ChevronRight } from 'lucide-react'
 import type { ViewMode } from './usePluginsState'
 import { toLocalAssetUrl } from '../../../utils/resolveAsset'
 

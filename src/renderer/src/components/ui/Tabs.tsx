@@ -24,7 +24,7 @@ export function Tabs<T extends string = string>({
   return (
     <div
       role="tablist"
-      className={`flex flex-wrap items-center gap-1 px-1 py-1 rounded-xl transition-all duration-300 select-none ${className || ''}`}
+      className={`flex flex-wrap items-center gap-1 px-1.5 py-1.5 rounded-xl transition-all duration-300 select-none ${className || ''}`}
       style={{
         backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 70%, transparent)',
         border: '1px solid var(--color-border)',

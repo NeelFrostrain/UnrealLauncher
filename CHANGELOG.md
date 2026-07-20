@@ -7,14 +7,21 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Changed
 
 - Redesigned Settings Page navigation to use a horizontal tab-bar layout matching the Engines and Projects pages.
+- Refactored tab lists across Settings, Projects, Engines, and Tasks pages to utilize a single, reusable custom `Tabs` UI component, ensuring visual consistency.
+- Replaced blue project context menu hover states with a clean, low-opacity white background matching the settings card rows.
+- Upgraded Engine, Fab Asset, and Project Plugin cards to feature unified glassmorphic gradients, soft ambient shadows, and hover elevation scaling.
+- Simplified Plugin Grid card interactions, removing the view details info icon and allowing developers to click anywhere on the card to open its detail panel.
 
 ### ✨ Added
 
 - Added `sg.LandscapeQuality` to Unreal Engine scalability presets command-line generation, ensuring landscape quality scales with chosen quality profiles (Low, Medium, etc.) in newer engine versions instead of defaulting to Epic.
+- Added `launchPauseDuration` setting and guard logic in project launching, warning the user and blocking consecutive launches within a user-defined safety delay (in seconds).
 
 ### 🐛 Fixed
 
 - Fixed horizontal layout and titlebar overflow bugs in narrow window views by utilizing `flex-wrap` and setting proper flex-basis limits (`min-w-0`) across the main layout columns.
+- Fixed layout overflow and alignment bugs on the Engine Plugins page by scaling the search input to a proportional fixed width next to the filter dropdowns.
+- Fixed the 'Auto-close on launch' setting being ignored when launching projects or engines with custom configurations.
 
 ## [2.4.7] - 2026-07-15 — `refactor · pathing`
 
