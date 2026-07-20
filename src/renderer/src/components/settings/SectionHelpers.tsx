@@ -16,7 +16,7 @@ export const SettingRow = ({
     className={`flex items-center justify-between gap-6 px-5 py-4 ${className || ''}`}
     style={!last ? { borderBottom: '1px solid var(--color-border)' } : undefined}
   >
-    <div className="min-w-0">
+    <div className="max-w-sm">
       <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
         {label}
       </p>
@@ -26,7 +26,7 @@ export const SettingRow = ({
         </p>
       )}
     </div>
-    <div className="shrink-0">{children}</div>
+    <div className="flex justify-end flex-1">{children}</div>
   </div>
 )
 
@@ -53,9 +53,8 @@ export const Toggle = ({
     aria-checked={on}
   >
     <span
-      className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-        on ? 'translate-x-5' : 'translate-x-0'
-      }`}
+      className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${on ? 'translate-x-5' : 'translate-x-0'
+        }`}
     />
   </button>
 )
