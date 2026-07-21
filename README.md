@@ -567,11 +567,11 @@ See [LICENSE](LICENSE) for full terms.
 
 | Channel            | Contact & Support Link                                                                                                                                                    |
 | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **🐛 Bug Reports** | [![GitHub Issues](https://img.shields.io/badge/GitHub_Issues-Report_Bug-d73a49?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/issues)      |
-| **💬 Q&A & Ideas** | [![GitHub Discussions](https://img.shields.io/badge/Discussions-Join_In-24292e?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/discussions) |
-| **🎮 Community**   | [![Discord](https://img.shields.io/badge/Discord-Join_Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)                                         |
-| **✉️ Direct Mail** | [![Email](https://img.shields.io/badge/Email-nfrostrain%40gmail.com-0078d4?logo=gmail&logoColor=white)](mailto:nfrostrain@gmail.com)                                      |
-| **☕ Support Me**  | [![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy_Me_a_Coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/neelfrostrain)                                        |
+| **Bug Reports** | [![GitHub Issues](https://img.shields.io/badge/GitHub_Issues-Report_Bug-d73a49?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/issues)      |
+| **Q&A & Ideas** | [![GitHub Discussions](https://img.shields.io/badge/Discussions-Join_In-24292e?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/discussions) |
+| **Community**   | [![Discord](https://img.shields.io/badge/Discord-Join_Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)                                         |
+| **Direct Mail** | [![Email](https://img.shields.io/badge/Email-nfrostrain%40gmail.com-0078d4?logo=gmail&logoColor=white)](mailto:nfrostrain@gmail.com)                                      |
+| **Support Me**  | [![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy_Me_a_Coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/neelfrostrain)                                        |
 
 **Community Badges:**
 
