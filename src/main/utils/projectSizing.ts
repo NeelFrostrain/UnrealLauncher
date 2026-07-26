@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import fs from 'fs'
 import { app } from 'electron'
@@ -6,7 +6,7 @@ import { loadProjects, saveProjects } from '../store'
 import { formatBytes, getFullFolderSize } from '../utils'
 import { getMainWindow } from '../window'
 
-const CONCURRENCY = 3
+const CONCURRENCY = 1
 const SIZE_EVENT_BATCH_MS = 150
 
 type SizeCacheEntry = {

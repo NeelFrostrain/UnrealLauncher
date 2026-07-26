@@ -86,10 +86,14 @@ pub async fn scan_engines(paths: Vec<String>) -> Vec<EngineEntry> {
       Err(_) => continue,
     };
     for entry in entries.flatten() {
-      let engine_dir = entry.path();
-      if !engine_dir.is_dir() {
+      let ft = match entry.file_type() {
+        Ok(t) => t,
+        Err(_) => continue,
+      };
+      if !ft.is_dir() {
         continue;
       }
+      let engine_dir = entry.path();
       if !is_engine_root(&engine_dir) {
         continue;
       }
@@ -362,11 +366,15 @@ fn scan_uproject(dir: &Path, depth: u32, max_depth: u32, max_files: u32, out: &m
     if out.len() as u32 >= max_files {
       return;
     }
+    let ft = match entry.file_type() {
+      Ok(t) => t,
+      Err(_) => continue,
+    };
     let path = entry.path();
     let name = entry.file_name();
     let name_str = name.to_string_lossy();
 
-    if path.is_dir() {
+    if ft.is_dir() {
       if name_str.starts_with('.') {
         continue;
       }
@@ -378,7 +386,7 @@ fn scan_uproject(dir: &Path, depth: u32, max_depth: u32, max_files: u32, out: &m
         continue;
       }
       scan_uproject(&path, depth + 1, max_depth, max_files, out);
-    } else if name_str.ends_with(".uproject") {
+    } else if ft.is_file() && name_str.ends_with(".uproject") {
       out.push(path.to_string_lossy().into_owned());
     }
   }
@@ -536,9 +544,57 @@ fn days_to_ymd(days: u64) -> (u64, u64, u64) {
 
 /// Recursively sum file sizes under `folder_path`.
 /// Skips node_modules and .git to avoid inflated counts.
+/// Uses zero-extra-syscall entry metadata and multithreads top-level subdirectories.
 #[napi]
 pub fn get_folder_size(folder_path: String) -> f64 {
-  walk_size(Path::new(&folder_path)) as f64
+  let root = Path::new(&folder_path);
+  let entries = match fs::read_dir(root) {
+    Ok(e) => e,
+    Err(_) => return 0.0,
+  };
+
+  let mut top_dirs = Vec::new();
+  let mut direct_files_size = 0u64;
+
+  for entry in entries.flatten() {
+    if let Ok(ft) = entry.file_type() {
+      if ft.is_dir() {
+        let name = entry.file_name();
+        let name_str = name.to_string_lossy();
+        if name_str != "node_modules" && name_str != ".git" {
+          top_dirs.push(entry.path());
+        }
+      } else if ft.is_file() {
+        if let Ok(meta) = entry.metadata() {
+          direct_files_size += meta.len();
+        }
+      }
+    }
+  }
+
+  if top_dirs.is_empty() {
+    return direct_files_size as f64;
+  }
+
+  if top_dirs.len() > 1 {
+    let mut handles = Vec::with_capacity(top_dirs.len());
+    for sub in top_dirs {
+      handles.push(std::thread::spawn(move || walk_size(&sub)));
+    }
+    let mut total = direct_files_size;
+    for handle in handles {
+      if let Ok(sz) = handle.join() {
+        total += sz;
+      }
+    }
+    total as f64
+  } else {
+    let mut total = direct_files_size;
+    for sub in top_dirs {
+      total += walk_size(&sub);
+    }
+    total as f64
+  }
 }
 
 fn walk_size(dir: &Path) -> u64 {
@@ -548,20 +604,24 @@ fn walk_size(dir: &Path) -> u64 {
   };
   let mut total = 0u64;
   for entry in entries.flatten() {
-    let path = entry.path();
-    let name = entry.file_name();
-    let name_str = name.to_string_lossy();
-    if path.is_dir() {
-      if name_str == "node_modules" || name_str == ".git" {
-        continue;
+    if let Ok(file_type) = entry.file_type() {
+      if file_type.is_dir() {
+        let name = entry.file_name();
+        let name_str = name.to_string_lossy();
+        if name_str == "node_modules" || name_str == ".git" {
+          continue;
+        }
+        total += walk_size(&entry.path());
+      } else if file_type.is_file() {
+        if let Ok(meta) = entry.metadata() {
+          total += meta.len();
+        }
       }
-      total += walk_size(&path);
-    } else if path.is_file() {
-      total += fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
     }
   }
   total
 }
+
 
 // ── Plugin cache helpers ──────────────────────────────────────────────────────
 

@@ -1,10 +1,8 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
- * Registry-based engine discovery (Windows only).
- * Uses `reg query` via child_process instead of the regedit npm package —
- * regedit's VBS-based approach silently fails on HKLM keys in packaged Electron
- * builds. The native `reg.exe` CLI is always available on Windows and requires
- * no external scripts or elevation for read-only queries.
+ * Registry & Manifest-based engine discovery (Windows only).
+ * Discovers official Epic Games installations, custom source-built engines,
+ * and registered builds via Windows Registry keys and Epic Launcher manifests.
  */
 
 import { spawn } from 'child_process'
@@ -16,7 +14,17 @@ import type { ScannedEngine } from './native'
 const REGISTRY_KEYS = [
   'HKLM\\SOFTWARE\\EpicGames\\Unreal Engine',
   'HKCU\\SOFTWARE\\EpicGames\\Unreal Engine',
-  'HKLM\\SOFTWARE\\WOW6432Node\\EpicGames\\Unreal Engine'
+  'HKLM\\SOFTWARE\\Epic Games\\Unreal Engine',
+  'HKCU\\SOFTWARE\\Epic Games\\Unreal Engine',
+  'HKLM\\SOFTWARE\\WOW6432Node\\EpicGames\\Unreal Engine',
+  'HKLM\\SOFTWARE\\WOW6432Node\\Epic Games\\Unreal Engine'
+]
+
+const BUILDS_KEYS = [
+  'HKCU\\SOFTWARE\\Epic Games\\Unreal Engine\\Builds',
+  'HKLM\\SOFTWARE\\Epic Games\\Unreal Engine\\Builds',
+  'HKCU\\SOFTWARE\\EpicGames\\Unreal Engine\\Builds',
+  'HKLM\\SOFTWARE\\EpicGames\\Unreal Engine\\Builds'
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -49,21 +57,37 @@ function regQuery(key: string, extra: string[] = []): Promise<string> {
 }
 
 /**
- * Parse `InstalledDirectory` value from `reg query <key> /v InstalledDirectory` output.
- * Output looks like:
- *   HKEY_LOCAL_MACHINE\SOFTWARE\EpicGames\Unreal Engine\5.3
- *       InstalledDirectory    REG_SZ    E:\Engines\UE_5.3
+ * Parse directory path values from `reg query` output.
+ * Matches `InstalledDirectory`, `INSTALLDIR`, or `InstallLocation`.
  */
-function parseInstalledDirectory(output: string): string | null {
-  const match = output.match(/InstalledDirectory\s+REG_SZ\s+(.+)/i)
+function parseDirectoryFromOutput(output: string): string | null {
+  const match = output.match(/(?:InstalledDirectory|INSTALLDIR|InstallLocation)\s+REG_SZ\s+(.+)/i)
   return match ? match[1].trim() : null
 }
 
 /**
+ * Parse REG_SZ values from `Builds` registry key output.
+ * Format:
+ *   {F57D25D3-...}    REG_SZ    E:\Engines\UE_5.8
+ */
+function parseBuildsValues(output: string): Array<{ name: string; dir: string }> {
+  const results: Array<{ name: string; dir: string }> = []
+  const lines = output.split(/\r?\n/)
+  for (const line of lines) {
+    const match = line.trim().match(/^\s*([^\s]+)\s+REG_SZ\s+(.+)$/i)
+    if (match) {
+      const name = match[1].trim()
+      const dir = match[2].trim()
+      if (dir && path.isAbsolute(dir)) {
+        results.push({ name, dir })
+      }
+    }
+  }
+  return results
+}
+
+/**
  * Parse sub-key names from `reg query <key>` output.
- * reg.exe outputs full expanded paths, e.g.:
- *   HKEY_LOCAL_MACHINE\SOFTWARE\EpicGames\Unreal Engine\5.3
- * We compare against the expanded form of the parent key.
  */
 function parseSubKeys(parentKey: string, output: string): string[] {
   const expanded = expandHive(parentKey).toLowerCase()
@@ -72,13 +96,33 @@ function parseSubKeys(parentKey: string, output: string): string[] {
   for (const line of lines) {
     const trimmed = line.trim().toLowerCase()
     if (trimmed.startsWith(expanded + '\\') && trimmed !== expanded) {
-      // Extract just the version name (last segment after parent)
       const rest = line.trim().slice(expanded.length + 1)
       const version = rest.split('\\')[0].trim()
       if (version) subKeys.push(version)
     }
   }
   return [...new Set(subKeys)]
+}
+
+/**
+ * Read engine version from Engine/Build/Build.version if available
+ */
+function getEngineVersionFromDir(installedDir: string, fallback: string): string {
+  try {
+    const buildVersionPath = path.join(installedDir, 'Engine', 'Build', 'Build.version')
+    if (fs.existsSync(buildVersionPath)) {
+      const bv = JSON.parse(fs.readFileSync(buildVersionPath, 'utf8'))
+      if (bv.MajorVersion != null && bv.MinorVersion != null) {
+        return `${bv.MajorVersion}.${bv.MinorVersion}`
+      }
+      if (typeof bv.BranchName === 'string' && bv.BranchName.trim()) {
+        return bv.BranchName.trim()
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return fallback
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
@@ -89,41 +133,89 @@ export async function getInstalledEngines(): Promise<ScannedEngine[]> {
   const seen = new Set<string>()
   const allResults: ScannedEngine[] = []
 
+  const tryAddEngineDir = (installedDir: string, defaultVersion: string): void => {
+    const normalised = installedDir.toLowerCase().replace(/\\/g, '/')
+    if (seen.has(normalised)) return
+    if (!fs.existsSync(installedDir)) return
+
+    const binPath = path.join(installedDir, 'Engine', 'Binaries', 'Win64')
+    const ext = getBinaryExtension()
+    let exePath = path.join(binPath, `UnrealEditor${ext}`)
+    if (!fs.existsSync(exePath)) {
+      exePath = path.join(binPath, `UE4Editor${ext}`)
+    }
+    if (!fs.existsSync(exePath)) return
+
+    seen.add(normalised)
+    const version = getEngineVersionFromDir(installedDir, defaultVersion)
+    allResults.push({ version, exePath, directoryPath: installedDir } satisfies ScannedEngine)
+  }
+
+  // 1. Scan Epic Games Manifests (C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests)
+  try {
+    const manifestDir = 'C:\\ProgramData\\Epic\\EpicGamesLauncher\\Data\\Manifests'
+    if (fs.existsSync(manifestDir)) {
+      const files = fs.readdirSync(manifestDir)
+      for (const file of files) {
+        if (!file.endsWith('.item')) continue
+        try {
+          const content = fs.readFileSync(path.join(manifestDir, file), 'utf8')
+          const item = JSON.parse(content)
+          const installLoc = item.InstallLocation || item.ManifestLocation
+          const appName = item.AppName || item.DisplayName || ''
+          const launchExe = item.LaunchExecutable || ''
+          const isEngine =
+            (typeof appName === 'string' && appName.startsWith('UE_')) ||
+            (typeof launchExe === 'string' && launchExe.includes('UnrealEditor')) ||
+            (Array.isArray(item.AppCategories) && item.AppCategories.some((c: string) => typeof c === 'string' && c.includes('engine')))
+
+          if (installLoc && isEngine) {
+            tryAddEngineDir(installLoc, path.basename(installLoc))
+          }
+        } catch {
+          /* ignore invalid manifest */
+        }
+      }
+    }
+  } catch {
+    /* ignore manifest error */
+  }
+
+  // 2. Scan Registry Sub-Keys
   for (const registryKey of REGISTRY_KEYS) {
-    // List sub-keys (one per engine version)
     const listOutput = await regQuery(registryKey)
     if (!listOutput.trim()) continue
 
     const versions = parseSubKeys(registryKey, listOutput)
-    if (versions.length === 0) continue
+    if (versions.length > 0) {
+      await Promise.all(
+        versions.map(async (version) => {
+          const versionKey = `${registryKey}\\${version}`
+          const valueOutput = await regQuery(versionKey)
+          const installedDir = parseDirectoryFromOutput(valueOutput)
+          if (installedDir) {
+            tryAddEngineDir(installedDir, version)
+          }
+        })
+      )
+    }
 
-    await Promise.all(
-      versions.map(async (version) => {
-        const versionKey = `${registryKey}\\${version}`
-        const valueOutput = await regQuery(versionKey, ['/v', 'InstalledDirectory'])
-        const installedDir = parseInstalledDirectory(valueOutput)
-        if (!installedDir) return
+    // Also check direct key value
+    const topDir = parseDirectoryFromOutput(listOutput)
+    if (topDir) {
+      tryAddEngineDir(topDir, path.basename(topDir))
+    }
+  }
 
-        // Deduplicate by normalised path
-        const normalised = installedDir.toLowerCase().replace(/\\/g, '/')
-        if (seen.has(normalised)) return
-        seen.add(normalised)
+  // 3. Scan Registry Builds Keys (Custom & Source Engine Builds)
+  for (const buildsKey of BUILDS_KEYS) {
+    const buildsOutput = await regQuery(buildsKey)
+    if (!buildsOutput.trim()) continue
 
-        // Verify directory exists on disk
-        if (!fs.existsSync(installedDir)) return
-
-        // Resolve the editor executable
-        const binPath = path.join(installedDir, 'Engine', 'Binaries', 'Win64')
-        const ext = getBinaryExtension()
-        let exePath = path.join(binPath, `UnrealEditor${ext}`)
-        if (!fs.existsSync(exePath)) {
-          exePath = path.join(binPath, `UE4Editor${ext}`)
-        }
-        if (!fs.existsSync(exePath)) return
-
-        allResults.push({ version, exePath, directoryPath: installedDir } satisfies ScannedEngine)
-      })
-    )
+    const entries = parseBuildsValues(buildsOutput)
+    for (const entry of entries) {
+      tryAddEngineDir(entry.dir, entry.name)
+    }
   }
 
   return allResults
