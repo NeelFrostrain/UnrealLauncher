@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { execFile } from 'child_process'
 import { app } from 'electron'
 import fs from 'fs'
@@ -284,7 +284,8 @@ export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {
         activityPayload.buttons = options.buttons.slice(0, 2)
       }
 
-      await rpc.setActivity(activityPayload).catch(() => {
+      await rpc.setActivity(activityPayload).catch((err) => {
+        logger.warn('discord', 'Failed to update activity payload', err)
         lastPresenceKey = ''
       })
     } catch {
@@ -307,13 +308,10 @@ export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {
       reconnectDelayMs = DISCORD_RECONNECT_INITIAL_MS
       logger.info('discord', 'Rich Presence connected')
 
-      // Add initial delay before first presence update to prevent immediate command execution
-      setTimeout(() => {
-        if (rpcReady && !shuttingDown) {
-          setDiscordPresenceDynamic()
-          pollTimer = setInterval(setDiscordPresenceDynamic, PRESENCE_POLL_MS)
-        }
-      }, 2000) // Wait 2 seconds before first presence update
+      if (!shuttingDown) {
+        setDiscordPresenceDynamic()
+        pollTimer = setInterval(setDiscordPresenceDynamic, PRESENCE_POLL_MS)
+      }
     })
 
     rpc.on('disconnected', () => {

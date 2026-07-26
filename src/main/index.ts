@@ -283,17 +283,17 @@ if (!gotTheLock) {
         }
       })
 
-      // 11. Setup Discord Rich Presence after window is ready (delayed to prevent command flickering)
+      // 11. Setup Discord Rich Presence after window is ready
       setTimeout(() => {
         setupDiscordRichPresence({
-          clientId: process.env.DISCORD_CLIENT_ID || process.env.VITE_DISCORD_CLIENT_ID,
+          clientId: process.env.DISCORD_CLIENT_ID || process.env.VITE_DISCORD_CLIENT_ID || "1507980570725191740",
           buttons: [
-            { label: 'Join Discord', url: `${process.env.VITE_DISCORD_INVITE_URL}` },
-            { label: 'Download Launcher', url: `${process.env.VITE_WEBSITE_URL}` }
+            { label: 'Join Discord', url: `${process.env.VITE_DISCORD_INVITE_URL || "https://discord.gg/vq4UDfevG2"}` },
+            { label: 'Download Launcher', url: `${process.env.VITE_WEBSITE_URL || "https://neelfrostrain.github.io/unreal-launcher/"}` }
           ]
         })
         logger.info('discord', 'Rich Presence setup requested')
-      }, 7000) // Delay by 7 seconds to ensure no overlap with other startup operations
+      }, 2000)
 
       // 12. Send system startup notification to Discord (async, optional)
       // Delay Discord startup notification to prevent command flickering

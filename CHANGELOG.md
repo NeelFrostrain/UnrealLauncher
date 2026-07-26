@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.6.0] - 2026-07-26 — `feature · ui · UX · theme`
+## [2.5.5] - 2026-07-26 — `feature · ui · UX · theme`
 
 ### Added
 
