@@ -2,16 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.5.5] - 2026-07-26 — `feature · ui · UX · theme`
+## [2.5.6] - 2026-07-26 — `feature · ui · UX · theme · bugfix`
 
 ### Added
 
 - Added new **Tasks Page** process manager for monitoring active Unreal Engine processes, background builds, and services with bulk termination, real-time search, and auto-refresh options.
 - Added direct **Tasks** action button in the Engine Page toolbar with instant routing to `/tasks`.
-- Added **Support & Community** modal dialog accessible directly from the top window titlebar (after Feedback and Discord buttons), supporting Patreon, Ko-fi, Buy Me a Coffee, and Binance crypto donations.
-- Added interactive **Deposit USDT to Binance** crypto donation view with an accurate scannable QR Code, `BNB Smart Chain (BEP20)` network details, and 1-click address copy button (`0xcb7fdbcdbb0b558227c9fc91fd6fd848748dca61`).
+- Added **Support & Community** modal dialog accessible directly from the top window titlebar (after Feedback and Discord buttons), supporting Patreon and Binance crypto donations.
+- Added interactive **Binance Pay** and **Deposit USDT (BEP20)** crypto donation views with scannable QR Codes (`https://app.binance.com/uni-qr/R4GvPcjD`), network details, and 1-click copy buttons.
 - Added automatic version-based support prompt that highlights new release updates on first application launch after an update.
 - Added dedicated **Download Update** modal popup UI with loading animations and 1-click **Install & Restart** execution.
+
+### Fixed
+
+- Fixed Discord button invite URL in the Support & Community dialog to open `https://discord.gg/vq4UDfevG2` directly.
 
 ### Changed
 
