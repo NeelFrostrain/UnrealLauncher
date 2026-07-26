@@ -137,13 +137,11 @@ export function loadProjects(): Project[] {
 }
 export function saveProjects(projects: Project[]): void {
   pendingProjects = dedupeProjects(projects)
-  if (saveProjectsTimer) clearTimeout(saveProjectsTimer)
-  saveProjectsTimer = setTimeout(() => {
-    if (pendingProjects) {
-      writeJson(getProjectsDataPath(), pendingProjects, `projects (${pendingProjects.length})`)
-      pendingProjects = null
-    }
-  }, 100)
+  writeJson(getProjectsDataPath(), pendingProjects, `projects (${pendingProjects.length})`)
+  if (saveProjectsTimer) {
+    clearTimeout(saveProjectsTimer)
+    saveProjectsTimer = null
+  }
 }
 
 // ── Launch configs ────────────────────────────────────────────────────────────

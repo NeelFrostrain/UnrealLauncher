@@ -182,9 +182,14 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
         return
       }
 
+      // Also update saved projects in main process store
+      if (window.electronAPI.updateProjectVersion) {
+        await window.electronAPI.updateProjectVersion(p.projectPath, newVersion)
+      }
+
       addToast(`Engine version updated to ${newVersion}`, 'success')
       window.dispatchEvent(
-        new CustomEvent('project-engine-changed', { detail: { projectPath: p.projectPath } })
+        new CustomEvent('project-engine-changed', { detail: { projectPath: p.projectPath, version: newVersion } })
       )
       p.onClose()
     } catch (error) {

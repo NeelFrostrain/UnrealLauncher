@@ -95,6 +95,8 @@ if (process.contextIsolated) {
       saveMainSettings: (settings) => ipcRenderer.invoke('save-main-settings', settings),
       selectFolder: () => ipcRenderer.invoke('select-folder'),
       loadSavedProjects: () => ipcRenderer.invoke('load-saved-projects'),
+      updateProjectVersion: (projectPath: string, newVersion: string) =>
+        ipcRenderer.invoke('update-project-version', projectPath, newVersion),
       scanEnginePlugins: (engineDir: string) =>
         ipcRenderer.invoke('scan-engine-plugins', engineDir),
       toggleEnginePluginDefault: (pluginPath: string, enabled: boolean) =>

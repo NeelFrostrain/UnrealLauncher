@@ -297,8 +297,17 @@ export function useProjectLoader({
       setProjects((prev) => prev.filter((p) => p.projectPath !== data.projectPath))
     })
 
-    const handleEngineChange = (): void => {
-      loadProjects('scan')
+    const handleEngineChange = (e: Event): void => {
+      const detail = (e as CustomEvent<{ projectPath?: string; version?: string }>).detail
+      if (detail?.projectPath && detail?.version) {
+        const norm = detail.projectPath.toLowerCase()
+        allProjectsRef.current = allProjectsRef.current.map((p) =>
+          p.projectPath?.toLowerCase() === norm ? { ...p, version: detail.version } : p
+        )
+        setProjects((prev) =>
+          prev.map((p) => (p.projectPath?.toLowerCase() === norm ? { ...p, version: detail.version } : p))
+        )
+      }
     }
     window.addEventListener('project-engine-changed', handleEngineChange)
 

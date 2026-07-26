@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
@@ -265,6 +265,18 @@ export function handleProjectWriteTextFile(
     }
 
     fs.writeFileSync(resolved, content, 'utf8')
+
+    // If writing a .uproject file, automatically sync the new EngineAssociation to saved projects store
+    if (resolved.endsWith('.uproject')) {
+      try {
+        const parsed = JSON.parse(content)
+        if (typeof parsed.EngineAssociation === 'string') {
+          const { updateProjectVersion } = require('./projectValidation')
+          updateProjectVersion(projectPath, parsed.EngineAssociation)
+        }
+      } catch {}
+    }
+
     return { success: true }
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }

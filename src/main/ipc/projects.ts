@@ -12,6 +12,7 @@ import {
   scanAndMergeProjects,
   loadSavedProjects,
   deleteProject,
+  updateProjectVersion,
   checkProjectHealth
 } from './projectHandlers'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
@@ -50,6 +51,10 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   ipcMain_.handle('delete-project', (_event, projectPath) => deleteProject(projectPath))
+
+  ipcMain_.handle('update-project-version', (_event, projectPath: string, newVersion: string) =>
+    updateProjectVersion(projectPath, newVersion)
+  )
 
   ipcMain_.handle('calculate-project-size', async (_event, projectPath) => {
     // SECURITY: Validate path is a valid existing directory

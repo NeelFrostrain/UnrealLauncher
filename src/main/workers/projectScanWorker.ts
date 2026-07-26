@@ -125,6 +125,7 @@ async function run() {
           const ex = savedByPath.get(norm);
           scannedByPath.set(norm, {
             ...proj,
+            version: ex?.version ?? proj.version,
             size: (ex?.size && !ex.size.startsWith('~')) ? ex.size : proj.size,
             thumbnail: findScreenshot(proj.projectPath),
             lastOpenedAt: ex ? (findLogTimestamp(proj.projectPath) || ex.lastOpenedAt) : proj.lastOpenedAt

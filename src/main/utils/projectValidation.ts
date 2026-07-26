@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import { app } from 'electron'
 import { loadProjects, saveProjects, mergeTracerProjects } from '../store'
@@ -131,6 +131,36 @@ export async function loadSavedProjects(): Promise<Project[]> {
   const projects = cacheProjectThumbnails(Array.isArray(raw) ? raw : [])
   logger.info('project', 'Loaded saved projects', { count: projects.length })
   return projects
+}
+
+export function updateProjectVersion(projectPath: string, newVersion: string): boolean {
+  logger.info('project', 'Update project version requested', { projectPath, newVersion })
+  try {
+    const projects = loadProjects()
+    const normalized = path.normalize(projectPath).toLowerCase()
+    let updated = false
+    const list = projects.map((p) => {
+      if (path.normalize(p.projectPath).toLowerCase() === normalized) {
+        updated = true
+        return { ...p, version: newVersion }
+      }
+      return p
+    })
+    if (updated) {
+      saveProjects(list)
+      // Invalidate project scan cache file so next background scan doesn't reuse outdated cached metadata
+      try {
+        const cachePath = getScanCachePath()
+        if (require('fs').existsSync(cachePath)) {
+          require('fs').unlinkSync(cachePath)
+        }
+      } catch {}
+    }
+    return updated
+  } catch (error) {
+    logger.error('project', 'Update project version failed', { projectPath, error })
+    return false
+  }
 }
 
 /**

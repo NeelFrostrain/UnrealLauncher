@@ -263,6 +263,7 @@ declare global {
       saveMainSettings: (settings: Record<string, unknown>) => Promise<void>
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>
+      updateProjectVersion: (projectPath: string, newVersion: string) => Promise<boolean>
       scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
       toggleEnginePluginDefault: (
         pluginPath: string,
