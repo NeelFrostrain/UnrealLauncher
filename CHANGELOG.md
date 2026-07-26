@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.0] - 2026-07-26 — `feature · ui · UX · theme`
+
+### Added
+
+- Added new **Tasks Page** process manager for monitoring active Unreal Engine processes, background builds, and services with bulk termination, real-time search, and auto-refresh options.
+- Added direct **Tasks** action button in the Engine Page toolbar with instant routing to `/tasks`.
+- Added **Support & Community** modal dialog accessible directly from the top window titlebar (after Feedback and Discord buttons), supporting Patreon, Ko-fi, Buy Me a Coffee, and Binance crypto donations.
+- Added interactive **Deposit USDT to Binance** crypto donation view with an accurate scannable QR Code, `BNB Smart Chain (BEP20)` network details, and 1-click address copy button (`0xcb7fdbcdbb0b558227c9fc91fd6fd848748dca61`).
+- Added automatic version-based support prompt that highlights new release updates on first application launch after an update.
+- Added dedicated **Download Update** modal popup UI with loading animations and 1-click **Install & Restart** execution.
+
+### Changed
+
+- Removed legacy Tasks navigation button from the main sidebar to streamline navigation.
+- Fully synced the Tasks page with application theme CSS variables (`var(--color-accent)`, `var(--color-surface-card)`, `var(--color-border)`).
+- Redesigned support modal platform cards with brand gradients, badges, and hover elevation states.
+
 ## [2.5.2] - 2026-07-26 — `bugfix · quality`
 
 ### Fixed

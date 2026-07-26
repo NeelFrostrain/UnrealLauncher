@@ -1,7 +1,9 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { useState } from 'react'
 import { RefreshCw, Download, CheckCircle, GitBranch } from 'lucide-react'
 import { Card } from '../SectionHelpers'
 import { useUpdateCheck } from '../../../hooks/useUpdateCheck'
+import { DownloadUpdateModal } from '../../ui/DownloadUpdateModal'
 
 // Status-specific semantic colors — these are intentional fixed colors, not theme tokens
 const STATUS_COLOR = {
@@ -49,6 +51,7 @@ function ActionBtn({
 }
 
 const UpdatesSection = (): React.ReactElement => {
+  const [modalDismissed, setModalDismissed] = useState(false)
   const {
     updateStatus,
     updateMessage,
@@ -60,6 +63,9 @@ const UpdatesSection = (): React.ReactElement => {
     handleDownloadUpdate,
     checkGitHubVersion
   } = useUpdateCheck()
+
+  const showModal =
+    !modalDismissed && (updateStatus === 'downloading' || updateStatus === 'ready')
 
   const updateMsgColor =
     updateStatus === 'error'
@@ -113,7 +119,10 @@ const UpdatesSection = (): React.ReactElement => {
               )}
               {updateStatus === 'available' && (
                 <ActionBtn
-                  onClick={handleDownloadUpdate}
+                  onClick={() => {
+                    setModalDismissed(false)
+                    handleDownloadUpdate()
+                  }}
                   color="success"
                   icon={<Download size={12} />}
                   label={`v${updateVersion}`}
@@ -121,7 +130,7 @@ const UpdatesSection = (): React.ReactElement => {
               )}
               {updateStatus === 'downloading' && (
                 <ActionBtn
-                  disabled
+                  onClick={() => setModalDismissed(false)}
                   color="success"
                   icon={<Download size={12} className="animate-pulse" />}
                   label="Downloading…"
@@ -129,7 +138,7 @@ const UpdatesSection = (): React.ReactElement => {
               )}
               {updateStatus === 'ready' && (
                 <ActionBtn
-                  onClick={() => window.electronAPI?.installUpdate?.()}
+                  onClick={() => setModalDismissed(false)}
                   color="purple"
                   icon={<CheckCircle size={12} />}
                   label="Install"
@@ -150,7 +159,7 @@ const UpdatesSection = (): React.ReactElement => {
                 className="text-xs mt-0.5 leading-relaxed"
                 style={{ color: 'var(--color-text-muted)' }}
               >
-                Check the latest release version on GitHub
+                Check latest release tags directly from GitHub repository
               </p>
               {githubVersion && (
                 <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
@@ -162,7 +171,11 @@ const UpdatesSection = (): React.ReactElement => {
                   className="text-xs mt-2"
                   style={{
                     color:
-                      githubStatus === 'error' ? STATUS_COLOR.error.text : 'var(--color-text-muted)'
+                      githubStatus === 'error'
+                        ? STATUS_COLOR.error.text
+                        : githubStatus === 'success'
+                          ? STATUS_COLOR.success.text
+                          : 'var(--color-text-muted)'
                   }}
                 >
                   {githubMessage}
@@ -175,7 +188,7 @@ const UpdatesSection = (): React.ReactElement => {
                 githubStatus === 'error') && (
                 <ActionBtn
                   onClick={checkGitHubVersion}
-                  color={githubStatus === 'error' ? 'error' : 'purple'}
+                  color="purple"
                   icon={
                     githubStatus === 'error' ? <RefreshCw size={12} /> : <GitBranch size={12} />
                   }
@@ -200,6 +213,15 @@ const UpdatesSection = (): React.ReactElement => {
           </div>
         </div>
       </Card>
+
+      <DownloadUpdateModal
+        isOpen={showModal}
+        status={updateStatus as 'checking' | 'downloading' | 'ready' | 'error'}
+        version={updateVersion}
+        message={updateMessage}
+        onInstall={() => window.electronAPI?.installUpdate?.()}
+        onClose={() => setModalDismissed(true)}
+      />
     </section>
   )
 }

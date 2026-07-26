@@ -67,39 +67,35 @@ function fmtCpu(s?: number): string {
 
 const TYPE_META: Record<
   'editor' | 'build' | 'service' | 'other',
-  { label: string; color: string; bg: string; border: string; icon: React.ReactNode; avatarColor: string }
+  { label: string; color: string; bg: string; border: string; icon: React.ReactNode }
 > = {
   editor: {
     label: 'Unreal Editor',
-    color: '#60a5fa',
-    bg: 'rgba(59,130,246,0.10)',
-    border: 'rgba(59,130,246,0.28)',
-    icon: <Terminal size={10} />,
-    avatarColor: '#1d4ed8'
+    color: 'var(--color-accent)',
+    bg: 'color-mix(in srgb, var(--color-accent) 12%, transparent)',
+    border: 'color-mix(in srgb, var(--color-accent) 30%, transparent)',
+    icon: <Terminal size={10} />
   },
   build: {
     label: 'Build System',
-    color: '#f472b6',
-    bg: 'rgba(236,72,153,0.10)',
-    border: 'rgba(236,72,153,0.28)',
-    icon: <Wrench size={10} />,
-    avatarColor: '#9d174d'
+    color: 'var(--color-text-secondary)',
+    bg: 'color-mix(in srgb, var(--color-text-secondary) 12%, transparent)',
+    border: 'color-mix(in srgb, var(--color-text-secondary) 30%, transparent)',
+    icon: <Wrench size={10} />
   },
   service: {
     label: 'Service',
-    color: '#34d399',
-    bg: 'rgba(16,185,129,0.10)',
-    border: 'rgba(16,185,129,0.28)',
-    icon: <Server size={10} />,
-    avatarColor: '#065f46'
+    color: 'var(--color-text-primary)',
+    bg: 'color-mix(in srgb, var(--color-text-primary) 10%, transparent)',
+    border: 'color-mix(in srgb, var(--color-text-primary) 25%, transparent)',
+    icon: <Server size={10} />
   },
   other: {
     label: 'Process',
-    color: '#9ca3af',
-    bg: 'rgba(156,163,175,0.10)',
-    border: 'rgba(156,163,175,0.28)',
-    icon: <Box size={10} />,
-    avatarColor: '#374151'
+    color: 'var(--color-text-muted)',
+    bg: 'color-mix(in srgb, var(--color-text-muted) 10%, transparent)',
+    border: 'color-mix(in srgb, var(--color-text-muted) 25%, transparent)',
+    icon: <Box size={10} />
   }
 }
 
@@ -420,23 +416,23 @@ export default function TasksContent({
         </div>
         <div className="flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
           <HardDrive size={12} />
-          <span className="text-xs font-mono" style={{ color: '#10b981' }}>{fmtBytes(totalMem)}</span>
+          <span className="text-xs font-mono font-semibold" style={{ color: 'var(--color-accent)' }}>{fmtBytes(totalMem)}</span>
           <span className="text-xs">total memory</span>
         </div>
         {editorCount > 0 && (
           <div className="flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
-            <Activity size={12} style={{ color: '#60a5fa' }} />
+            <Activity size={12} style={{ color: 'var(--color-accent)' }} />
             <span className="text-xs">
-              <span className="font-semibold" style={{ color: '#60a5fa' }}>{editorCount}</span>
+              <span className="font-semibold" style={{ color: 'var(--color-accent)' }}>{editorCount}</span>
               {' '}editor{editorCount !== 1 ? 's' : ''}
             </span>
           </div>
         )}
         {buildCount > 0 && (
           <div className="flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
-            <Wrench size={12} style={{ color: '#f472b6' }} />
+            <Wrench size={12} style={{ color: 'var(--color-text-secondary)' }} />
             <span className="text-xs">
-              <span className="font-semibold" style={{ color: '#f472b6' }}>{buildCount}</span>
+              <span className="font-semibold" style={{ color: 'var(--color-text-secondary)' }}>{buildCount}</span>
               {' '}build{buildCount !== 1 ? 's' : ''}
             </span>
           </div>

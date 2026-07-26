@@ -1,6 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React from 'react'
-import { Plus, RefreshCw, Zap, ShoppingBag, ChevronDown, Check, Store } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Plus, RefreshCw, Zap, ShoppingBag, ChevronDown, Check, Store, Activity } from 'lucide-react'
 import DropdownPortal from '../../components/ui/DropdownPortal'
 import type { EngineCardProps } from '../../types'
 import { Tabs } from '../../components/ui/Tabs'
@@ -47,17 +48,32 @@ export function EnginesPageToolbar({
   onSelectEngine,
   onDropdownToggle
 }: EnginesPageToolbarProps): React.ReactElement {
+  const navigate = useNavigate()
+
   return (
     <div
       className="flex flex-wrap items-center gap-3 py-3 shrink-0 border-b"
       style={{ borderColor: 'var(--color-border)' }}
     >
-      <Tabs tabs={TABS} activeTab={activeTab} onChange={onTabChange} />
+        <Tabs tabs={TABS} activeTab={activeTab} onChange={onTabChange} />
 
-      <div className="flex-1" />
+        <div className="flex-1" />
 
-      {/* Actions */}
-      <div className="flex items-center gap-1.5">
+        {/* Actions */}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => navigate('/tasks')}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
+            style={{
+              borderRadius: 'var(--radius)',
+              backgroundColor: 'var(--color-surface-card)',
+              color: 'var(--color-text-secondary)',
+              border: '1px solid var(--color-border)'
+            }}
+          >
+            <Activity size={12} />
+            Tasks
+          </button>
         {activeTab === 'plugins' && engines.length > 1 && (
           <>
             <button

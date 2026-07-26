@@ -1,9 +1,11 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, lazy, Suspense } from 'react'
-import { Minus, Square, Minimize2, X, MessageSquarePlus, MessageCircle } from 'lucide-react'
+import { Minus, Square, Minimize2, X, MessageSquarePlus, MessageCircle, Heart } from 'lucide-react'
 const FeedbackDialog = lazy(() => import('./FeedbackDialog'))
+import { SupportModal } from '../ui/SupportModal'
 import { getSetting } from '../../utils/settings'
 import { usePageVisibility } from '../../hooks/usePageVisibility'
+import { useAppVersion } from '../../hooks/useAppVersion'
 import config from '../../../../config'
 
 // const IS_MAC = navigator.platform.toLowerCase().includes('mac')
@@ -29,7 +31,9 @@ import config from '../../../../config'
 const Titlebar = (): React.ReactElement => {
   const [isMaximized, setIsMaximized] = useState(false)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [supportOpen, setSupportOpen] = useState(false)
   const [showButtons, setShowButtons] = useState(() => getSetting('showTitlebarButtons'))
+  const appVersion = useAppVersion()
 
   const handleMinimize = (): void => window.electronAPI?.windowMinimize()
   const handleMaximize = (): void => {
@@ -39,6 +43,17 @@ const Titlebar = (): React.ReactElement => {
   const handleClose = (): void => window.electronAPI?.windowClose()
 
   const isVisible = usePageVisibility()
+
+  // Auto-show support modal once per app version update
+  useEffect(() => {
+    if (!appVersion) return
+    const key = 'unrealLauncher_lastSeenSupportModalVersion'
+    const lastSeenVersion = localStorage.getItem(key)
+    if (lastSeenVersion !== appVersion) {
+      setSupportOpen(true)
+      localStorage.setItem(key, appVersion)
+    }
+  }, [appVersion])
 
   useEffect(() => {
     const update = async (): Promise<void> => {
@@ -80,7 +95,7 @@ const Titlebar = (): React.ReactElement => {
         {/* Draggable region */}
         <div className="flex-1 h-full" style={drag} />
 
-        {/* Feedback + Discord */}
+        {/* Feedback + Discord + Support */}
         {showButtons && (
           <div className="flex items-center h-full gap-0.5 px-1" style={noDrag}>
             <button
@@ -117,6 +132,24 @@ const Titlebar = (): React.ReactElement => {
             >
               <MessageCircle size={13} />
               Discord
+            </button>
+            <button
+              onClick={() => setSupportOpen(true)}
+              className="flex items-center gap-1.5 h-7 px-2.5 text-[11px] font-semibold cursor-pointer transition-colors"
+              style={{
+                borderRadius: 'var(--radius)',
+                color: '#ec4899',
+                backgroundColor: 'transparent'
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor =
+                  'color-mix(in srgb, #ec4899 12%, transparent)')
+              }
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              title="Support & Donations"
+            >
+              <Heart size={13} fill="currentColor" />
+              Support
             </button>
             {/* Divider */}
             <div className="w-px h-4 mx-1" style={{ backgroundColor: 'var(--color-border)' }} />
@@ -180,6 +213,7 @@ const Titlebar = (): React.ReactElement => {
         <Suspense fallback={null}>
           {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
         </Suspense>
+        <SupportModal isOpen={supportOpen} onClose={() => setSupportOpen(false)} />
       </>
     </>
   )
