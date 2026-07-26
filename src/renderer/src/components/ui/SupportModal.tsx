@@ -28,7 +28,9 @@ const BINANCE_DETAILS = {
 
 export function SupportModal({ isOpen, onClose }: SupportModalProps): React.ReactElement | null {
   const [showBinanceModal, setShowBinanceModal] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const [binanceTab, setBinanceTab] = useState<'binancePay' | 'cryptoDeposit'>('binancePay')
+  const [copiedAddress, setCopiedAddress] = useState(false)
+  const [copiedPayId, setCopiedPayId] = useState(false)
 
   if (!isOpen) return null
 
@@ -42,8 +44,14 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
 
   const handleCopyAddress = (): void => {
     navigator.clipboard.writeText(BINANCE_DETAILS.address)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setCopiedAddress(true)
+    setTimeout(() => setCopiedAddress(false), 2000)
+  }
+
+  const handleCopyPayId = (): void => {
+    navigator.clipboard.writeText('1096706787')
+    setCopiedPayId(true)
+    setTimeout(() => setCopiedPayId(false), 2000)
   }
 
   const cardStyle = {
@@ -68,7 +76,7 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
     {
       id: 'binance',
       name: 'Binance',
-      desc: 'Crypto donations',
+      desc: 'Binance Pay & Crypto',
       recommended: true,
       color: '#FCD535',
       bg: 'linear-gradient(135deg, rgba(252,213,53,.22), rgba(252,213,53,.08))',
@@ -113,12 +121,18 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
 
           <div className="flex-1 min-w-0">
             <p className="text-base font-bold flex items-center gap-1.5" style={{ color: 'var(--color-text-primary)' }}>
-              {showBinanceModal ? 'Deposit USDT to Binance' : 'Support & Community'}
+              {showBinanceModal
+                ? binanceTab === 'binancePay'
+                  ? 'Binance Pay'
+                  : 'Deposit USDT (BEP20)'
+                : 'Support & Community'}
               <Sparkles size={14} style={{ color: '#FCD535' }} />
             </p>
             <p className="text-xs truncate mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
               {showBinanceModal
-                ? 'Scan QR or copy address to send USDT via BNB Smart Chain'
+                ? binanceTab === 'binancePay'
+                  ? 'Scan with Binance App to pay instantly with zero fees'
+                  : 'Scan QR or copy address to send USDT via BNB Smart Chain'
                 : 'Help keep Unreal Launcher free, open-source & fast'}
             </p>
           </div>
@@ -145,72 +159,148 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
         {/* Content body */}
         <div className="py-5 px-4 flex flex-col gap-4 overflow-y-auto max-h-[75vh]">
           {showBinanceModal ? (
-            /* Binance Deposit Detail View */
-            <div className="flex flex-col items-center gap-5 p-5" style={cardStyle}>
-              {/* Heading */}
-              <div className="text-center">
-                <h3 className="text-lg font-extrabold" style={{ color: '#FCD535' }}>
-                  Deposit USDT to Binance
-                </h3>
-                <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                  BEP20 Network Transfer
-                </p>
+            /* Binance Detail View */
+            <div className="flex flex-col items-center gap-4 p-5" style={cardStyle}>
+              {/* Tab Selector: Binance Pay vs Deposit USDT */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl w-full max-w-sm" style={{ backgroundColor: 'var(--color-surface-card)', border: '1px solid var(--color-border)' }}>
+                <button
+                  onClick={() => setBinanceTab('binancePay')}
+                  className="flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all cursor-pointer text-center"
+                  style={{
+                    backgroundColor: binanceTab === 'binancePay' ? '#FCD535' : 'transparent',
+                    color: binanceTab === 'binancePay' ? '#000000' : 'var(--color-text-muted)'
+                  }}
+                >
+                  Binance Pay
+                </button>
+                <button
+                  onClick={() => setBinanceTab('cryptoDeposit')}
+                  className="flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all cursor-pointer text-center"
+                  style={{
+                    backgroundColor: binanceTab === 'cryptoDeposit' ? '#FCD535' : 'transparent',
+                    color: binanceTab === 'cryptoDeposit' ? '#000000' : 'var(--color-text-muted)'
+                  }}
+                >
+                  Crypto Deposit (BEP20)
+                </button>
               </div>
 
-              {/* QR Code display — real scannable QR code */}
-              <div className="bg-white p-3 rounded-2xl shadow-xl flex flex-col items-center justify-center border-4 border-[#FCD535]/40">
-                <img
-                  src={`https://quickchart.io/qr?text=${encodeURIComponent(
-                    BINANCE_DETAILS.address
-                  )}&size=240&margin=1`}
-                  alt="Binance USDT BEP20 Deposit QR Code"
-                  width={220}
-                  height={220}
-                  className="w-48 h-48 sm:w-56 sm:h-56 object-contain rounded-lg"
-                />
-              </div>
-
-              {/* Deposit Details Table */}
-              <div className="w-full space-y-3 pt-2">
-                {/* Network row */}
-                <div className="flex items-center justify-between p-3 rounded-lg border" style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)' }}>
-                  <span className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                    Network
-                  </span>
-                  <span className="text-xs font-bold font-mono" style={{ color: 'var(--color-text-primary)' }}>
-                    {BINANCE_DETAILS.network}
-                  </span>
-                </div>
-
-                {/* Address row with Copy button */}
-                <div className="flex flex-col gap-1.5 p-3 rounded-lg border" style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)' }}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                      Wallet Address
-                    </span>
-                    <button
-                      onClick={handleCopyAddress}
-                      className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold rounded cursor-pointer transition-all"
-                      style={{
-                        backgroundColor: copied ? 'rgba(74,222,128,0.2)' : 'rgba(252,213,53,0.2)',
-                        color: copied ? '#4ade80' : '#FCD535',
-                        border: `1px solid ${copied ? 'rgba(74,222,128,0.4)' : 'rgba(252,213,53,0.4)'}`
-                      }}
-                    >
-                      {copied ? <Check size={12} /> : <Copy size={12} />}
-                      {copied ? 'Copied!' : 'Copy Address'}
-                    </button>
+              {binanceTab === 'binancePay' ? (
+                /* Binance Pay View */
+                <>
+                  <div className="text-center">
+                    <h3 className="text-base font-extrabold" style={{ color: '#FCD535' }}>
+                      Scan to Pay via Binance App
+                    </h3>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                      Supports any crypto in your Binance Funding / Spot Wallet (0% Fee)
+                    </p>
                   </div>
-                  <span className="text-xs font-mono select-all break-all" style={{ color: '#FCD535' }}>
-                    {BINANCE_DETAILS.address}
-                  </span>
-                </div>
 
-                {/* Warning / Note */}
-                <p className="text-[11px] text-center italic" style={{ color: 'var(--color-text-muted)' }}>
-                  {BINANCE_DETAILS.note}
-                </p>
-              </div>
+                  {/* QR Code display for Binance Pay */}
+                  <div className="bg-white p-3 rounded-2xl shadow-xl flex flex-col items-center justify-center border-4 border-[#FCD535]/40">
+                    <img
+                      src={`https://quickchart.io/qr?text=${encodeURIComponent(
+                        'https://app.binance.com/uni-qr/R4GvPcjD'
+                      )}&size=240&margin=1`}
+                      alt="Binance Pay QR Code"
+                      width={220}
+                      height={220}
+                      className="w-48 h-48 sm:w-56 sm:h-56 object-contain rounded-lg"
+                    />
+                  </div>
+
+                  {/* Binance Pay ID Details */}
+                  <div className="w-full space-y-2.5 pt-1">
+                    <div className="flex items-center justify-between p-3 rounded-lg border" style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)' }}>
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                          Binance Pay ID
+                        </span>
+                        <span className="text-sm font-bold font-mono" style={{ color: '#FCD535' }}>
+                          1096706787
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleCopyPayId}
+                        className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded cursor-pointer transition-all"
+                        style={{
+                          backgroundColor: copiedPayId ? 'rgba(74,222,128,0.2)' : 'rgba(252,213,53,0.2)',
+                          color: copiedPayId ? '#4ade80' : '#FCD535',
+                          border: `1px solid ${copiedPayId ? 'rgba(74,222,128,0.4)' : 'rgba(252,213,53,0.4)'}`
+                        }}
+                      >
+                        {copiedPayId ? <Check size={13} /> : <Copy size={13} />}
+                        {copiedPayId ? 'Copied!' : 'Copy Pay ID'}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* Crypto Deposit BEP20 View */
+                <>
+                  <div className="text-center">
+                    <h3 className="text-base font-extrabold" style={{ color: '#FCD535' }}>
+                      Deposit USDT (BEP20)
+                    </h3>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                      BNB Smart Chain Network
+                    </p>
+                  </div>
+
+                  {/* QR Code display */}
+                  <div className="bg-white p-3 rounded-2xl shadow-xl flex flex-col items-center justify-center border-4 border-[#FCD535]/40">
+                    <img
+                      src={`https://quickchart.io/qr?text=${encodeURIComponent(
+                        BINANCE_DETAILS.address
+                      )}&size=240&margin=1`}
+                      alt="Binance USDT BEP20 Deposit QR Code"
+                      width={220}
+                      height={220}
+                      className="w-48 h-48 sm:w-56 sm:h-56 object-contain rounded-lg"
+                    />
+                  </div>
+
+                  {/* Deposit Details Table */}
+                  <div className="w-full space-y-2.5 pt-1">
+                    <div className="flex items-center justify-between p-2.5 rounded-lg border" style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)' }}>
+                      <span className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                        Network
+                      </span>
+                      <span className="text-xs font-bold font-mono" style={{ color: 'var(--color-text-primary)' }}>
+                        {BINANCE_DETAILS.network}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5 p-2.5 rounded-lg border" style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)' }}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                          Wallet Address
+                        </span>
+                        <button
+                          onClick={handleCopyAddress}
+                          className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold rounded cursor-pointer transition-all"
+                          style={{
+                            backgroundColor: copiedAddress ? 'rgba(74,222,128,0.2)' : 'rgba(252,213,53,0.2)',
+                            color: copiedAddress ? '#4ade80' : '#FCD535',
+                            border: `1px solid ${copiedAddress ? 'rgba(74,222,128,0.4)' : 'rgba(252,213,53,0.4)'}`
+                          }}
+                        >
+                          {copiedAddress ? <Check size={12} /> : <Copy size={12} />}
+                          {copiedAddress ? 'Copied!' : 'Copy Address'}
+                        </button>
+                      </div>
+                      <span className="text-xs font-mono select-all break-all" style={{ color: '#FCD535' }}>
+                        {BINANCE_DETAILS.address}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-center italic" style={{ color: 'var(--color-text-muted)' }}>
+                      {BINANCE_DETAILS.note}
+                    </p>
+                  </div>
+                </>
+              )}
 
               {/* Binance Brand Banner */}
               <div className="flex items-center gap-2 pt-1">
@@ -320,7 +410,7 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
                 </span>
 
                 <button
-                  onClick={() => handleOpenExternal('https://discord.gg')}
+                  onClick={() => handleOpenExternal('https://discord.gg/vq4UDfevG2')}
                   className="group flex items-center justify-between p-3.5 rounded-xl font-semibold text-xs transition-all duration-200 cursor-pointer hover:-translate-y-0.5 hover:shadow-md text-left"
                   style={{
                     background: 'linear-gradient(135deg, rgba(88, 101, 242, 0.18) 0%, rgba(88, 101, 242, 0.06) 100%)',
