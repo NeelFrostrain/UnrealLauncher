@@ -1,3 +1,4 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React, { useEffect, useState, useCallback } from 'react'
 import { Activity, Cpu, HardDrive, Layers } from 'lucide-react'
 import { useToast } from '../components/ui/ToastContext'
@@ -7,12 +8,19 @@ import TasksContent from '../components/tasks/TasksContent'
 import { useGlobalShortcuts } from '../hooks/useGlobalShortcuts'
 import type { ProcessFilterType } from '../types'
 
+interface SavedProject {
+  projectPath: string
+  thumbnail?: string | null
+  name?: string
+}
+
 interface SystemProcess {
   pid: number
   name: string
   memoryBytes: number
   cpuSeconds?: number
   path?: string
+  projectPath?: string
   type: 'editor' | 'build' | 'service' | 'other'
 }
 
@@ -25,14 +33,21 @@ export default function TasksPage(): React.ReactElement {
   const [killingPid, setKillingPid] = useState<number | null>(null)
   const [autoRefresh, setAutoRefresh] = useState(true)
   const [selectedPids, setSelectedPids] = useState<number[]>([])
+  const [savedProjects, setSavedProjects] = useState<SavedProject[]>([])
   const { addToast } = useToast()
+
+  // Load saved projects once so we can match thumbnails to processes
+  useEffect(() => {
+    window.electronAPI.loadSavedProjects().then((projects) => {
+      setSavedProjects(projects as SavedProject[])
+    }).catch(() => {})
+  }, [])
 
   const loadProcesses = useCallback(
     async (silent = false) => {
       if (!silent) setLoading(true)
       try {
         const res = await window.electronAPI.taskManagerGetProcesses()
-        // Sort processes: editors first, then build tools, services, and memory usage descending
         const sorted = [...res].sort((a, b) => {
           const typeOrder = { editor: 0, build: 1, service: 2, other: 3 }
           if (typeOrder[a.type] !== typeOrder[b.type]) {
@@ -51,7 +66,6 @@ export default function TasksPage(): React.ReactElement {
     [addToast]
   )
 
-  // Global shortcuts for the tasks page
   useGlobalShortcuts({
     onFocusSearch: () => {
       if (!searchOpen) setSearchOpen(true)
@@ -59,7 +73,6 @@ export default function TasksPage(): React.ReactElement {
     onRefresh: () => loadProcesses()
   })
 
-  // Handle palette actions
   useEffect(() => {
     const handler = (e: Event): void => {
       const { commandId } = (e as CustomEvent<{ commandId: string }>).detail
@@ -72,27 +85,21 @@ export default function TasksPage(): React.ReactElement {
 
   useEffect(() => {
     loadProcesses()
-
     let interval: NodeJS.Timeout | null = null
     if (autoRefresh) {
-      // Auto-refresh every 4 seconds when enabled
-      interval = setInterval(() => {
-        loadProcesses(true)
-      }, 4000)
+      interval = setInterval(() => loadProcesses(true), 4000)
     }
-
     return () => {
       if (interval) clearInterval(interval)
     }
   }, [loadProcesses, autoRefresh])
 
-  const handleKill = async (pid: number, name: string) => {
+  const handleKill = async (pid: number, name: string): Promise<void> => {
     setKillingPid(pid)
     try {
       const res = await window.electronAPI.taskManagerKillProcess(pid)
       if (res.success) {
-        addToast(`Process ${name} (PID: ${pid}) terminated successfully`, 'success')
-        // Optimistic update
+        addToast(`Process ${name} (PID: ${pid}) terminated`, 'success')
         setProcesses((prev) => prev.filter((p) => p.pid !== pid))
         setSelectedPids((prev) => prev.filter((id) => id !== pid))
       } else {
@@ -106,7 +113,7 @@ export default function TasksPage(): React.ReactElement {
     }
   }
 
-  const handleBulkKill = async () => {
+  const handleBulkKill = async (): Promise<void> => {
     if (selectedPids.length === 0) return
     setLoading(true)
     try {
@@ -114,20 +121,15 @@ export default function TasksPage(): React.ReactElement {
       let failed = 0
       for (const pid of selectedPids) {
         const res = await window.electronAPI.taskManagerKillProcess(pid)
-        if (res.success) {
-          succeeded++
-        } else {
-          failed++
-        }
+        if (res.success) succeeded++
+        else failed++
       }
       if (succeeded > 0) {
-        addToast(`Successfully terminated ${succeeded} process(es)`, 'success')
+        addToast(`Terminated ${succeeded} process(es)`, 'success')
         setProcesses((prev) => prev.filter((p) => !selectedPids.includes(p.pid)))
         setSelectedPids([])
       }
-      if (failed > 0) {
-        addToast(`Failed to terminate ${failed} process(es)`, 'error')
-      }
+      if (failed > 0) addToast(`Failed to terminate ${failed} process(es)`, 'error')
     } catch (err) {
       console.error(err)
       addToast('Error during bulk termination', 'error')
@@ -136,50 +138,32 @@ export default function TasksPage(): React.ReactElement {
     }
   }
 
-  const handleOpenFolder = async (filePath: string) => {
+  const handleOpenFolder = async (filePath: string): Promise<void> => {
     try {
       const parts = filePath.split(/[/\\]/)
       parts.pop()
       const dirPath = parts.join('\\')
       const res = await window.electronAPI.openDirectory(dirPath)
-      if (res.error) {
-        addToast(res.error, 'error')
-      } else {
-        addToast('Opened process directory in explorer', 'success')
-      }
+      if (res.error) addToast(res.error, 'error')
+      else addToast('Opened process directory', 'success')
     } catch (err) {
       console.error(err)
       addToast('Failed to open directory', 'error')
     }
   }
 
-  const handleToggleSearch = () => {
-    setSearchOpen(!searchOpen)
-    if (searchOpen) {
-      setSearchQuery('')
-    }
-  }
-
-  const handleToggleSelectPid = (pid: number) => {
+  const handleToggleSelectPid = (pid: number): void => {
     setSelectedPids((prev) =>
       prev.includes(pid) ? prev.filter((id) => id !== pid) : [...prev, pid]
     )
   }
 
-  const handleSelectAll = (pids: number[]) => {
+  const handleSelectAll = (pids: number[]): void => {
     setSelectedPids((prev) => {
       const next = [...prev]
-      pids.forEach((pid) => {
-        if (!next.includes(pid)) {
-          next.push(pid)
-        }
-      })
+      pids.forEach((pid) => { if (!next.includes(pid)) next.push(pid) })
       return next
     })
-  }
-
-  const handleDeselectAll = () => {
-    setSelectedPids([])
   }
 
   const tabs = [
@@ -198,18 +182,21 @@ export default function TasksPage(): React.ReactElement {
         searchQuery={searchQuery}
         refreshing={loading}
         onTabClick={setCurrentTab}
-        onToggleSearch={handleToggleSearch}
+        onToggleSearch={() => {
+          setSearchOpen(!searchOpen)
+          if (searchOpen) setSearchQuery('')
+        }}
         onSearchChange={setSearchQuery}
         onRefresh={() => loadProcesses()}
         autoRefresh={autoRefresh}
         onAutoRefreshToggle={() => setAutoRefresh(!autoRefresh)}
         selectedCount={selectedPids.length}
         onBulkKill={handleBulkKill}
-        onClearSelection={handleDeselectAll}
+        onClearSelection={() => setSelectedPids([])}
       />
 
       <div className="flex-1 overflow-hidden mt-1 flex flex-col min-h-0">
-        <div className="flex-1 overflow-hidden min-h-0">
+        <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
           <TasksContent
             processes={processes}
             loading={loading}
@@ -221,7 +208,8 @@ export default function TasksPage(): React.ReactElement {
             selectedPids={selectedPids}
             onToggleSelectPid={handleToggleSelectPid}
             onSelectAll={handleSelectAll}
-            onDeselectAll={handleDeselectAll}
+            onDeselectAll={() => setSelectedPids([])}
+            savedProjects={savedProjects}
           />
         </div>
       </div>

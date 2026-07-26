@@ -11,6 +11,7 @@ export interface SystemProcess {
   memoryBytes: number
   cpuSeconds?: number
   path?: string
+  projectPath?: string
   type: 'editor' | 'build' | 'service' | 'other'
 }
 
@@ -18,9 +19,9 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('task-manager-get-processes', async (): Promise<SystemProcess[]> => {
     try {
       if (process.platform === 'win32') {
-        // Query process list via powershell
-        const cmd = `powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-Process | Where-Object { $_.ProcessName -like '*Unreal*' -or $_.ProcessName -like '*UE4*' -or $_.ProcessName -like '*UE5*' -or $_.ProcessName -like '*Shader*' -or $_.ProcessName -like '*Epic*' -or $_.ProcessName -like '*Swarm*' -or $_.ProcessName -like '*CrashReport*' -or $_.ProcessName -like '*unreal-launcher*' -or $_.ProcessName -like '*UnrealLauncher*' } | Select-Object Id, ProcessName, WorkingSet64, CPU, Path | ConvertTo-Json -Compress"`
-        const { stdout } = await execAsync(cmd, { encoding: 'utf8', timeout: 8000 })
+        // Query process list via powershell, including WMI CommandLine for project detection
+        const cmd = `powershell -NoProfile -ExecutionPolicy Bypass -Command "$procs = Get-Process | Where-Object { $_.ProcessName -like '*Unreal*' -or $_.ProcessName -like '*UE4*' -or $_.ProcessName -like '*UE5*' -or $_.ProcessName -like '*Shader*' -or $_.ProcessName -like '*Epic*' -or $_.ProcessName -like '*Swarm*' -or $_.ProcessName -like '*CrashReport*' -or $_.ProcessName -like '*unreal-launcher*' -or $_.ProcessName -like '*UnrealLauncher*' }; $wmi = Get-WmiObject Win32_Process | Where-Object { $procs.Id -contains $_.ProcessId } | Select-Object ProcessId, CommandLine; $result = $procs | ForEach-Object { $p = $_; $w = $wmi | Where-Object { $_.ProcessId -eq $p.Id }; [PSCustomObject]@{ Id=$p.Id; ProcessName=$p.ProcessName; WorkingSet64=$p.WorkingSet64; CPU=$p.CPU; Path=$p.Path; CommandLine=$w.CommandLine } }; $result | ConvertTo-Json -Compress"`
+        const { stdout } = await execAsync(cmd, { encoding: 'utf8', timeout: 10000 })
         const trimmed = stdout.trim()
         if (!trimmed) return []
 
@@ -47,12 +48,21 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
             type = 'service'
           }
 
+          // Extract .uproject path from command line arguments
+          let projectPath: string | undefined
+          const cmdLine: string = p.CommandLine || ''
+          const uprojectMatch = cmdLine.match(/["']?([A-Za-z]:[^"'\s]*\.uproject)["']?/i)
+          if (uprojectMatch) {
+            projectPath = uprojectMatch[1].replace(/\\\\/g, '\\')
+          }
+
           return {
             pid: Number(p.Id),
             name,
             memoryBytes: Number(p.WorkingSet64 || 0),
             cpuSeconds: typeof p.CPU === 'number' ? p.CPU : undefined,
             path: p.Path || undefined,
+            projectPath,
             type
           }
         })

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.2] - 2026-07-26 — `bugfix · quality`
+
+### Fixed
+
+- Fixed project engine version changes from the context menu not updating in launcher save files (`projects.json`) or persisting after refreshing.
+- Fixed full page reloading and background rescanning when changing a project engine version by smoothly updating local state and persistent storage in place.
+
 ## [2.5.1] - 2026-07-24 — `performance · optimization · bugfix`
 
 ### Fixed
