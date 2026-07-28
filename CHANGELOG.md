@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.7] - 2026-07-28 — `feature · performance · Rust · UI · bugfix`
+
+### Added
+
+- Added **Smart Commit Message** generator (`✨ Smart Commit Msg`) in the Project Git Commit dialog, automatically analyzing uncommitted changes across C++ source files, Unreal assets (`.uasset`, `.umap`), project configs (`.ini`), and documentation into structured Conventional Commits with bulleted lists.
+- Integrated high-speed **Rust Native Fab Vault Scanner** (`scan_fab_assets`) in `lib.rs`, scanning 50,000+ vault cache assets and `.uplugin` manifests in **< 15ms**.
+
+### Fixed
+
+- Fixed **Engine Plugins Toolbar Overflow**: Added smooth horizontal scrolling (`overflow-x-auto min-w-0 scrollbar-none`) and fixed item wrapping so filter dropdowns, view mode buttons, and search toggle remain fully accessible on narrow screens.
+- Fixed **Project List View Card Height & Spacing**: Adjusted virtual list constants (`LIST_ITEM_HEIGHT = 84px`, `LIST_GAP = 12px`) to eliminate card overlap.
+- Fixed **Startup Splash Screen Hang**: Added 1-second instant window reveal fallback (`windowLifecycle.ts`) to prevent the splash screen or blank window from stalling during app launch.
+- Fixed **Task Manager Process Exclusions**: Excluded launcher app self-processes (`UnrealLauncher`) and updated CPU metrics to clearly label cumulative processor execution time as `CPU Time: XX.Xs`.
+
+### Changed
+
+- Replaced single-line commit input with a multi-line auto-expanding `<textarea>` supporting `Ctrl+Enter` shortcut execution in the Git Commit dialog.
+- Fully synchronized Git Commit Dialog header badges, file status indicators, buttons, and textarea styling with dynamic theme CSS design tokens (`var(--color-accent)`, `var(--color-surface-card)`, `var(--color-border)`, `var(--radius)`).
+
 ## [2.5.6] - 2026-07-26 — `feature · ui · UX · theme · bugfix`
 
 ### Added
