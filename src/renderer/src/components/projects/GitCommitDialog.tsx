@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X, GitCommit, RefreshCw } from 'lucide-react'
@@ -98,6 +98,7 @@ export default function GitCommitDialog({
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleCommit()
           }}
+          onGenerateSmartCommit={state.generateSmartCommit}
         />
 
         {/* Footer */}
