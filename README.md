@@ -1,4 +1,4 @@
-﻿# Unreal Launcher
+# Unreal Launcher
 
 > A lightweight, cross-platform Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
 
@@ -6,7 +6,7 @@
 
 <!-- Metadata Row -->
 
-[![Version](https://img.shields.io/badge/version-2.5.0-blue)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.3.0)
+[![Version](https://img.shields.io/badge/version-2.5.6-blue)](https://github.com/NeelFrostrain/UnrealLauncher/releases)
 [![Status](https://img.shields.io/badge/status-ready-brightgreen)](https://github.com/NeelFrostrain/UnrealLauncher)
 [![License](https://img.shields.io/badge/license-proprietary-red)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-777777)](#-distribution)
@@ -38,11 +38,11 @@
 
 ## What It Does
 
-**Unreal Launcher** is a full replacement for the Epic Games Launcher for day-to-day Unreal Engine development. It auto-scans your drives for installed engines and `.uproject` files, lets you launch them with one click, browses your Fab marketplace assets, and stays completely out of your way. No bloat, no login, no waiting.
+**Unreal Launcher** is a full replacement for the Epic Games Launcher for day-to-day Unreal Engine development. It auto-scans your drives for installed engines and `.uproject` files, lets you launch them with one click, diagnoses project health, creates ZIP snapshots, monitors background tasks, browses your Fab marketplace assets, and stays completely out of your way. No bloat, no login, no waiting.
 
-Supports **Windows**, **macOS**, and **Linux** with native performance optimizations and platform-specific features.
+Supports **Windows**, **macOS**, and **Linux** with native Rust performance optimizations and platform-specific features.
 
-**Tech Stack:** TypeScript · React 19 · Electron 39 · Vite 7 · Tailwind CSS 4 · Zustand · Framer Motion · Rust (napi-rs)
+**Tech Stack:** TypeScript · React 19 · Electron 39 · Vite 7 · Tailwind CSS 4 · Zustand · Rust (napi-rs)
 
 ---
 
@@ -61,31 +61,29 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 ### Engine Management
 
 - **Auto-Scan Engines** — Discovers UE4 & UE5 installations across common paths
-- **Windows Registry Discovery** — Reads registry via `reg.exe` to find Epic-installed engines automatically
+- **Windows Registry & Manifest Discovery** — Reads Windows Registry (`HKCU\SOFTWARE\Epic Games\Unreal Engine\Builds`) & Epic Launcher manifests (`C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests`)
 - **Manual Engine Add** — Browse and validate any custom engine folder
 - **Engine Alias** — Set custom nicknames for engine instances to tell duplicates apart
 - **One-Click Launch** — Start any engine version instantly
-- **Background Size Calculation** — Folder size computed without blocking the UI
+- **Fast Multithreaded Sizing** — Zero-syscall folder size calculation powered by Rust worker pools
 - **Marketplace Plugin Browser** — Lists all installed marketplace plugins per engine
 - **Engine Deletion** — Remove engines from the list (files remain untouched)
 
-### Project Management
+### Project Management & Diagnostics
 
 - **Auto-Scan Projects** — Recursively finds all `.uproject` files across your drives
+- **Project Health Dashboard** — Deep structural analysis, missing folder checks, config validation & 1-click generated cache cleanup
+- **Snapshot Manager** — Lightweight backup & restore utility capturing ZIP archives of `Config`, `Content`, `Source` & `.uproject`
+- **Asset Usage & Duplicate Analyzer** — Byte-level SipHash duplicate detection and size breakdown of `Content` folder assets
+- **Tasks & Process Manager** — Dedicated `/tasks` page for monitoring active Unreal Engine processes, background builds, and bulk terminations
 - **Batch Import** — Add up to 20 projects at once from a single folder
-- **One-Click Launch** — Open any project in its matching engine editor
-- **Game Mode Launch** — Launch projects directly in `-game` mode
-- **List & Grid View** — Toggle between flat list and thumbnail grid (preference persisted)
-- **Favorites System** — Pin projects with a star; dedicated Favorites tab
-- **Hidden Projects Tab** — Hide projects non-destructively; restore any time
-- **Advanced Sorting** — Sort by name, last opened, date created, size, or engine version (asc/desc, persisted)
-- **Real-Time Search** — Filter projects by name instantly
-- **Per-Project Size Calculation** — Background calculation with live progress
-- **Log Viewer** — Tail the latest `.log` file from `Saved/Logs/` directly in the app
-- **Git Integration** — Detect branch, remote URL, initialize repos with UE-ready `.gitignore`
-- **File Editor** — Edit `DefaultEngine.ini` and `.uproject` files in-app with find/replace
-- **Rich Context Menu** — Git tools, project tools, organize options via right-click menu
-- **Open in Explorer** — Jump to project folder or open in terminal
+- **One-Click Launch & Game Mode** — Open projects in editor or launch directly in `-game` mode
+- **List & Grid View** — Toggle between flat list and responsive thumbnail grid
+- **Favorites & Hidden Tabs** — Star key projects or hide inactive projects non-destructively
+- **Advanced Sorting & Search** — Filter by name, engine version, last opened, date created, or size
+- **Log Viewer & In-App Editor** — Tail Saved/Logs in real time and edit `DefaultEngine.ini` / `.uproject` files in-app
+- **Git Integration** — Detect branch, remote URL, commit status, and initialize UE-ready repositories
+- **Change Engine Version** — Switch linked engine associations directly from the context menu
 
 ### Fab Marketplace Browser
 
@@ -95,6 +93,7 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 - **Asset Type Detection** — Classifies assets as Plugin, Content Pack, or Project
 - **Asset Thumbnails** — Browse with visual previews
 - **Direct Fab Links** — Click to open assets on Fab marketplace
+
 
 ### UE Tracer (Windows)
 

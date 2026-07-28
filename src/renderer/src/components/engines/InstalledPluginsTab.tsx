@@ -823,11 +823,11 @@ const InstalledPluginsTab = ({
     <div className="flex flex-col h-full relative">
       {/* Unified Toolbar, matching the ProjectsPage design */}
       <div
-        className="flex items-center gap-3 py-3 shrink-0 border-b"
+        className="flex items-center justify-between gap-2 py-3 shrink-0 border-b overflow-x-auto min-w-0 scrollbar-none"
         style={{ borderColor: 'var(--color-border)' }}
       >
-        {/* Left: Tab group + inline search */}
-        <div className="flex items-center gap-2">
+        {/* Left: Tab group */}
+        <div className="flex items-center gap-2 shrink-0">
           <Tabs
             tabs={[
               { id: 'plugins', label: 'Plugins' },
@@ -837,39 +837,40 @@ const InstalledPluginsTab = ({
             activeTab={activeSubTab}
             onChange={(id) => setActiveSubTab(id as 'plugins' | 'presets' | 'history')}
           />
-
-          {/* Collapsible search box, matching the projects design */}
-          {searchOpen && activeSubTab === 'plugins' && (
-            <div
-              className="flex w-48 items-center gap-2 px-2.5 py-1 text-xs h-7.5 transition-all"
-              style={{
-                borderRadius: 'var(--radius)',
-                backgroundColor: 'var(--color-surface-card)',
-                border: '1px solid var(--color-border)'
-              }}
-            >
-              <Search size={12} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
-              <input
-                type="text"
-                placeholder="Search plugins, categories…"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent outline-none text-[11px]"
-                style={{ color: 'var(--color-text-primary)' }}
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="cursor-pointer shrink-0">
-                  <X size={10} style={{ color: 'var(--color-text-muted)' }} />
-                </button>
-              )}
-            </div>
-          )}
         </div>
 
-        {/* Right side: Dropdowns & Actions */}
+        {/* Right side: Search, Dropdowns & Actions */}
         <div className="flex items-center ml-auto gap-1.5 shrink-0">
           {activeSubTab === 'plugins' && (
             <>
+              {/* Expandable search input box */}
+              {searchOpen && (
+                <div
+                  className="flex w-48 sm:w-56 items-center gap-2 px-2 py-1 text-xs h-7.5 transition-all shrink-0"
+                  style={{
+                    borderRadius: 'var(--radius)',
+                    backgroundColor: 'var(--color-surface-card)',
+                    border: '1px solid var(--color-border)'
+                  }}
+                >
+                  <Search size={12} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                  <input
+                    type="text"
+                    placeholder="Search plugins..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1 bg-transparent outline-none text-[11px] min-w-0"
+                    style={{ color: 'var(--color-text-primary)' }}
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} className="cursor-pointer shrink-0">
+                      <X size={10} style={{ color: 'var(--color-text-muted)' }} />
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* Custom dropdown filters */}
               <FilterDropdown
                 value={filterSource}
@@ -947,7 +948,7 @@ const InstalledPluginsTab = ({
                 </button>
               </div>
 
-              {/* Search Toggle Icon */}
+              {/* Search Toggle Button */}
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
                 className="flex items-center p-1.5 cursor-pointer transition-colors border shrink-0"
@@ -957,14 +958,16 @@ const InstalledPluginsTab = ({
                     ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
                     : 'var(--color-surface-card)',
                   color: searchOpen ? 'var(--color-accent)' : 'var(--color-text-muted)',
-                  borderColor: 'var(--color-border)'
+                  borderColor: searchOpen
+                    ? 'color-mix(in srgb, var(--color-accent) 40%, transparent)'
+                    : 'var(--color-border)'
                 }}
-                title="Search"
+                title="Toggle search input"
               >
                 <Search size={13} />
               </button>
 
-              {/* Action Dropdown (3-Dot Component containing Refresh, Select Mode, Save Preset, and Reset Cache) */}
+              {/* Action Dropdown */}
               <MoreActionsDropdown
                 selectMode={selectMode}
                 onToggleSelectMode={() => setSelectMode(!selectMode)}

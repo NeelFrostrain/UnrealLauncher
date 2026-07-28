@@ -1,6 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React, { useRef, useEffect } from 'react'
-import { Activity, RefreshCw, Search, X, Trash2, Layers, Cpu, HardDrive } from 'lucide-react'
+import { Activity, RefreshCw, Search, X, Trash2 } from 'lucide-react'
 import type { ProcessFilterType } from '../../types'
 import { Tabs } from '../ui/Tabs'
 

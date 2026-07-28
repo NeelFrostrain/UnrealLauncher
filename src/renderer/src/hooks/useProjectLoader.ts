@@ -301,11 +301,12 @@ export function useProjectLoader({
       const detail = (e as CustomEvent<{ projectPath?: string; version?: string }>).detail
       if (detail?.projectPath && detail?.version) {
         const norm = detail.projectPath.toLowerCase()
+        const newVersion: string = detail.version
         allProjectsRef.current = allProjectsRef.current.map((p) =>
-          p.projectPath?.toLowerCase() === norm ? { ...p, version: detail.version } : p
+          p.projectPath?.toLowerCase() === norm ? { ...p, version: newVersion } : p
         )
         setProjects((prev) =>
-          prev.map((p) => (p.projectPath?.toLowerCase() === norm ? { ...p, version: detail.version } : p))
+          prev.map((p) => (p.projectPath?.toLowerCase() === norm ? { ...p, version: newVersion } : p))
         )
       }
     }

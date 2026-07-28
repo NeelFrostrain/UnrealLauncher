@@ -19,8 +19,9 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('task-manager-get-processes', async (): Promise<SystemProcess[]> => {
     try {
       if (process.platform === 'win32') {
-        // Query process list via powershell, including WMI CommandLine for project detection
-        const cmd = `powershell -NoProfile -ExecutionPolicy Bypass -Command "$procs = Get-Process | Where-Object { $_.ProcessName -like '*Unreal*' -or $_.ProcessName -like '*UE4*' -or $_.ProcessName -like '*UE5*' -or $_.ProcessName -like '*Shader*' -or $_.ProcessName -like '*Epic*' -or $_.ProcessName -like '*Swarm*' -or $_.ProcessName -like '*CrashReport*' -or $_.ProcessName -like '*unreal-launcher*' -or $_.ProcessName -like '*UnrealLauncher*' }; $wmi = Get-WmiObject Win32_Process | Where-Object { $procs.Id -contains $_.ProcessId } | Select-Object ProcessId, CommandLine; $result = $procs | ForEach-Object { $p = $_; $w = $wmi | Where-Object { $_.ProcessId -eq $p.Id }; [PSCustomObject]@{ Id=$p.Id; ProcessName=$p.ProcessName; WorkingSet64=$p.WorkingSet64; CPU=$p.CPU; Path=$p.Path; CommandLine=$w.CommandLine } }; $result | ConvertTo-Json -Compress"`
+        // Query process list via powershell, including WMI CommandLine for project detection (excluding UnrealLauncher app itself)
+        const currentPid = process.pid
+        const cmd = `powershell -NoProfile -ExecutionPolicy Bypass -Command "$procs = Get-Process | Where-Object { ($_.ProcessName -like '*Unreal*' -or $_.ProcessName -like '*UE4*' -or $_.ProcessName -like '*UE5*' -or $_.ProcessName -like '*Shader*' -or $_.ProcessName -like '*Epic*' -or $_.ProcessName -like '*Swarm*' -or $_.ProcessName -like '*CrashReport*') -and $_.ProcessName -notlike '*unreal-launcher*' -and $_.ProcessName -notlike '*UnrealLauncher*' -and $_.Id -ne ${currentPid} }; $wmi = Get-WmiObject Win32_Process | Where-Object { $procs.Id -contains $_.ProcessId } | Select-Object ProcessId, CommandLine; $result = $procs | ForEach-Object { $p = $_; $w = $wmi | Where-Object { $_.ProcessId -eq $p.Id }; [PSCustomObject]@{ Id=$p.Id; ProcessName=$p.ProcessName; WorkingSet64=$p.WorkingSet64; CPU=$p.CPU; Path=$p.Path; CommandLine=$w.CommandLine } }; $result | ConvertTo-Json -Compress"`
         const { stdout } = await execAsync(cmd, { encoding: 'utf8', timeout: 10000 })
         const trimmed = stdout.trim()
         if (!trimmed) return []
@@ -33,7 +34,9 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
         }
 
         const list = Array.isArray(parsed) ? parsed : [parsed]
-        return list.map((p: any) => {
+        return list
+          .filter((p: any) => Number(p.Id) !== currentPid)
+          .map((p: any) => {
           const name = p.ProcessName || 'Unknown'
           let type: 'editor' | 'build' | 'service' | 'other' = 'other'
           if (name.toLowerCase().includes('editor')) {
@@ -68,6 +71,7 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
         })
       } else {
         // Fallback for macOS/Linux using ps
+        const currentPid = process.pid
         const { stdout } = await execAsync('ps -ax -o pid,rss,time,comm', { timeout: 5000 })
         const lines = stdout.trim().split('\n').slice(1) // skip header
         const list: SystemProcess[] = []
@@ -76,18 +80,21 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
           const parts = line.trim().split(/\s+/)
           if (parts.length < 4) continue
           const pid = parseInt(parts[0], 10)
+          if (pid === currentPid) continue
           const memoryBytes = parseInt(parts[1], 10) * 1024 // RSS in KB
           const path = parts.slice(3).join(' ')
           const name = path.split('/').pop() || 'Unknown'
 
           const lowerName = name.toLowerCase()
           if (
-            lowerName.includes('unreal') ||
-            lowerName.includes('ue4') ||
-            lowerName.includes('ue5') ||
-            lowerName.includes('shader') ||
-            lowerName.includes('epic') ||
-            lowerName.includes('swarm')
+            (lowerName.includes('unreal') ||
+              lowerName.includes('ue4') ||
+              lowerName.includes('ue5') ||
+              lowerName.includes('shader') ||
+              lowerName.includes('epic') ||
+              lowerName.includes('swarm')) &&
+            !lowerName.includes('unreal-launcher') &&
+            !lowerName.includes('unreallauncher')
           ) {
             let type: 'editor' | 'build' | 'service' | 'other' = 'other'
             if (lowerName.includes('editor')) {

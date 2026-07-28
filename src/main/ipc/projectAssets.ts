@@ -16,7 +16,7 @@ export function registerProjectAssetHandlers(ipcMain_: typeof ipcMain): void {
     }
 
     const native = getNative()
-    if (!native) {
+    if (!native || !native.analyzeAssetUsage) {
       return { error: 'Native module not loaded' }
     }
 

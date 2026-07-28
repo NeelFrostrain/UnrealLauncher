@@ -87,10 +87,32 @@ export interface NativeModule {
     hasEngine: boolean
     engineVersion: string
   }
-  analyzeAssetUsage: (projectPath: string) => Promise<AssetReport>
+  analyzeAssetUsage?: (projectPath: string) => Promise<AssetReport>
+  scanFabAssets?: (
+    rootDir: string,
+    excludedPaths: string[]
+  ) => Promise<NativeFabAsset[]>
   countSnapshotFiles?: (projectPath: string) => number
   createProjectSnapshot: (projectPath: string, archivePath: string) => Promise<number>
   restoreProjectSnapshot: (projectPath: string, archivePath: string) => Promise<void>
+}
+
+export interface NativeFabAsset {
+  name: string
+  folderPath: string
+  assetType: 'plugin' | 'content' | 'project' | 'unknown'
+  version: string
+  description: string
+  icon: string | null
+  thumbnailUrl: string | null
+  hasContent: boolean
+  compatibleApps: string[]
+  category: string
+  fabTypeString: string
+  actionUrl?: string
+  tags?: string[]
+  isCodeProject?: boolean
+  filters?: string[]
 }
 
 export interface AssetInfo {

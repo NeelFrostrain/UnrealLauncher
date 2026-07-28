@@ -1,9 +1,10 @@
-﻿import fs from 'fs'
+import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import path from 'path'
 import { getFabCachePaths } from '../utils/platformPaths'
 import { createFabAsset, type FabAsset } from '../utils/fabAssetDetection'
 import { loadMainSettings } from '../store'
+import { getNative } from '../utils/native'
 
 const SKIP_FOLDERS = new Set(['FabLibrary', 'Manifests', '.cache', 'temp', 'Temp'])
 const fabScanCache = new Map<string, { mtimeMs: number; assets: FabAsset[] }>()
@@ -45,6 +46,35 @@ export async function scanFabFolder(rootDir: string): Promise<FabAsset[]> {
 
   const settings = loadMainSettings()
   const excludedScannerPaths = settings.excludedScannerPaths || []
+
+  // Fast native Rust Fab asset scanner
+  const native = getNative()
+  if (native?.scanFabAssets) {
+    try {
+      const nativeAssets = await native.scanFabAssets(rootDir, excludedScannerPaths)
+      const mapped: FabAsset[] = nativeAssets.map((a) => ({
+        name: a.name,
+        folderPath: a.folderPath,
+        type: (a.assetType as any) || 'unknown',
+        version: a.version,
+        description: a.description,
+        icon: a.icon,
+        thumbnailUrl: a.thumbnailUrl,
+        hasContent: a.hasContent,
+        compatibleApps: a.compatibleApps,
+        category: a.category,
+        assetType: a.fabTypeString,
+        actionUrl: a.actionUrl,
+        tags: a.tags,
+        isCodeProject: a.isCodeProject,
+        filters: a.filters
+      }))
+      if (rootMtime) fabScanCache.set(cacheKey, { mtimeMs: rootMtime, assets: mapped })
+      return mapped
+    } catch {
+      /* fallback to JS */
+    }
+  }
 
   async function traverse(currentDir: string): Promise<void> {
     const normalized = path.normalize(currentDir)

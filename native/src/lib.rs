@@ -1415,5 +1415,269 @@ pub async fn restore_project_snapshot(project_path: String, archive_path: String
   Ok(())
 }
 
+// ── Fab Marketplace Scanner ───────────────────────────────────────────────────
+
+#[napi(object)]
+pub struct NativeFabAsset {
+  pub name: String,
+  pub folder_path: String,
+  pub asset_type: String,
+  pub version: String,
+  pub description: String,
+  pub icon: Option<String>,
+  pub thumbnail_url: Option<String>,
+  pub has_content: bool,
+  pub compatible_apps: Vec<String>,
+  pub category: String,
+  pub fab_type_string: String,
+  pub action_url: Option<String>,
+  pub tags: Option<Vec<String>>,
+  pub is_code_project: Option<bool>,
+  pub filters: Option<Vec<String>>,
+}
+
+#[napi]
+pub async fn scan_fab_assets(root_dir: String, excluded_paths: Vec<String>) -> Vec<NativeFabAsset> {
+  let root = Path::new(&root_dir);
+  if !root.exists() {
+    return vec![];
+  }
+
+  let mut assets: Vec<NativeFabAsset> = Vec::new();
+  let skip_folders = vec!["FabLibrary", "Manifests", ".cache", "temp", "Temp"];
+  
+  scan_fab_dir_recursive(root, &excluded_paths, &skip_folders, &mut assets);
+
+  assets.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+  assets
+}
+
+fn scan_fab_dir_recursive(
+  current_dir: &Path,
+  excluded_paths: &[String],
+  skip_folders: &[&str],
+  out: &mut Vec<NativeFabAsset>,
+) {
+  // Check exclusion
+  let dir_str = current_dir.to_string_lossy();
+  for excluded in excluded_paths {
+    if dir_str.contains(excluded) {
+      return;
+    }
+  }
+
+  let entries = match fs::read_dir(current_dir) {
+    Ok(e) => e,
+    Err(_) => return,
+  };
+
+  let mut children_names: Vec<String> = Vec::new();
+  let mut subdirs: Vec<PathBuf> = Vec::new();
+
+  let mut has_manifest = false;
+  let mut has_uplugin = false;
+  let mut has_uproject = false;
+  let mut has_content = false;
+
+  for entry in entries.flatten() {
+    let ft = match entry.file_type() {
+      Ok(t) => t,
+      Err(_) => continue,
+    };
+
+    let file_name = entry.file_name().to_string_lossy().into_owned();
+    let lower_name = file_name.to_lowercase();
+
+    if ft.is_dir() {
+      if !skip_folders.contains(&file_name.as_str()) {
+        subdirs.push(entry.path());
+      }
+      if lower_name == "content" {
+        has_content = true;
+      }
+    } else if ft.is_file() {
+      if lower_name == "manifest" || lower_name.ends_with(".manifest") {
+        has_manifest = true;
+      } else if lower_name.ends_with(".uplugin") {
+        has_uplugin = true;
+      } else if lower_name.ends_with(".uproject") {
+        has_uproject = true;
+      }
+    }
+    children_names.push(file_name);
+  }
+
+  if has_manifest || has_uplugin || has_uproject || has_content {
+    if let Some(asset) = create_native_fab_asset(current_dir, &children_names) {
+      out.push(asset);
+    }
+    return; // Don't recurse further inside an identified asset directory
+  }
+
+  for subdir in subdirs {
+    scan_fab_dir_recursive(&subdir, excluded_paths, skip_folders, out);
+  }
+}
+
+fn create_native_fab_asset(folder_path: &Path, children: &[String]) -> Option<NativeFabAsset> {
+  let folder_name = folder_path.file_name()?.to_string_lossy().into_owned();
+  
+  let mut name = folder_name.clone();
+  let mut version = String::new();
+  let mut description = String::new();
+  let mut icon: Option<String> = None;
+  let mut thumbnail_url: Option<String> = None;
+  let mut category = String::new();
+  let mut fab_type_string = String::new();
+  let mut action_url: Option<String> = None;
+  let mut tags: Option<Vec<String>> = None;
+  let mut is_code_project: Option<bool> = None;
+  let mut filters: Option<Vec<String>> = None;
+  let mut compatible_apps: Vec<String> = Vec::new();
+
+  // 1. Try reading manifest
+  let manifest_file = children.iter().find(|f| {
+    let l = f.to_lowercase();
+    l == "manifest" || l.ends_with(".manifest")
+  });
+
+  if let Some(m_name) = manifest_file {
+    let m_path = folder_path.join(m_name);
+    if let Some(json) = read_json_string(&m_path) {
+      if let Some(cf) = json.get("CustomFields") {
+        if let Some(v) = cf.get("Vault.TitleText").and_then(|v| v.as_str()) {
+          if !v.is_empty() { name = v.to_string(); }
+        } else if let Some(v) = json.get("AppNameString").and_then(|v| v.as_str()) {
+          if !v.is_empty() { name = v.to_string(); }
+        }
+
+        if let Some(v) = json.get("BuildVersionString").and_then(|v| v.as_str()) {
+          version = v.split('-').next().unwrap_or("").to_string();
+        }
+
+        if let Some(v) = cf.get("Vault.ThumbnailUrl").and_then(|v| v.as_str()) {
+          thumbnail_url = Some(v.to_string());
+        }
+
+        if let Some(v) = cf.get("Vault.Filters").or_else(|| cf.get("Vault.Tags")).and_then(|v| v.as_str()) {
+          category = v.to_string();
+        }
+
+        if let Some(v) = cf.get("Vault.Type").and_then(|v| v.as_str()) {
+          fab_type_string = v.to_string();
+        }
+
+        if let Some(v) = cf.get("Vault.ActionURL").and_then(|v| v.as_str()) {
+          action_url = Some(v.to_string());
+        }
+
+        if let Some(v) = cf.get("Vault.Tags").and_then(|v| v.as_str()) {
+          tags = Some(v.split(',').map(|s| s.trim().to_string()).collect());
+        }
+
+        if let Some(v) = cf.get("Vault.IsCodeProject").and_then(|v| v.as_str()) {
+          is_code_project = Some(v == "true");
+        }
+
+        if let Some(v) = cf.get("Vault.Filters").and_then(|v| v.as_str()) {
+          filters = Some(v.split(',').map(|s| s.trim().to_string()).collect());
+        }
+
+        if let Some(v) = cf.get("CompatibleApps").and_then(|v| v.as_str()) {
+          compatible_apps = v.split(',').map(|s| s.trim().to_string()).collect();
+        }
+      }
+    }
+  }
+
+  // 2. Try .uplugin
+  let uplugin_file = children.iter().find(|f| f.to_lowercase().ends_with(".uplugin"));
+  if let Some(u_name) = uplugin_file {
+    let u_path = folder_path.join(u_name);
+    if let Some(json) = read_json_string(&u_path) {
+      if name == folder_name {
+        if let Some(v) = json.get("FriendlyName").or_else(|| json.get("Name")).and_then(|v| v.as_str()) {
+          if !v.is_empty() { name = v.to_string(); }
+        }
+      }
+      if version.is_empty() {
+        if let Some(v) = json.get("VersionName").and_then(|v| v.as_str()) {
+          version = v.to_string();
+        }
+      }
+      if description.is_empty() {
+        if let Some(v) = json.get("Description").and_then(|v| v.as_str()) {
+          description = v.to_string();
+        }
+      }
+    }
+  }
+
+  // 3. Icons / thumbnails
+  let icon_candidates = [
+    folder_path.join("Resources").join("Icon128.png"),
+    folder_path.join("Content").join("Icon128.png"),
+    folder_path.join("Icon128.png"),
+  ];
+  for candidate in &icon_candidates {
+    if candidate.exists() {
+      icon = Some(candidate.to_string_lossy().into_owned());
+      break;
+    }
+  }
+
+  if thumbnail_url.is_none() {
+    let thumb_candidates = [
+      folder_path.join("Resources").join("Thumbnail.png"),
+      folder_path.join("Content").join("Thumbnail.png"),
+      folder_path.join("Thumbnail.png"),
+    ];
+    for candidate in &thumb_candidates {
+      if candidate.exists() {
+        let p_str = candidate.to_string_lossy().replace('\\', "/");
+        thumbnail_url = Some(format!("local-asset:///{}", p_str));
+        break;
+      }
+    }
+  }
+
+  // 4. Asset type classification
+  let mut asset_type_cat = "unknown".to_string();
+  if fab_type_string == "Plugin" || is_code_project.unwrap_or(false) {
+    asset_type_cat = "plugin".to_string();
+  } else if fab_type_string == "AssetPack" || fab_type_string == "ContentPack" {
+    asset_type_cat = "content".to_string();
+  } else if fab_type_string == "Project" {
+    asset_type_cat = "project".to_string();
+  } else if uplugin_file.is_some() {
+    asset_type_cat = "plugin".to_string();
+  } else if children.iter().any(|f| f.to_lowercase().ends_with(".uproject")) {
+    asset_type_cat = "project".to_string();
+  } else if children.iter().any(|f| f.to_lowercase() == "content") {
+    asset_type_cat = "content".to_string();
+  }
+
+  let has_content = children.iter().any(|f| f.to_lowercase() == "content");
+
+  Some(NativeFabAsset {
+    name,
+    folder_path: folder_path.to_string_lossy().into_owned(),
+    asset_type: asset_type_cat,
+    version,
+    description,
+    icon,
+    thumbnail_url,
+    has_content,
+    compatible_apps,
+    category,
+    fab_type_string,
+    action_url,
+    tags,
+    is_code_project,
+    filters,
+  })
+}
+
+
 
 

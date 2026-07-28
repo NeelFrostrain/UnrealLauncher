@@ -6,7 +6,6 @@ import {
   Cpu,
   HardDrive,
   Database,
-  Clock,
   Activity,
   Layers,
   AlertTriangle,
@@ -216,14 +215,14 @@ function ProcessCard({
                 {fmtBytes(proc.memoryBytes)}
               </span>
             </div>
-            <div className="flex items-center gap-1" style={{ color: 'var(--color-text-muted)' }}>
+            <div className="flex items-center gap-1" title="Accumulated CPU Time" style={{ color: 'var(--color-text-muted)' }}>
               <Cpu size={11} />
-              <span className="text-[10px]">{fmtCpu(proc.cpuSeconds)}</span>
+              <span className="text-[10px]">CPU Time: {fmtCpu(proc.cpuSeconds)}</span>
             </div>
             {proc.path && (
               <div className="flex items-center gap-1 min-w-0" style={{ color: 'var(--color-text-muted)' }}>
-                <Clock size={11} />
-                <span className="text-[10px] truncate max-w-[200px]" title={proc.path}>
+                <FolderOpen size={11} />
+                <span className="text-[10px] truncate max-w-[280px]" title={proc.path}>
                   {proc.path}
                 </span>
               </div>
