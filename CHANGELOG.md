@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.8] - 2026-07-31 — `performance · settings · UI`
+
+### Added
+
+- Added **Erase from Disk** option in the Project Context Menu (under *Hide from List*) to safely move a project directory to the system Recycle Bin (`shell.trashItem`) with user confirmation and live UI updates.
+- Added `erase-project-from-disk` IPC handler (`projects.ts` & `projectValidation.ts`) with path validation and instant `project-removed` push events to open windows.
+- Added **Disable GPU Process** toggle in **Settings → General**: lets users disable the Electron GPU process to eliminate a dedicated ~70–90 MB RAM process, with the preference persisted across launches.
+- Added **Restart Now** inline banner that appears immediately after toggling the GPU setting, with a spinning indicator and one-click app restart via `process.exit(0)` + `app.relaunch()`.
+- Added `relaunch-app` IPC handler (`windowHandlers.ts`) so the renderer can trigger a force restart without getting stuck on `before-quit` cleanup hooks.
+
+### Fixed
+
+- Fixed **Stale Engine Entries on Engine Page**: `loadSavedEngines()` and engine scans now verify folder/executable existence on disk via Rust `validateEngineFolder` (with `fs.existsSync` fallback) to automatically purge deleted engines from `engines.json`.
+
+### Changed
+
+- GPU acceleration flags (`disable-gpu`, `disable-gpu-compositing`, `disable-gpu-sandbox`, `in-process-gpu`, `app.disableHardwareAcceleration()`) are now conditionally applied at startup based on the persisted `disableGpu` setting instead of being hardcoded.
+
 ## [2.5.7] - 2026-07-28 — `feature · performance · Rust · UI · bugfix`
 
 ### Added

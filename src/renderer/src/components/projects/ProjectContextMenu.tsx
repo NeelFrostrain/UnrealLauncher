@@ -7,11 +7,10 @@ import {
   Star,
   GitMerge,
   Wrench,
-  AlertTriangle,
   GitBranch,
   Settings2,
-  EyeOff,
-  Cpu
+  Cpu,
+  Trash2
 } from 'lucide-react'
 import {
   MenuItem,
@@ -68,6 +67,36 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const compatibility = useEngineCompatibility(p.projectVersion)
   const { addToast } = useToast()
+
+  const handleEraseFromDisk = useCallback(() => {
+    if (!p.projectPath) return
+    const confirmErase = window.confirm(
+      `Are you sure you want to erase "${p.name}" from disk?\n\nThis will move the project folder to the Recycle Bin:\n${p.projectPath}`
+    )
+    p.onClose()
+    if (!confirmErase) return
+
+    if (!window.electronAPI?.eraseProjectFromDisk) {
+      addToast('Please restart the app to enable Erase from Disk.', 'warning')
+      return
+    }
+
+    window.electronAPI
+      .eraseProjectFromDisk(p.projectPath)
+      .then((res) => {
+        if (res?.success) {
+          addToast(`Moved "${p.name}" to Recycle Bin`, 'info')
+        } else {
+          addToast(`Failed to erase project: ${res?.error || 'Unknown error'}`, 'error')
+        }
+      })
+      .catch((err) => {
+        addToast(
+          `Failed to erase project: ${err instanceof Error ? err.message : String(err)}`,
+          'error'
+        )
+      })
+  }, [p.projectPath, p.name, p.onClose, addToast])
 
   useEffect(() => {
     window.electronAPI.loadSavedEngines().then((saved) => {
@@ -283,20 +312,6 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
                     Favorite
                   </span>
                 )}
-                {p.isHidden && (
-                  <span
-                    className="flex items-center gap-1 rounded-full px-1.5 py-px text-[9px]"
-                    style={{
-                      backgroundColor:
-                        'color-mix(in srgb, var(--color-text-muted) 12%, transparent)',
-                      color: 'var(--color-text-secondary)',
-                      border: '1px solid color-mix(in srgb, var(--color-border) 80%, transparent)'
-                    }}
-                  >
-                    <EyeOff size={9} />
-                    Hidden
-                  </span>
-                )}
                 {p.gitInitialized && (
                   <span
                     className="flex items-center gap-1 rounded-full px-1.5 py-px text-[9px]"
@@ -434,10 +449,11 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
           <MenuSeparator />
 
           <MenuItem
-            icon={<AlertTriangle size={11} />}
-            label={p.isHidden ? 'Unhide from List' : 'Hide from List'}
-            sub={p.isHidden ? 'Restore to main list' : 'Move to Hidden tab'}
-            onClick={p.onHide}
+            icon={<Trash2 size={11} />}
+            label="Erase from Disk"
+            sub="Move project folder to Recycle Bin"
+            onClick={handleEraseFromDisk}
+            noClose
             danger
             onClose={p.onClose}
           />

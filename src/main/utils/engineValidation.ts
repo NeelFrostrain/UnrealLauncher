@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Engine installation validation, scanning, and storage.
  */
@@ -133,7 +133,7 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
 
   scanAndMergeEnginesPromise = (async () => {
     try {
-      const saved = loadEngines()
+      const saved = loadEngines().filter(engineExistsOnDisk)
       const engineScanPaths = loadEngineScanPaths()
       logger.info('engine-scan', 'Engine scan started', {
         savedCount: saved.length,
@@ -246,10 +246,37 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
 }
 
 /**
- * Loads saved engines from storage
+ * Returns true if an engine directory is still present on disk.
+ * Uses Rust validateEngineFolder as the primary check (verifies the exe
+ * is there too), falling back to a plain fs.existsSync on the directory.
+ */
+function engineExistsOnDisk(engine: Engine): boolean {
+  if (!engine.directoryPath) return false
+  const native = getNative()
+  if (native) {
+    try {
+      const r = native.validateEngineFolder(engine.directoryPath)
+      return r.valid
+    } catch {
+      /* fall through to fs check */
+    }
+  }
+  // JS fallback: directory must exist and contain Engine/Binaries
+  return fs.existsSync(engine.directoryPath)
+}
+
+/**
+ * Loads saved engines from storage, filtering out any whose directories
+ * no longer exist on disk.
  */
 export async function loadSavedEngines(): Promise<Engine[]> {
   const engines = loadEngines()
-  logger.info('engine', 'Loaded saved engines', { count: engines.length })
-  return engines
+  const valid = engines.filter(engineExistsOnDisk)
+  if (valid.length !== engines.length) {
+    const removed = engines.length - valid.length
+    logger.warn('engine', 'Removed missing engines from saved list', { removed })
+    saveEngines(valid)
+  }
+  logger.info('engine', 'Loaded saved engines', { count: valid.length })
+  return valid
 }

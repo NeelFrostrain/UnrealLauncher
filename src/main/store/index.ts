@@ -44,6 +44,7 @@ interface MainSettings {
   tracerStartupEnabled: boolean
   registryEnginesEnabled: boolean
   backgroundCloseEnabled: boolean
+  disableGpu: boolean
   excludedScannerPaths: string[]
 }
 
@@ -52,6 +53,7 @@ const DEFAULT_SETTINGS: MainSettings = {
   tracerStartupEnabled: false,
   registryEnginesEnabled: true,
   backgroundCloseEnabled: false,
+  disableGpu: true,
   excludedScannerPaths: ['.git', 'Binaries', 'Intermediate', 'Saved', 'node_modules']
 }
 

@@ -263,6 +263,10 @@ declare global {
       saveMainSettings: (settings: Record<string, unknown>) => Promise<void>
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>
+      deleteProject: (projectPath: string) => Promise<boolean>
+      eraseProjectFromDisk: (
+        projectPath: string
+      ) => Promise<{ success: boolean; error?: string }>
       updateProjectVersion: (projectPath: string, newVersion: string) => Promise<boolean>
       scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
       toggleEnginePluginDefault: (
@@ -428,6 +432,7 @@ declare global {
       ) => () => void
       taskManagerGetProcesses: () => Promise<SystemProcess[]>
       taskManagerKillProcess: (pid: number) => Promise<{ success: boolean; error?: string }>
+      relaunchApp: () => Promise<void>
     }
   }
 }

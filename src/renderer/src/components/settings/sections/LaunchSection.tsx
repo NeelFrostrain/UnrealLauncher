@@ -1,6 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useState } from 'react'
-import { FolderOpen, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { FolderOpen, Trash2, RefreshCw, Cpu } from 'lucide-react'
 import { Card, SettingRow, Toggle } from '../SectionHelpers'
 import { getSetting, setSetting } from '../../../utils/settings'
 
@@ -24,6 +24,27 @@ const LaunchSection = ({
   const [launchPauseDuration, setLaunchPauseDuration] = useState(() =>
     getSetting('launchPauseDuration')
   )
+  const [gpuDisabled, setGpuDisabled] = useState(true)
+  const [showRestartBanner, setShowRestartBanner] = useState(false)
+  const [restarting, setRestarting] = useState(false)
+
+  useEffect(() => {
+    window.electronAPI.getMainSettings().then((s) => {
+      if (s && s.disableGpu !== undefined) setGpuDisabled(s.disableGpu as boolean)
+    })
+  }, [])
+
+  const handleGpuToggle = async (): Promise<void> => {
+    const next = !gpuDisabled
+    setGpuDisabled(next)
+    await window.electronAPI.saveMainSettings({ disableGpu: next })
+    setShowRestartBanner(true)
+  }
+
+  const handleRestart = async (): Promise<void> => {
+    setRestarting(true)
+    await window.electronAPI.relaunchApp()
+  }
 
   const handleClearLogs = async (): Promise<void> => {
     if (!confirm('Clear all saved app log files?')) return
@@ -50,6 +71,41 @@ const LaunchSection = ({
         >
           <Toggle on={backgroundCloseOnClose} onChange={onToggleBackgroundClose} />
         </SettingRow>
+        <SettingRow
+          label="Disable GPU process"
+          description="Runs rendering on CPU to eliminate the dedicated GPU process and save ~70–90 MB RAM. Requires restart to take effect."
+        >
+          <Toggle on={gpuDisabled} onChange={handleGpuToggle} />
+        </SettingRow>
+        {showRestartBanner && (
+          <div
+            className="mt-2 mx-2 flex items-center justify-between gap-3 px-4 py-3 rounded-lg"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--color-accent) 35%, transparent)'
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Cpu size={13} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+              <span className="text-xs" style={{ color: 'var(--color-text-primary)' }}>
+                GPU setting changed — restart required
+              </span>
+            </div>
+            <button
+              onClick={handleRestart}
+              disabled={restarting}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
+              style={{
+                borderRadius: 'var(--radius)',
+                backgroundColor: 'var(--color-accent)',
+                color: '#000'
+              }}
+            >
+              <RefreshCw size={11} className={restarting ? 'animate-spin' : ''} />
+              {restarting ? 'Restarting…' : 'Restart Now'}
+            </button>
+          </div>
+        )}
         <SettingRow
           label="Launch pause duration"
           description="Set a safety delay (in seconds) between project launches to prevent double-launching processes."

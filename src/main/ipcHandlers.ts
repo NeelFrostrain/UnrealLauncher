@@ -9,7 +9,6 @@ import { registerMiscHandlers } from './ipc/misc'
 import { registerFabHandlers } from './ipc/fab'
 import { registerLaunchConfigHandlers } from './ipc/launchConfigs'
 import { registerPaletteHandlers } from './ipc/paletteHandlers'
-// 1. Add this import line right here:
 import { registerProjectPluginHandlers } from './ipc/projectPlugins'
 import { registerTaskManagerHandlers } from './ipc/taskManager'
 

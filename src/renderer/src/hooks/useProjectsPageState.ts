@@ -13,35 +13,20 @@ import {
   type SortConfig,
   type EngineVersionFilter
 } from '../components/projects/projectUtils'
-import { useToast } from '../components/ui/ToastContext'
 import { logActivity } from '../utils/activityLogger'
 import { setEnginesCache } from './useEngineCompatibility'
 
-const HIDDEN_KEY = 'projectHidden'
 // Row height used by the manual scroll-based windowing in list mode
 const LIST_ITEM_HEIGHT = 98
-
-function loadHiddenPaths(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]')
-  } catch {
-    return []
-  }
-}
-function saveHiddenPaths(paths: string[]): void {
-  localStorage.setItem(HIDDEN_KEY, JSON.stringify(paths))
-}
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 export function useProjectsPageState() {
   const location = useLocation()
-  const { addToast } = useToast()
 
   const [projects, setProjects] = useState<Project[]>([])
   const [currentTab, setCurrentTab] = useState<TabType>(() => {
     const p = location.pathname
     if (p === '/projects/favorites') return 'favorites'
-    if (p === '/projects/hidden') return 'hidden'
     return 'all'
   })
   const [scanEpoch, setScanEpoch] = useState(0)
@@ -67,17 +52,15 @@ export function useProjectsPageState() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const { favoritePaths, toggleFavoritePath: toggleFav } = useProjectFavorites()
-  const [hiddenPaths, setHiddenPaths] = useState<string[]>(loadHiddenPaths)
   const { filterForTab, switchTab: switchTabFn } = useProjectFilters()
 
   const allProjectsRef = useRef<Project[]>([])
   const currentTabRef = useRef<TabType>(currentTab)
-  const hiddenPathsRef = useRef<string[]>(hiddenPaths)
   const favoritePathsRef = useRef<string[]>(favoritePaths)
+  const hiddenPathsRef = useRef<string[]>([])
 
   // Keep refs in sync on every render (no useEffect latency)
   currentTabRef.current = currentTab
-  hiddenPathsRef.current = hiddenPaths
   favoritePathsRef.current = favoritePaths
 
   const { loading, backgroundScanning, loadProjects, loadProjectsForTab } = useProjectLoader({
@@ -151,14 +134,13 @@ export function useProjectsPageState() {
   // Sync tab ↔ URL
   useEffect(() => {
     const p = location.pathname
-    const tab: TabType =
-      p === '/projects/favorites' ? 'favorites' : p === '/projects/hidden' ? 'hidden' : 'all'
+    const tab: TabType = p === '/projects/favorites' ? 'favorites' : 'all'
     logActivity('Projects tab synced from route', { path: p, tab })
     setCurrentTab(tab)
     currentTabRef.current = tab
     if (allProjectsRef.current.length > 0) {
       setProjects(
-        filterForTab(tab, allProjectsRef.current, favoritePathsRef.current, hiddenPathsRef.current)
+        filterForTab(tab, allProjectsRef.current, favoritePathsRef.current)
       )
     }
   }, [location.pathname, filterForTab])
@@ -176,7 +158,7 @@ export function useProjectsPageState() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── Tab / favorites / hidden mutations ──────────────────────────────────────
+  // ── Tab / favorites mutations ──────────────────────────────────────
 
   const switchTab = useCallback(
     (tab: TabType): void => {
@@ -188,7 +170,6 @@ export function useProjectsPageState() {
         allProjectsRef.current,
         setCurrentTab,
         setProjects,
-        hiddenPathsRef.current,
         favoritePathsRef.current
       )
     },
@@ -201,36 +182,12 @@ export function useProjectsPageState() {
       toggleFav(projectPath, (updated) => {
         if (currentTab === 'favorites') {
           setProjects(
-            filterForTab('favorites', allProjectsRef.current, updated, hiddenPathsRef.current)
+            filterForTab('favorites', allProjectsRef.current, updated)
           )
         }
       })
     },
     [toggleFav, currentTab, filterForTab]
-  )
-
-  const toggleHiddenPath = useCallback(
-    (projectPath: string): void => {
-      const current = hiddenPathsRef.current
-      const isHidden = current.includes(projectPath)
-      logActivity('Project hidden state toggled', { projectPath, nextHidden: !isHidden })
-      const updated = isHidden
-        ? current.filter((p) => p !== projectPath)
-        : [...current, projectPath]
-      hiddenPathsRef.current = updated
-      setHiddenPaths(updated)
-      saveHiddenPaths(updated)
-      setProjects(
-        filterForTab(
-          currentTabRef.current,
-          allProjectsRef.current,
-          favoritePathsRef.current,
-          updated
-        )
-      )
-      addToast(isHidden ? 'Project restored to list' : 'Project hidden', 'success')
-    },
-    [filterForTab, addToast]
   )
 
   // ── UI state ─────────────────────────────────────────────────────────────────
@@ -284,11 +241,9 @@ export function useProjectsPageState() {
     displayStart,
     containerRef,
     favoritePaths,
-    hiddenPaths,
     allProjectsRef,
     switchTab,
     toggleFavoritePath,
-    toggleHiddenPath,
     toggleSearch,
     handleViewChange,
     handleSortChange,

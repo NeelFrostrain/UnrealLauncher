@@ -12,6 +12,7 @@ import {
   scanAndMergeProjects,
   loadSavedProjects,
   deleteProject,
+  eraseProjectFromDisk,
   updateProjectVersion,
   checkProjectHealth
 } from './projectHandlers'
@@ -51,6 +52,10 @@ export function registerProjectHandlers(ipcMain_: typeof ipcMain): void {
   })
 
   ipcMain_.handle('delete-project', (_event, projectPath) => deleteProject(projectPath))
+
+  ipcMain_.handle('erase-project-from-disk', (_event, projectPath: string) =>
+    eraseProjectFromDisk(projectPath)
+  )
 
   ipcMain_.handle('update-project-version', (_event, projectPath: string, newVersion: string) =>
     updateProjectVersion(projectPath, newVersion)

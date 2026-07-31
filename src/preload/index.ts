@@ -20,6 +20,8 @@ if (process.contextIsolated) {
       windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
       deleteEngine: (directoryPath) => ipcRenderer.invoke('delete-engine', directoryPath),
       deleteProject: (projectPath) => ipcRenderer.invoke('delete-project', projectPath),
+      eraseProjectFromDisk: (projectPath: string) =>
+        ipcRenderer.invoke('erase-project-from-disk', projectPath),
       onSizeCalculated: (
         callback: (data: { type: 'engine' | 'project'; path: string; size: string }) => void
       ): (() => void) => {
@@ -257,7 +259,8 @@ if (process.contextIsolated) {
         }
       },
       taskManagerGetProcesses: () => ipcRenderer.invoke('task-manager-get-processes'),
-      taskManagerKillProcess: (pid: number) => ipcRenderer.invoke('task-manager-kill-process', pid)
+      taskManagerKillProcess: (pid: number) => ipcRenderer.invoke('task-manager-kill-process', pid),
+      relaunchApp: () => ipcRenderer.invoke('relaunch-app')
     })
   } catch (error) {
     console.error(error)

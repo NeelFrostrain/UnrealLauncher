@@ -104,8 +104,25 @@ loadEnvironment()
 logger.info('app', 'Environment loaded')
 
 // ── Chromium flags — must be set before app is ready ─────────────────────────
-// NOTE: Hardware acceleration is intentionally kept ON — disabling it forces
-// CPU-only rendering which makes every animation and scroll choppy.
+// Read GPU preference from persisted settings (synchronous JSON read, safe here).
+{
+  let gpuDisabled = true // default: off
+  try {
+    gpuDisabled = loadMainSettings().disableGpu ?? true
+  } catch {
+    /* use default */
+  }
+  if (gpuDisabled) {
+    app.disableHardwareAcceleration()
+    app.commandLine.appendSwitch('disable-gpu')
+    app.commandLine.appendSwitch('disable-gpu-compositing')
+    app.commandLine.appendSwitch('disable-gpu-sandbox')
+    app.commandLine.appendSwitch('in-process-gpu')
+    logger.info('app', 'GPU process disabled (user setting)')
+  } else {
+    logger.info('app', 'GPU process enabled (user setting)')
+  }
+}
 app.commandLine.appendSwitch('enable-smooth-scrolling')
 app.commandLine.appendSwitch(
   'disable-features',

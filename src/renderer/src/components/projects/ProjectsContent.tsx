@@ -19,12 +19,12 @@ export interface ProjectsContentProps {
   viewMode: ViewMode
   sortConfig: SortConfig
   favoritePaths: string[]
-  hiddenPaths: string[]
+  hiddenPaths?: string[]
   // These props are kept for API compatibility but unused — list is self-contained
   displayStart: number
   containerRef: React.RefObject<HTMLDivElement | null>
   onToggleFavorite: (path: string) => void
-  onHide: (path: string) => void
+  onHide?: (path: string) => void
   onLaunch: (path: string) => void
   onOpenDir: (path: string) => void
   onListScroll: (e: React.UIEvent<HTMLDivElement>) => void
@@ -52,7 +52,7 @@ const VirtualizedList = memo(function VirtualizedList({
 }: {
   items: ProjectWithFlags[]
   onToggleFavorite: (path: string) => void
-  onHide: (path: string) => void
+  onHide?: (path: string) => void
   onLaunch: (path: string) => void
   onOpenDir: (path: string) => void
 }): React.ReactElement {
@@ -111,7 +111,7 @@ const VirtualizedList = memo(function VirtualizedList({
           isHidden={data.isHidden}
           thumbnailKey={`${data.projectPath}:${data.thumbnail}`}
           onToggleFavorite={onToggleFavorite}
-          onHide={onHide}
+          onHide={onHide ?? (() => {})}
           onLaunch={onLaunch}
           onOpenDir={onOpenDir}
         />
@@ -138,7 +138,7 @@ export const ProjectsContent = memo(function ProjectsContent({
   viewMode,
   sortConfig,
   favoritePaths,
-  hiddenPaths,
+  hiddenPaths = [],
   onToggleFavorite,
   onHide,
   onLaunch,
@@ -185,22 +185,18 @@ export const ProjectsContent = memo(function ProjectsContent({
             ? 'No projects match your search'
             : currentTab === 'favorites'
               ? 'No favorite projects'
-              : currentTab === 'hidden'
-                ? 'No hidden projects'
-                : currentTab === 'recent'
-                  ? 'No recently opened projects'
-                  : 'No projects found'}
+              : currentTab === 'recent'
+                ? 'No recently opened projects'
+                : 'No projects found'}
         </p>
         <p className="text-sm mb-4" style={{ color: 'var(--color-text-muted)' }}>
           {searchQuery.trim()
             ? 'Try a different project name or clear the search.'
             : currentTab === 'favorites'
               ? 'Add projects to favorites from the All Projects tab'
-              : currentTab === 'hidden'
-                ? 'Hide projects using the context menu or the hide button on each card'
-                : currentTab === 'recent'
-                  ? 'Open a project at least once to see it here'
-                  : 'Use Add Project to add one manually.'}
+              : currentTab === 'recent'
+                ? 'Open a project at least once to see it here'
+                : 'Use Add Project to add one manually.'}
         </p>
       </div>
     )
@@ -211,7 +207,7 @@ export const ProjectsContent = memo(function ProjectsContent({
       <VirtualizedProjectGrid
         items={visibleProjects.filter((p) => !!p.projectPath)}
         onToggleFavorite={onToggleFavorite}
-        onHide={onHide}
+        onHide={onHide ?? (() => {})}
         onLaunch={onLaunch}
         onOpenDir={onOpenDir}
       />

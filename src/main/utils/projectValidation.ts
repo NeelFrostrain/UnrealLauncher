@@ -1,5 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
+import fs from 'fs'
 import { app } from 'electron'
 import { loadProjects, saveProjects, mergeTracerProjects } from '../store'
 import { spawnWorker } from '../workers/workers'
@@ -186,3 +187,38 @@ export function deleteProject(projectPath: string): boolean {
     return false
   }
 }
+
+/**
+ * Erases a project directory from disk by moving it to the OS Recycle Bin / Trash,
+ * and removes it from the saved project list.
+ */
+export async function eraseProjectFromDisk(
+  projectPath: string
+): Promise<{ success: boolean; error?: string }> {
+  logger.info('project', 'Erase project from disk requested', { projectPath })
+  try {
+    const { shell, BrowserWindow } = require('electron')
+    const normalized = path.normalize(projectPath)
+    if (fs.existsSync(normalized)) {
+      await shell.trashItem(normalized)
+      logger.info('project', 'Project moved to Recycle Bin', { projectPath: normalized })
+    }
+
+    deleteProject(projectPath)
+
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (!win.isDestroyed()) {
+        win.webContents.send('project-removed', { projectPath })
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    logger.error('project', 'Failed to move project to Recycle Bin', { projectPath, error })
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error)
+    }
+  }
+}
+

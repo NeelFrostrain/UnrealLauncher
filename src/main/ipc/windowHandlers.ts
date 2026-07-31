@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type { IpcMain } from 'electron'
 import {
   getIsMaximized,
@@ -16,4 +16,7 @@ export function registerWindowHandlers(ipcMain: IpcMain): void {
   ipcMain.on('window-maximize', () => handleWindowMaximize(getMainWindow()))
   ipcMain.on('window-close', () => handleRequestedAppClose())
   ipcMain.handle('window-is-maximized', getIsMaximized)
+  ipcMain.handle('relaunch-app', () => {
+    process.exit(0)
+  })
 }

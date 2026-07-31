@@ -1,7 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
 import { useEffect, useRef, useLayoutEffect, useState, lazy, Suspense } from 'react'
-import { FolderOpen, EyeOff, Star } from 'lucide-react'
+import { FolderOpen, Star } from 'lucide-react'
 import PageWrapper from '../layout/PageWrapper'
 import ProjectsToolbar from '../components/projects/ProjectsToolbar'
 import { ProjectsContent } from '../components/projects/ProjectsContent'
@@ -52,8 +52,7 @@ const ProjectsPage = (): React.ReactElement => {
       <ProjectsToolbar
         tabs={[
           { id: 'all', label: 'All', icon: <FolderOpen size={11} /> },
-          { id: 'favorites', label: 'Favorites', icon: <Star size={11} /> },
-          { id: 'hidden', label: 'Hidden', icon: <EyeOff size={11} /> }
+          { id: 'favorites', label: 'Favorites', icon: <Star size={11} /> }
         ]}
         currentTab={state.currentTab}
         searchOpen={state.searchOpen}
@@ -96,11 +95,9 @@ const ProjectsPage = (): React.ReactElement => {
             viewMode={state.viewMode}
             sortConfig={state.sortConfig}
             favoritePaths={state.favoritePaths}
-            hiddenPaths={state.hiddenPaths}
             displayStart={state.displayStart}
             containerRef={state.containerRef}
             onToggleFavorite={state.toggleFavoritePath}
-            onHide={state.toggleHiddenPath}
             onLaunch={state.handleLaunch}
             onOpenDir={state.handleOpenDir}
             onListScroll={state.handleListScroll}
