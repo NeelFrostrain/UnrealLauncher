@@ -1,39 +1,65 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type React from 'react'
+import { FolderOpen, Terminal, Cpu } from 'lucide-react'
 import { SectionHeader, Card } from '../settings/SectionHelpers'
 import type { VsSetupStatus } from './compileTypes'
 
 interface OverviewTabProps {
   status: VsSetupStatus | null
+  customVsPath: string
+  onCustomVsPathChange: (path: string) => void
+  onSelectFolder: () => void
 }
 
-export const OverviewTab = ({ status }: OverviewTabProps): React.ReactElement => {
+export const OverviewTab = ({
+  status,
+  customVsPath,
+  onCustomVsPathChange,
+  onSelectFolder
+}: OverviewTabProps): React.ReactElement => {
   return (
-    <div className="space-y-6 pt-1">
+    <div className="space-y-6">
+      {/* Top Path Config Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Installation Directory Card */}
+        {/* Target VS Installation Path */}
         <div>
-          <SectionHeader label="INSTALLATION DIRECTORY" />
+          <SectionHeader label="TARGET INSTALLATION FOLDER" />
           <Card>
             <div className="p-4 flex flex-col gap-3">
               <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                Detected Visual Studio installation root:
+                Visual Studio installation target directory:
               </p>
-              <div
-                className="p-3 rounded-md border font-mono text-xs break-all select-all"
-                style={{
-                  backgroundColor: 'var(--color-surface-card)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-primary)'
-                }}
-              >
-                {status?.vsPath || 'Not Found'}
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={customVsPath}
+                  onChange={(e) => onCustomVsPathChange(e.target.value)}
+                  placeholder="e.g. D:\Applications\VS"
+                  className="flex-1 px-3 py-2 text-xs font-mono rounded-md border focus:outline-none focus:border-[var(--color-accent)] transition-all duration-200 min-w-0"
+                  style={{
+                    backgroundColor: 'var(--color-surface-card)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)'
+                  }}
+                />
+                <button
+                  onClick={onSelectFolder}
+                  className="cursor-pointer flex items-center justify-center px-3.5 py-2 rounded-md text-xs font-semibold border transition-all duration-200 shrink-0 hover:border-[var(--color-accent)]"
+                  style={{
+                    backgroundColor: 'var(--color-surface-card)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)'
+                  }}
+                >
+                  <FolderOpen className="w-3.5 h-3.5 mr-1.5 text-[var(--color-accent)]" />
+                  Browse
+                </button>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Windows SDK Card */}
+        {/* Windows SDK Path */}
         <div>
           <SectionHeader label="WINDOWS SDK" />
           <Card>
@@ -42,38 +68,39 @@ export const OverviewTab = ({ status }: OverviewTabProps): React.ReactElement =>
                 Windows Kits 10/11 SDK headers and libraries:
               </p>
               <div
-                className="p-3 rounded-md border font-mono text-xs break-all select-all"
+                className="p-2.5 rounded-md border font-mono text-xs break-all select-all flex items-center gap-2"
                 style={{
                   backgroundColor: 'var(--color-surface-card)',
                   borderColor: 'var(--color-border)',
                   color: 'var(--color-text-primary)'
                 }}
               >
-                {status?.sdkPath || 'Not Found'}
+                <Terminal size={14} className="text-[var(--color-accent)] shrink-0" />
+                <span className="truncate">{status?.sdkPath || 'Not Found'}</span>
               </div>
             </div>
           </Card>
         </div>
       </div>
 
-      {/* Installed MSVC Compiler Binaries */}
+      {/* Detected MSVC Compiler Toolsets */}
       <div>
         <SectionHeader label="DETECTED COMPILER INSTANCES" />
         <Card>
           <div className="p-4 flex flex-col gap-3">
             <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2">
+                <Cpu size={14} className="text-[var(--color-accent)]" />
+                <span className="text-xs font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                  Installed MSVC Toolsets
+                </span>
+              </div>
               <span
-                className="text-xs font-semibold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                Installed MSVC Toolsets
-              </span>
-              <span
-                className="text-[11px] px-2 py-0.5 rounded-md font-mono"
+                className="text-[11px] px-2.5 py-0.5 rounded-full font-mono font-bold border"
                 style={{
-                  backgroundColor: 'var(--color-surface-card)',
+                  backgroundColor: 'var(--color-surface)',
                   color: 'var(--color-text-muted)',
-                  border: '1px solid var(--color-border)'
+                  borderColor: 'var(--color-border)'
                 }}
               >
                 {status?.msvcVersions.length || 0} Found
@@ -85,7 +112,7 @@ export const OverviewTab = ({ status }: OverviewTabProps): React.ReactElement =>
                 {status.msvcVersions.map((item) => (
                   <div
                     key={item.version}
-                    className="p-3 rounded-md border flex flex-col gap-1 transition-all duration-200"
+                    className="p-3 rounded-lg border flex flex-col gap-1 transition-all duration-200 hover:border-[var(--color-accent)]"
                     style={{
                       backgroundColor: 'var(--color-surface-card)',
                       borderColor: 'var(--color-border)'
@@ -98,7 +125,7 @@ export const OverviewTab = ({ status }: OverviewTabProps): React.ReactElement =>
                       >
                         v{item.version}
                       </span>
-                      <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider">
+                      <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 uppercase tracking-wider">
                         x64 Native Compiler
                       </span>
                     </div>
@@ -113,7 +140,7 @@ export const OverviewTab = ({ status }: OverviewTabProps): React.ReactElement =>
               </div>
             ) : (
               <div
-                className="p-4 text-center text-xs italic border border-dashed rounded-md"
+                className="p-4 text-center text-xs italic border border-dashed rounded-lg"
                 style={{
                   borderColor: 'var(--color-border)',
                   color: 'var(--color-text-muted)'

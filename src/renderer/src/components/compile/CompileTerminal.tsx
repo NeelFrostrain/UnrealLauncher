@@ -1,6 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React, { useState, useEffect, useRef } from 'react'
-import { Terminal, Trash2, ChevronDown, ChevronUp, ArrowDown } from 'lucide-react'
+import { Terminal, Trash2, ChevronDown, ChevronUp, ArrowDown, GripHorizontal } from 'lucide-react'
 
 export interface LogEntry {
   timestamp: string
@@ -59,47 +59,50 @@ export const CompileTerminal = ({
   const getLogColor = (type: LogEntry['type']) => {
     switch (type) {
       case 'success':
-        return 'text-emerald-400 font-semibold'
+        return 'text-emerald-400 font-medium'
       case 'warning':
-        return 'text-amber-400 font-semibold'
+        return 'text-amber-400 font-medium'
       case 'error':
-        return 'text-rose-400 font-semibold'
+        return 'text-rose-400 font-medium'
       default:
-        return 'text-[var(--color-text-secondary)]'
+        return 'text-[var(--color-text-secondary)] font-normal'
     }
   }
 
   return (
     <div
-      className="mt-auto border flex flex-col shrink-0 select-text transition-all duration-150 rounded-lg overflow-hidden"
+      className="mt-auto border flex flex-col shrink-0 select-text transition-all duration-150 rounded-lg overflow-hidden shadow-lg"
       style={{
         borderColor: 'var(--color-border)',
         backgroundColor: 'var(--color-surface-card)',
-        height: isMinimized ? '36px' : `${height}px`
+        height: isMinimized ? '38px' : `${height}px`
       }}
     >
-      {/* Resizable Top Drag Bar & Controls */}
+      {/* Resizable Drag Handle Header */}
       <div
         onMouseDown={handleMouseDown}
-        className="h-9 px-3 flex items-center justify-between border-b cursor-row-resize select-none shrink-0"
+        className="h-9 px-3 flex items-center justify-between border-b cursor-row-resize select-none shrink-0 transition-colors hover:bg-[var(--color-surface-elevated)]"
         style={{
           borderColor: 'var(--color-border)',
           backgroundColor: 'var(--color-surface-card)'
         }}
       >
-        <div className="flex items-center gap-2">
-          <Terminal size={14} style={{ color: 'var(--color-accent)' }} />
-          <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-            Execution Terminal
-          </span>
+        <div className="flex items-center gap-2.5">
+          <GripHorizontal size={14} className="text-[var(--color-text-muted)] cursor-row-resize" />
+          <div className="flex items-center gap-1.5">
+            <Terminal size={13} style={{ color: 'var(--color-accent)' }} />
+            <span className="text-xs font-bold" style={{ color: 'var(--color-text-primary)' }}>
+              Execution Log Terminal
+            </span>
+          </div>
           {isLive && (
-            <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+            <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/25">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               LIVE STREAM
             </span>
           )}
           <span
-            className="text-[10px] font-mono px-2 py-0.5 rounded border font-semibold"
+            className="text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold"
             style={{
               backgroundColor: 'var(--color-surface)',
               borderColor: 'var(--color-border)',
@@ -113,7 +116,7 @@ export const CompileTerminal = ({
         <div className="flex items-center gap-1" onMouseDown={(e) => e.stopPropagation()}>
           <button
             onClick={() => setAutoScroll((prev) => !prev)}
-            title={autoScroll ? 'Disable Auto-scroll' : 'Enable Auto-scroll'}
+            title={autoScroll ? 'Auto-scroll Enabled' : 'Auto-scroll Disabled'}
             className="p-1 rounded text-xs transition-colors cursor-pointer"
             style={{
               color: autoScroll ? 'var(--color-accent)' : 'var(--color-text-muted)',
@@ -126,8 +129,8 @@ export const CompileTerminal = ({
           </button>
           <button
             onClick={onClearLogs}
-            title="Clear Log Output"
-            className="p-1 rounded text-xs transition-colors cursor-pointer"
+            title="Clear Logs"
+            className="p-1 rounded text-xs transition-colors cursor-pointer hover:text-rose-400"
             style={{ color: 'var(--color-text-muted)' }}
           >
             <Trash2 size={13} />
@@ -146,21 +149,22 @@ export const CompileTerminal = ({
       {/* Terminal Viewport */}
       {!isMinimized && (
         <div
-          className="flex-1 p-3 overflow-y-auto font-mono text-xs space-y-1"
+          className="flex-1 p-3 overflow-y-auto font-mono text-[11px] space-y-1.5 leading-relaxed"
           style={{ backgroundColor: 'var(--color-surface)' }}
         >
           {logs.length === 0 ? (
             <div
-              className="italic text-center py-4 select-none"
+              className="italic text-center py-6 select-none text-xs"
               style={{ color: 'var(--color-text-muted)' }}
             >
-              Terminal ready. Logs will stream here during installation and verification.
+              Execution log terminal ready. Real-time installation and verification logs will stream
+              here.
             </div>
           ) : (
             logs.map((log, index) => (
-              <div key={index} className="flex items-start gap-2 leading-relaxed">
+              <div key={index} className="flex items-start gap-2.5">
                 <span
-                  className="shrink-0 select-none text-[10px]"
+                  className="shrink-0 select-none text-[10px] opacity-60 font-mono"
                   style={{ color: 'var(--color-text-muted)' }}
                 >
                   [{log.timestamp}]
