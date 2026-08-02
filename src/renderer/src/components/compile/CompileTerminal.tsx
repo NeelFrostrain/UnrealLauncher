@@ -99,14 +99,17 @@ export const CompileTerminal = ({
             <span
               className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border"
               style={{
-                backgroundColor: 'color-mix(in srgb, var(--color-engine-version) 12%, transparent)',
-                color: 'var(--color-engine-version)',
-                borderColor: 'color-mix(in srgb, var(--color-engine-version) 25%, transparent)'
+                backgroundColor: 'color-mix(in srgb, var(--color-engine-version-text) 12%, transparent)',
+                color: 'var(--color-engine-version-text)',
+                borderColor: 'color-mix(in srgb, var(--color-engine-version-text) 25%, transparent)'
               }}
             >
               <span
                 className="w-1.5 h-1.5 rounded-full animate-pulse"
-                style={{ backgroundColor: 'var(--color-engine-version)' }}
+                style={{
+                  color: 'var(--color-engine-version-text)',
+                  backgroundColor: 'var(--color-engine-version-text)'
+                }}
               />
               LIVE STREAM
             </span>
