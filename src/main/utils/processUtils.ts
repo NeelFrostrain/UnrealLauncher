@@ -1,9 +1,10 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
-import { execFile, spawn } from 'child_process'
+import { execFile } from 'child_process'
 import { promisify } from 'util'
 import fs from 'fs'
 import path from 'path'
+import { shell } from 'electron'
 import { logger } from '../logger'
 
 // Security: Allowed file extensions for opening
@@ -147,51 +148,9 @@ export function openFileOrDirectory(filePath: string): void {
 
     logger.info('process', 'Opening file or directory', { filePath, platform: process.platform })
 
-    if (process.platform === 'win32') {
-      // Use 'cmd /c start' instead of shell.openPath so the spawned process is
-      // completely detached from Electron's process tree.
-      // shell.openPath() keeps Electron as the parent, which is why UnrealEditor
-      // appears nested under Electron in Task Manager.
-      spawn('cmd', ['/c', 'start', '', resolved], {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true,
-        shell: false
-      }).unref()
-    } else if (process.platform === 'darwin') {
-      spawn('open', [resolved], {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true,
-        shell: false // Prevent shell window creation
-      }).unref()
-    } else {
-      // Linux: executables must be spawned directly — xdg-open is blocked by KIO for binaries
-      let isExecutable = false
-      try {
-        fs.accessSync(resolved, fs.constants.X_OK)
-        isExecutable = true
-      } catch {
-        isExecutable = false
-      }
-
-      if (isExecutable) {
-        spawn(resolved, [], {
-          detached: true,
-          stdio: 'ignore',
-          env: { ...process.env },
-          windowsHide: true,
-          shell: false // Prevent shell window creation
-        }).unref()
-      } else {
-        spawn('xdg-open', [resolved], {
-          detached: true,
-          stdio: 'ignore',
-          windowsHide: true,
-          shell: false // Prevent shell window creation
-        }).unref()
-      }
-    }
+    shell.openPath(resolved).catch((err) => {
+      logger.error('process', 'Failed to open with shell.openPath', { filePath, err })
+    })
   } catch (error) {
     logger.error('process', 'Failed to open file or directory', { path: filePath, error })
   }

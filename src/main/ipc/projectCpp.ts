@@ -11,6 +11,7 @@ import { isRegisteredProjectPath } from '../utils/pathSanitization'
 import { findUprojectFile } from './projectFiles'
 import { loadEngines } from '../store'
 import { getBinaryExtension } from '../utils/platformPaths'
+import { killProcess, isProcessRunning } from '../utils/processUtils'
 
 export interface CppModuleInfo {
   name: string
@@ -51,6 +52,11 @@ export interface CppBuildOptions {
 
 // Tracks the currently running build/UBT child process so it can be cancelled
 let activeBuildChild: import('child_process').ChildProcess | null = null
+
+// Tracks active debug child process & binary name
+let activeDebugChild: import('child_process').ChildProcess | null = null
+let activeDebugExeName: string | null = null
+let activeDebugProjectPath: string | null = null
 
 function sendCppLog(
   sender: WebContents | undefined,
@@ -581,12 +587,25 @@ export function handleProjectCppOpenSln(
     }
 
     if (ide === 'rider') {
-      // Rider has native Unreal Engine support — open the .uproject directly
+      const riderExe = findRiderExe(customRiderPath)
+      const engineDir = findEngineDirectoryForProject(safePath)
+
+      // Set environment variables so Rider & UBT find the engine's bundled DotNet SDK / runtime
+      const env: Record<string, string | undefined> = { ...process.env }
+      if (engineDir) {
+        const bundledDotnet = path.join(engineDir, 'Engine', 'Binaries', 'ThirdParty', 'DotNet', 'win-x64')
+        if (fs.existsSync(bundledDotnet)) {
+          env.DOTNET_ROOT = bundledDotnet
+          env.PATH = `${bundledDotnet};${process.env.PATH || ''}`
+        }
+      }
+
+      // If .sln exists, prefer opening .sln in Rider so Rider loads the full project hierarchy immediately
+      // without failing on missing system .NET runtime
       const targetUproject = uprojectPath || path.join(safePath, `${projectName}.uproject`)
-      const riderTarget = fs.existsSync(targetUproject) ? targetUproject : targetSln
+      const riderTarget = (targetSln && fs.existsSync(targetSln)) ? targetSln : targetUproject
       const riderTargetName = path.basename(riderTarget)
 
-      const riderExe = findRiderExe(customRiderPath)
       if (riderExe) {
         sendCppLog(sender, safePath, `Launching JetBrains Rider: "${riderExe}" "${riderTargetName}"`, 'info')
         spawn(riderExe, [riderTarget], {
@@ -594,14 +613,14 @@ export function handleProjectCppOpenSln(
           detached: true,
           stdio: 'ignore',
           windowsHide: false,
-          shell: false
+          shell: false,
+          env
         }).unref()
         sendCppLog(sender, safePath, `✅ ${riderTargetName} opened in JetBrains Rider!`, 'success')
         return { success: true }
       } else {
         sendCppLog(sender, safePath, `JetBrains Rider binary not found. Opening ${riderTargetName} with system default...`, 'warning')
-        // Use cmd /c start so the launched process is independent of Electron
-        spawn('cmd', ['/c', 'start', '', riderTarget], { detached: true, stdio: 'ignore', shell: false }).unref()
+        spawn('cmd', ['/c', 'start', '', riderTarget], { detached: true, stdio: 'ignore', shell: false, env }).unref()
         return { success: true }
       }
     } else {
@@ -1059,7 +1078,7 @@ export async function handleProjectCppDebug(
 
   const cfgLower = config.toLowerCase()
   let editorExeName = `UnrealEditor${ext}`
-  const flags: string[] = [uprojectPath, '-log']
+  const flags: string[] = [uprojectPath]
 
   // Resolve exact matching binary created by UBT for DebugGame / Debug configurations
   if (cfgLower.includes('debuggame')) {
@@ -1093,24 +1112,44 @@ export async function handleProjectCppDebug(
       'info'
     )
 
-    // Use cmd /c start on Windows so process is completely detached from Electron
-    if (process.platform === 'win32') {
-      spawn('cmd', ['/c', 'start', '', editorExe, ...flags], {
-        cwd: safePath,
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true,
-        shell: false
-      }).unref()
-    } else {
-      spawn(editorExe, flags, {
-        cwd: safePath,
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: false,
-        shell: false
-      }).unref()
+    const child = spawn(editorExe, flags, {
+      cwd: safePath,
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: false,
+      shell: false
+    })
+
+    activeDebugChild = child
+    activeDebugExeName = path.basename(editorExe)
+    activeDebugProjectPath = safePath
+
+    child.on('close', () => {
+      activeDebugChild = null
+      activeDebugExeName = null
+      activeDebugProjectPath = null
+      if (sender) {
+        try {
+          sender.send('cpp-debug-status', { isDebugging: false, projectPath: safePath })
+        } catch {
+          /* ignore */
+        }
+      }
+    })
+
+    if (sender) {
+      try {
+        sender.send('cpp-debug-status', {
+          isDebugging: true,
+          projectPath: safePath,
+          exeName: path.basename(editorExe)
+        })
+      } catch {
+        /* ignore */
+      }
     }
+
+    child.unref()
 
     sendCppLog(
       sender,
@@ -1124,6 +1163,64 @@ export async function handleProjectCppDebug(
     sendCppLog(sender, safePath, `Debug launch error: ${errMsg}`, 'error')
     return { success: false, error: errMsg }
   }
+}
+
+export async function handleProjectCppStopDebug(
+  projectPath: string,
+  sender?: WebContents
+): Promise<{ success: boolean }> {
+  sendCppLog(sender, projectPath, '⛔ Stopping Debugger / Editor process...', 'warning')
+
+  if (activeDebugChild && activeDebugChild.pid) {
+    try {
+      if (process.platform === 'win32') {
+        spawn('taskkill', ['/F', '/T', '/PID', String(activeDebugChild.pid)], {
+          detached: true,
+          stdio: 'ignore',
+          windowsHide: true
+        }).unref()
+      } else {
+        activeDebugChild.kill('SIGTERM')
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (activeDebugExeName) {
+    try {
+      await killProcess(activeDebugExeName)
+    } catch {
+      /* ignore */
+    }
+  }
+
+  activeDebugChild = null
+  activeDebugExeName = null
+  activeDebugProjectPath = null
+
+  if (sender) {
+    try {
+      sender.send('cpp-debug-status', { isDebugging: false, projectPath })
+    } catch {
+      /* ignore */
+    }
+  }
+
+  sendCppLog(sender, projectPath, '⛔ Debugger process stopped.', 'warning')
+  return { success: true }
+}
+
+export async function handleProjectCppCheckDebug(
+  projectPath: string
+): Promise<{ isDebugging: boolean; exeName?: string }> {
+  if (activeDebugChild && activeDebugChild.pid && activeDebugProjectPath === projectPath) {
+    return { isDebugging: true, exeName: activeDebugExeName || 'UnrealEditor.exe' }
+  }
+  const isRunning =
+    (await isProcessRunning('UnrealEditor-Win64-DebugGame.exe')) ||
+    (await isProcessRunning('UnrealEditor-Win64-Debug.exe'))
+  return { isDebugging: isRunning, exeName: isRunning ? 'UnrealEditor-Win64-DebugGame.exe' : undefined }
 }
 
 export function handleProjectCppFixTargetRules(
@@ -1361,6 +1458,12 @@ export function registerProjectCppHandlers(ipcMain_: typeof ipcMain): void {
   )
   ipcMain_.handle('project-cpp-debug', (e, p: string, cfg?: string) =>
     handleProjectCppDebug(p, cfg, e.sender)
+  )
+  ipcMain_.handle('project-cpp-stop-debug', (e, p: string) =>
+    handleProjectCppStopDebug(p, e.sender)
+  )
+  ipcMain_.handle('project-cpp-check-debug', (_e, p: string) =>
+    handleProjectCppCheckDebug(p)
   )
   ipcMain_.handle('project-cpp-cancel-build', (e) =>
     handleProjectCppCancelBuild(e.sender)

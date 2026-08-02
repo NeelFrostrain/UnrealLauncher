@@ -296,11 +296,27 @@ if (process.contextIsolated) {
       projectCppBuild: (options: CppBuildOptions) => ipcRenderer.invoke('project-cpp-build', options),
       projectCppDebug: (projectPath: string, config?: string) =>
         ipcRenderer.invoke('project-cpp-debug', projectPath, config),
+      projectCppStopDebug: (projectPath: string) =>
+        ipcRenderer.invoke('project-cpp-stop-debug', projectPath),
+      projectCppCheckDebug: (projectPath: string) =>
+        ipcRenderer.invoke('project-cpp-check-debug', projectPath),
       projectCppCancelBuild: () => ipcRenderer.invoke('project-cpp-cancel-build'),
       projectCppFetchSavedLogs: (projectPath: string) =>
         ipcRenderer.invoke('project-cpp-fetch-saved-logs', projectPath),
       projectCppSaveLogFile: (projectPath: string, content: string) =>
         ipcRenderer.invoke('project-cpp-save-log-file', projectPath, content),
+      onCppDebugStatus: (
+        callback: (status: { isDebugging: boolean; projectPath: string; exeName?: string }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          status: { isDebugging: boolean; projectPath: string; exeName?: string }
+        ): void => callback(status)
+        ipcRenderer.on('cpp-debug-status', listener)
+        return (): void => {
+          ipcRenderer.removeListener('cpp-debug-status', listener)
+        }
+      },
       onCppLogOutput: (
         callback: (log: {
           timestamp: string
@@ -328,8 +344,6 @@ if (process.contextIsolated) {
     console.error(error)
   }
 } else {
-  // @ts-ignore (define in dts)
+  // @ts-ignore
   window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
 }

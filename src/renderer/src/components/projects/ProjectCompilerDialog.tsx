@@ -191,6 +191,9 @@ export default function ProjectCompilerDialog({
   const [selectedConfig, setSelectedConfig] = useState<ConfigType>('Development Editor')
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformType>('Win64')
   const [isBuilding, setIsBuilding] = useState(false)
+  const [activeAction, setActiveAction] = useState<string | null>(null)
+  const [isDebugging, setIsDebugging] = useState(false)
+  const [debugExeName, setDebugExeName] = useState<string | undefined>()
   const [buildStatus, setBuildStatus] = useState<'idle' | 'running' | 'success' | 'failed'>('idle')
   const [creatingCpp, setCreatingCpp] = useState(false)
   const [buildTimer, setBuildTimer] = useState(0)
@@ -320,6 +323,32 @@ export default function ProjectCompilerDialog({
     }
   }, [projectPath, appendLog])
 
+  // Check and listen to active C++ Debug status
+  useEffect(() => {
+    if (typeof window.electronAPI?.projectCppCheckDebug === 'function') {
+      window.electronAPI
+        .projectCppCheckDebug(projectPath)
+        .then((res) => {
+          setIsDebugging(res?.isDebugging ?? false)
+          if (res?.exeName) setDebugExeName(res.exeName)
+        })
+        .catch(() => {})
+    }
+
+    let unsubscribe: (() => void) | undefined
+    if (typeof window.electronAPI?.onCppDebugStatus === 'function') {
+      unsubscribe = window.electronAPI.onCppDebugStatus((status) => {
+        if (!status?.projectPath || status.projectPath === projectPath) {
+          setIsDebugging(status?.isDebugging ?? false)
+          if (status?.exeName) setDebugExeName(status.exeName)
+        }
+      })
+    }
+    return () => {
+      if (unsubscribe) unsubscribe()
+    }
+  }, [projectPath])
+
   // Auto-scroll logs
   useEffect(() => {
     if (autoScroll && logTerminalRef.current) {
@@ -330,6 +359,7 @@ export default function ProjectCompilerDialog({
   // Action: Build / Rebuild / Clean / Generate
   const handleBuildAction = async (action: 'build' | 'rebuild' | 'clean' | 'generate') => {
     setIsBuilding(true)
+    setActiveAction(action)
     setBuildStatus('running')
     appendLog(`=== Starting action [${action.toUpperCase()}] for ${projectName} ===`, 'info')
 
@@ -355,6 +385,7 @@ export default function ProjectCompilerDialog({
       addToast(`Error during ${action}`, 'error')
     } finally {
       setIsBuilding(false)
+      setActiveAction(null)
     }
   }
 
@@ -362,6 +393,7 @@ export default function ProjectCompilerDialog({
   const handleDebugProject = async () => {
     const debugConfig = selectedConfig.includes('Editor') ? 'DebugGame Editor' : 'DebugGame'
     setIsBuilding(true)
+    setActiveAction('debug')
     setBuildStatus('running')
     appendLog(`=== Debug: Building ${projectName} [${debugConfig}] before launching debugger... ===`, 'info')
 
@@ -387,6 +419,7 @@ export default function ProjectCompilerDialog({
       // Step 2: Launch debugger
       const debugRes = await window.electronAPI.projectCppDebug(projectPath, debugConfig)
       if (debugRes.success) {
+        setIsDebugging(true)
         addToast('Debugger launched successfully', 'success')
         appendLog('✅ Debugger process spawned. Attach in VS and press F5.', 'success')
       } else {
@@ -399,13 +432,26 @@ export default function ProjectCompilerDialog({
       addToast('Error during debug build+launch', 'error')
     } finally {
       setIsBuilding(false)
+      setActiveAction(null)
     }
   }
 
   // Action: Cancel the running build
   const handleCancelBuild = async () => {
     appendLog('=== Cancelling build... ===', 'warning')
-    await window.electronAPI.projectCppCancelBuild()
+    if (typeof window.electronAPI?.projectCppCancelBuild === 'function') {
+      await window.electronAPI.projectCppCancelBuild()
+    }
+  }
+
+  // Action: Stop running Debugger process
+  const handleStopDebug = async () => {
+    appendLog('=== Stopping Debugger process... ===', 'warning')
+    if (typeof window.electronAPI?.projectCppStopDebug === 'function') {
+      await window.electronAPI.projectCppStopDebug(projectPath)
+    }
+    setIsDebugging(false)
+    addToast('Debugger process stopped', 'info')
   }
 
   // Action: Open Solution in Preferred IDE (VS / Rider)
@@ -928,15 +974,27 @@ export default function ProjectCompilerDialog({
                   <Bug size={14} /> Debug
                 </button>
 
-                {/* Cancel — compact icon button when build/debug is running */}
-                {isBuilding && (
+                {/* Cancel — compact icon button when build/rebuild/debug is running */}
+                {isBuilding && (activeAction === 'build' || activeAction === 'rebuild' || activeAction === 'debug') && (
                   <button
                     onClick={handleCancelBuild}
                     className="h-9 px-2.5 text-xs font-bold flex items-center justify-center gap-1 bg-rose-700 hover:bg-rose-600 text-white shadow-md transition-all cursor-pointer animate-pulse whitespace-nowrap shrink-0"
                     style={{ borderRadius: 'calc(var(--radius) * 0.75)' }}
                     title="Cancel active build process"
                   >
-                    <X size={14} /> Cancel
+                    <X size={14} /> Cancel Build
+                  </button>
+                )}
+
+                {/* Stop Debugger — button when debugger/editor process is active */}
+                {isDebugging && !isBuilding && (
+                  <button
+                    onClick={handleStopDebug}
+                    className="h-9 px-3 text-xs font-bold flex items-center justify-center gap-1.5 bg-rose-700 hover:bg-rose-600 text-white shadow-md transition-all cursor-pointer animate-pulse whitespace-nowrap shrink-0"
+                    style={{ borderRadius: 'calc(var(--radius) * 0.75)' }}
+                    title="Stop running Debugger / Editor process"
+                  >
+                    <X size={14} /> Stop Debugger
                   </button>
                 )}
 
@@ -1023,7 +1081,12 @@ export default function ProjectCompilerDialog({
                         <RefreshCw size={11} className="animate-spin" /> Building...
                       </span>
                     )}
-                    {buildStatus === 'success' && (
+                    {isDebugging && (
+                      <span className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 animate-pulse">
+                        <Bug size={11} /> Debugger Active {debugExeName ? `(${debugExeName})` : ''}
+                      </span>
+                    )}
+                    {buildStatus === 'success' && !isDebugging && (
                       <span className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
                         <CheckCircle2 size={11} /> Build Passed
                       </span>

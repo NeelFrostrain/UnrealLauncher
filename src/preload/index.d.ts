@@ -512,6 +512,10 @@ declare global {
         projectPath: string,
         config?: string
       ) => Promise<{ success: boolean; error?: string }>
+      projectCppStopDebug: (projectPath: string) => Promise<{ success: boolean }>
+      projectCppCheckDebug: (
+        projectPath: string
+      ) => Promise<{ isDebugging: boolean; exeName?: string }>
       projectCppCancelBuild: () => Promise<{ success: boolean }>
       projectCppFetchSavedLogs: (
         projectPath: string
@@ -520,6 +524,9 @@ declare global {
         projectPath: string,
         content: string
       ) => Promise<{ success: boolean; savedPath?: string; error?: string }>
+      onCppDebugStatus: (
+        callback: (status: { isDebugging: boolean; projectPath: string; exeName?: string }) => void
+      ) => () => void
       onCppLogOutput: (
         callback: (log: {
           timestamp: string
