@@ -1,6 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { type FC, type ReactNode } from 'react'
-import { Zap, Package, Hammer, Settings } from 'lucide-react'
+import { Zap, Package, Settings } from 'lucide-react'
 import Engine_BG from '@renderer/assets/Engines_BG.webp'
 import Projects_BG from '@renderer/assets/Projects_BG.jpg'
 import Settings_BG from '@renderer/assets/Settings_BG.jpg'
@@ -17,7 +17,6 @@ export interface SidebarCardData {
 export const NAV_ITEMS: SidebarCardData[] = [
   { title: 'Engines', basePath: '/engines', imageSrc: Engine_BG, icon: <Zap size={16} /> },
   { title: 'Projects', basePath: '/projects', imageSrc: Projects_BG, icon: <Package size={16} /> },
-  { title: 'Compile', basePath: '/compile', imageSrc: Engine_BG, icon: <Hammer size={16} /> },
   { title: 'Settings', basePath: '/settings', imageSrc: Settings_BG, icon: <Settings size={16} /> }
 ]
 
