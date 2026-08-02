@@ -3,9 +3,10 @@ const path = require('path')
 
 const mdPath = path.join(__dirname, '..', 'CHANGELOG.md')
 let md = fs.readFileSync(mdPath, 'utf8')
-md = md.replace(/### ⚙️ /g, '### ')
-       .replace(/### ✨ /g, '### ')
-       .replace(/### 🐛 /g, '### ')
+md = md
+  .replace(/### ⚙️ /g, '### ')
+  .replace(/### ✨ /g, '### ')
+  .replace(/### 🐛 /g, '### ')
 fs.writeFileSync(mdPath, md)
 console.log('Cleaned emojis from CHANGELOG.md')
 

@@ -13,7 +13,9 @@ for (const file of filesToCopy) {
   if (fs.existsSync(src)) {
     try {
       if (fs.existsSync(dst)) {
-        try { fs.unlinkSync(dst) } catch {}
+        try {
+          fs.unlinkSync(dst)
+        } catch {}
       }
       fs.copyFileSync(src, dst)
       console.log(`Copied ${file} to native/dist/`)
