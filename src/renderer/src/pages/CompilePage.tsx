@@ -121,96 +121,59 @@ const CompilePage = (): React.ReactElement => {
         {/* Scrollable Main Layout Body */}
         <div className="flex-1 overflow-y-auto mt-2 min-h-0 space-y-6 pb-6 pr-1">
           {/* Section 1: Overview & Paths */}
-          {/* Section 2: Workloads & Repair Summary Card with Open Dialog Button */}
-          <div>
-            <SectionHeader label="WORKLOADS & COMPONENT SELECTION" />
-            <Card>
-              <div className="p-5 flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2.5">
-                      <h3
-                        className="text-sm font-bold tracking-tight"
-                        style={{ color: 'var(--color-text-primary)' }}
-                      >
-                        Visual Studio C++ Workloads
-                      </h3>
-                      {status?.isHealthy ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
-                          <CheckCircle2 size={12} />
-                          {installedCount} / {totalCount} WORKLOADS READY
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/25">
-                          <AlertCircle size={12} />
-                          {status?.missingComponentIds.length || 0} WORKLOADS MISSING
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                      Unreal Engine requires specific MSVC C++ toolset compilers, Windows SDKs, and
-                      Visual Studio IDE components.
-                    </p>
-                  </div>
-
-                  {/* Primary Button to Open Repair Dialog */}
-                  <button
-                    onClick={() => setIsDialogOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer shadow-md hover:brightness-110 shrink-0"
-                    style={{
-                      backgroundColor: 'var(--color-accent)',
-                      color: 'white'
-                    }}
-                  >
-                    <Wrench size={15} />
-                    Repair or Reinstall Workloads
-                  </button>
-                </div>
-
-                {/* Installed Components Quick Preview */}
-                {status?.components && (
-                  <div
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-2 border-t"
-                    style={{ borderColor: 'var(--color-border)' }}
-                  >
-                    {status.components.map((comp) => (
-                      <div
-                        key={comp.id}
-                        className="p-2.5 rounded-md border flex items-center justify-between text-xs"
-                        style={{
-                          backgroundColor: 'var(--color-surface-card)',
-                          borderColor: 'var(--color-border)'
-                        }}
-                      >
-                        <span
-                          className="font-semibold truncate mr-2"
-                          style={{ color: 'var(--color-text-primary)' }}
-                        >
-                          {comp.label}
-                        </span>
-                        {comp.installed ? (
-                          <span className="text-[10px] font-bold text-emerald-400 shrink-0">
-                            READY
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold text-amber-400 shrink-0">
-                            MISSING
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
-
           <OverviewTab
             status={status}
             customVsPath={customVsPath}
             onCustomVsPathChange={setCustomVsPath}
             onSelectFolder={handleSelectFolder}
           />
+
+          {/* Section 2: Workloads & Repair Action Card */}
+          <div>
+            <SectionHeader label="WORKLOADS & COMPONENT SELECTION" />
+            <Card>
+              <div className="p-5 flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2.5">
+                    <h3
+                      className="text-sm font-bold tracking-tight"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
+                      Visual Studio C++ Workloads
+                    </h3>
+                    {status?.isHealthy ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                        <CheckCircle2 size={12} />
+                        {installedCount} / {totalCount} WORKLOADS READY
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/25">
+                        <AlertCircle size={12} />
+                        {status?.missingComponentIds.length || 0} WORKLOADS MISSING
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                    Unreal Engine requires specific MSVC C++ toolset compilers, Windows SDKs, and
+                    Visual Studio IDE components.
+                  </p>
+                </div>
+
+                {/* Primary Button to Open Repair Dialog */}
+                <button
+                  onClick={() => setIsDialogOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer shadow-md hover:brightness-110 shrink-0"
+                  style={{
+                    backgroundColor: 'var(--color-accent)',
+                    color: 'white'
+                  }}
+                >
+                  <Wrench size={15} />
+                  Repair or Reinstall Workloads
+                </button>
+              </div>
+            </Card>
+          </div>
 
           {/* Section 3: Unreal Engine Version Matrix */}
           <EnvironmentTab />
@@ -251,9 +214,6 @@ const CompilePage = (): React.ReactElement => {
           status={status}
           selectedComponentIds={selectedComponentIds}
           repairing={repairing}
-          customVsPath={customVsPath}
-          onCustomVsPathChange={setCustomVsPath}
-          onSelectFolder={handleSelectFolder}
           onToggleSelection={toggleComponentSelection}
           onRepairAndInstall={handleRepairAndInstall}
         />

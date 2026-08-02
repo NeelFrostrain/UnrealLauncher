@@ -1,7 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type React from 'react'
 import { createPortal } from 'react-dom'
-import { X, Wrench, RefreshCw, FolderOpen, ShieldAlert } from 'lucide-react'
+import { X, Wrench, RefreshCw, ShieldAlert } from 'lucide-react'
 import { ComponentChecklist } from './ComponentChecklist'
 import type { VsSetupStatus } from './compileTypes'
 
@@ -11,9 +11,6 @@ interface RepairWorkloadsDialogProps {
   status: VsSetupStatus | null
   selectedComponentIds: string[]
   repairing: boolean
-  customVsPath: string
-  onCustomVsPathChange: (path: string) => void
-  onSelectFolder: () => void
   onToggleSelection: (id: string) => void
   onRepairAndInstall: () => void
 }
@@ -24,9 +21,6 @@ export function RepairWorkloadsDialog({
   status,
   selectedComponentIds,
   repairing,
-  customVsPath,
-  onCustomVsPathChange,
-  onSelectFolder,
   onToggleSelection,
   onRepairAndInstall
 }: RepairWorkloadsDialogProps): React.ReactElement | null {
@@ -96,42 +90,6 @@ export function RepairWorkloadsDialog({
 
         {/* Modal Body */}
         <div className="p-5 flex flex-col gap-5 overflow-y-auto max-h-[75vh]">
-          {/* Target Folder Config */}
-          <div className="flex flex-col gap-2">
-            <label
-              className="text-xs font-bold uppercase tracking-wider"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              Target Installation Directory
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={customVsPath}
-                onChange={(e) => onCustomVsPathChange(e.target.value)}
-                placeholder="e.g. D:\Applications\VS"
-                className="flex-1 px-3 py-2 text-xs font-mono rounded-md border focus:outline-none focus:border-[var(--color-accent)] transition-all duration-200 min-w-0"
-                style={{
-                  backgroundColor: 'var(--color-surface-card)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-primary)'
-                }}
-              />
-              <button
-                onClick={onSelectFolder}
-                className="cursor-pointer flex items-center justify-center px-3.5 py-2 rounded-md text-xs font-semibold border transition-all duration-200 shrink-0 hover:border-[var(--color-accent)]"
-                style={{
-                  backgroundColor: 'var(--color-surface-card)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-primary)'
-                }}
-              >
-                <FolderOpen className="w-3.5 h-3.5 mr-1.5 text-[var(--color-accent)]" />
-                Browse
-              </button>
-            </div>
-          </div>
-
           {/* Component Selection List */}
           <ComponentChecklist
             status={status}
