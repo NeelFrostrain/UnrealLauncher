@@ -134,7 +134,16 @@ const CompilePage = (): React.ReactElement => {
                       Visual Studio C++ Workloads
                     </h3>
                     {status?.isHealthy ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border"
+                        style={{
+                          backgroundColor:
+                            'color-mix(in srgb, var(--color-engine-version) 12%, transparent)',
+                          color: 'var(--color-engine-version)',
+                          borderColor:
+                            'color-mix(in srgb, var(--color-engine-version) 25%, transparent)'
+                        }}
+                      >
                         <CheckCircle2 size={12} />
                         {installedCount} / {totalCount} WORKLOADS READY
                       </span>

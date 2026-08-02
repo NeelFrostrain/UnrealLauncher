@@ -8,7 +8,7 @@ const COLOR_TOKENS: Array<{ token: ThemeToken; label: string }> = [
   { token: 'surface', label: 'Background' },
   { token: 'surface-card', label: 'Card' },
   { token: 'surface-elevated', label: 'Elevated' },
-  { token: 'engine-version-text', label: 'Engine Version Text' }
+  { token: 'engine-version-text', label: 'Secondary Color' }
 ]
 
 interface ColorOverridesProps {

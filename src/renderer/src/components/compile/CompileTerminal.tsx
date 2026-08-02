@@ -96,8 +96,18 @@ export const CompileTerminal = ({
             </span>
           </div>
           {isLive && (
-            <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/25">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span
+              className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--color-engine-version) 12%, transparent)',
+                color: 'var(--color-engine-version)',
+                borderColor: 'color-mix(in srgb, var(--color-engine-version) 25%, transparent)'
+              }}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{ backgroundColor: 'var(--color-engine-version)' }}
+              />
               LIVE STREAM
             </span>
           )}

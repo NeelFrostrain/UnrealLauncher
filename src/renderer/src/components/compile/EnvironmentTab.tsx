@@ -100,7 +100,16 @@ export const EnvironmentTab = (): React.ReactElement => {
                   >
                     Unreal Engine 5.5 / 5.6+
                   </span>
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <span
+                    className="text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase"
+                    style={{
+                      backgroundColor:
+                        'color-mix(in srgb, var(--color-engine-version) 12%, transparent)',
+                      color: 'var(--color-engine-version)',
+                      borderColor:
+                        'color-mix(in srgb, var(--color-engine-version) 25%, transparent)'
+                    }}
+                  >
                     LATEST
                   </span>
                 </div>

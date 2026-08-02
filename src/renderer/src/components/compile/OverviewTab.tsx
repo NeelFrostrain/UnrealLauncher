@@ -125,7 +125,16 @@ export const OverviewTab = ({
                       >
                         v{item.version}
                       </span>
-                      <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 uppercase tracking-wider">
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider"
+                        style={{
+                          backgroundColor:
+                            'color-mix(in srgb, var(--color-engine-version) 12%, transparent)',
+                          color: 'var(--color-engine-version)',
+                          borderColor:
+                            'color-mix(in srgb, var(--color-engine-version) 25%, transparent)'
+                        }}
+                      >
                         x64 Native Compiler
                       </span>
                     </div>

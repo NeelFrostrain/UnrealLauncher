@@ -24,7 +24,14 @@ export const CompileToolbar = ({
       {/* Left: Status Badge */}
       <div className="flex items-center">
         {status?.isHealthy ? (
-          <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          <span
+            className="px-2.5 py-1 rounded-md text-xs font-semibold border"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--color-engine-version) 15%, transparent)',
+              color: 'var(--color-engine-version)',
+              borderColor: 'color-mix(in srgb, var(--color-engine-version) 30%, transparent)'
+            }}
+          >
             READY
           </span>
         ) : (

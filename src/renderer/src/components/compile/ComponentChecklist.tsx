@@ -97,7 +97,16 @@ export const ComponentChecklist = ({
                   </div>
 
                   {comp.installed ? (
-                    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-md shrink-0 ml-2">
+                    <span
+                      className="inline-flex items-center gap-1.5 text-[10px] font-bold border px-2.5 py-1 rounded-md shrink-0 ml-2"
+                      style={{
+                        backgroundColor:
+                          'color-mix(in srgb, var(--color-engine-version) 12%, transparent)',
+                        color: 'var(--color-engine-version)',
+                        borderColor:
+                          'color-mix(in srgb, var(--color-engine-version) 25%, transparent)'
+                      }}
+                    >
                       <CheckCircle2 size={12} />
                       INSTALLED
                     </span>
