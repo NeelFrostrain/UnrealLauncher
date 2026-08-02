@@ -104,10 +104,10 @@ export const EnvironmentTab = (): React.ReactElement => {
                     className="text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase"
                     style={{
                       backgroundColor:
-                        'color-mix(in srgb, var(--color-engine-version) 12%, transparent)',
-                      color: 'var(--color-engine-version)',
+                        'color-mix(in srgb, var(--color-engine-version-text) 12%, transparent)',
+                      color: 'var(--color-engine-version-text)',
                       borderColor:
-                        'color-mix(in srgb, var(--color-engine-version) 25%, transparent)'
+                        'color-mix(in srgb, var(--color-engine-version-text) 25%, transparent)'
                     }}
                   >
                     LATEST

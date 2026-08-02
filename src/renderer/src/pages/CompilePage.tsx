@@ -139,7 +139,7 @@ const CompilePage = (): React.ReactElement => {
                         style={{
                           backgroundColor:
                             'color-mix(in srgb, var(--color-engine-version) 12%, transparent)',
-                          color: 'var(--color-engine-version)',
+                          color: 'var(--color-engine-version-text)',
                           borderColor:
                             'color-mix(in srgb, var(--color-engine-version) 25%, transparent)'
                         }}
@@ -233,8 +233,8 @@ const CompilePage = (): React.ReactElement => {
           onClearLogs={() => setLogs([])}
           isLive={repairing || loading}
         />
-      </div>
-    </PageWrapper>
+      </div >
+    </PageWrapper >
   )
 }
 

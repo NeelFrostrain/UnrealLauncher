@@ -101,10 +101,10 @@ export const ComponentChecklist = ({
                       className="inline-flex items-center gap-1.5 text-[10px] font-bold border px-2.5 py-1 rounded-md shrink-0 ml-2"
                       style={{
                         backgroundColor:
-                          'color-mix(in srgb, var(--color-engine-version) 12%, transparent)',
-                        color: 'var(--color-engine-version)',
+                          'color-mix(in srgb, var(--color-engine-version-text) 12%, transparent)',
+                        color: 'var(--color-engine-version-text)',
                         borderColor:
-                          'color-mix(in srgb, var(--color-engine-version) 25%, transparent)'
+                          'color-mix(in srgb, var(--color-engine-version-text) 25%, transparent)'
                       }}
                     >
                       <CheckCircle2 size={12} />

@@ -27,9 +27,11 @@ export const CompileToolbar = ({
           <span
             className="px-2.5 py-1 rounded-md text-xs font-semibold border"
             style={{
-              backgroundColor: 'color-mix(in srgb, var(--color-engine-version) 15%, transparent)',
-              color: 'var(--color-engine-version)',
-              borderColor: 'color-mix(in srgb, var(--color-engine-version) 30%, transparent)'
+              backgroundColor:
+                'color-mix(in srgb, var(--color-engine-version-text) 15%, transparent)',
+              color: 'var(--color-engine-version-text)',
+              borderColor:
+                'color-mix(in srgb, var(--color-engine-version-text) 30%, transparent)'
             }}
           >
             READY
