@@ -8,17 +8,17 @@ export interface LogEntry {
   type: 'info' | 'success' | 'warning' | 'error'
 }
 
-interface CompileTerminalProps {
+interface VsStatusTerminalProps {
   logs: LogEntry[]
   onClearLogs: () => void
   isLive: boolean
 }
 
-export const CompileTerminal = ({
+export const VsStatusTerminal = ({
   logs,
   onClearLogs,
   isLive
-}: CompileTerminalProps): React.ReactElement => {
+}: VsStatusTerminalProps): React.ReactElement => {
   const [height, setHeight] = useState(180)
   const [isMinimized, setIsMinimized] = useState(false)
   const [autoScroll, setAutoScroll] = useState(true)

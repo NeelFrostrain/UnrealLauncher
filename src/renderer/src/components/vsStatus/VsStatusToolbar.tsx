@@ -1,21 +1,21 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type React from 'react'
 import { RefreshCw } from 'lucide-react'
-import type { VsSetupStatus } from './compileTypes'
+import type { VsSetupStatus } from './vsStatusTypes'
 
-interface CompileToolbarProps {
+interface VsStatusToolbarProps {
   status: VsSetupStatus | null
   loading: boolean
   repairing: boolean
   onRefresh: () => void
 }
 
-export const CompileToolbar = ({
+export const VsStatusToolbar = ({
   status,
   loading,
   repairing,
   onRefresh
-}: CompileToolbarProps): React.ReactElement => {
+}: VsStatusToolbarProps): React.ReactElement => {
   return (
     <div
       className="flex items-center gap-3 py-3 px-1 shrink-0 border-b"

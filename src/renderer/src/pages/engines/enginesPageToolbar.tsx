@@ -85,7 +85,7 @@ export function EnginesPageToolbar({
           Tasks
         </button>
         <button
-          onClick={() => navigate('/compile')}
+          onClick={() => navigate('/vs-status')}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
           style={{
             borderRadius: 'var(--radius)',

@@ -2,7 +2,7 @@
 import type React from 'react'
 import { CheckCircle2, AlertCircle, RefreshCw, Wrench } from 'lucide-react'
 import { SectionHeader, Card, Toggle } from '../settings/SectionHelpers'
-import type { VsSetupStatus } from './compileTypes'
+import type { VsSetupStatus } from './vsStatusTypes'
 
 interface ComponentChecklistProps {
   status: VsSetupStatus | null

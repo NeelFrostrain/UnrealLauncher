@@ -359,7 +359,7 @@ export function repairVsSetupAsync(
   })
 }
 
-export function registerCompileVsHandlers(ipcMain: IpcMain): void {
+export function registerVsStatusHandlers(ipcMain: IpcMain): void {
   ipcMain.handle('vs:check-setup', async (event) => {
     return checkVsSetupStatusAsync(event.sender)
   })

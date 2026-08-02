@@ -3,7 +3,7 @@ import type React from 'react'
 import { ShieldAlert, FolderOpen } from 'lucide-react'
 import { SectionHeader, Card } from '../settings/SectionHelpers'
 import { ComponentChecklist } from './ComponentChecklist'
-import type { VsSetupStatus } from './compileTypes'
+import type { VsSetupStatus } from './vsStatusTypes'
 
 interface WorkloadsTabProps {
   status: VsSetupStatus | null

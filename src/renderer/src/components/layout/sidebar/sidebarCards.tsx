@@ -5,7 +5,7 @@ import Engine_BG from '@renderer/assets/Engines_BG.webp'
 import Projects_BG from '@renderer/assets/Projects_BG.jpg'
 import Settings_BG from '@renderer/assets/Settings_BG.jpg'
 
-export type PageType = 'Engines' | 'Projects' | 'Tasks' | 'Compile' | 'Settings'
+export type PageType = 'Engines' | 'Projects' | 'Tasks' | 'VsStatus' | 'Settings'
 
 export interface SidebarCardData {
   title: PageType

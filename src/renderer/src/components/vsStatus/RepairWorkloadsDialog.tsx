@@ -3,7 +3,7 @@ import type React from 'react'
 import { createPortal } from 'react-dom'
 import { X, Wrench, RefreshCw, ShieldAlert } from 'lucide-react'
 import { ComponentChecklist } from './ComponentChecklist'
-import type { VsSetupStatus } from './compileTypes'
+import type { VsSetupStatus } from './vsStatusTypes'
 
 interface RepairWorkloadsDialogProps {
   isOpen: boolean

@@ -4,16 +4,16 @@ import { Wrench, ShieldAlert, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useToast } from '../components/ui/ToastContext'
 import PageWrapper from '../layout/PageWrapper'
 import { SectionHeader, Card } from '../components/settings/SectionHelpers'
-import { CompileToolbar } from '../components/compile/CompileToolbar'
-import { OverviewTab } from '../components/compile/OverviewTab'
-import { EnvironmentTab } from '../components/compile/EnvironmentTab'
-import { RepairWorkloadsDialog } from '../components/compile/RepairWorkloadsDialog'
-import { CompileTerminal, type LogEntry } from '../components/compile/CompileTerminal'
-import type { VsSetupStatus } from '../components/compile/compileTypes'
+import { VsStatusToolbar } from '../components/vsStatus/VsStatusToolbar'
+import { OverviewTab } from '../components/vsStatus/OverviewTab'
+import { EnvironmentTab } from '../components/vsStatus/EnvironmentTab'
+import { RepairWorkloadsDialog } from '../components/vsStatus/RepairWorkloadsDialog'
+import { VsStatusTerminal, type LogEntry } from '../components/vsStatus/VsStatusTerminal'
+import type { VsSetupStatus } from '../components/vsStatus/vsStatusTypes'
 
 const DEFAULT_INSTALL_PATH = 'D:\\Applications\\VS'
 
-const CompilePage = (): React.ReactElement => {
+const VsStatusPage = (): React.ReactElement => {
   const { addToast } = useToast()
   const [loading, setLoading] = useState(true)
   const [repairing, setRepairing] = useState(false)
@@ -111,7 +111,7 @@ const CompilePage = (): React.ReactElement => {
     <PageWrapper>
       <div className="flex flex-col h-full overflow-hidden relative">
         {/* Fixed Top Header Toolbar */}
-        <CompileToolbar
+        <VsStatusToolbar
           status={status}
           loading={loading}
           repairing={repairing}
@@ -228,7 +228,7 @@ const CompilePage = (): React.ReactElement => {
         />
 
         {/* Fixed Bottom Execution Terminal Drawer */}
-        <CompileTerminal
+        <VsStatusTerminal
           logs={logs}
           onClearLogs={() => setLogs([])}
           isLive={repairing || loading}
@@ -238,4 +238,4 @@ const CompilePage = (): React.ReactElement => {
   )
 }
 
-export default CompilePage
+export default VsStatusPage
