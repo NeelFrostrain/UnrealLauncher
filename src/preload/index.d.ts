@@ -512,6 +512,7 @@ declare global {
         projectPath: string,
         config?: string
       ) => Promise<{ success: boolean; error?: string }>
+      projectCppCancelBuild: () => Promise<{ success: boolean }>
       projectCppFetchSavedLogs: (
         projectPath: string
       ) => Promise<{ success: boolean; logFilesFound?: string[]; error?: string }>

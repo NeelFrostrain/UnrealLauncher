@@ -296,6 +296,7 @@ if (process.contextIsolated) {
       projectCppBuild: (options: CppBuildOptions) => ipcRenderer.invoke('project-cpp-build', options),
       projectCppDebug: (projectPath: string, config?: string) =>
         ipcRenderer.invoke('project-cpp-debug', projectPath, config),
+      projectCppCancelBuild: () => ipcRenderer.invoke('project-cpp-cancel-build'),
       projectCppFetchSavedLogs: (projectPath: string) =>
         ipcRenderer.invoke('project-cpp-fetch-saved-logs', projectPath),
       projectCppSaveLogFile: (projectPath: string, content: string) =>

@@ -402,6 +402,12 @@ export default function ProjectCompilerDialog({
     }
   }
 
+  // Action: Cancel the running build
+  const handleCancelBuild = async () => {
+    appendLog('=== Cancelling build... ===', 'warning')
+    await window.electronAPI.projectCppCancelBuild()
+  }
+
   // Action: Open Solution in Preferred IDE (VS / Rider)
   const handleOpenSln = async () => {
     const ideName = preferredIde === 'rider' ? 'JetBrains Rider' : 'Visual Studio'
@@ -788,7 +794,7 @@ export default function ProjectCompilerDialog({
                 }}
               >
                 {/* Platform */}
-                <div>
+                <div className='flex flex-col gap-2'>
                   <label className="block text-xs font-semibold mb-1.5 text-[var(--color-text-muted)]">
                     Target Platform
                   </label>
@@ -800,7 +806,7 @@ export default function ProjectCompilerDialog({
                 </div>
 
                 {/* Configuration */}
-                <div>
+                <div className='flex flex-col gap-2'>
                   <label className="block text-xs font-semibold mb-1.5 text-[var(--color-text-muted)]">
                     Build Configuration
                   </label>
@@ -821,22 +827,20 @@ export default function ProjectCompilerDialog({
                     <div className="flex items-center gap-1 p-0.5 rounded bg-[var(--color-surface-elevated)] border border-[var(--color-border)]">
                       <button
                         onClick={() => handleIdeChange('vs')}
-                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
-                          preferredIde === 'vs'
-                            ? 'bg-blue-600 text-white'
-                            : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
-                        }`}
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors cursor-pointer ${preferredIde === 'vs'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+                          }`}
                         title="Set preferred C++ IDE to Visual Studio"
                       >
                         VS
                       </button>
                       <button
                         onClick={() => handleIdeChange('rider')}
-                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
-                          preferredIde === 'rider'
-                            ? 'bg-rose-600 text-white'
-                            : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
-                        }`}
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors cursor-pointer ${preferredIde === 'rider'
+                          ? 'bg-rose-600 text-white'
+                          : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+                          }`}
                         title="Set preferred C++ IDE to JetBrains Rider"
                       >
                         Rider
@@ -847,7 +851,7 @@ export default function ProjectCompilerDialog({
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={handleOpenSln}
-                      className="flex-1 text-xs font-semibold py-2 px-2 flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                      className="flex-1 h-8 text-xs font-semibold px-2 flex items-center justify-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
                       style={{
                         backgroundColor: 'var(--color-surface-elevated)',
                         border: '1px solid var(--color-border)',
@@ -856,23 +860,23 @@ export default function ProjectCompilerDialog({
                       }}
                       title={
                         preferredIde === 'rider'
-                          ? 'Open Solution (.sln) in JetBrains Rider'
-                          : 'Open Solution (.sln) in Visual Studio'
+                          ? 'Open project in JetBrains Rider'
+                          : 'Open solution in Visual Studio'
                       }
                     >
                       {preferredIde === 'rider' ? (
                         <>
-                          <ExternalLink size={13} className="text-rose-400" /> Open Rider (.sln)
+                          <ExternalLink size={13} className="text-rose-400 shrink-0" /> Open Rider
                         </>
                       ) : (
                         <>
-                          <ExternalLink size={13} className="text-blue-400" /> Open VS (.sln)
+                          <ExternalLink size={13} className="text-blue-400 shrink-0" /> Open VS (.sln)
                         </>
                       )}
                     </button>
                     <button
                       onClick={handleOpenSourceFolder}
-                      className="text-xs font-semibold py-2 px-2 flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                      className="h-8 text-xs font-semibold px-2.5 flex items-center justify-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
                       style={{
                         backgroundColor: 'var(--color-surface-elevated)',
                         border: '1px solid var(--color-border)',
@@ -881,11 +885,11 @@ export default function ProjectCompilerDialog({
                       }}
                       title="Open Source/ Folder in Explorer"
                     >
-                      <FolderOpen size={13} className="text-amber-400" /> Source
+                      <FolderOpen size={13} className="text-amber-400 shrink-0" /> Source
                     </button>
                     <button
                       onClick={handleOpenVsCode}
-                      className="text-xs font-semibold py-2 px-2 flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                      className="h-8 text-xs font-semibold px-2.5 flex items-center justify-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
                       style={{
                         backgroundColor: 'var(--color-surface-elevated)',
                         border: '1px solid var(--color-border)',
@@ -894,18 +898,18 @@ export default function ProjectCompilerDialog({
                       }}
                       title="Open Project Folder in Explorer"
                     >
-                      <FolderOpen size={13} className="text-purple-400" /> Folder
+                      <FolderOpen size={13} className="text-purple-400 shrink-0" /> Folder
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Action Toolbar — 6 perfectly aligned single-line action buttons */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 shrink-0">
+              {/* Action Toolbar — single aligned row */}
+              <div className="flex items-center gap-2 shrink-0 flex-wrap lg:flex-nowrap">
                 <button
                   onClick={() => handleBuildAction('build')}
                   disabled={isBuilding}
-                  className="h-9 px-2 text-xs font-bold flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                  className="h-9 px-3.5 text-xs font-bold flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer disabled:opacity-50 whitespace-nowrap"
                   style={{
                     backgroundColor: 'var(--color-accent)',
                     color: '#fff',
@@ -918,16 +922,28 @@ export default function ProjectCompilerDialog({
                 <button
                   onClick={handleDebugProject}
                   disabled={isBuilding}
-                  className="h-9 px-2 text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-all cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                  className="h-9 px-3.5 text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-all cursor-pointer disabled:opacity-50 whitespace-nowrap"
                   style={{ borderRadius: 'calc(var(--radius) * 0.75)' }}
                 >
                   <Bug size={14} /> Debug
                 </button>
 
+                {/* Cancel — compact icon button when build/debug is running */}
+                {isBuilding && (
+                  <button
+                    onClick={handleCancelBuild}
+                    className="h-9 px-2.5 text-xs font-bold flex items-center justify-center gap-1 bg-rose-700 hover:bg-rose-600 text-white shadow-md transition-all cursor-pointer animate-pulse whitespace-nowrap shrink-0"
+                    style={{ borderRadius: 'calc(var(--radius) * 0.75)' }}
+                    title="Cancel active build process"
+                  >
+                    <X size={14} /> Cancel
+                  </button>
+                )}
+
                 <button
                   onClick={() => handleBuildAction('rebuild')}
                   disabled={isBuilding}
-                  className="h-9 px-2 text-xs font-semibold flex items-center justify-center gap-1.5 hover:border-amber-500 text-[var(--color-text-primary)] transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                  className="h-9 px-3 text-xs font-semibold flex items-center justify-center gap-1.5 hover:border-amber-500 text-[var(--color-text-primary)] transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
                   style={{
                     backgroundColor: 'var(--color-surface-card)',
                     border: '1px solid var(--color-border)',
@@ -940,7 +956,7 @@ export default function ProjectCompilerDialog({
                 <button
                   onClick={() => handleBuildAction('generate')}
                   disabled={isBuilding}
-                  className="h-9 px-2 text-xs font-semibold flex items-center justify-center gap-1.5 hover:border-blue-500 text-[var(--color-text-primary)] transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                  className="h-9 px-3 text-xs font-semibold flex items-center justify-center gap-1.5 hover:border-blue-500 text-[var(--color-text-primary)] transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
                   style={{
                     backgroundColor: 'var(--color-surface-card)',
                     border: '1px solid var(--color-border)',
@@ -954,7 +970,7 @@ export default function ProjectCompilerDialog({
                 <button
                   onClick={handleFixTargetRules}
                   disabled={isBuilding}
-                  className="h-9 px-2 text-xs font-semibold flex items-center justify-center gap-1.5 hover:border-emerald-500 text-[var(--color-text-primary)] transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                  className="h-9 px-3 text-xs font-semibold flex items-center justify-center gap-1.5 hover:border-emerald-500 text-[var(--color-text-primary)] transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
                   style={{
                     backgroundColor: 'var(--color-surface-card)',
                     border: '1px solid var(--color-border)',
@@ -968,15 +984,15 @@ export default function ProjectCompilerDialog({
                 <button
                   onClick={() => handleBuildAction('clean')}
                   disabled={isBuilding}
-                  className="h-9 px-2 text-xs font-semibold flex items-center justify-center gap-1.5 hover:border-rose-500 text-rose-400 transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                  className="h-9 px-3 text-xs font-semibold flex items-center justify-center gap-1.5 hover:border-rose-500 text-rose-400 transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
                   style={{
                     backgroundColor: 'var(--color-surface-card)',
                     border: '1px solid var(--color-border)',
                     borderRadius: 'calc(var(--radius) * 0.75)'
                   }}
-                  title="Purge & Deep Clean: Deletes .vs, .idea (JetBrains Rider), Saved, .sln, .slnx, .DotSettings, Intermediate, Binaries, DDC, .vscode, and .vsconfig files"
+                  title="Purge & Deep Clean: Deletes .vs, .idea, Saved, .sln, Intermediate, Binaries, DDC, .vscode"
                 >
-                  <Trash2 size={13} /> Purge & Clean
+                  <Trash2 size={13} /> Purge {'&'} Clean
                 </button>
               </div>
 

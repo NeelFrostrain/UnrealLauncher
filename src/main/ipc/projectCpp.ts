@@ -45,9 +45,12 @@ export interface CppScanResult {
 export interface CppBuildOptions {
   projectPath: string
   config: 'Development Editor' | 'DebugGame Editor' | 'Development' | 'Shipping' | 'DebugGame'
-  platform: 'Win64' | 'Linux' | 'Mac' | 'Android' | 'iOS'
+  platform: string
   action: 'build' | 'rebuild' | 'clean' | 'generate'
 }
+
+// Tracks the currently running build/UBT child process so it can be cancelled
+let activeBuildChild: import('child_process').ChildProcess | null = null
 
 function sendCppLog(
   sender: WebContents | undefined,
@@ -924,7 +927,7 @@ function runBuildProcess(
   executable: string,
   args: string[],
   actionLabel: string
-): Promise<{ success: boolean; exitCode: number | null; error?: string }> {
+): Promise<{ success: boolean; exitCode: number | null; error?: string; cancelled?: boolean }> {
   return new Promise((resolve) => {
     sendCppLog(sender, projectPath, `Executing: "${executable}" ${args.join(' ')}`, 'info')
 
@@ -942,6 +945,9 @@ function runBuildProcess(
         windowsHide: true,
         shell: false
       })
+
+      // Register as the active cancellable build process
+      activeBuildChild = child
 
       child.stdout?.on('data', (chunk) => {
         const str = chunk.toString('utf8')
@@ -971,12 +977,18 @@ function runBuildProcess(
       })
 
       child.on('error', (err) => {
+        activeBuildChild = null
         sendCppLog(sender, projectPath, `Process error: ${err.message}`, 'error')
         resolve({ success: false, exitCode: null, error: err.message })
       })
 
-      child.on('close', (code) => {
-        if (code === 0) {
+      child.on('close', (code, signal) => {
+        activeBuildChild = null
+        const wasCancelled = signal === 'SIGTERM' || signal === 'SIGKILL' || code === null
+        if (wasCancelled) {
+          sendCppLog(sender, projectPath, `⚠️ ${actionLabel} was cancelled.`, 'warning')
+          resolve({ success: false, exitCode: null, cancelled: true, error: 'Build cancelled by user' })
+        } else if (code === 0) {
           sendCppLog(sender, projectPath, `✅ ${actionLabel} completed successfully!`, 'success')
           resolve({ success: true, exitCode: 0 })
         } else {
@@ -985,6 +997,7 @@ function runBuildProcess(
         }
       })
     } catch (err) {
+      activeBuildChild = null
       const errMsg = err instanceof Error ? err.message : String(err)
       sendCppLog(sender, projectPath, `Failed to spawn build process: ${errMsg}`, 'error')
       resolve({ success: false, exitCode: null, error: errMsg })
@@ -1033,43 +1046,6 @@ export async function handleProjectCppDebug(
     return { success: false, error: 'No .uproject file found' }
   }
 
-  const projectName = path.basename(uprojectPath, '.uproject')
-
-  // Find exact .sln solution file
-  let targetSln: string | null = null
-  const exactSln = path.join(safePath, `${projectName}.sln`)
-  if (fs.existsSync(exactSln)) {
-    targetSln = exactSln
-  } else {
-    try {
-      const rootFiles = fs.readdirSync(safePath)
-      const slnFile = rootFiles.find((f) => f.toLowerCase().endsWith('.sln') && !f.toLowerCase().startsWith('automation_'))
-      if (slnFile) targetSln = path.join(safePath, slnFile)
-    } catch {
-      /* ignore */
-    }
-  }
-
-  // 1. If Visual Studio devenv.exe exists and solution file exists, open Visual Studio Debugger!
-  const vsExe = findVisualStudioExe()
-  if (vsExe && targetSln) {
-    try {
-      sendCppLog(sender, safePath, `Launching Visual Studio C++ Debugger: "${vsExe}" "${path.basename(targetSln)}"`, 'info')
-      spawn(vsExe, [targetSln], {
-        cwd: safePath,
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: false,
-        shell: false
-      }).unref()
-      sendCppLog(sender, safePath, `✅ Visual Studio Debugger opened with solution ${path.basename(targetSln)}! Press F5 inside VS to attach debugger.`, 'success')
-      return { success: true }
-    } catch (err) {
-      sendCppLog(sender, safePath, `Failed to launch VS Debugger: ${err instanceof Error ? err.message : String(err)}`, 'warning')
-    }
-  }
-
-  // 2. Direct Unreal Editor debug launch with -debug -LOG flags
   const engineDir = findEngineDirectoryForProject(safePath)
   if (!engineDir) {
     sendCppLog(sender, safePath, 'Error: No engine directory found for project', 'error')
@@ -1077,7 +1053,32 @@ export async function handleProjectCppDebug(
   }
 
   const ext = getBinaryExtension()
-  const editorExe = path.join(engineDir, 'Engine', 'Binaries', 'Win64', `UnrealEditor${ext}`)
+  const platformBin =
+    process.platform === 'darwin' ? 'Mac' : process.platform === 'linux' ? 'Linux' : 'Win64'
+  const binariesDir = path.join(engineDir, 'Engine', 'Binaries', platformBin)
+
+  const cfgLower = config.toLowerCase()
+  let editorExeName = `UnrealEditor${ext}`
+  const flags: string[] = [uprojectPath, '-log']
+
+  // Resolve exact matching binary created by UBT for DebugGame / Debug configurations
+  if (cfgLower.includes('debuggame')) {
+    const candidate = `UnrealEditor-${platformBin}-DebugGame${ext}`
+    if (fs.existsSync(path.join(binariesDir, candidate))) {
+      editorExeName = candidate
+    } else {
+      flags.push('-debuggame')
+    }
+  } else if (cfgLower.includes('debug')) {
+    const candidate = `UnrealEditor-${platformBin}-Debug${ext}`
+    if (fs.existsSync(path.join(binariesDir, candidate))) {
+      editorExeName = candidate
+    } else {
+      flags.push('-debug')
+    }
+  }
+
+  const editorExe = path.join(binariesDir, editorExeName)
 
   if (!fs.existsSync(editorExe)) {
     sendCppLog(sender, safePath, `Error: UnrealEditor binary not found at ${editorExe}`, 'error')
@@ -1085,16 +1086,38 @@ export async function handleProjectCppDebug(
   }
 
   try {
-    const flags = config.includes('Debug') ? [uprojectPath, '-debug', '-LOG'] : [uprojectPath, '-LOG']
-    sendCppLog(sender, safePath, `Spawning UnrealEditor Debug Mode: "${editorExe}" "${uprojectPath}" -LOG`, 'info')
-    spawn(editorExe, flags, {
-      cwd: safePath,
-      detached: true,
-      stdio: 'ignore',
-      windowsHide: false,
-      shell: false
-    }).unref()
-    sendCppLog(sender, safePath, '✅ UnrealEditor launched with -debug and -LOG flags successfully.', 'success')
+    sendCppLog(
+      sender,
+      safePath,
+      `Spawning ${path.basename(editorExe)}: "${editorExe}" ${flags.slice(1).join(' ')}`,
+      'info'
+    )
+
+    // Use cmd /c start on Windows so process is completely detached from Electron
+    if (process.platform === 'win32') {
+      spawn('cmd', ['/c', 'start', '', editorExe, ...flags], {
+        cwd: safePath,
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true,
+        shell: false
+      }).unref()
+    } else {
+      spawn(editorExe, flags, {
+        cwd: safePath,
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: false,
+        shell: false
+      }).unref()
+    }
+
+    sendCppLog(
+      sender,
+      safePath,
+      `✅ ${path.basename(editorExe)} launched in debug mode. Attach your debugger in VS / Rider via Attach to Process.`,
+      'success'
+    )
     return { success: true }
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err)
@@ -1297,6 +1320,31 @@ export function handleProjectCppSaveLogFile(
   }
 }
 
+export function handleProjectCppCancelBuild(sender?: WebContents): { success: boolean } {
+  if (!activeBuildChild) {
+    return { success: false }
+  }
+  try {
+    // On Windows, kill the entire process tree (UBT spawns child compilers)
+    if (process.platform === 'win32' && activeBuildChild.pid) {
+      spawn('taskkill', ['/F', '/T', '/PID', String(activeBuildChild.pid)], {
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true
+      }).unref()
+    } else {
+      activeBuildChild.kill('SIGTERM')
+    }
+    // activeBuildChild will be cleared by the 'close' event in runBuildProcess
+    if (sender) {
+      try { sender.send('cpp-log-output', { projectPath: '', text: '⛔ Build cancelled by user.', type: 'warning', timestamp: new Date().toLocaleTimeString() }) } catch { /* ignore */ }
+    }
+    return { success: true }
+  } catch {
+    return { success: false }
+  }
+}
+
 export function registerProjectCppHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('project-cpp-scan', (e, p: string) => handleProjectCppScan(p, e.sender))
   ipcMain_.handle('project-cpp-create-structure', (e, p: string) =>
@@ -1313,6 +1361,9 @@ export function registerProjectCppHandlers(ipcMain_: typeof ipcMain): void {
   )
   ipcMain_.handle('project-cpp-debug', (e, p: string, cfg?: string) =>
     handleProjectCppDebug(p, cfg, e.sender)
+  )
+  ipcMain_.handle('project-cpp-cancel-build', (e) =>
+    handleProjectCppCancelBuild(e.sender)
   )
   ipcMain_.handle('project-cpp-fetch-saved-logs', (e, p: string) =>
     handleProjectCppFetchSavedLogs(p, e.sender)
