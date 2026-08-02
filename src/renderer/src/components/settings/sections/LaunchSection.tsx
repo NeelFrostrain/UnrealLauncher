@@ -27,8 +27,8 @@ const LaunchSection = ({
   const [gpuDisabled, setGpuDisabled] = useState(true)
   const [showRestartBanner, setShowRestartBanner] = useState(false)
   const [restarting, setRestarting] = useState(false)
-  const [preferredIde, setPreferredIde] = useState<'vs' | 'rider'>(() =>
-    getSetting('preferredIde') || 'vs'
+  const [preferredIde, setPreferredIde] = useState<'vs' | 'rider'>(
+    () => getSetting('preferredIde') || 'vs'
   )
 
   const handleIdeChange = (ide: 'vs' | 'rider'): void => {

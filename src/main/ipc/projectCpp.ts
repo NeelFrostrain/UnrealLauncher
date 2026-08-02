@@ -128,10 +128,7 @@ function scanSourceDirectory(
   return result
 }
 
-export function handleProjectCppScan(
-  projectPath: string,
-  sender?: WebContents
-): CppScanResult {
+export function handleProjectCppScan(projectPath: string, sender?: WebContents): CppScanResult {
   const safePath = isRegisteredProjectPath(projectPath)
   if (!safePath) {
     sendCppLog(sender, projectPath, 'Error: Project path not registered or invalid', 'error')
@@ -152,7 +149,12 @@ export function handleProjectCppScan(
     }
   }
 
-  sendCppLog(sender, safePath, `Scanning C++ source structure for ${path.basename(safePath)}...`, 'info')
+  sendCppLog(
+    sender,
+    safePath,
+    `Scanning C++ source structure for ${path.basename(safePath)}...`,
+    'info'
+  )
 
   const sourceDir = path.join(safePath, 'Source')
   const hasSource = fs.existsSync(sourceDir) && fs.statSync(sourceDir).isDirectory()
@@ -209,7 +211,8 @@ export function handleProjectCppScan(
     }
 
     if (f.extension === '.cpp' || f.extension === '.c') cppFilesCount++
-    else if (f.extension === '.h' || f.extension === '.hpp' || f.extension === '.inl') headerFilesCount++
+    else if (f.extension === '.h' || f.extension === '.hpp' || f.extension === '.inl')
+      headerFilesCount++
     else if (f.extension === '.cs') csharpFilesCount++
   }
 
@@ -384,7 +387,10 @@ IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, ${projectName}, "${projec
     logger.info('project-cpp', 'Created C++ source structure', { projectPath, createdFiles })
     return { success: true, createdFiles }
   } catch (err) {
-    logger.error('project-cpp', 'Failed to create C++ source structure', { projectPath, error: err })
+    logger.error('project-cpp', 'Failed to create C++ source structure', {
+      projectPath,
+      error: err
+    })
     return { success: false, error: err instanceof Error ? err.message : String(err) }
   }
 }
@@ -410,7 +416,9 @@ function findRiderExe(customPath?: string): string | null {
             if (fs.existsSync(exe)) return exe
           }
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
 
     try {
@@ -421,7 +429,9 @@ function findRiderExe(customPath?: string): string | null {
           if (fs.existsSync(exe)) return exe
         }
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     return null
   }
@@ -453,7 +463,9 @@ function findRiderExe(customPath?: string): string | null {
         const firstLine = whereOut.split(/\r?\n/)[0].trim()
         if (fs.existsSync(firstLine)) return firstLine
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   const localAppData = process.env.LOCALAPPDATA || ''
@@ -466,7 +478,16 @@ function findRiderExe(customPath?: string): string | null {
     path.join(localAppData, 'Programs', 'Rider', 'bin', 'rider64.exe'),
     path.join(localAppData, 'Programs', 'JetBrains', 'Rider', 'bin', 'rider64.exe'),
     path.join(userProfile, 'AppData', 'Local', 'Programs', 'Rider', 'bin', 'rider64.exe'),
-    path.join(userProfile, 'AppData', 'Local', 'Programs', 'JetBrains', 'Rider', 'bin', 'rider64.exe')
+    path.join(
+      userProfile,
+      'AppData',
+      'Local',
+      'Programs',
+      'JetBrains',
+      'Rider',
+      'bin',
+      'rider64.exe'
+    )
   ]) {
     if (fs.existsSync(cand)) return cand
   }
@@ -484,7 +505,9 @@ function findRiderExe(customPath?: string): string | null {
             if (fs.existsSync(binRider)) return binRider
           }
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -495,7 +518,12 @@ function findRiderExe(customPath?: string): string | null {
     // Try vswhere to find the actual VS path
     try {
       const programFilesX86Path = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)'
-      const vsWherePath = path.join(programFilesX86Path, 'Microsoft Visual Studio', 'Installer', 'vswhere.exe')
+      const vsWherePath = path.join(
+        programFilesX86Path,
+        'Microsoft Visual Studio',
+        'Installer',
+        'vswhere.exe'
+      )
       if (fs.existsSync(vsWherePath)) {
         const out = execSync(
           `"${vsWherePath}" -products * -utf8 -latest -property installationPath`,
@@ -503,7 +531,9 @@ function findRiderExe(customPath?: string): string | null {
         ).trim()
         if (out) return out
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     if (fs.existsSync(DEFAULT_VS_PATH)) return DEFAULT_VS_PATH
     return null
   })()
@@ -571,7 +601,12 @@ export function handleProjectCppOpenSln(
       const slnFiles = files.filter((f) => f.toLowerCase().endsWith('.sln'))
 
       if (slnFiles.length === 0) {
-        sendCppLog(sender, safePath, 'Error: No .sln solution file found. Please click "Generate Solution" first.', 'error')
+        sendCppLog(
+          sender,
+          safePath,
+          'Error: No .sln solution file found. Please click "Generate Solution" first.',
+          'error'
+        )
         return {
           success: false,
           error: 'No .sln solution file found. Please click "Generate Solution" first.'
@@ -593,7 +628,14 @@ export function handleProjectCppOpenSln(
       // Set environment variables so Rider & UBT find the engine's bundled DotNet SDK / runtime
       const env: Record<string, string | undefined> = { ...process.env }
       if (engineDir) {
-        const bundledDotnet = path.join(engineDir, 'Engine', 'Binaries', 'ThirdParty', 'DotNet', 'win-x64')
+        const bundledDotnet = path.join(
+          engineDir,
+          'Engine',
+          'Binaries',
+          'ThirdParty',
+          'DotNet',
+          'win-x64'
+        )
         if (fs.existsSync(bundledDotnet)) {
           env.DOTNET_ROOT = bundledDotnet
           env.PATH = `${bundledDotnet};${process.env.PATH || ''}`
@@ -603,11 +645,16 @@ export function handleProjectCppOpenSln(
       // If .sln exists, prefer opening .sln in Rider so Rider loads the full project hierarchy immediately
       // without failing on missing system .NET runtime
       const targetUproject = uprojectPath || path.join(safePath, `${projectName}.uproject`)
-      const riderTarget = (targetSln && fs.existsSync(targetSln)) ? targetSln : targetUproject
+      const riderTarget = targetSln && fs.existsSync(targetSln) ? targetSln : targetUproject
       const riderTargetName = path.basename(riderTarget)
 
       if (riderExe) {
-        sendCppLog(sender, safePath, `Launching JetBrains Rider: "${riderExe}" "${riderTargetName}"`, 'info')
+        sendCppLog(
+          sender,
+          safePath,
+          `Launching JetBrains Rider: "${riderExe}" "${riderTargetName}"`,
+          'info'
+        )
         spawn(riderExe, [riderTarget], {
           cwd: safePath,
           detached: true,
@@ -619,14 +666,29 @@ export function handleProjectCppOpenSln(
         sendCppLog(sender, safePath, `✅ ${riderTargetName} opened in JetBrains Rider!`, 'success')
         return { success: true }
       } else {
-        sendCppLog(sender, safePath, `JetBrains Rider binary not found. Opening ${riderTargetName} with system default...`, 'warning')
-        spawn('cmd', ['/c', 'start', '', riderTarget], { detached: true, stdio: 'ignore', shell: false, env }).unref()
+        sendCppLog(
+          sender,
+          safePath,
+          `JetBrains Rider binary not found. Opening ${riderTargetName} with system default...`,
+          'warning'
+        )
+        spawn('cmd', ['/c', 'start', '', riderTarget], {
+          detached: true,
+          stdio: 'ignore',
+          shell: false,
+          env
+        }).unref()
         return { success: true }
       }
     } else {
       const vsExe = findVisualStudioExe()
       if (vsExe) {
-        sendCppLog(sender, safePath, `Launching Visual Studio: "${vsExe}" "${path.basename(targetSln)}"`, 'info')
+        sendCppLog(
+          sender,
+          safePath,
+          `Launching Visual Studio: "${vsExe}" "${path.basename(targetSln)}"`,
+          'info'
+        )
         spawn(vsExe, [targetSln], {
           cwd: safePath,
           detached: true,
@@ -634,11 +696,25 @@ export function handleProjectCppOpenSln(
           windowsHide: false,
           shell: false
         }).unref()
-        sendCppLog(sender, safePath, `✅ Solution ${path.basename(targetSln)} opened in Visual Studio!`, 'success')
+        sendCppLog(
+          sender,
+          safePath,
+          `✅ Solution ${path.basename(targetSln)} opened in Visual Studio!`,
+          'success'
+        )
         return { success: true }
       } else {
-        sendCppLog(sender, safePath, `Opening solution file: ${path.basename(targetSln)} with system default application...`, 'info')
-        spawn('cmd', ['/c', 'start', '', targetSln], { detached: true, stdio: 'ignore', shell: false }).unref()
+        sendCppLog(
+          sender,
+          safePath,
+          `Opening solution file: ${path.basename(targetSln)} with system default application...`,
+          'info'
+        )
+        spawn('cmd', ['/c', 'start', '', targetSln], {
+          detached: true,
+          stdio: 'ignore',
+          shell: false
+        }).unref()
         return { success: true }
       }
     }
@@ -691,7 +767,12 @@ export async function handleProjectCppBuild(
 ): Promise<{ success: boolean; exitCode: number | null; error?: string }> {
   const safePath = isRegisteredProjectPath(options.projectPath)
   if (!safePath) {
-    sendCppLog(sender, options.projectPath, 'Error: Project path not registered or invalid', 'error')
+    sendCppLog(
+      sender,
+      options.projectPath,
+      'Error: Project path not registered or invalid',
+      'error'
+    )
     return { success: false, exitCode: null, error: 'Project path not registered' }
   }
 
@@ -741,13 +822,18 @@ export async function handleProjectCppBuild(
       scriptPath = projBat
     }
 
-    const args = scriptPath === buildBat
-      ? ['-projectfiles', `-project=${uprojectPath}`, '-game', '-engine']
-      : []
+    const args =
+      scriptPath === buildBat
+        ? ['-projectfiles', `-project=${uprojectPath}`, '-game', '-engine']
+        : []
 
     if (!scriptPath) {
       // Open .uproject as fallback — use cmd /c start for an independent process
-      spawn('cmd', ['/c', 'start', '', uprojectPath], { detached: true, stdio: 'ignore', shell: false }).unref()
+      spawn('cmd', ['/c', 'start', '', uprojectPath], {
+        detached: true,
+        stdio: 'ignore',
+        shell: false
+      }).unref()
       sendCppLog(
         sender,
         safePath,
@@ -760,114 +846,134 @@ export async function handleProjectCppBuild(
     return runBuildProcess(sender, safePath, scriptPath, args, 'Project Files Generation')
   }
 
-async function forceRemoveDirectory(dirPath: string): Promise<boolean> {
-  if (!fs.existsSync(dirPath)) return true
-
-  // 1. Asynchronous non-blocking fs.promises.rm
-  try {
-    await fs.promises.rm(dirPath, { recursive: true, force: true })
+  async function forceRemoveDirectory(dirPath: string): Promise<boolean> {
     if (!fs.existsSync(dirPath)) return true
-  } catch {
-    /* ignore and try shell commands */
-  }
 
-  // 2. Asynchronous non-blocking child_process exec
-  if (process.platform === 'win32') {
+    // 1. Asynchronous non-blocking fs.promises.rm
     try {
-      await execAsync(`attrib -h -r -s "${dirPath}" /s /d && rmdir /s /q "${dirPath}"`)
+      await fs.promises.rm(dirPath, { recursive: true, force: true })
       if (!fs.existsSync(dirPath)) return true
     } catch {
-      /* ignore */
+      /* ignore and try shell commands */
     }
 
-    try {
-      await execAsync(`powershell -NoProfile -Command "Remove-Item -Path '${dirPath}' -Recurse -Force -ErrorAction SilentlyContinue"`)
-      if (!fs.existsSync(dirPath)) return true
-    } catch {
-      /* ignore */
-    }
-  }
+    // 2. Asynchronous non-blocking child_process exec
+    if (process.platform === 'win32') {
+      try {
+        await execAsync(`attrib -h -r -s "${dirPath}" /s /d && rmdir /s /q "${dirPath}"`)
+        if (!fs.existsSync(dirPath)) return true
+      } catch {
+        /* ignore */
+      }
 
-  return !fs.existsSync(dirPath)
-}
-
-async function performDeepClean(sender: WebContents | undefined, safePath: string): Promise<void> {
-  sendCppLog(sender, safePath, 'Starting Purge & Deep Clean of all temporary files, solution files, and caches...', 'info')
-
-  const targetDirs = [
-    { name: '.vs', label: 'Visual Studio Cache & Database (.vs)' },
-    { name: 'Intermediate', label: 'C++ Intermediate Build Folder' },
-    { name: 'DerivedDataCache', label: 'Derived Data Cache (DDC)' },
-    { name: 'Saved', label: 'Saved Project Folder (Logs/Autosaves/Stashes)' },
-    { name: '.vscode', label: 'VS Code Workspace Caches' },
-    { name: '.idea', label: 'Rider / JetBrains IDE Caches' },
-    { name: 'Binaries', label: 'Compiled Binaries & DLLs' },
-    { name: 'Build', label: 'Temporary Build Receipts' }
-  ]
-
-  for (const item of targetDirs) {
-    const fullPath = path.join(safePath, item.name)
-    if (fs.existsSync(fullPath)) {
-      const removed = await forceRemoveDirectory(fullPath)
-      if (removed) {
-        sendCppLog(sender, safePath, `[PURGED] ${item.label} (${item.name}/)`, 'success')
-      } else {
-        sendCppLog(
-          sender,
-          safePath,
-          `[SKIPPED] ${item.name}/ (file locked by active Visual Studio or Editor process)`,
-          'warning'
+      try {
+        await execAsync(
+          `powershell -NoProfile -Command "Remove-Item -Path '${dirPath}' -Recurse -Force -ErrorAction SilentlyContinue"`
         )
+        if (!fs.existsSync(dirPath)) return true
+      } catch {
+        /* ignore */
       }
     }
+
+    return !fs.existsSync(dirPath)
   }
 
-  // Root solution files (.sln, .slnx), .vsconfig, .user, .suo, .tmp, .vc.db
-  try {
-    const rootFiles = await fs.promises.readdir(safePath)
-    for (const f of rootFiles) {
-      const lower = f.toLowerCase()
-      if (
-        lower.endsWith('.sln') ||
-        lower.endsWith('.slnx') ||
-        lower.endsWith('.dotsettings') ||
-        lower.includes('.dotsettings') ||
-        lower.endsWith('.vsconfig') ||
-        lower.endsWith('.user') ||
-        lower.endsWith('.suo') ||
-        lower.endsWith('.tmp') ||
-        lower.endsWith('.vc.db') ||
-        lower.endsWith('.opendb')
-      ) {
-        const fp = path.join(safePath, f)
-        let deleted = false
-        try {
-          await fs.promises.unlink(fp)
-          deleted = true
-        } catch {
-          if (process.platform === 'win32') {
-            try {
-              await execAsync(`attrib -h -r -s "${fp}" && del /f /q "${fp}"`)
-              deleted = !fs.existsSync(fp)
-            } catch {
-              /* ignore */
+  async function performDeepClean(
+    sender: WebContents | undefined,
+    safePath: string
+  ): Promise<void> {
+    sendCppLog(
+      sender,
+      safePath,
+      'Starting Purge & Deep Clean of all temporary files, solution files, and caches...',
+      'info'
+    )
+
+    const targetDirs = [
+      { name: '.vs', label: 'Visual Studio Cache & Database (.vs)' },
+      { name: 'Intermediate', label: 'C++ Intermediate Build Folder' },
+      { name: 'DerivedDataCache', label: 'Derived Data Cache (DDC)' },
+      { name: 'Saved', label: 'Saved Project Folder (Logs/Autosaves/Stashes)' },
+      { name: '.vscode', label: 'VS Code Workspace Caches' },
+      { name: '.idea', label: 'Rider / JetBrains IDE Caches' },
+      { name: 'Binaries', label: 'Compiled Binaries & DLLs' },
+      { name: 'Build', label: 'Temporary Build Receipts' }
+    ]
+
+    for (const item of targetDirs) {
+      const fullPath = path.join(safePath, item.name)
+      if (fs.existsSync(fullPath)) {
+        const removed = await forceRemoveDirectory(fullPath)
+        if (removed) {
+          sendCppLog(sender, safePath, `[PURGED] ${item.label} (${item.name}/)`, 'success')
+        } else {
+          sendCppLog(
+            sender,
+            safePath,
+            `[SKIPPED] ${item.name}/ (file locked by active Visual Studio or Editor process)`,
+            'warning'
+          )
+        }
+      }
+    }
+
+    // Root solution files (.sln, .slnx), .vsconfig, .user, .suo, .tmp, .vc.db
+    try {
+      const rootFiles = await fs.promises.readdir(safePath)
+      for (const f of rootFiles) {
+        const lower = f.toLowerCase()
+        if (
+          lower.endsWith('.sln') ||
+          lower.endsWith('.slnx') ||
+          lower.endsWith('.dotsettings') ||
+          lower.includes('.dotsettings') ||
+          lower.endsWith('.vsconfig') ||
+          lower.endsWith('.user') ||
+          lower.endsWith('.suo') ||
+          lower.endsWith('.tmp') ||
+          lower.endsWith('.vc.db') ||
+          lower.endsWith('.opendb')
+        ) {
+          const fp = path.join(safePath, f)
+          let deleted = false
+          try {
+            await fs.promises.unlink(fp)
+            deleted = true
+          } catch {
+            if (process.platform === 'win32') {
+              try {
+                await execAsync(`attrib -h -r -s "${fp}" && del /f /q "${fp}"`)
+                deleted = !fs.existsSync(fp)
+              } catch {
+                /* ignore */
+              }
             }
           }
-        }
 
-        if (deleted || !fs.existsSync(fp)) {
-          sendCppLog(sender, safePath, `[PURGED] Solution / Temp file: ${f}`, 'success')
-        } else {
-          sendCppLog(sender, safePath, `[SKIPPED FILE] Could not delete ${f} (locked by process)`, 'warning')
+          if (deleted || !fs.existsSync(fp)) {
+            sendCppLog(sender, safePath, `[PURGED] Solution / Temp file: ${f}`, 'success')
+          } else {
+            sendCppLog(
+              sender,
+              safePath,
+              `[SKIPPED FILE] Could not delete ${f} (locked by process)`,
+              'warning'
+            )
+          }
         }
       }
+    } catch {
+      /* ignore */
     }
-  } catch {
-    /* ignore */
-  }
 
-  sendCppLog(sender, safePath, '✅ Purge & Deep Clean completed! .vs, Saved, Intermediate, and .sln/.slnx files cleared.', 'success')
-}
+    sendCppLog(
+      sender,
+      safePath,
+      '✅ Purge & Deep Clean completed! .vs, Saved, Intermediate, and .sln/.slnx files cleared.',
+      'success'
+    )
+  }
 
   // Handle action: clean
   if (options.action === 'clean') {
@@ -901,13 +1007,7 @@ async function performDeepClean(sender: WebContents | undefined, safePath: strin
   const configArg = options.config.replace(' Editor', '')
 
   if (process.platform === 'win32' && scriptPath && fs.existsSync(scriptPath)) {
-    const args = [
-      targetName,
-      options.platform,
-      configArg,
-      `-project=${uprojectPath}`,
-      '-WaitMutex'
-    ]
+    const args = [targetName, options.platform, configArg, `-project=${uprojectPath}`, '-WaitMutex']
     return runBuildProcess(sender, safePath, scriptPath, args, options.action.toUpperCase())
   }
 
@@ -917,13 +1017,7 @@ async function performDeepClean(sender: WebContents | undefined, safePath: strin
     : ''
 
   if (fs.existsSync(ubtExe)) {
-    const args = [
-      targetName,
-      options.platform,
-      configArg,
-      `-Project=${uprojectPath}`,
-      '-WaitMutex'
-    ]
+    const args = [targetName, options.platform, configArg, `-Project=${uprojectPath}`, '-WaitMutex']
     return runBuildProcess(sender, safePath, ubtExe, args, options.action.toUpperCase())
   }
 
@@ -1006,13 +1100,27 @@ function runBuildProcess(
         const wasCancelled = signal === 'SIGTERM' || signal === 'SIGKILL' || code === null
         if (wasCancelled) {
           sendCppLog(sender, projectPath, `⚠️ ${actionLabel} was cancelled.`, 'warning')
-          resolve({ success: false, exitCode: null, cancelled: true, error: 'Build cancelled by user' })
+          resolve({
+            success: false,
+            exitCode: null,
+            cancelled: true,
+            error: 'Build cancelled by user'
+          })
         } else if (code === 0) {
           sendCppLog(sender, projectPath, `✅ ${actionLabel} completed successfully!`, 'success')
           resolve({ success: true, exitCode: 0 })
         } else {
-          sendCppLog(sender, projectPath, `❌ ${actionLabel} failed with exit code ${code}`, 'error')
-          resolve({ success: false, exitCode: code, error: `${actionLabel} failed with code ${code}` })
+          sendCppLog(
+            sender,
+            projectPath,
+            `❌ ${actionLabel} failed with exit code ${code}`,
+            'error'
+          )
+          resolve({
+            success: false,
+            exitCode: code,
+            error: `${actionLabel} failed with code ${code}`
+          })
         }
       })
     } catch (err) {
@@ -1220,7 +1328,10 @@ export async function handleProjectCppCheckDebug(
   const isRunning =
     (await isProcessRunning('UnrealEditor-Win64-DebugGame.exe')) ||
     (await isProcessRunning('UnrealEditor-Win64-Debug.exe'))
-  return { isDebugging: isRunning, exeName: isRunning ? 'UnrealEditor-Win64-DebugGame.exe' : undefined }
+  return {
+    isDebugging: isRunning,
+    exeName: isRunning ? 'UnrealEditor-Win64-DebugGame.exe' : undefined
+  }
 }
 
 export function handleProjectCppFixTargetRules(
@@ -1231,7 +1342,12 @@ export function handleProjectCppFixTargetRules(
   fixedFiles: string[]
   error?: string
 } {
-  sendCppLog(sender, projectPath, 'Checking Target.cs rules for UE installed engine compatibility...', 'info')
+  sendCppLog(
+    sender,
+    projectPath,
+    'Checking Target.cs rules for UE installed engine compatibility...',
+    'info'
+  )
   const safePath = isRegisteredProjectPath(projectPath)
   if (!safePath) {
     sendCppLog(sender, projectPath, 'Error: Invalid project path', 'error')
@@ -1256,7 +1372,10 @@ export function handleProjectCppFixTargetRules(
 
         // Remove problematic BuildEnvironment.Unique line if present (installed engines disallow Unique build env)
         if (content.includes('BuildEnvironment')) {
-          content = content.replace(/.*BuildEnvironment\s*=\s*TargetBuildEnvironment\.Unique;?\r?\n?/g, '')
+          content = content.replace(
+            /.*BuildEnvironment\s*=\s*TargetBuildEnvironment\.Unique;?\r?\n?/g,
+            ''
+          )
           modified = true
         }
 
@@ -1291,9 +1410,19 @@ export function handleProjectCppFixTargetRules(
     }
 
     if (fixedFiles.length > 0) {
-      sendCppLog(sender, safePath, `Updated Target.cs rules in: ${fixedFiles.join(', ')}`, 'success')
+      sendCppLog(
+        sender,
+        safePath,
+        `Updated Target.cs rules in: ${fixedFiles.join(', ')}`,
+        'success'
+      )
     } else {
-      sendCppLog(sender, safePath, 'Target rules are already compatible with installed engine.', 'info')
+      sendCppLog(
+        sender,
+        safePath,
+        'Target rules are already compatible with installed engine.',
+        'info'
+      )
     }
 
     return { success: true, fixedFiles }
@@ -1330,7 +1459,12 @@ export function handleProjectCppFetchSavedLogs(
         try {
           const content = fs.readFileSync(ubtLogPath, 'utf8')
           const lines = content.split(/\r?\n/).slice(-120) // Last 120 lines
-          sendCppLog(sender, safePath, `=== Loading UnrealBuildTool Log (${ubtLogPath}) ===`, 'info')
+          sendCppLog(
+            sender,
+            safePath,
+            `=== Loading UnrealBuildTool Log (${ubtLogPath}) ===`,
+            'info'
+          )
           for (const line of lines) {
             if (!line.trim()) continue
             let type: 'info' | 'warning' | 'error' | 'success' = 'info'
@@ -1384,9 +1518,19 @@ export function handleProjectCppFetchSavedLogs(
   }
 
   if (logFilesFound.length === 0) {
-    sendCppLog(sender, safePath, 'No saved log files found in Saved/Logs or UnrealBuildTool directory.', 'warning')
+    sendCppLog(
+      sender,
+      safePath,
+      'No saved log files found in Saved/Logs or UnrealBuildTool directory.',
+      'warning'
+    )
   } else {
-    sendCppLog(sender, safePath, `Fetched logs from ${logFilesFound.length} saved log sources.`, 'success')
+    sendCppLog(
+      sender,
+      safePath,
+      `Fetched logs from ${logFilesFound.length} saved log sources.`,
+      'success'
+    )
   }
 
   return { success: true, logFilesFound }
@@ -1434,7 +1578,16 @@ export function handleProjectCppCancelBuild(sender?: WebContents): { success: bo
     }
     // activeBuildChild will be cleared by the 'close' event in runBuildProcess
     if (sender) {
-      try { sender.send('cpp-log-output', { projectPath: '', text: '⛔ Build cancelled by user.', type: 'warning', timestamp: new Date().toLocaleTimeString() }) } catch { /* ignore */ }
+      try {
+        sender.send('cpp-log-output', {
+          projectPath: '',
+          text: '⛔ Build cancelled by user.',
+          type: 'warning',
+          timestamp: new Date().toLocaleTimeString()
+        })
+      } catch {
+        /* ignore */
+      }
     }
     return { success: true }
   } catch {
@@ -1450,8 +1603,10 @@ export function registerProjectCppHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('project-cpp-fix-target-rules', (e, p: string) =>
     handleProjectCppFixTargetRules(p, e.sender)
   )
-  ipcMain_.handle('project-cpp-open-sln', (e, p: string, ide?: 'vs' | 'rider', customRiderPath?: string) =>
-    handleProjectCppOpenSln(p, ide, customRiderPath, e.sender)
+  ipcMain_.handle(
+    'project-cpp-open-sln',
+    (e, p: string, ide?: 'vs' | 'rider', customRiderPath?: string) =>
+      handleProjectCppOpenSln(p, ide, customRiderPath, e.sender)
   )
   ipcMain_.handle('project-cpp-build', (e, opts: CppBuildOptions) =>
     handleProjectCppBuild(e.sender, opts)
@@ -1462,12 +1617,8 @@ export function registerProjectCppHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('project-cpp-stop-debug', (e, p: string) =>
     handleProjectCppStopDebug(p, e.sender)
   )
-  ipcMain_.handle('project-cpp-check-debug', (_e, p: string) =>
-    handleProjectCppCheckDebug(p)
-  )
-  ipcMain_.handle('project-cpp-cancel-build', (e) =>
-    handleProjectCppCancelBuild(e.sender)
-  )
+  ipcMain_.handle('project-cpp-check-debug', (_e, p: string) => handleProjectCppCheckDebug(p))
+  ipcMain_.handle('project-cpp-cancel-build', (e) => handleProjectCppCancelBuild(e.sender))
   ipcMain_.handle('project-cpp-fetch-saved-logs', (e, p: string) =>
     handleProjectCppFetchSavedLogs(p, e.sender)
   )

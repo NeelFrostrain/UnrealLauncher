@@ -160,17 +160,17 @@ const VsStatusPage = (): React.ReactElement => {
               style={
                 isHealthy
                   ? {
-                    backgroundColor:
-                      'color-mix(in srgb, var(--color-engine-version-text) 12%, transparent)',
-                    color: 'var(--color-engine-version-text)',
-                    borderColor:
-                      'color-mix(in srgb, var(--color-engine-version-text) 25%, transparent)'
-                  }
+                      backgroundColor:
+                        'color-mix(in srgb, var(--color-engine-version-text) 12%, transparent)',
+                      color: 'var(--color-engine-version-text)',
+                      borderColor:
+                        'color-mix(in srgb, var(--color-engine-version-text) 25%, transparent)'
+                    }
                   : {
-                    backgroundColor: 'color-mix(in srgb, #f59e0b 12%, transparent)',
-                    color: '#fbbf24',
-                    borderColor: 'color-mix(in srgb, #f59e0b 30%, transparent)'
-                  }
+                      backgroundColor: 'color-mix(in srgb, #f59e0b 12%, transparent)',
+                      color: '#fbbf24',
+                      borderColor: 'color-mix(in srgb, #f59e0b 30%, transparent)'
+                    }
               }
             >
               {isHealthy ? (

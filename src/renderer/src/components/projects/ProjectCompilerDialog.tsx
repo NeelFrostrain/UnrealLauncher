@@ -53,7 +53,8 @@ interface LogMessage {
 }
 
 type TabType = 'build' | 'files' | 'monitor'
-type ConfigType = 'Development Editor' | 'DebugGame Editor' | 'Development' | 'Shipping' | 'DebugGame'
+type ConfigType =
+  'Development Editor' | 'DebugGame Editor' | 'Development' | 'Shipping' | 'DebugGame'
 type PlatformType = 'Win64' | 'Linux' | 'Mac' | 'Android' | 'iOS'
 
 interface CustomDropdownOption<V extends string> {
@@ -153,11 +154,15 @@ function CustomDropdown<V extends string>({
                   <div className="truncate">
                     <p className="truncate font-semibold">{opt.label}</p>
                     {opt.description && (
-                      <p className="text-[10px] text-[var(--color-text-muted)] truncate">{opt.description}</p>
+                      <p className="text-[10px] text-[var(--color-text-muted)] truncate">
+                        {opt.description}
+                      </p>
                     )}
                   </div>
                 </div>
-                {isSelected && <Check size={14} className="text-[var(--color-accent)] shrink-0 ml-2" />}
+                {isSelected && (
+                  <Check size={14} className="text-[var(--color-accent)] shrink-0 ml-2" />
+                )}
               </button>
             )
           })}
@@ -210,8 +215,8 @@ export default function ProjectCompilerDialog({
   const [fileTypeFilter, setFileTypeFilter] = useState<'all' | 'cpp' | 'header' | 'cs'>('all')
 
   // Preferred IDE setting (vs | rider)
-  const [preferredIde, setPreferredIde] = useState<'vs' | 'rider'>(() =>
-    getSetting('preferredIde') || 'vs'
+  const [preferredIde, setPreferredIde] = useState<'vs' | 'rider'>(
+    () => getSetting('preferredIde') || 'vs'
   )
 
   useEffect(() => {
@@ -230,18 +235,21 @@ export default function ProjectCompilerDialog({
     setSetting('preferredIde', ide)
   }
 
-  const appendLog = useCallback((text: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
-    const timestamp = new Date().toLocaleTimeString()
-    setLogs((prev) => [
-      ...prev,
-      {
-        id: Math.random().toString(36).substring(2, 9),
-        timestamp,
-        text,
-        type
-      }
-    ])
-  }, [])
+  const appendLog = useCallback(
+    (text: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+      const timestamp = new Date().toLocaleTimeString()
+      setLogs((prev) => [
+        ...prev,
+        {
+          id: Math.random().toString(36).substring(2, 9),
+          timestamp,
+          text,
+          type
+        }
+      ])
+    },
+    []
+  )
 
   // Build elapsed timer
   useEffect(() => {
@@ -270,7 +278,10 @@ export default function ProjectCompilerDialog({
   }, [projectPath, addToast])
 
   useEffect(() => {
-    appendLog(`Initialized C++ Compiler & Build Tools for ${projectName} (UE ${projectVersion})`, 'info')
+    appendLog(
+      `Initialized C++ Compiler & Build Tools for ${projectName} (UE ${projectVersion})`,
+      'info'
+    )
     appendLog(`Project Directory: ${projectPath}`, 'info')
     runScan()
     window.electronAPI
@@ -283,12 +294,18 @@ export default function ProjectCompilerDialog({
           sdkPath: vs.sdkPath
         })
         if (vs.isHealthy) {
-          appendLog(`Visual Studio Environment Ready: ${vs.vsPath || 'Default Installation'}`, 'success')
+          appendLog(
+            `Visual Studio Environment Ready: ${vs.vsPath || 'Default Installation'}`,
+            'success'
+          )
         } else {
-          appendLog('Warning: Visual Studio environment components missing. Check Diagnostics tab.', 'warning')
+          appendLog(
+            'Warning: Visual Studio environment components missing. Check Diagnostics tab.',
+            'warning'
+          )
         }
       })
-      .catch(() => { })
+      .catch(() => {})
   }, [projectPath, projectName, projectVersion, runScan, appendLog])
 
   // Context event synchronization: listen for engine changes & health updates
@@ -381,7 +398,10 @@ export default function ProjectCompilerDialog({
       }
     } catch (err) {
       setBuildStatus('failed')
-      appendLog(`Error running ${action}: ${err instanceof Error ? err.message : String(err)}`, 'error')
+      appendLog(
+        `Error running ${action}: ${err instanceof Error ? err.message : String(err)}`,
+        'error'
+      )
       addToast(`Error during ${action}`, 'error')
     } finally {
       setIsBuilding(false)
@@ -395,13 +415,17 @@ export default function ProjectCompilerDialog({
     setIsBuilding(true)
     setActiveAction('debug')
     setBuildStatus('running')
-    appendLog(`=== Debug: Building ${projectName} [${debugConfig}] before launching debugger... ===`, 'info')
+    appendLog(
+      `=== Debug: Building ${projectName} [${debugConfig}] before launching debugger... ===`,
+      'info'
+    )
 
     try {
       // Step 1: Build
       const buildRes = await window.electronAPI.projectCppBuild({
         projectPath,
-        config: debugConfig as 'Development Editor' | 'DebugGame Editor' | 'Development' | 'Shipping' | 'DebugGame',
+        config: debugConfig as
+          'Development Editor' | 'DebugGame Editor' | 'Development' | 'Shipping' | 'DebugGame',
         platform: selectedPlatform,
         action: 'build'
       })
@@ -428,7 +452,10 @@ export default function ProjectCompilerDialog({
       }
     } catch (err) {
       setBuildStatus('failed')
-      appendLog(`Error during debug build+launch: ${err instanceof Error ? err.message : String(err)}`, 'error')
+      appendLog(
+        `Error during debug build+launch: ${err instanceof Error ? err.message : String(err)}`,
+        'error'
+      )
       addToast('Error during debug build+launch', 'error')
     } finally {
       setIsBuilding(false)
@@ -459,7 +486,11 @@ export default function ProjectCompilerDialog({
     const ideName = preferredIde === 'rider' ? 'JetBrains Rider' : 'Visual Studio'
     const customRiderPath = getSetting('riderPath') || ''
     appendLog(`Opening solution file in ${ideName}...`, 'info')
-    const res = await window.electronAPI.projectCppOpenSln(projectPath, preferredIde, customRiderPath)
+    const res = await window.electronAPI.projectCppOpenSln(
+      projectPath,
+      preferredIde,
+      customRiderPath
+    )
     if (res.success) {
       addToast(`Opening solution in ${ideName}...`, 'info')
       appendLog(`Opened .sln solution file in ${ideName}.`, 'success')
@@ -621,28 +652,86 @@ export default function ProjectCompilerDialog({
 
   // Options for Platform CustomDropdown
   const platformOptions: CustomDropdownOption<PlatformType>[] = [
-    { value: 'Win64', label: 'Windows (Win64)', description: '64-bit Windows PC', icon: <Monitor size={14} className="text-blue-400" /> },
-    { value: 'Linux', label: 'Linux', description: 'x86_64 Linux Build', icon: <Terminal size={14} className="text-amber-400" /> },
-    { value: 'Mac', label: 'macOS', description: 'Apple Silicon / Intel Mac', icon: <Apple size={14} className="text-slate-300" /> },
-    { value: 'Android', label: 'Android', description: 'ARM64 Mobile APK / AAB', icon: <Smartphone size={14} className="text-emerald-400" /> },
-    { value: 'iOS', label: 'iOS', description: 'Apple iPhone / iPad Package', icon: <Apple size={14} className="text-purple-400" /> }
+    {
+      value: 'Win64',
+      label: 'Windows (Win64)',
+      description: '64-bit Windows PC',
+      icon: <Monitor size={14} className="text-blue-400" />
+    },
+    {
+      value: 'Linux',
+      label: 'Linux',
+      description: 'x86_64 Linux Build',
+      icon: <Terminal size={14} className="text-amber-400" />
+    },
+    {
+      value: 'Mac',
+      label: 'macOS',
+      description: 'Apple Silicon / Intel Mac',
+      icon: <Apple size={14} className="text-slate-300" />
+    },
+    {
+      value: 'Android',
+      label: 'Android',
+      description: 'ARM64 Mobile APK / AAB',
+      icon: <Smartphone size={14} className="text-emerald-400" />
+    },
+    {
+      value: 'iOS',
+      label: 'iOS',
+      description: 'Apple iPhone / iPad Package',
+      icon: <Apple size={14} className="text-purple-400" />
+    }
   ]
 
   // Options for Config CustomDropdown
   const configOptions: CustomDropdownOption<ConfigType>[] = [
-    { value: 'Development Editor', label: 'Development Editor', description: 'Standard Editor & Live Coding', icon: <Hammer size={14} className="text-blue-400" /> },
-    { value: 'DebugGame Editor', label: 'DebugGame Editor', description: 'Full symbols for game debugging', icon: <Bug size={14} className="text-emerald-400" /> },
-    { value: 'Development', label: 'Development Game', description: 'Standalone executable build', icon: <Monitor size={14} className="text-purple-400" /> },
-    { value: 'Shipping', label: 'Shipping (Release)', description: 'Optimized production build', icon: <Sparkles size={14} className="text-amber-400" /> },
-    { value: 'DebugGame', label: 'DebugGame Standalone', description: 'Standalone debug executable', icon: <Bug size={14} className="text-rose-400" /> }
+    {
+      value: 'Development Editor',
+      label: 'Development Editor',
+      description: 'Standard Editor & Live Coding',
+      icon: <Hammer size={14} className="text-blue-400" />
+    },
+    {
+      value: 'DebugGame Editor',
+      label: 'DebugGame Editor',
+      description: 'Full symbols for game debugging',
+      icon: <Bug size={14} className="text-emerald-400" />
+    },
+    {
+      value: 'Development',
+      label: 'Development Game',
+      description: 'Standalone executable build',
+      icon: <Monitor size={14} className="text-purple-400" />
+    },
+    {
+      value: 'Shipping',
+      label: 'Shipping (Release)',
+      description: 'Optimized production build',
+      icon: <Sparkles size={14} className="text-amber-400" />
+    },
+    {
+      value: 'DebugGame',
+      label: 'DebugGame Standalone',
+      description: 'Standalone debug executable',
+      icon: <Bug size={14} className="text-rose-400" />
+    }
   ]
 
   // Options for Log Filter CustomDropdown
   const logFilterOptions: CustomDropdownOption<'all' | 'error' | 'warning' | 'info'>[] = [
     { value: 'all', label: `All Logs (${logs.length})`, icon: <Terminal size={13} /> },
     { value: 'error', label: 'Errors Only', icon: <XCircle size={13} className="text-rose-400" /> },
-    { value: 'warning', label: 'Warnings Only', icon: <AlertTriangle size={13} className="text-amber-400" /> },
-    { value: 'info', label: 'Info Only', icon: <CheckCircle2 size={13} className="text-blue-400" /> }
+    {
+      value: 'warning',
+      label: 'Warnings Only',
+      icon: <AlertTriangle size={13} className="text-amber-400" />
+    },
+    {
+      value: 'info',
+      label: 'Info Only',
+      icon: <CheckCircle2 size={13} className="text-blue-400" />
+    }
   ]
 
   return createPortal(
@@ -668,7 +757,7 @@ export default function ProjectCompilerDialog({
         <div
           className="flex items-center justify-between px-6 py-4 shrink-0"
           style={{
-            borderBottom: '1px solid var(--color-border)',
+            borderBottom: '1px solid var(--color-border)'
             // background:
             // 'linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 12%, transparent) 0%, transparent 100%)'
           }}
@@ -705,7 +794,10 @@ export default function ProjectCompilerDialog({
                   UE {projectVersion}
                 </span>
               </div>
-              <p className="text-xs truncate mt-0.5 font-mono" style={{ color: 'var(--color-text-muted)' }}>
+              <p
+                className="text-xs truncate mt-0.5 font-mono"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 {projectPath}
               </p>
             </div>
@@ -715,7 +807,8 @@ export default function ProjectCompilerDialog({
             {/* C++ Status Badge */}
             {scanning ? (
               <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1.5 font-medium">
-                <RefreshCw size={13} className="animate-spin text-[var(--color-accent)]" /> Scanning Source...
+                <RefreshCw size={13} className="animate-spin text-[var(--color-accent)]" /> Scanning
+                Source...
               </span>
             ) : scanResult?.isCppProject ? (
               <span
@@ -763,7 +856,10 @@ export default function ProjectCompilerDialog({
         {/* Tab Navigation using app Tabs Component */}
         <div
           className="flex items-center px-6 py-2.5 shrink-0"
-          style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-elevated)' }}
+          style={{
+            borderBottom: '1px solid var(--color-border)',
+            backgroundColor: 'var(--color-surface-elevated)'
+          }}
         >
           <Tabs
             tabs={dialogTabs}
@@ -800,7 +896,9 @@ export default function ProjectCompilerDialog({
                     Blueprint Project Detected
                   </h4>
                   <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
-                    This project does not have a C++ <code className="font-mono text-amber-300">Source/</code> folder yet. Convert it to a C++ project to write custom C++ modules and compile via UBT.
+                    This project does not have a C++{' '}
+                    <code className="font-mono text-amber-300">Source/</code> folder yet. Convert it
+                    to a C++ project to write custom C++ modules and compile via UBT.
                   </p>
                 </div>
               </div>
@@ -840,7 +938,7 @@ export default function ProjectCompilerDialog({
                 }}
               >
                 {/* Platform */}
-                <div className='flex flex-col gap-2'>
+                <div className="flex flex-col gap-2">
                   <label className="block text-xs font-semibold mb-1.5 text-[var(--color-text-muted)]">
                     Target Platform
                   </label>
@@ -852,7 +950,7 @@ export default function ProjectCompilerDialog({
                 </div>
 
                 {/* Configuration */}
-                <div className='flex flex-col gap-2'>
+                <div className="flex flex-col gap-2">
                   <label className="block text-xs font-semibold mb-1.5 text-[var(--color-text-muted)]">
                     Build Configuration
                   </label>
@@ -873,20 +971,22 @@ export default function ProjectCompilerDialog({
                     <div className="flex items-center gap-1 p-0.5 rounded bg-[var(--color-surface-elevated)] border border-[var(--color-border)]">
                       <button
                         onClick={() => handleIdeChange('vs')}
-                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors cursor-pointer ${preferredIde === 'vs'
-                          ? 'bg-blue-600 text-white'
-                          : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
-                          }`}
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
+                          preferredIde === 'vs'
+                            ? 'bg-blue-600 text-white'
+                            : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+                        }`}
                         title="Set preferred C++ IDE to Visual Studio"
                       >
                         VS
                       </button>
                       <button
                         onClick={() => handleIdeChange('rider')}
-                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors cursor-pointer ${preferredIde === 'rider'
-                          ? 'bg-rose-600 text-white'
-                          : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
-                          }`}
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
+                          preferredIde === 'rider'
+                            ? 'bg-rose-600 text-white'
+                            : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+                        }`}
                         title="Set preferred C++ IDE to JetBrains Rider"
                       >
                         Rider
@@ -916,7 +1016,8 @@ export default function ProjectCompilerDialog({
                         </>
                       ) : (
                         <>
-                          <ExternalLink size={13} className="text-blue-400 shrink-0" /> Open VS (.sln)
+                          <ExternalLink size={13} className="text-blue-400 shrink-0" /> Open VS
+                          (.sln)
                         </>
                       )}
                     </button>
@@ -975,16 +1076,19 @@ export default function ProjectCompilerDialog({
                 </button>
 
                 {/* Cancel — compact icon button when build/rebuild/debug is running */}
-                {isBuilding && (activeAction === 'build' || activeAction === 'rebuild' || activeAction === 'debug') && (
-                  <button
-                    onClick={handleCancelBuild}
-                    className="h-9 px-2.5 text-xs font-bold flex items-center justify-center gap-1 bg-rose-700 hover:bg-rose-600 text-white shadow-md transition-all cursor-pointer animate-pulse whitespace-nowrap shrink-0"
-                    style={{ borderRadius: 'calc(var(--radius) * 0.75)' }}
-                    title="Cancel active build process"
-                  >
-                    <X size={14} /> Cancel Build
-                  </button>
-                )}
+                {isBuilding &&
+                  (activeAction === 'build' ||
+                    activeAction === 'rebuild' ||
+                    activeAction === 'debug') && (
+                    <button
+                      onClick={handleCancelBuild}
+                      className="h-9 px-2.5 text-xs font-bold flex items-center justify-center gap-1 bg-rose-700 hover:bg-rose-600 text-white shadow-md transition-all cursor-pointer animate-pulse whitespace-nowrap shrink-0"
+                      style={{ borderRadius: 'calc(var(--radius) * 0.75)' }}
+                      title="Cancel active build process"
+                    >
+                      <X size={14} /> Cancel Build
+                    </button>
+                  )}
 
                 {/* Stop Debugger — button when debugger/editor process is active */}
                 {isDebugging && !isBuilding && (
@@ -1073,7 +1177,10 @@ export default function ProjectCompilerDialog({
                 >
                   <div className="flex items-center gap-2.5">
                     <Terminal size={14} className="text-blue-400" />
-                    <span className="text-xs font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                    <span
+                      className="text-xs font-bold"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
                       Compiler & Build Log Terminal
                     </span>
                     {buildStatus === 'running' && (
@@ -1115,12 +1222,8 @@ export default function ProjectCompilerDialog({
                         backgroundColor: autoScroll
                           ? 'color-mix(in srgb, var(--color-accent) 20%, transparent)'
                           : 'var(--color-surface-card)',
-                        borderColor: autoScroll
-                          ? 'var(--color-accent)'
-                          : 'var(--color-border)',
-                        color: autoScroll
-                          ? 'var(--color-accent)'
-                          : 'var(--color-text-muted)',
+                        borderColor: autoScroll ? 'var(--color-accent)' : 'var(--color-border)',
+                        color: autoScroll ? 'var(--color-accent)' : 'var(--color-text-muted)',
                         borderRadius: 'calc(var(--radius) * 0.6)'
                       }}
                     >
@@ -1152,7 +1255,11 @@ export default function ProjectCompilerDialog({
                       }}
                       title="Copy Log Output"
                     >
-                      {copiedLogs ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                      {copiedLogs ? (
+                        <Check size={13} className="text-emerald-400" />
+                      ) : (
+                        <Copy size={13} />
+                      )}
                     </button>
 
                     <button
@@ -1180,11 +1287,16 @@ export default function ProjectCompilerDialog({
                   {filteredLogs.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-[var(--color-text-muted)] gap-2 py-12">
                       <Terminal size={32} className="opacity-30" />
-                      <p className="text-xs font-sans">No build output yet. Click "Build Project" or "Generate VS Solution".</p>
+                      <p className="text-xs font-sans">
+                        No build output yet. Click "Build Project" or "Generate VS Solution".
+                      </p>
                     </div>
                   ) : (
                     filteredLogs.map((l) => (
-                      <div key={l.id} className="flex items-start gap-2 whitespace-pre-wrap break-all">
+                      <div
+                        key={l.id}
+                        className="flex items-start gap-2 whitespace-pre-wrap break-all"
+                      >
                         <span className="text-[var(--color-text-muted)] shrink-0 text-[11px] select-none pt-0.5">
                           [{l.timestamp}]
                         </span>
@@ -1222,7 +1334,9 @@ export default function ProjectCompilerDialog({
                     borderRadius: 'var(--radius)'
                   }}
                 >
-                  <p className="text-[11px] text-[var(--color-text-muted)] font-medium">Modules (.Build.cs)</p>
+                  <p className="text-[11px] text-[var(--color-text-muted)] font-medium">
+                    Modules (.Build.cs)
+                  </p>
                   <p className="text-xl font-bold text-[var(--color-accent)] mt-0.5">
                     {scanResult?.modules.length || 0}
                   </p>
@@ -1235,7 +1349,9 @@ export default function ProjectCompilerDialog({
                     borderRadius: 'var(--radius)'
                   }}
                 >
-                  <p className="text-[11px] text-[var(--color-text-muted)] font-medium">Target Rules (.Target.cs)</p>
+                  <p className="text-[11px] text-[var(--color-text-muted)] font-medium">
+                    Target Rules (.Target.cs)
+                  </p>
                   <p className="text-xl font-bold text-blue-400 mt-0.5">
                     {scanResult?.targets.length || 0}
                   </p>
@@ -1248,7 +1364,9 @@ export default function ProjectCompilerDialog({
                     borderRadius: 'var(--radius)'
                   }}
                 >
-                  <p className="text-[11px] text-[var(--color-text-muted)] font-medium">C++ Implementation (.cpp)</p>
+                  <p className="text-[11px] text-[var(--color-text-muted)] font-medium">
+                    C++ Implementation (.cpp)
+                  </p>
                   <p className="text-xl font-bold text-emerald-400 mt-0.5">
                     {scanResult?.cppFilesCount || 0}
                   </p>
@@ -1261,7 +1379,9 @@ export default function ProjectCompilerDialog({
                     borderRadius: 'var(--radius)'
                   }}
                 >
-                  <p className="text-[11px] text-[var(--color-text-muted)] font-medium">Header Files (.h/.hpp)</p>
+                  <p className="text-[11px] text-[var(--color-text-muted)] font-medium">
+                    Header Files (.h/.hpp)
+                  </p>
                   <p className="text-xl font-bold text-amber-400 mt-0.5">
                     {scanResult?.headerFilesCount || 0}
                   </p>
@@ -1271,7 +1391,10 @@ export default function ProjectCompilerDialog({
               {/* Filters */}
               <div className="flex items-center gap-3 shrink-0">
                 <div className="relative flex-1">
-                  <Search size={14} className="absolute left-3 top-2.5 text-[var(--color-text-muted)]" />
+                  <Search
+                    size={14}
+                    className="absolute left-3 top-2.5 text-[var(--color-text-muted)]"
+                  />
                   <input
                     type="text"
                     value={fileSearch}
@@ -1297,37 +1420,41 @@ export default function ProjectCompilerDialog({
                 >
                   <button
                     onClick={() => setFileTypeFilter('all')}
-                    className={`text-xs font-semibold px-2.5 py-1 rounded cursor-pointer transition-colors ${fileTypeFilter === 'all'
-                      ? 'bg-[var(--color-accent)] text-white'
-                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
-                      }`}
+                    className={`text-xs font-semibold px-2.5 py-1 rounded cursor-pointer transition-colors ${
+                      fileTypeFilter === 'all'
+                        ? 'bg-[var(--color-accent)] text-white'
+                        : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+                    }`}
                   >
                     All ({scanResult?.totalFilesCount || 0})
                   </button>
                   <button
                     onClick={() => setFileTypeFilter('cpp')}
-                    className={`text-xs font-semibold px-2.5 py-1 rounded cursor-pointer transition-colors ${fileTypeFilter === 'cpp'
-                      ? 'bg-[var(--color-accent)] text-white'
-                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
-                      }`}
+                    className={`text-xs font-semibold px-2.5 py-1 rounded cursor-pointer transition-colors ${
+                      fileTypeFilter === 'cpp'
+                        ? 'bg-[var(--color-accent)] text-white'
+                        : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+                    }`}
                   >
                     .cpp ({scanResult?.cppFilesCount || 0})
                   </button>
                   <button
                     onClick={() => setFileTypeFilter('header')}
-                    className={`text-xs font-semibold px-2.5 py-1 rounded cursor-pointer transition-colors ${fileTypeFilter === 'header'
-                      ? 'bg-[var(--color-accent)] text-white'
-                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
-                      }`}
+                    className={`text-xs font-semibold px-2.5 py-1 rounded cursor-pointer transition-colors ${
+                      fileTypeFilter === 'header'
+                        ? 'bg-[var(--color-accent)] text-white'
+                        : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+                    }`}
                   >
                     .h ({scanResult?.headerFilesCount || 0})
                   </button>
                   <button
                     onClick={() => setFileTypeFilter('cs')}
-                    className={`text-xs font-semibold px-2.5 py-1 rounded cursor-pointer transition-colors ${fileTypeFilter === 'cs'
-                      ? 'bg-[var(--color-accent)] text-white'
-                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
-                      }`}
+                    className={`text-xs font-semibold px-2.5 py-1 rounded cursor-pointer transition-colors ${
+                      fileTypeFilter === 'cs'
+                        ? 'bg-[var(--color-accent)] text-white'
+                        : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+                    }`}
                   >
                     .cs ({scanResult?.csharpFilesCount || 0})
                   </button>
@@ -1505,9 +1632,7 @@ export default function ProjectCompilerDialog({
                     <Zap size={16} className="text-amber-400" />
                   </div>
                   <div className="mt-3">
-                    <p className="text-sm font-bold text-amber-400 truncate">
-                      UbaServer Active
-                    </p>
+                    <p className="text-sm font-bold text-amber-400 truncate">UbaServer Active</p>
                     <p className="text-[11px] text-[var(--color-text-muted)] font-mono mt-1">
                       Listening on 0.0.0.0:1345
                     </p>
@@ -1558,7 +1683,9 @@ export default function ProjectCompilerDialog({
                         1
                       </div>
                       <div>
-                        <p className="font-bold text-[var(--color-text-primary)]">Target Rules & Build Environment Check</p>
+                        <p className="font-bold text-[var(--color-text-primary)]">
+                          Target Rules & Build Environment Check
+                        </p>
                         <p className="text-[11px] text-[var(--color-text-muted)] font-sans">
                           Validates Target.cs settings against installed engine binary limits
                         </p>
@@ -1582,9 +1709,12 @@ export default function ProjectCompilerDialog({
                         2
                       </div>
                       <div>
-                        <p className="font-bold text-[var(--color-text-primary)]">Adaptive Non-Unity Working Set Calculation</p>
+                        <p className="font-bold text-[var(--color-text-primary)]">
+                          Adaptive Non-Unity Working Set Calculation
+                        </p>
                         <p className="text-[11px] text-[var(--color-text-muted)] font-sans">
-                          Uses git status to determine modified C++ files for fast incremental rebuilds
+                          Uses git status to determine modified C++ files for fast incremental
+                          rebuilds
                         </p>
                       </div>
                     </div>
@@ -1606,7 +1736,9 @@ export default function ProjectCompilerDialog({
                         3
                       </div>
                       <div>
-                        <p className="font-bold text-[var(--color-text-primary)]">UbaServer Parallel C++ Compilation</p>
+                        <p className="font-bold text-[var(--color-text-primary)]">
+                          UbaServer Parallel C++ Compilation
+                        </p>
                         <p className="text-[11px] text-[var(--color-text-muted)] font-sans">
                           Executes up to 6 parallel cl.exe compiler tasks via UBA process manager
                         </p>
@@ -1630,7 +1762,9 @@ export default function ProjectCompilerDialog({
                         4
                       </div>
                       <div>
-                        <p className="font-bold text-[var(--color-text-primary)]">Visual Studio Solution & Debugger Integration</p>
+                        <p className="font-bold text-[var(--color-text-primary)]">
+                          Visual Studio Solution & Debugger Integration
+                        </p>
                         <p className="text-[11px] text-[var(--color-text-muted)] font-sans">
                           Generates {projectName}.sln and connects UnrealEditor debug flags
                         </p>

@@ -293,7 +293,8 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('project-cpp-fix-target-rules', projectPath),
       projectCppOpenSln: (projectPath: string, ide?: 'vs' | 'rider', customRiderPath?: string) =>
         ipcRenderer.invoke('project-cpp-open-sln', projectPath, ide, customRiderPath),
-      projectCppBuild: (options: CppBuildOptions) => ipcRenderer.invoke('project-cpp-build', options),
+      projectCppBuild: (options: CppBuildOptions) =>
+        ipcRenderer.invoke('project-cpp-build', options),
       projectCppDebug: (projectPath: string, config?: string) =>
         ipcRenderer.invoke('project-cpp-debug', projectPath, config),
       projectCppStopDebug: (projectPath: string) =>
