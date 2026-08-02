@@ -30,8 +30,7 @@ export const VsStatusToolbar = ({
               backgroundColor:
                 'color-mix(in srgb, var(--color-engine-version-text) 15%, transparent)',
               color: 'var(--color-engine-version-text)',
-              borderColor:
-                'color-mix(in srgb, var(--color-engine-version-text) 30%, transparent)'
+              borderColor: 'color-mix(in srgb, var(--color-engine-version-text) 30%, transparent)'
             }}
           >
             READY

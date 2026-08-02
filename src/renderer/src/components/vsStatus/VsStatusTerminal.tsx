@@ -181,10 +181,7 @@ export const VsStatusTerminal = ({
           </button>
 
           {/* Divider */}
-          <span
-            className="w-px h-4 mx-1"
-            style={{ backgroundColor: 'var(--color-border)' }}
-          />
+          <span className="w-px h-4 mx-1" style={{ backgroundColor: 'var(--color-border)' }} />
 
           {/* Collapse / Expand */}
           <button
@@ -259,7 +256,10 @@ export const VsStatusTerminal = ({
                         className="px-2 py-0.5 align-top whitespace-nowrap select-none"
                         style={{ width: '3.5rem' }}
                       >
-                        <span className={`flex items-center gap-1 font-bold ${meta.iconClass}`} style={{ fontSize: '10px' }}>
+                        <span
+                          className={`flex items-center gap-1 font-bold ${meta.iconClass}`}
+                          style={{ fontSize: '10px' }}
+                        >
                           {meta.icon}
                           {meta.prefix}
                         </span>
