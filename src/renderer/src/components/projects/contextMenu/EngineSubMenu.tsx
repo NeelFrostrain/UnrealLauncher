@@ -42,7 +42,10 @@ export const EngineSubMenu = ({
     >
       <div className="py-1 max-h-[250px] overflow-y-auto">
         {engines.length === 0 ? (
-          <div className="px-3 py-2 text-xs text-center" style={{ color: 'var(--color-text-muted)' }}>
+          <div
+            className="px-3 py-2 text-xs text-center"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
             No Unreal Engines added
           </div>
         ) : (
@@ -51,7 +54,11 @@ export const EngineSubMenu = ({
             return (
               <MenuItem
                 key={e.version}
-                icon={isActive ? <Check size={11} style={{ color: 'var(--color-accent)' }} /> : undefined}
+                icon={
+                  isActive ? (
+                    <Check size={11} style={{ color: 'var(--color-accent)' }} />
+                  ) : undefined
+                }
                 label={e.alias || `Unreal Engine ${e.version}`}
                 sub={`Version: ${e.version}`}
                 onClick={() => onSelectEngine(e.version)}

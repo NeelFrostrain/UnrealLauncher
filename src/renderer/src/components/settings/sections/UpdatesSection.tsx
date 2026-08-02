@@ -64,8 +64,7 @@ const UpdatesSection = (): React.ReactElement => {
     checkGitHubVersion
   } = useUpdateCheck()
 
-  const showModal =
-    !modalDismissed && (updateStatus === 'downloading' || updateStatus === 'ready')
+  const showModal = !modalDismissed && (updateStatus === 'downloading' || updateStatus === 'ready')
 
   const updateMsgColor =
     updateStatus === 'error'

@@ -8,6 +8,11 @@ export {
   handleLaunchProjectWithConfig
 } from './projectLaunching'
 export { calculateProjectSize, calculateAllProjectSizes } from '../utils/projectSizing'
-export { scanAndMergeProjects, loadSavedProjects, deleteProject, eraseProjectFromDisk, updateProjectVersion } from '../utils/projectValidation'
+export {
+  scanAndMergeProjects,
+  loadSavedProjects,
+  deleteProject,
+  eraseProjectFromDisk,
+  updateProjectVersion
+} from '../utils/projectValidation'
 export { checkProjectHealth } from '../utils/projectHealth'
-

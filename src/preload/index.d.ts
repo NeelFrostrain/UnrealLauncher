@@ -264,9 +264,7 @@ declare global {
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>
       deleteProject: (projectPath: string) => Promise<boolean>
-      eraseProjectFromDisk: (
-        projectPath: string
-      ) => Promise<{ success: boolean; error?: string }>
+      eraseProjectFromDisk: (projectPath: string) => Promise<{ success: boolean; error?: string }>
       updateProjectVersion: (projectPath: string, newVersion: string) => Promise<boolean>
       scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
       toggleEnginePluginDefault: (
@@ -433,6 +431,28 @@ declare global {
       taskManagerGetProcesses: () => Promise<SystemProcess[]>
       taskManagerKillProcess: (pid: number) => Promise<{ success: boolean; error?: string }>
       relaunchApp: () => Promise<void>
+      checkVsSetup: () => Promise<{
+        vsPath: string
+        msvcPath: string
+        msvcVersions: Array<{ version: string; path: string }>
+        sdkPath: string
+        hasVsWhere: boolean
+        hasInstallerEngine: boolean
+        components: Array<{ id: string; label: string; installed: boolean }>
+        missingComponentIds: string[]
+        isHealthy: boolean
+      }>
+      repairVsSetup: (options?: {
+        targetInstallPath?: string
+        missingComponentIds?: string[]
+      }) => Promise<{ success: boolean; exitCode: number | null; error?: string }>
+      onVsLogOutput: (
+        callback: (log: {
+          timestamp: string
+          text: string
+          type: 'info' | 'success' | 'warning' | 'error'
+        }) => void
+      ) => () => void
     }
   }
 }

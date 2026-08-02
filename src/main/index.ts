@@ -303,10 +303,19 @@ if (!gotTheLock) {
       // 11. Setup Discord Rich Presence after window is ready
       setTimeout(() => {
         setupDiscordRichPresence({
-          clientId: process.env.DISCORD_CLIENT_ID || process.env.VITE_DISCORD_CLIENT_ID || "1507980570725191740",
+          clientId:
+            process.env.DISCORD_CLIENT_ID ||
+            process.env.VITE_DISCORD_CLIENT_ID ||
+            '1507980570725191740',
           buttons: [
-            { label: 'Join Discord', url: `${process.env.VITE_DISCORD_INVITE_URL || "https://discord.gg/vq4UDfevG2"}` },
-            { label: 'Download Launcher', url: `${process.env.VITE_WEBSITE_URL || "https://neelfrostrain.github.io/unreal-launcher/"}` }
+            {
+              label: 'Join Discord',
+              url: `${process.env.VITE_DISCORD_INVITE_URL || 'https://discord.gg/vq4UDfevG2'}`
+            },
+            {
+              label: 'Download Launcher',
+              url: `${process.env.VITE_WEBSITE_URL || 'https://neelfrostrain.github.io/unreal-launcher/'}`
+            }
           ]
         })
         logger.info('discord', 'Rich Presence setup requested')

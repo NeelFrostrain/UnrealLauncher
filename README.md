@@ -94,7 +94,6 @@ Supports **Windows**, **macOS**, and **Linux** with native Rust performance opti
 - **Asset Thumbnails** — Browse with visual previews
 - **Direct Fab Links** — Click to open assets on Fab marketplace
 
-
 ### UE Tracer (Windows)
 
 - **Background Tracking** — Rust executable runs silently and records engine/project usage
@@ -564,8 +563,8 @@ See [LICENSE](LICENSE) for full terms.
 
 ## Support & Community
 
-| Channel            | Contact & Support Link                                                                                                                                                    |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Channel         | Contact & Support Link                                                                                                                                                    |
+| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Bug Reports** | [![GitHub Issues](https://img.shields.io/badge/GitHub_Issues-Report_Bug-d73a49?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/issues)      |
 | **Q&A & Ideas** | [![GitHub Discussions](https://img.shields.io/badge/Discussions-Join_In-24292e?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/discussions) |
 | **Community**   | [![Discord](https://img.shields.io/badge/Discord-Join_Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)                                         |

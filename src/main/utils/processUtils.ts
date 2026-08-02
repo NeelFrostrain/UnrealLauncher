@@ -150,13 +150,19 @@ export function openFileOrDirectory(filePath: string): void {
     logger.info('process', 'Opening file or directory', { filePath, platform: process.platform })
 
     if (process.platform === 'win32') {
-      shell.openPath(resolved).then((errorMessage) => {
-        if (errorMessage) {
-          logger.error('process', 'Failed to open path on Windows', { path: resolved, error: errorMessage })
-        }
-      }).catch((error) => {
-        logger.error('process', 'Failed to open path on Windows', { path: resolved, error })
-      })
+      shell
+        .openPath(resolved)
+        .then((errorMessage) => {
+          if (errorMessage) {
+            logger.error('process', 'Failed to open path on Windows', {
+              path: resolved,
+              error: errorMessage
+            })
+          }
+        })
+        .catch((error) => {
+          logger.error('process', 'Failed to open path on Windows', { path: resolved, error })
+        })
     } else if (process.platform === 'darwin') {
       spawn('open', [resolved], {
         detached: true,

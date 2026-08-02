@@ -88,10 +88,7 @@ export interface NativeModule {
     engineVersion: string
   }
   analyzeAssetUsage?: (projectPath: string) => Promise<AssetReport>
-  scanFabAssets?: (
-    rootDir: string,
-    excludedPaths: string[]
-  ) => Promise<NativeFabAsset[]>
+  scanFabAssets?: (rootDir: string, excludedPaths: string[]) => Promise<NativeFabAsset[]>
   countSnapshotFiles?: (projectPath: string) => number
   createProjectSnapshot: (projectPath: string, archivePath: string) => Promise<number>
   restoreProjectSnapshot: (projectPath: string, archivePath: string) => Promise<void>

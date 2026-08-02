@@ -38,9 +38,12 @@ export default function TasksPage(): React.ReactElement {
 
   // Load saved projects once so we can match thumbnails to processes
   useEffect(() => {
-    window.electronAPI.loadSavedProjects().then((projects) => {
-      setSavedProjects(projects as SavedProject[])
-    }).catch(() => {})
+    window.electronAPI
+      .loadSavedProjects()
+      .then((projects) => {
+        setSavedProjects(projects as SavedProject[])
+      })
+      .catch(() => {})
   }, [])
 
   const loadProcesses = useCallback(
@@ -161,7 +164,9 @@ export default function TasksPage(): React.ReactElement {
   const handleSelectAll = (pids: number[]): void => {
     setSelectedPids((prev) => {
       const next = [...prev]
-      pids.forEach((pid) => { if (!next.includes(pid)) next.push(pid) })
+      pids.forEach((pid) => {
+        if (!next.includes(pid)) next.push(pid)
+      })
       return next
     })
   }

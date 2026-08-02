@@ -11,6 +11,7 @@ import { registerLaunchConfigHandlers } from './ipc/launchConfigs'
 import { registerPaletteHandlers } from './ipc/paletteHandlers'
 import { registerProjectPluginHandlers } from './ipc/projectPlugins'
 import { registerTaskManagerHandlers } from './ipc/taskManager'
+import { registerCompileVsHandlers } from './ipc/compileVs'
 
 export { cleanupWorkers } from './workers/workers'
 
@@ -24,7 +25,7 @@ export function registerIpcHandlers(): void {
   registerFabHandlers(ipcMain)
   registerLaunchConfigHandlers(ipcMain)
   registerPaletteHandlers(ipcMain)
-  // 2. Add this call right here:
   registerProjectPluginHandlers(ipcMain)
   registerTaskManagerHandlers(ipcMain)
+  registerCompileVsHandlers(ipcMain)
 }

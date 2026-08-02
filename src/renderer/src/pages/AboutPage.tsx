@@ -119,11 +119,19 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
               <Sparkles size={13} />
               Unreal Launcher v{version}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
+            <h1
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
               Engine & Project Management, Evolved
             </h1>
-            <p className="text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-              A fast, lightweight Electron & Rust desktop app for discovering, launching, diagnosing, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
+            <p
+              className="text-xs sm:text-sm leading-relaxed"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              A fast, lightweight Electron & Rust desktop app for discovering, launching,
+              diagnosing, and managing Unreal Engine installations and projects — no Epic Games
+              Launcher required.
             </p>
           </div>
 
@@ -139,10 +147,16 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
                   borderRadius: 'var(--radius)'
                 }}
               >
-                <span className="text-[11px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                <span
+                  className="text-[11px] font-medium"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   {label}
                 </span>
-                <span className="text-xs sm:text-sm font-bold mt-0.5" style={{ color: 'var(--color-text-primary)' }}>
+                <span
+                  className="text-xs sm:text-sm font-bold mt-0.5"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   {value}
                 </span>
               </div>
@@ -170,7 +184,10 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
                 }}
               >
                 <div className="space-y-0.5">
-                  <span className="text-xs font-bold block" style={{ color: 'var(--color-text-primary)' }}>
+                  <span
+                    className="text-xs font-bold block"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
                     {item.category}
                   </span>
                   <span className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
@@ -201,7 +218,10 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
               borderRadius: 'var(--radius)'
             }}
           >
-            <h2 className="text-xs font-bold uppercase tracking-wider flex items-center gap-2" style={{ color: 'var(--color-text-muted)' }}>
+            <h2
+              className="text-xs font-bold uppercase tracking-wider flex items-center gap-2"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               <CheckCircle2 size={14} style={{ color: 'var(--color-accent)' }} />
               Core Capabilities Highlight
             </h2>
@@ -211,7 +231,8 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
                   key={label}
                   className="p-3 flex items-start gap-3"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 60%, transparent)',
+                    backgroundColor:
+                      'color-mix(in srgb, var(--color-surface-card) 60%, transparent)',
                     border: '1px solid var(--color-border)',
                     borderRadius: 'var(--radius)'
                   }}
@@ -227,10 +248,16 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
                     <Icon size={15} />
                   </div>
                   <div>
-                    <h3 className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                    <h3
+                      className="text-xs font-semibold"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
                       {label}
                     </h3>
-                    <p className="text-[11px] leading-relaxed mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                    <p
+                      className="text-[11px] leading-relaxed mt-0.5"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
                       {desc}
                     </p>
                   </div>
@@ -252,7 +279,10 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
           }}
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+            <h2
+              className="text-xs font-bold uppercase tracking-wider"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               All Built-In Features ({FEATURES.length})
             </h2>
             <span className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
@@ -281,10 +311,16 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
                   <Icon size={15} />
                 </div>
                 <div>
-                  <span className="text-xs font-bold block" style={{ color: 'var(--color-text-primary)' }}>
+                  <span
+                    className="text-xs font-bold block"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
                     {label}
                   </span>
-                  <p className="text-[11px] leading-relaxed mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                  <p
+                    className="text-[11px] leading-relaxed mt-0.5"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
                     {desc}
                   </p>
                 </div>
@@ -299,7 +335,10 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
         <div className="space-y-5">
           {/* Architecture Layers */}
           <div className="space-y-2.5">
-            <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+            <h2
+              className="text-xs font-bold uppercase tracking-wider"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               System Architecture Layers
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -313,16 +352,32 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
                     borderRadius: 'var(--radius)'
                   }}
                 >
-                  <div className="flex items-center gap-2 pb-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: 'var(--color-accent)' }} />
-                    <h3 className="text-xs font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                  <div
+                    className="flex items-center gap-2 pb-2"
+                    style={{ borderBottom: '1px solid var(--color-border)' }}
+                  >
+                    <span
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: 'var(--color-accent)' }}
+                    />
+                    <h3
+                      className="text-xs font-bold"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
                       {layer.title}
                     </h3>
                   </div>
                   <ul className="space-y-1.5 pt-1">
                     {layer.items.map((item) => (
-                      <li key={item} className="text-xs flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
-                        <span className="w-1 h-1 rounded-full opacity-60" style={{ backgroundColor: 'var(--color-accent)' }} />
+                      <li
+                        key={item}
+                        className="text-xs flex items-center gap-2"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                      >
+                        <span
+                          className="w-1 h-1 rounded-full opacity-60"
+                          style={{ backgroundColor: 'var(--color-accent)' }}
+                        />
                         {item}
                       </li>
                     ))}
@@ -341,7 +396,10 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
               borderRadius: 'var(--radius)'
             }}
           >
-            <h2 className="text-xs font-bold uppercase tracking-wider flex items-center gap-2" style={{ color: 'var(--color-text-muted)' }}>
+            <h2
+              className="text-xs font-bold uppercase tracking-wider flex items-center gap-2"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               <Terminal size={14} />
               IPC Channel Dispatchers
             </h2>
@@ -351,12 +409,16 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
                   key={mod.module}
                   className="p-3 space-y-2"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 60%, transparent)',
+                    backgroundColor:
+                      'color-mix(in srgb, var(--color-surface-card) 60%, transparent)',
                     border: '1px solid var(--color-border)',
                     borderRadius: 'var(--radius)'
                   }}
                 >
-                  <span className="text-xs font-mono font-bold block" style={{ color: 'var(--color-accent)' }}>
+                  <span
+                    className="text-xs font-mono font-bold block"
+                    style={{ color: 'var(--color-accent)' }}
+                  >
                     {mod.module}
                   </span>
                   <div className="flex flex-wrap gap-1">
@@ -391,7 +453,10 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
             borderRadius: 'var(--radius)'
           }}
         >
-          <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+          <h2
+            className="text-xs font-bold uppercase tracking-wider"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
             Technologies & Frameworks
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -405,10 +470,16 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
                   borderRadius: 'var(--radius)'
                 }}
               >
-                <span className="text-xs font-mono font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                <span
+                  className="text-xs font-mono font-semibold"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   {label}
                 </span>
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-accent)' }} />
+                <span
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: 'var(--color-accent)' }}
+                />
               </div>
             ))}
           </div>
@@ -427,7 +498,10 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
               borderRadius: 'var(--radius)'
             }}
           >
-            <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+            <h2
+              className="text-xs font-bold uppercase tracking-wider"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Data Storage Structure (userData)
             </h2>
             <div className="space-y-2">
@@ -436,13 +510,17 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
                   key={path}
                   className="p-3 flex items-center justify-between"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 60%, transparent)',
+                    backgroundColor:
+                      'color-mix(in srgb, var(--color-surface-card) 60%, transparent)',
                     border: '1px solid var(--color-border)',
                     borderRadius: 'var(--radius)'
                   }}
                 >
                   <div className="space-y-0.5">
-                    <span className="text-xs font-mono font-bold block" style={{ color: 'var(--color-text-primary)' }}>
+                    <span
+                      className="text-xs font-mono font-bold block"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
                       {path}
                     </span>
                     <span className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
@@ -464,7 +542,10 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
               borderRadius: 'var(--radius)'
             }}
           >
-            <h2 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+            <h2
+              className="text-xs font-bold uppercase tracking-wider"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Community & Project Links
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -476,7 +557,8 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
                   style={{
                     color: 'var(--color-text-secondary)',
                     borderColor: 'var(--color-border)',
-                    backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 60%, transparent)',
+                    backgroundColor:
+                      'color-mix(in srgb, var(--color-surface-card) 60%, transparent)',
                     borderRadius: 'var(--radius)'
                   }}
                 >
@@ -495,7 +577,8 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
       {/* Footer Credits */}
       <div className="pt-2 text-center space-y-1">
         <p className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
-          Unreal Launcher &bull; Created with <Heart size={12} className="inline text-red-400 mx-0.5" /> by{' '}
+          Unreal Launcher &bull; Created with{' '}
+          <Heart size={12} className="inline text-red-400 mx-0.5" /> by{' '}
           <button
             onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain')}
             className="font-bold underline transition-colors cursor-pointer hover:opacity-80"

@@ -260,7 +260,30 @@ if (process.contextIsolated) {
       },
       taskManagerGetProcesses: () => ipcRenderer.invoke('task-manager-get-processes'),
       taskManagerKillProcess: (pid: number) => ipcRenderer.invoke('task-manager-kill-process', pid),
-      relaunchApp: () => ipcRenderer.invoke('relaunch-app')
+      relaunchApp: () => ipcRenderer.invoke('relaunch-app'),
+      checkVsSetup: () => ipcRenderer.invoke('vs:check-setup'),
+      repairVsSetup: (options?: { targetInstallPath?: string; missingComponentIds?: string[] }) =>
+        ipcRenderer.invoke('vs:repair-setup', options),
+      onVsLogOutput: (
+        callback: (log: {
+          timestamp: string
+          text: string
+          type: 'info' | 'success' | 'warning' | 'error'
+        }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          log: {
+            timestamp: string
+            text: string
+            type: 'info' | 'success' | 'warning' | 'error'
+          }
+        ): void => callback(log)
+        ipcRenderer.on('vs:log-output', listener)
+        return (): void => {
+          ipcRenderer.removeListener('vs:log-output', listener)
+        }
+      }
     })
   } catch (error) {
     console.error(error)

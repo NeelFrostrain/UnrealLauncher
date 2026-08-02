@@ -72,7 +72,9 @@ export const MenuItem = ({
     }}
   >
     {icon && (
-      <span className="shrink-0 w-3.5 flex items-center justify-center self-start mt-px">{icon}</span>
+      <span className="shrink-0 w-3.5 flex items-center justify-center self-start mt-px">
+        {icon}
+      </span>
     )}
     <span className="flex-1 text-left min-w-0">
       <span

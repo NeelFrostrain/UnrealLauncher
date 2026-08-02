@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Added **Erase from Disk** option in the Project Context Menu (under *Hide from List*) to safely move a project directory to the system Recycle Bin (`shell.trashItem`) with user confirmation and live UI updates.
+- Added **Erase from Disk** option in the Project Context Menu (under _Hide from List_) to safely move a project directory to the system Recycle Bin (`shell.trashItem`) with user confirmation and live UI updates.
 - Added `erase-project-from-disk` IPC handler (`projects.ts` & `projectValidation.ts`) with path validation and instant `project-removed` push events to open windows.
 - Added **Disable GPU Process** toggle in **Settings → General**: lets users disable the Electron GPU process to eliminate a dedicated ~70–90 MB RAM process, with the preference persisted across launches.
 - Added **Restart Now** inline banner that appears immediately after toggling the GPU setting, with a spinning indicator and one-click app restart via `process.exit(0)` + `app.relaunch()`.

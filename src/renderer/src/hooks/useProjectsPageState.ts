@@ -139,9 +139,7 @@ export function useProjectsPageState() {
     setCurrentTab(tab)
     currentTabRef.current = tab
     if (allProjectsRef.current.length > 0) {
-      setProjects(
-        filterForTab(tab, allProjectsRef.current, favoritePathsRef.current)
-      )
+      setProjects(filterForTab(tab, allProjectsRef.current, favoritePathsRef.current))
     }
   }, [location.pathname, filterForTab])
 
@@ -181,9 +179,7 @@ export function useProjectsPageState() {
       logActivity('Project favorite toggled', { projectPath })
       toggleFav(projectPath, (updated) => {
         if (currentTab === 'favorites') {
-          setProjects(
-            filterForTab('favorites', allProjectsRef.current, updated)
-          )
+          setProjects(filterForTab('favorites', allProjectsRef.current, updated))
         }
       })
     },

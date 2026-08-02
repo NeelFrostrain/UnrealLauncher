@@ -239,11 +239,13 @@ input[type='range'] {
 input[type='range']::-webkit-slider-runnable-track {
   height: 6px;
   border-radius: 9999px;
-  background: linear-gradient(to right,
-      var(--color-accent) 0%,
-      var(--color-accent) var(--range-pct, 33%),
-      rgba(255, 255, 255, 0.12) var(--range-pct, 33%),
-      rgba(255, 255, 255, 0.12) 100%);
+  background: linear-gradient(
+    to right,
+    var(--color-accent) 0%,
+    var(--color-accent) var(--range-pct, 33%),
+    rgba(255, 255, 255, 0.12) var(--range-pct, 33%),
+    rgba(255, 255, 255, 0.12) 100%
+  );
 }
 
 input[type='range']::-webkit-slider-thumb {
@@ -298,7 +300,6 @@ html {
 
 /* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
@@ -338,13 +339,15 @@ html {
 }
 
 body {
-  font-family: var(--font-family,
-      'Inter',
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      'Segoe UI',
-      sans-serif);
+  font-family: var(
+    --font-family,
+    'Inter',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif
+  );
   font-size: 1rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -391,7 +394,7 @@ body.no-animations *::after {
 }
 
 /* Firefox */
-.no-spinner[type="number"] {
+.no-spinner[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
 }

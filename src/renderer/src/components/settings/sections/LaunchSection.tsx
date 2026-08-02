@@ -110,13 +110,15 @@ const LaunchSection = ({
           label="Launch pause duration"
           description="Set a safety delay (in seconds) between project launches to prevent double-launching processes."
         >
-          <div className="flex items-center gap-3 select-none px-2 py-0.5"
+          <div
+            className="flex items-center gap-3 select-none px-2 py-0.5"
             style={{
-              backgroundColor: "var(--color-surface-card)",
-              color: "var(--color-text-primary)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "var(--radius)",
-            }}>
+              backgroundColor: 'var(--color-surface-card)',
+              color: 'var(--color-text-primary)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius)'
+            }}
+          >
             <input
               type="number"
               min={0}
@@ -130,14 +132,11 @@ const LaunchSection = ({
                 val = Math.max(0, Math.min(60, val))
 
                 setLaunchPauseDuration(val)
-                setSetting("launchPauseDuration", val)
+                setSetting('launchPauseDuration', val)
               }}
               className="no-spinner w-12 px-1.5 py-0.5 text-[11px] font-mono font-semibold text-start outline-none"
             />
-            <span
-              className="text-xs"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
+            <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
               Sec
             </span>
           </div>

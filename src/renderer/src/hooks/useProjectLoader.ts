@@ -306,7 +306,9 @@ export function useProjectLoader({
           p.projectPath?.toLowerCase() === norm ? { ...p, version: newVersion } : p
         )
         setProjects((prev) =>
-          prev.map((p) => (p.projectPath?.toLowerCase() === norm ? { ...p, version: newVersion } : p))
+          prev.map((p) =>
+            p.projectPath?.toLowerCase() === norm ? { ...p, version: newVersion } : p
+          )
         )
       }
     }

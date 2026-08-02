@@ -72,27 +72,14 @@ export const Toggle = ({
 }
 
 export const SectionHeader = ({
-  icon,
-  label,
-  accent
+  label
 }: {
-  icon: React.ReactNode
+  icon?: React.ReactNode
   label: string
   accent?: string
 }): React.ReactElement => {
-  const finalAccent = accent || 'var(--color-accent)'
   return (
     <div className="flex items-center gap-3 mb-3.5 mt-2 px-1 select-none">
-      <div
-        className="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300"
-        style={{
-          background: `color-mix(in srgb, ${finalAccent} 12%, var(--color-surface-elevated))`,
-          border: `1px solid color-mix(in srgb, ${finalAccent} 25%, var(--color-border))`,
-          color: finalAccent
-        }}
-      >
-        {icon}
-      </div>
       <span
         className="text-[11px] font-bold uppercase tracking-widest text-left"
         style={{ color: 'var(--color-text-secondary)' }}

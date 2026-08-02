@@ -167,7 +167,8 @@ export async function getInstalledEngines(): Promise<ScannedEngine[]> {
           const isEngine =
             (typeof appName === 'string' && appName.startsWith('UE_')) ||
             (typeof launchExe === 'string' && launchExe.includes('UnrealEditor')) ||
-            (Array.isArray(item.AppCategories) && item.AppCategories.some((c: string) => typeof c === 'string' && c.includes('engine')))
+            (Array.isArray(item.AppCategories) &&
+              item.AppCategories.some((c: string) => typeof c === 'string' && c.includes('engine')))
 
           if (installLoc && isEngine) {
             tryAddEngineDir(installLoc, path.basename(installLoc))

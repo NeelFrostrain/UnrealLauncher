@@ -65,7 +65,11 @@ export function useGitCommitState(projectPath: string, onClose: () => void) {
       const lower = f.file.toLowerCase()
       if (lower.endsWith('.cpp') || lower.endsWith('.h') || lower.endsWith('.cs')) {
         categories.code.push(f.file)
-      } else if (lower.endsWith('.ini') || lower.endsWith('.uproject') || lower.endsWith('.uplugin')) {
+      } else if (
+        lower.endsWith('.ini') ||
+        lower.endsWith('.uproject') ||
+        lower.endsWith('.uplugin')
+      ) {
         categories.config.push(f.file)
       } else if (
         lower.endsWith('.uasset') ||
@@ -89,7 +93,10 @@ export function useGitCommitState(projectPath: string, onClose: () => void) {
       const norm = f.file.replace(/\\/g, '/')
       const parts = norm.split('/')
       let key = 'General'
-      if (parts.length >= 3 && (parts[0].toLowerCase() === 'content' || parts[0].toLowerCase() === 'source')) {
+      if (
+        parts.length >= 3 &&
+        (parts[0].toLowerCase() === 'content' || parts[0].toLowerCase() === 'source')
+      ) {
         key = `${parts[0]}/${parts[1]}`
       } else if (parts.length >= 2) {
         key = parts[0]
@@ -119,7 +126,10 @@ export function useGitCommitState(projectPath: string, onClose: () => void) {
     }
 
     if (categories.code.length > 0) {
-      const names = categories.code.map((p) => p.split(/[/\\]/).pop()).slice(0, 3).join(', ')
+      const names = categories.code
+        .map((p) => p.split(/[/\\]/).pop())
+        .slice(0, 3)
+        .join(', ')
       bullets.push(`- Update code logic and classes (${names})`)
     }
 

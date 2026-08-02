@@ -112,7 +112,10 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
             <button
               onClick={() => setShowBinanceModal(false)}
               className="p-1.5 rounded-lg transition-colors cursor-pointer mr-1"
-              style={{ color: 'var(--color-text-muted)', backgroundColor: 'var(--color-surface-card)' }}
+              style={{
+                color: 'var(--color-text-muted)',
+                backgroundColor: 'var(--color-surface-card)'
+              }}
               title="Back"
             >
               <ArrowLeft size={16} />
@@ -120,7 +123,10 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
           )}
 
           <div className="flex-1 min-w-0">
-            <p className="text-base font-bold flex items-center gap-1.5" style={{ color: 'var(--color-text-primary)' }}>
+            <p
+              className="text-base font-bold flex items-center gap-1.5"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
               {showBinanceModal
                 ? binanceTab === 'binancePay'
                   ? 'Binance Pay'
@@ -162,7 +168,13 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
             /* Binance Detail View */
             <div className="flex flex-col items-center gap-4 p-5" style={cardStyle}>
               {/* Tab Selector: Binance Pay vs Deposit USDT */}
-              <div className="flex items-center gap-1.5 p-1 rounded-xl w-full max-w-sm" style={{ backgroundColor: 'var(--color-surface-card)', border: '1px solid var(--color-border)' }}>
+              <div
+                className="flex items-center gap-1.5 p-1 rounded-xl w-full max-w-sm"
+                style={{
+                  backgroundColor: 'var(--color-surface-card)',
+                  border: '1px solid var(--color-border)'
+                }}
+              >
                 <button
                   onClick={() => setBinanceTab('binancePay')}
                   className="flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all cursor-pointer text-center"
@@ -212,9 +224,18 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
 
                   {/* Binance Pay ID Details */}
                   <div className="w-full space-y-2.5 pt-1">
-                    <div className="flex items-center justify-between p-3 rounded-lg border" style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)' }}>
+                    <div
+                      className="flex items-center justify-between p-3 rounded-lg border"
+                      style={{
+                        backgroundColor: 'var(--color-surface-card)',
+                        borderColor: 'var(--color-border)'
+                      }}
+                    >
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                        <span
+                          className="text-[11px] font-medium"
+                          style={{ color: 'var(--color-text-muted)' }}
+                        >
                           Binance Pay ID
                         </span>
                         <span className="text-sm font-bold font-mono" style={{ color: '#FCD535' }}>
@@ -225,7 +246,9 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
                         onClick={handleCopyPayId}
                         className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded cursor-pointer transition-all"
                         style={{
-                          backgroundColor: copiedPayId ? 'rgba(74,222,128,0.2)' : 'rgba(252,213,53,0.2)',
+                          backgroundColor: copiedPayId
+                            ? 'rgba(74,222,128,0.2)'
+                            : 'rgba(252,213,53,0.2)',
                           color: copiedPayId ? '#4ade80' : '#FCD535',
                           border: `1px solid ${copiedPayId ? 'rgba(74,222,128,0.4)' : 'rgba(252,213,53,0.4)'}`
                         }}
@@ -263,25 +286,48 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
 
                   {/* Deposit Details Table */}
                   <div className="w-full space-y-2.5 pt-1">
-                    <div className="flex items-center justify-between p-2.5 rounded-lg border" style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)' }}>
-                      <span className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                    <div
+                      className="flex items-center justify-between p-2.5 rounded-lg border"
+                      style={{
+                        backgroundColor: 'var(--color-surface-card)',
+                        borderColor: 'var(--color-border)'
+                      }}
+                    >
+                      <span
+                        className="text-xs font-medium"
+                        style={{ color: 'var(--color-text-muted)' }}
+                      >
                         Network
                       </span>
-                      <span className="text-xs font-bold font-mono" style={{ color: 'var(--color-text-primary)' }}>
+                      <span
+                        className="text-xs font-bold font-mono"
+                        style={{ color: 'var(--color-text-primary)' }}
+                      >
                         {BINANCE_DETAILS.network}
                       </span>
                     </div>
 
-                    <div className="flex flex-col gap-1.5 p-2.5 rounded-lg border" style={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border)' }}>
+                    <div
+                      className="flex flex-col gap-1.5 p-2.5 rounded-lg border"
+                      style={{
+                        backgroundColor: 'var(--color-surface-card)',
+                        borderColor: 'var(--color-border)'
+                      }}
+                    >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                        <span
+                          className="text-xs font-medium"
+                          style={{ color: 'var(--color-text-muted)' }}
+                        >
                           Wallet Address
                         </span>
                         <button
                           onClick={handleCopyAddress}
                           className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold rounded cursor-pointer transition-all"
                           style={{
-                            backgroundColor: copiedAddress ? 'rgba(74,222,128,0.2)' : 'rgba(252,213,53,0.2)',
+                            backgroundColor: copiedAddress
+                              ? 'rgba(74,222,128,0.2)'
+                              : 'rgba(252,213,53,0.2)',
                             color: copiedAddress ? '#4ade80' : '#FCD535',
                             border: `1px solid ${copiedAddress ? 'rgba(74,222,128,0.4)' : 'rgba(252,213,53,0.4)'}`
                           }}
@@ -290,12 +336,18 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
                           {copiedAddress ? 'Copied!' : 'Copy Address'}
                         </button>
                       </div>
-                      <span className="text-xs font-mono select-all break-all" style={{ color: '#FCD535' }}>
+                      <span
+                        className="text-xs font-mono select-all break-all"
+                        style={{ color: '#FCD535' }}
+                      >
                         {BINANCE_DETAILS.address}
                       </span>
                     </div>
 
-                    <p className="text-[11px] text-center italic" style={{ color: 'var(--color-text-muted)' }}>
+                    <p
+                      className="text-[11px] text-center italic"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
                       {BINANCE_DETAILS.note}
                     </p>
                   </div>
@@ -305,7 +357,10 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
               {/* Binance Brand Banner */}
               <div className="flex items-center gap-2 pt-1">
                 <Sparkles size={16} style={{ color: '#FCD535' }} />
-                <span className="text-xs font-black tracking-widest uppercase" style={{ color: '#FCD535' }}>
+                <span
+                  className="text-xs font-black tracking-widest uppercase"
+                  style={{ color: '#FCD535' }}
+                >
                   BINANCE
                 </span>
               </div>
@@ -318,23 +373,40 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
                 <div className="flex items-center justify-between mb-0.5">
                   <div className="flex items-center gap-2">
                     <ShieldCheck size={15} style={{ color: 'var(--color-accent)' }} />
-                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                    <span
+                      className="text-xs font-bold uppercase tracking-wider"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
                       Developer Support
                     </span>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)', color: 'var(--color-accent)' }}>
+                  <span
+                    className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)',
+                      color: 'var(--color-accent)'
+                    }}
+                  >
                     100% Free & Open Source
                   </span>
                 </div>
-                <p className="text-xs leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
-                  I built this launcher as an independent developer and continue to improve it in my spare time. If you enjoy using it, your support helps me dedicate more time to updates, new features, maintenance, and keeping the servers online. Thank you!
+                <p
+                  className="text-xs leading-relaxed"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
+                  I built this launcher as an independent developer and continue to improve it in my
+                  spare time. If you enjoy using it, your support helps me dedicate more time to
+                  updates, new features, maintenance, and keeping the servers online. Thank you!
                 </p>
               </div>
 
               {/* Card section 2: Premium Donation Buttons Grid */}
               <div className="p-4 flex flex-col gap-3" style={cardStyle}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                  <span
+                    className="text-xs font-bold uppercase tracking-wider"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
                     Choose Platform
                   </span>
                   <CreditCard size={14} style={{ color: 'var(--color-text-muted)' }} />
@@ -387,16 +459,26 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
                           {p.icon}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-bold truncate flex items-center gap-1" style={{ color: p.color }}>
+                          <span
+                            className="text-xs font-bold truncate flex items-center gap-1"
+                            style={{ color: p.color }}
+                          >
                             {p.name}
                           </span>
-                          <span className="text-[10px] truncate" style={{ color: 'var(--color-text-muted)' }}>
+                          <span
+                            className="text-[10px] truncate"
+                            style={{ color: 'var(--color-text-muted)' }}
+                          >
                             {p.desc}
                           </span>
                         </div>
                       </div>
                       <div className="shrink-0 pl-1">
-                        <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" style={{ color: p.color }} />
+                        <ChevronRight
+                          size={14}
+                          className="transition-transform group-hover:translate-x-0.5"
+                          style={{ color: p.color }}
+                        />
                       </div>
                     </button>
                   ))}
@@ -405,7 +487,10 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
 
               {/* Card section 3: Discord Community */}
               <div className="p-4 flex flex-col gap-3" style={cardStyle}>
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                <span
+                  className="text-xs font-bold uppercase tracking-wider"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   Feedback & Community
                 </span>
 
@@ -413,7 +498,8 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
                   onClick={() => handleOpenExternal('https://discord.gg/vq4UDfevG2')}
                   className="group flex items-center justify-between p-3.5 rounded-xl font-semibold text-xs transition-all duration-200 cursor-pointer hover:-translate-y-0.5 hover:shadow-md text-left"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(88, 101, 242, 0.18) 0%, rgba(88, 101, 242, 0.06) 100%)',
+                    background:
+                      'linear-gradient(135deg, rgba(88, 101, 242, 0.18) 0%, rgba(88, 101, 242, 0.06) 100%)',
                     color: '#7289da',
                     border: '1px solid rgba(88, 101, 242, 0.4)'
                   }}
@@ -432,12 +518,19 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
                       <span className="text-xs font-bold truncate" style={{ color: '#7289da' }}>
                         Join Discord Server
                       </span>
-                      <span className="text-[10px] truncate" style={{ color: 'var(--color-text-muted)' }}>
+                      <span
+                        className="text-[10px] truncate"
+                        style={{ color: 'var(--color-text-muted)' }}
+                      >
                         Share feedback, report bugs & chat with devs
                       </span>
                     </div>
                   </div>
-                  <ExternalLink size={14} className="transition-transform group-hover:scale-110 shrink-0 ml-2" style={{ color: '#7289da' }} />
+                  <ExternalLink
+                    size={14}
+                    className="transition-transform group-hover:scale-110 shrink-0 ml-2"
+                    style={{ color: '#7289da' }}
+                  />
                 </button>
               </div>
             </>
@@ -447,7 +540,10 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps): React.Reac
         {/* Footer */}
         <div
           className="flex items-center justify-between px-5 py-3.5 shrink-0"
-          style={{ borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-elevated)' }}
+          style={{
+            borderTop: '1px solid var(--color-border)',
+            backgroundColor: 'var(--color-surface-elevated)'
+          }}
         >
           <span className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
             Thank you for supporting Unreal Launcher!

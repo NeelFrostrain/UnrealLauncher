@@ -184,8 +184,10 @@ function ProcessCard({
               className="shrink-0 text-[10px] font-mono px-1.5 py-px"
               style={{
                 color: 'var(--color-engine-version-text)',
-                backgroundColor: 'color-mix(in srgb, var(--color-engine-version-text) 10%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--color-engine-version-text) 20%, transparent)',
+                backgroundColor:
+                  'color-mix(in srgb, var(--color-engine-version-text) 10%, transparent)',
+                border:
+                  '1px solid color-mix(in srgb, var(--color-engine-version-text) 20%, transparent)',
                 borderRadius: 'calc(var(--radius) * 0.5)'
               }}
             >
@@ -215,12 +217,19 @@ function ProcessCard({
                 {fmtBytes(proc.memoryBytes)}
               </span>
             </div>
-            <div className="flex items-center gap-1" title="Accumulated CPU Time" style={{ color: 'var(--color-text-muted)' }}>
+            <div
+              className="flex items-center gap-1"
+              title="Accumulated CPU Time"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               <Cpu size={11} />
               <span className="text-[10px]">CPU Time: {fmtCpu(proc.cpuSeconds)}</span>
             </div>
             {proc.path && (
-              <div className="flex items-center gap-1 min-w-0" style={{ color: 'var(--color-text-muted)' }}>
+              <div
+                className="flex items-center gap-1 min-w-0"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 <FolderOpen size={11} />
                 <span className="text-[10px] truncate max-w-[280px]" title={proc.path}>
                   {proc.path}
@@ -285,9 +294,7 @@ function ProcessCard({
             title={`Terminate ${proc.name}`}
             aria-label="Kill process"
           >
-            {isKilling
-              ? <XCircle size={13} className="animate-spin" />
-              : <Trash2 size={13} />}
+            {isKilling ? <XCircle size={13} className="animate-spin" /> : <Trash2 size={13} />}
             {isKilling ? 'Killing…' : 'Kill'}
           </button>
         </div>
@@ -310,7 +317,6 @@ export default function TasksContent({
   onToggleSelectPid,
   savedProjects = []
 }: TasksContentProps): React.ReactElement {
-
   // Build a normalised path -> thumbnail lookup from saved project data
   const thumbnailByPath = useMemo(() => {
     const map = new Map<string, string | null>()
@@ -365,14 +371,14 @@ export default function TasksContent({
     return list
   }, [processes, searchQuery, currentTab])
 
-  const maxMem = useMemo(
-    () => Math.max(...filtered.map((p) => p.memoryBytes), 1),
-    [filtered]
-  )
+  const maxMem = useMemo(() => Math.max(...filtered.map((p) => p.memoryBytes), 1), [filtered])
 
   /* summary metrics */
   const totalMem = useMemo(() => filtered.reduce((a, p) => a + p.memoryBytes, 0), [filtered])
-  const editorCount = useMemo(() => processes.filter((p) => p.type === 'editor').length, [processes])
+  const editorCount = useMemo(
+    () => processes.filter((p) => p.type === 'editor').length,
+    [processes]
+  )
   const buildCount = useMemo(() => processes.filter((p) => p.type === 'build').length, [processes])
 
   /* loading */
@@ -405,25 +411,37 @@ export default function TasksContent({
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden select-none">
       {/* Summary strip — mirrors ProjectsContent count strip */}
-      <div className="px-6 py-3 border-b shrink-0 flex items-center gap-6" style={{ borderColor: 'var(--color-border)' }}>
+      <div
+        className="px-6 py-3 border-b shrink-0 flex items-center gap-6"
+        style={{ borderColor: 'var(--color-border)' }}
+      >
         <div className="flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
           <Layers size={12} />
           <span className="text-xs">
-            <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{filtered.length}</span>
-            {' '}process{filtered.length !== 1 ? 'es' : ''}
+            <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              {filtered.length}
+            </span>{' '}
+            process{filtered.length !== 1 ? 'es' : ''}
           </span>
         </div>
         <div className="flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
           <HardDrive size={12} />
-          <span className="text-xs font-mono font-semibold" style={{ color: 'var(--color-accent)' }}>{fmtBytes(totalMem)}</span>
+          <span
+            className="text-xs font-mono font-semibold"
+            style={{ color: 'var(--color-accent)' }}
+          >
+            {fmtBytes(totalMem)}
+          </span>
           <span className="text-xs">total memory</span>
         </div>
         {editorCount > 0 && (
           <div className="flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
             <Activity size={12} style={{ color: 'var(--color-accent)' }} />
             <span className="text-xs">
-              <span className="font-semibold" style={{ color: 'var(--color-accent)' }}>{editorCount}</span>
-              {' '}editor{editorCount !== 1 ? 's' : ''}
+              <span className="font-semibold" style={{ color: 'var(--color-accent)' }}>
+                {editorCount}
+              </span>{' '}
+              editor{editorCount !== 1 ? 's' : ''}
             </span>
           </div>
         )}
@@ -431,8 +449,10 @@ export default function TasksContent({
           <div className="flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
             <Wrench size={12} style={{ color: 'var(--color-text-secondary)' }} />
             <span className="text-xs">
-              <span className="font-semibold" style={{ color: 'var(--color-text-secondary)' }}>{buildCount}</span>
-              {' '}build{buildCount !== 1 ? 's' : ''}
+              <span className="font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
+                {buildCount}
+              </span>{' '}
+              build{buildCount !== 1 ? 's' : ''}
             </span>
           </div>
         )}

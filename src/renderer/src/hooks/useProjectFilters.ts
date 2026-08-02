@@ -4,11 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import type { Project, TabType } from '../types'
 
 export interface UseProjectFiltersReturn {
-  filterForTab: (
-    tab: TabType,
-    source: Project[],
-    favorites: string[]
-  ) => Project[]
+  filterForTab: (tab: TabType, source: Project[], favorites: string[]) => Project[]
   switchTab: (
     tab: TabType,
     currentTab: TabType,

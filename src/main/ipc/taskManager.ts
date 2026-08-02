@@ -37,38 +37,41 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
         return list
           .filter((p: any) => Number(p.Id) !== currentPid)
           .map((p: any) => {
-          const name = p.ProcessName || 'Unknown'
-          let type: 'editor' | 'build' | 'service' | 'other' = 'other'
-          if (name.toLowerCase().includes('editor')) {
-            type = 'editor'
-          } else if (
-            name.toLowerCase().includes('build') ||
-            name.toLowerCase().includes('shader') ||
-            name.toLowerCase().includes('pak')
-          ) {
-            type = 'build'
-          } else if (name.toLowerCase().includes('swarm') || name.toLowerCase().includes('epic')) {
-            type = 'service'
-          }
+            const name = p.ProcessName || 'Unknown'
+            let type: 'editor' | 'build' | 'service' | 'other' = 'other'
+            if (name.toLowerCase().includes('editor')) {
+              type = 'editor'
+            } else if (
+              name.toLowerCase().includes('build') ||
+              name.toLowerCase().includes('shader') ||
+              name.toLowerCase().includes('pak')
+            ) {
+              type = 'build'
+            } else if (
+              name.toLowerCase().includes('swarm') ||
+              name.toLowerCase().includes('epic')
+            ) {
+              type = 'service'
+            }
 
-          // Extract .uproject path from command line arguments
-          let projectPath: string | undefined
-          const cmdLine: string = p.CommandLine || ''
-          const uprojectMatch = cmdLine.match(/["']?([A-Za-z]:[^"'\s]*\.uproject)["']?/i)
-          if (uprojectMatch) {
-            projectPath = uprojectMatch[1].replace(/\\\\/g, '\\')
-          }
+            // Extract .uproject path from command line arguments
+            let projectPath: string | undefined
+            const cmdLine: string = p.CommandLine || ''
+            const uprojectMatch = cmdLine.match(/["']?([A-Za-z]:[^"'\s]*\.uproject)["']?/i)
+            if (uprojectMatch) {
+              projectPath = uprojectMatch[1].replace(/\\\\/g, '\\')
+            }
 
-          return {
-            pid: Number(p.Id),
-            name,
-            memoryBytes: Number(p.WorkingSet64 || 0),
-            cpuSeconds: typeof p.CPU === 'number' ? p.CPU : undefined,
-            path: p.Path || undefined,
-            projectPath,
-            type
-          }
-        })
+            return {
+              pid: Number(p.Id),
+              name,
+              memoryBytes: Number(p.WorkingSet64 || 0),
+              cpuSeconds: typeof p.CPU === 'number' ? p.CPU : undefined,
+              path: p.Path || undefined,
+              projectPath,
+              type
+            }
+          })
       } else {
         // Fallback for macOS/Linux using ps
         const currentPid = process.pid

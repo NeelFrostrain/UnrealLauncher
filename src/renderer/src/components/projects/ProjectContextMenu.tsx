@@ -183,51 +183,60 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
     p.onOpenBranchDialog()
   }, [p])
 
-  const handleSelectEngine = useCallback(async (newVersion: string) => {
-    try {
-      const pathRes = await window.electronAPI.projectResolveUprojectPath(p.projectPath)
-      if (!pathRes.success || !pathRes.filePath) {
-        addToast(pathRes.error || 'Failed to resolve uproject path', 'error')
-        return
+  const handleSelectEngine = useCallback(
+    async (newVersion: string) => {
+      try {
+        const pathRes = await window.electronAPI.projectResolveUprojectPath(p.projectPath)
+        if (!pathRes.success || !pathRes.filePath) {
+          addToast(pathRes.error || 'Failed to resolve uproject path', 'error')
+          return
+        }
+
+        const fileRes = await window.electronAPI.projectReadTextFile(
+          pathRes.filePath,
+          p.projectPath
+        )
+        if (!fileRes.success || !fileRes.content) {
+          addToast(fileRes.error || 'Failed to read uproject file', 'error')
+          return
+        }
+
+        const uprojectJson = JSON.parse(fileRes.content)
+        uprojectJson.EngineAssociation = newVersion
+
+        const writeRes = await window.electronAPI.projectWriteTextFile(
+          pathRes.filePath,
+          JSON.stringify(uprojectJson, null, 2),
+          p.projectPath
+        )
+
+        if (!writeRes.success) {
+          addToast(writeRes.error || 'Failed to update uproject file', 'error')
+          return
+        }
+
+        // Also update saved projects in main process store
+        if (window.electronAPI.updateProjectVersion) {
+          await window.electronAPI.updateProjectVersion(p.projectPath, newVersion)
+        }
+
+        addToast(`Engine version updated to ${newVersion}`, 'success')
+        window.dispatchEvent(
+          new CustomEvent('project-engine-changed', {
+            detail: { projectPath: p.projectPath, version: newVersion }
+          })
+        )
+        p.onClose()
+      } catch (error) {
+        addToast(
+          'Error changing engine version: ' +
+            (error instanceof Error ? error.message : String(error)),
+          'error'
+        )
       }
-
-      const fileRes = await window.electronAPI.projectReadTextFile(pathRes.filePath, p.projectPath)
-      if (!fileRes.success || !fileRes.content) {
-        addToast(fileRes.error || 'Failed to read uproject file', 'error')
-        return
-      }
-
-      const uprojectJson = JSON.parse(fileRes.content)
-      uprojectJson.EngineAssociation = newVersion
-
-      const writeRes = await window.electronAPI.projectWriteTextFile(
-        pathRes.filePath,
-        JSON.stringify(uprojectJson, null, 2),
-        p.projectPath
-      )
-
-      if (!writeRes.success) {
-        addToast(writeRes.error || 'Failed to update uproject file', 'error')
-        return
-      }
-
-      // Also update saved projects in main process store
-      if (window.electronAPI.updateProjectVersion) {
-        await window.electronAPI.updateProjectVersion(p.projectPath, newVersion)
-      }
-
-      addToast(`Engine version updated to ${newVersion}`, 'success')
-      window.dispatchEvent(
-        new CustomEvent('project-engine-changed', { detail: { projectPath: p.projectPath, version: newVersion } })
-      )
-      p.onClose()
-    } catch (error) {
-      addToast(
-        'Error changing engine version: ' + (error instanceof Error ? error.message : String(error)),
-        'error'
-      )
-    }
-  }, [p, addToast])
+    },
+    [p, addToast]
+  )
 
   return createPortal(
     <>

@@ -111,7 +111,11 @@ export function DownloadUpdateModal({
                     borderColor: 'var(--color-accent)'
                   }}
                 >
-                  <Download size={22} className="animate-bounce" style={{ color: 'var(--color-accent)' }} />
+                  <Download
+                    size={22}
+                    className="animate-bounce"
+                    style={{ color: 'var(--color-accent)' }}
+                  />
                 </div>
               </div>
 
@@ -120,7 +124,8 @@ export function DownloadUpdateModal({
                   Downloading update packages, please wait...
                 </p>
                 <p className="text-xs leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-                  {message || 'Please do not close Unreal Launcher while the update is downloading.'}
+                  {message ||
+                    'Please do not close Unreal Launcher while the update is downloading.'}
                 </p>
               </div>
             </>
@@ -131,7 +136,10 @@ export function DownloadUpdateModal({
               <p className="text-sm font-semibold" style={{ color: '#4ade80' }}>
                 Update downloaded successfully!
               </p>
-              <p className="text-xs leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+              <p
+                className="text-xs leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
                 Click <strong>Install & Restart</strong> to update Unreal Launcher now.
               </p>
             </div>
@@ -142,7 +150,10 @@ export function DownloadUpdateModal({
               <p className="text-sm font-semibold" style={{ color: '#ef4444' }}>
                 Update Download Failed
               </p>
-              <p className="text-xs leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+              <p
+                className="text-xs leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
                 {message || 'An error occurred while downloading the update.'}
               </p>
             </div>
@@ -152,7 +163,10 @@ export function DownloadUpdateModal({
         {/* Footer */}
         <div
           className="flex items-center justify-end gap-2 px-5 py-3.5 shrink-0"
-          style={{ borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-elevated)' }}
+          style={{
+            borderTop: '1px solid var(--color-border)',
+            backgroundColor: 'var(--color-surface-elevated)'
+          }}
         >
           {isReady && (
             <button

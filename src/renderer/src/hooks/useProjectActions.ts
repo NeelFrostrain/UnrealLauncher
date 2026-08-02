@@ -1,7 +1,12 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback } from 'react'
 import type { TabType } from '../types'
-import { getSetting, checkLaunchCooldown, recordProjectLaunch, clearLaunchCooldown } from '../utils/settings'
+import {
+  getSetting,
+  checkLaunchCooldown,
+  recordProjectLaunch,
+  clearLaunchCooldown
+} from '../utils/settings'
 import { useToast } from '../components/ui/ToastContext'
 import { logActivity } from '../utils/activityLogger'
 

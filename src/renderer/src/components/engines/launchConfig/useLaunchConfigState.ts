@@ -4,7 +4,12 @@ import { useState, useEffect, useCallback, useRef, Ref } from 'react'
 import { useToast } from '../../ui/ToastContext'
 import { UE_DEFAULTS } from './launchConfigConstants'
 
-import { getSetting, checkLaunchCooldown, recordProjectLaunch, clearLaunchCooldown } from '../../../utils/settings'
+import {
+  getSetting,
+  checkLaunchCooldown,
+  recordProjectLaunch,
+  clearLaunchCooldown
+} from '../../../utils/settings'
 
 export interface UseLaunchConfigStateReturn {
   configs: LaunchConfig[]

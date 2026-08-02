@@ -101,7 +101,6 @@ export const FEATURES = [
   }
 ]
 
-
 export const FEATURE_COUNTS = [
   {
     category: 'Engine Management',
@@ -294,10 +293,26 @@ export const IPC_MODULES = [
 
 export const STORAGE_ENTRIES = [
   { path: 'save\\engines.json', desc: 'Saved engine list and custom aliases', color: '#60a5fa' },
-  { path: 'save\\projects.json', desc: 'Saved project metadata, engine overrides & favorites', color: '#4ade80' },
-  { path: 'save\\settings.json', desc: 'App settings, Fab cache path & theme profiles', color: '#fbbf24' },
-  { path: 'Tracer\\engines.json', desc: 'Tracer-collected engine telemetry data', color: '#fb923c' },
-  { path: 'Tracer\\projects.json', desc: 'Tracer-collected project usage history', color: '#f87171' }
+  {
+    path: 'save\\projects.json',
+    desc: 'Saved project metadata, engine overrides & favorites',
+    color: '#4ade80'
+  },
+  {
+    path: 'save\\settings.json',
+    desc: 'App settings, Fab cache path & theme profiles',
+    color: '#fbbf24'
+  },
+  {
+    path: 'Tracer\\engines.json',
+    desc: 'Tracer-collected engine telemetry data',
+    color: '#fb923c'
+  },
+  {
+    path: 'Tracer\\projects.json',
+    desc: 'Tracer-collected project usage history',
+    color: '#f87171'
+  }
 ]
 
 export const TECH_STACK = [
@@ -312,4 +327,3 @@ export const TECH_STACK = [
   { label: 'Lucide React', color: '#f472b6' },
   { label: 'electron-updater', color: '#818cf8' }
 ]
-
