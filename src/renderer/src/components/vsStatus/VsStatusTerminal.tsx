@@ -1,6 +1,18 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React, { useState, useEffect, useRef } from 'react'
-import { Terminal, Trash2, ChevronDown, ChevronUp, ArrowDown, GripHorizontal } from 'lucide-react'
+import {
+  Terminal,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  ArrowDownToLine,
+  GripHorizontal,
+  CircleDot,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Info
+} from 'lucide-react'
 
 export interface LogEntry {
   timestamp: string
@@ -14,177 +26,254 @@ interface VsStatusTerminalProps {
   isLive: boolean
 }
 
+/* ── Per-type styling using only theme-safe Tailwind classes ─────────────── */
+const LOG_META = {
+  info: {
+    icon: <Info size={10} />,
+    iconClass: 'text-[var(--color-text-muted)]',
+    textClass: 'text-[var(--color-text-secondary)]',
+    prefix: 'INFO'
+  },
+  success: {
+    icon: <CheckCircle2 size={10} />,
+    iconClass: 'text-emerald-400',
+    textClass: 'text-emerald-400',
+    prefix: 'OK'
+  },
+  warning: {
+    icon: <AlertTriangle size={10} />,
+    iconClass: 'text-amber-400',
+    textClass: 'text-amber-400',
+    prefix: 'WARN'
+  },
+  error: {
+    icon: <XCircle size={10} />,
+    iconClass: 'text-rose-400',
+    textClass: 'text-rose-400',
+    prefix: 'ERR'
+  }
+} as const
+
 export const VsStatusTerminal = ({
   logs,
   onClearLogs,
   isLive
 }: VsStatusTerminalProps): React.ReactElement => {
-  const [height, setHeight] = useState(180)
+  const [height, setHeight] = useState(200)
   const [isMinimized, setIsMinimized] = useState(false)
   const [autoScroll, setAutoScroll] = useState(true)
   const isDragging = useRef(false)
   const startY = useRef(0)
-  const startHeight = useRef(180)
+  const startHeight = useRef(200)
   const logsEndRef = useRef<HTMLDivElement>(null)
 
+  /* Auto-scroll */
   useEffect(() => {
     if (autoScroll && !isMinimized && logsEndRef.current) {
       logsEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [logs, autoScroll, isMinimized])
 
+  /* Drag-to-resize */
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
     isDragging.current = true
     startY.current = e.clientY
     startHeight.current = height
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
+    const onMove = (ev: MouseEvent) => {
       if (!isDragging.current) return
-      const deltaY = startY.current - moveEvent.clientY
-      const newHeight = Math.min(Math.max(startHeight.current + deltaY, 100), 500)
-      setHeight(newHeight)
+      setHeight(Math.min(Math.max(startHeight.current + (startY.current - ev.clientY), 80), 560))
     }
-
-    const handleMouseUp = () => {
+    const onUp = () => {
       isDragging.current = false
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
     }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-  }
-
-  const getLogColor = (type: LogEntry['type']) => {
-    switch (type) {
-      case 'success':
-        return 'text-emerald-400 font-medium'
-      case 'warning':
-        return 'text-amber-400 font-medium'
-      case 'error':
-        return 'text-rose-400 font-medium'
-      default:
-        return 'text-[var(--color-text-secondary)] font-normal'
-    }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
   }
 
   return (
     <div
-      className="mt-auto border flex flex-col shrink-0 select-text transition-all duration-150 rounded-lg overflow-hidden shadow-lg"
+      className="shrink-0 select-text flex flex-col overflow-hidden transition-[height] duration-150"
       style={{
-        borderColor: 'var(--color-border)',
-        backgroundColor: 'var(--color-surface-card)',
-        height: isMinimized ? '38px' : `${height}px`
+        height: isMinimized ? '37px' : `${height}px`,
+        borderTop: '1px solid var(--color-border)',
+        backgroundColor: 'var(--color-surface-card)'
       }}
     >
-      {/* Resizable Drag Handle Header */}
+      {/* ── Header ─────────────────────────────────────────────────── */}
       <div
         onMouseDown={handleMouseDown}
-        className="h-9 px-3 flex items-center justify-between border-b cursor-row-resize select-none shrink-0 transition-colors hover:bg-[var(--color-surface-elevated)]"
+        className="h-9 px-3 flex items-center justify-between cursor-row-resize select-none shrink-0"
         style={{
-          borderColor: 'var(--color-border)',
-          backgroundColor: 'var(--color-surface-card)'
+          borderBottom: isMinimized ? 'none' : '1px solid var(--color-border)',
+          backgroundColor: 'var(--color-surface-elevated)'
         }}
       >
-        <div className="flex items-center gap-2.5">
-          <GripHorizontal size={14} className="text-[var(--color-text-muted)] cursor-row-resize" />
-          <div className="flex items-center gap-1.5">
-            <Terminal size={13} style={{ color: 'var(--color-accent)' }} />
-            <span className="text-xs font-bold" style={{ color: 'var(--color-text-primary)' }}>
-              Execution Log Terminal
-            </span>
-          </div>
+        {/* Left */}
+        <div className="flex items-center gap-2">
+          <GripHorizontal size={13} style={{ color: 'var(--color-text-muted)' }} />
+          <Terminal size={12} style={{ color: 'var(--color-accent)' }} />
+          <span
+            className="text-[11px] font-semibold uppercase tracking-widest"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            Output
+          </span>
+
+          {/* LIVE badge */}
           {isLive && (
             <span
-              className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border"
+              className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider"
               style={{
-                backgroundColor: 'color-mix(in srgb, var(--color-engine-version-text) 12%, transparent)',
-                color: 'var(--color-engine-version-text)',
-                borderColor: 'color-mix(in srgb, var(--color-engine-version-text) 25%, transparent)'
+                backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, transparent)',
+                color: 'var(--color-accent)',
+                border: '1px solid color-mix(in srgb, var(--color-accent) 25%, transparent)'
               }}
             >
-              <span
-                className="w-1.5 h-1.5 rounded-full animate-pulse"
-                style={{
-                  color: 'var(--color-engine-version-text)',
-                  backgroundColor: 'var(--color-engine-version-text)'
-                }}
-              />
-              LIVE STREAM
+              <CircleDot size={8} className="animate-pulse" />
+              Live
             </span>
           )}
-          <span
-            className="text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold"
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-muted)'
-            }}
-          >
-            {logs.length} Lines
-          </span>
+
+          {/* Line count */}
+          {logs.length > 0 && (
+            <span
+              className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md border"
+              style={{
+                backgroundColor: 'var(--color-surface-card)',
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-muted)'
+              }}
+            >
+              {logs.length}
+            </span>
+          )}
         </div>
 
-        <div className="flex items-center gap-1" onMouseDown={(e) => e.stopPropagation()}>
+        {/* Right — controls */}
+        <div className="flex items-center gap-0.5" onMouseDown={(e) => e.stopPropagation()}>
+          {/* Auto-scroll */}
           <button
-            onClick={() => setAutoScroll((prev) => !prev)}
-            title={autoScroll ? 'Auto-scroll Enabled' : 'Auto-scroll Disabled'}
-            className="p-1 rounded text-xs transition-colors cursor-pointer"
+            onClick={() => setAutoScroll((p) => !p)}
+            title={autoScroll ? 'Auto-scroll on' : 'Auto-scroll off'}
+            className="p-1.5 rounded transition-colors cursor-pointer"
             style={{
               color: autoScroll ? 'var(--color-accent)' : 'var(--color-text-muted)',
               backgroundColor: autoScroll
-                ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)'
+                ? 'color-mix(in srgb, var(--color-accent) 12%, transparent)'
                 : 'transparent'
             }}
           >
-            <ArrowDown size={13} />
+            <ArrowDownToLine size={12} />
           </button>
+
+          {/* Clear */}
           <button
             onClick={onClearLogs}
-            title="Clear Logs"
-            className="p-1 rounded text-xs transition-colors cursor-pointer hover:text-rose-400"
+            title="Clear output"
+            className="p-1.5 rounded transition-colors cursor-pointer hover:text-rose-400"
             style={{ color: 'var(--color-text-muted)' }}
           >
-            <Trash2 size={13} />
+            <Trash2 size={12} />
           </button>
+
+          {/* Divider */}
+          <span
+            className="w-px h-4 mx-1"
+            style={{ backgroundColor: 'var(--color-border)' }}
+          />
+
+          {/* Collapse / Expand */}
           <button
-            onClick={() => setIsMinimized((prev) => !prev)}
-            title={isMinimized ? 'Expand Terminal' : 'Minimize Terminal'}
-            className="p-1 rounded text-xs transition-colors cursor-pointer ml-1"
+            onClick={() => setIsMinimized((p) => !p)}
+            title={isMinimized ? 'Expand' : 'Collapse'}
+            className="p-1.5 rounded transition-colors cursor-pointer"
             style={{ color: 'var(--color-text-muted)' }}
           >
-            {isMinimized ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            {isMinimized ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </button>
         </div>
       </div>
 
-      {/* Terminal Viewport */}
+      {/* ── Log viewport ─────────────────────────────────────────── */}
       {!isMinimized && (
         <div
-          className="flex-1 p-3 overflow-y-auto font-mono text-[11px] space-y-1.5 leading-relaxed"
+          className="flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed"
           style={{ backgroundColor: 'var(--color-surface)' }}
         >
           {logs.length === 0 ? (
+            /* Empty state */
             <div
-              className="italic text-center py-6 select-none text-xs"
+              className="h-full flex flex-col items-center justify-center gap-2 select-none py-10"
               style={{ color: 'var(--color-text-muted)' }}
             >
-              Execution log terminal ready. Real-time installation and verification logs will stream
-              here.
+              <Terminal size={20} style={{ color: 'var(--color-border)', opacity: 0.6 }} />
+              <p className="text-[11px] italic">Waiting for output…</p>
             </div>
           ) : (
-            logs.map((log, index) => (
-              <div key={index} className="flex items-start gap-2.5">
-                <span
-                  className="shrink-0 select-none text-[10px] opacity-60 font-mono"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
-                  [{log.timestamp}]
-                </span>
-                <span className={`break-all ${getLogColor(log.type)}`}>{log.text}</span>
-              </div>
-            ))
+            <table className="w-full border-collapse">
+              <tbody>
+                {logs.map((log, i) => {
+                  const meta = LOG_META[log.type]
+                  return (
+                    <tr
+                      key={i}
+                      style={{
+                        backgroundColor:
+                          i % 2 === 0
+                            ? 'transparent'
+                            : 'color-mix(in srgb, var(--color-border) 30%, transparent)'
+                      }}
+                    >
+                      {/* Line number */}
+                      <td
+                        className="text-right align-top select-none pr-3 pl-3 py-0.5 font-mono"
+                        style={{
+                          color: 'var(--color-text-muted)',
+                          borderRight: '1px solid var(--color-border)',
+                          width: '2.5rem',
+                          fontSize: '10px',
+                          opacity: 0.5
+                        }}
+                      >
+                        {i + 1}
+                      </td>
+
+                      {/* Timestamp */}
+                      <td
+                        className="pl-3 pr-2 py-0.5 align-top whitespace-nowrap select-none"
+                        style={{
+                          color: 'var(--color-text-muted)',
+                          fontSize: '10px',
+                          width: '6.5rem'
+                        }}
+                      >
+                        {log.timestamp}
+                      </td>
+
+                      {/* Level badge */}
+                      <td
+                        className="px-2 py-0.5 align-top whitespace-nowrap select-none"
+                        style={{ width: '3.5rem' }}
+                      >
+                        <span className={`flex items-center gap-1 font-bold ${meta.iconClass}`} style={{ fontSize: '10px' }}>
+                          {meta.icon}
+                          {meta.prefix}
+                        </span>
+                      </td>
+
+                      {/* Message */}
+                      <td className={`pl-1 pr-4 py-0.5 align-top break-all ${meta.textClass}`}>
+                        {log.text}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           )}
           <div ref={logsEndRef} />
         </div>
