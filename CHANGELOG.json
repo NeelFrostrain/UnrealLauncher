@@ -2,9 +2,55 @@
   "project": "Unreal Launcher",
   "versions": [
     {
+      "version": "2.6.0",
+      "date": "2026-08-03",
+      "tags": [
+        "C++ Compiler & Debug Hub",
+        "VS Toolchain",
+        "IDE Integrations",
+        "UI"
+      ],
+      "sections": [
+        {
+          "category": "Added",
+          "items": [
+            "Added C++ Compiler & Debug Hub (`ProjectCompilerDialog.tsx` & `projectCpp.ts`): An interactive dialog for Unreal Engine C++ projects supporting 1-click Build, Debug, Rebuild, Generate Solution, Fix Target Rules, and Purge & Deep Clean.",
+            "Added Build-Before-Debug Pipeline: Clicking Debug automatically compiles project C++ binaries (`DebugGame Editor` or `Development Editor`) via UnrealBuildTool before spawning the editor.",
+            "Added Smart Configuration Binary Resolution: Automatically resolves configuration-specific editor executables (e.g. `UnrealEditor-Win64-DebugGame.exe` or `UnrealEditor-Win64-Debug.exe`) created by UBT for custom and source-built Unreal Engines (UE 5.0–5.8+), eliminating splash screen rebuild popups.",
+            "Added Live Debugger Status & Process Manager: Real-time tracking of running C++ debug editor processes (`cpp-debug-status`) with a pulsing `🐛 Debugger Active` badge in the terminal header and a 1-click Stop Debugger cancellation button to terminate active debug processes via process tree termination.",
+            "Added Build Cancellation: Added process tree termination for UnrealBuildTool and compiler subprocesses (`taskkill /F /T`) with live build cancellation logs and a pulsing red Cancel button (scoped strictly to build/rebuild/debug operations).",
+            "Added Target.cs Rules Fixer: Added automatic inspection and fixing of Target.cs build rules (`bOverrideBuildEnvironment = true`, removing incompatible `TargetBuildEnvironment.Unique`) for seamless compatibility with installed engines.",
+            "Added Purge & Deep Clean Utility: Added 1-click purge functionality to clean build artifacts (`.vs`, `.idea`, `Saved`, `Intermediate`, `Binaries`, `DDC`, `.vscode`, `.sln`, `.slnx`).",
+            "Added Compiler Log Terminal: Built-in interactive log terminal with level filtering (Error, Warning, Info), auto-scrolling, log copying, and 1-click log export to `Saved/Logs/Compiler_Output_<timestamp>.log`.",
+            "Added JetBrains Rider & Visual Studio Support: IDE selector toggle in the compiler header. JetBrains Rider launching injects `DOTNET_ROOT` pointing to the engine's bundled DotNet SDK (`Engine\\Binaries\\ThirdParty\\DotNet\\win-x64`), and prefers `.sln` files when available to prevent system .NET 10 version mismatches.",
+            "Added VS Toolchain Diagnostics: Renamed `CompilePage` and related components to `VsStatusPage` / `vsStatus`, adding auto-scrolling, drag-to-resize terminal containers, live workload status badges, and Visual Studio environment repair utilities."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "items": [
+            "Fixed Cancel Button Visibility: Restricted the Cancel Build button so it only appears during active build, rebuild, or debug operations, and does not show during local folder clean operations.",
+            "Fixed Folder Opening in Explorer: Re-added native `shell.openPath` in `openFileOrDirectory` (`processUtils.ts`) so clicking Source or Folder quick action buttons opens Windows Explorer reliably.",
+            "Fixed Electron Process Coupling: All launched C++ debug processes, IDE instances, and file explorer windows are spawned completely detached (`detached: true`, `stdio: 'ignore'`) from Electron's process tree to prevent launcher freezes and memory coupling."
+          ]
+        },
+        {
+          "category": "Changed",
+          "items": [
+            "Restructured the project compiler action toolbar into a unified single-row flex layout with standardized button heights (`h-8` / `h-9`) and clear visual hierarchy.",
+            "Suppressed scrollbars globally across all scrollable containers (`scrollbar-none`) using modern CSS design tokens."
+          ]
+        }
+      ]
+    },
+    {
       "version": "2.5.8",
       "date": "2026-07-31",
-      "tags": ["performance", "settings", "UI"],
+      "tags": [
+        "performance",
+        "settings",
+        "UI"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -33,7 +79,13 @@
     {
       "version": "2.5.7",
       "date": "2026-07-28",
-      "tags": ["feature", "performance", "Rust", "UI", "bugfix"],
+      "tags": [
+        "feature",
+        "performance",
+        "Rust",
+        "UI",
+        "bugfix"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -63,7 +115,13 @@
     {
       "version": "2.5.6",
       "date": "2026-07-26",
-      "tags": ["feature", "ui", "UX", "theme", "bugfix"],
+      "tags": [
+        "feature",
+        "ui",
+        "UX",
+        "theme",
+        "bugfix"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -95,7 +153,10 @@
     {
       "version": "2.5.2",
       "date": "2026-07-26",
-      "tags": ["bugfix", "quality"],
+      "tags": [
+        "bugfix",
+        "quality"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -109,7 +170,11 @@
     {
       "version": "2.5.1",
       "date": "2026-07-24",
-      "tags": ["performance", "optimization", "bugfix"],
+      "tags": [
+        "performance",
+        "optimization",
+        "bugfix"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -134,7 +199,11 @@
     {
       "version": "2.5.0",
       "date": "2026-07-20",
-      "tags": ["feature", "bugfix", "quality"],
+      "tags": [
+        "feature",
+        "bugfix",
+        "quality"
+      ],
       "sections": [
         {
           "category": "Changed",
@@ -169,7 +238,10 @@
     {
       "version": "2.4.7",
       "date": "2026-07-15",
-      "tags": ["refactor", "pathing"],
+      "tags": [
+        "refactor",
+        "pathing"
+      ],
       "sections": [
         {
           "category": "Changed",
@@ -204,7 +276,11 @@
     {
       "version": "2.4.6",
       "date": "2026-07-09",
-      "tags": ["bugfix", "ux", "startup"],
+      "tags": [
+        "bugfix",
+        "ux",
+        "startup"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -222,7 +298,11 @@
     {
       "version": "2.4.5",
       "date": "2026-07-09",
-      "tags": ["bugfix", "ux", "perf"],
+      "tags": [
+        "bugfix",
+        "ux",
+        "perf"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -237,7 +317,11 @@
     {
       "version": "2.4.4",
       "date": "2026-07-09",
-      "tags": ["perf", "rust", "plugins"],
+      "tags": [
+        "perf",
+        "rust",
+        "plugins"
+      ],
       "sections": [
         {
           "category": "Performance",
@@ -251,7 +335,10 @@
     {
       "version": "2.4.3",
       "date": "2026-07-09",
-      "tags": ["bugfix", "rpc"],
+      "tags": [
+        "bugfix",
+        "rpc"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -265,7 +352,11 @@
     {
       "version": "2.4.2",
       "date": "2026-07-09",
-      "tags": ["refactor", "ui", "perf"],
+      "tags": [
+        "refactor",
+        "ui",
+        "perf"
+      ],
       "sections": [
         {
           "category": "Removed",
@@ -293,7 +384,10 @@
     {
       "version": "2.4.1",
       "date": "2026-07-09",
-      "tags": ["merge", "release"],
+      "tags": [
+        "merge",
+        "release"
+      ],
       "sections": [
         {
           "category": "Summary",
@@ -324,7 +418,11 @@
     {
       "version": "2.4.0",
       "date": null,
-      "tags": ["perf", "ui", "grid"],
+      "tags": [
+        "perf",
+        "ui",
+        "grid"
+      ],
       "sections": [
         {
           "category": "Performance & Memory",
@@ -364,7 +462,10 @@
     {
       "version": "2.3.3",
       "date": null,
-      "tags": ["ux", "palette"],
+      "tags": [
+        "ux",
+        "palette"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -390,13 +491,22 @@
     {
       "version": "2.3.2",
       "date": null,
-      "tags": ["bugfix", "build", "launch"],
+      "tags": [
+        "bugfix",
+        "build",
+        "launch"
+      ],
       "sections": []
     },
     {
       "version": "2.3.1",
       "date": null,
-      "tags": ["ux", "features", "arch", "testing"],
+      "tags": [
+        "ux",
+        "features",
+        "arch",
+        "testing"
+      ],
       "sections": [
         {
           "category": "Added — UX & Accessibility (Section 4)",
@@ -469,7 +579,11 @@
     {
       "version": "2.3.0",
       "date": "2026-05-30",
-      "tags": ["feature", "performance", "ui"],
+      "tags": [
+        "feature",
+        "performance",
+        "ui"
+      ],
       "sections": [
         {
           "category": "Added — Launch Configuration Profiles",
@@ -552,7 +666,9 @@
     {
       "version": "2.2.5",
       "date": "2026-05-24",
-      "tags": ["hotfix"],
+      "tags": [
+        "hotfix"
+      ],
       "sections": [
         {
           "category": "Security Fixes",
@@ -626,7 +742,9 @@
     {
       "version": "2.2.4",
       "date": "2026-05-24",
-      "tags": ["main"],
+      "tags": [
+        "main"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -657,7 +775,9 @@
     {
       "version": "2.2.3",
       "date": "2026-05-22",
-      "tags": ["main"],
+      "tags": [
+        "main"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -690,7 +810,9 @@
     {
       "version": "2.2.2",
       "date": "2026-05-16",
-      "tags": ["hotfix"],
+      "tags": [
+        "hotfix"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -717,7 +839,9 @@
     {
       "version": "2.2.1",
       "date": "2026-05-07",
-      "tags": ["main"],
+      "tags": [
+        "main"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -732,7 +856,9 @@
     {
       "version": "2.2.0",
       "date": "2026-05-03",
-      "tags": ["main"],
+      "tags": [
+        "main"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -780,7 +906,9 @@
     {
       "version": "2.1.2",
       "date": "2026-04-26",
-      "tags": ["v2.1.2"],
+      "tags": [
+        "v2.1.2"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -833,7 +961,9 @@
     {
       "version": "2.1.1",
       "date": "2026-04-20",
-      "tags": ["v2.1.1"],
+      "tags": [
+        "v2.1.1"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -871,7 +1001,9 @@
     {
       "version": "2.1.0",
       "date": "2026-04-20",
-      "tags": ["v2.1.0"],
+      "tags": [
+        "v2.1.0"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -915,7 +1047,9 @@
     {
       "version": "2.0.4",
       "date": "2026-04-13",
-      "tags": ["v2.0.4"],
+      "tags": [
+        "v2.0.4"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -931,7 +1065,9 @@
     {
       "version": "2.0.3",
       "date": "2026-04-12",
-      "tags": ["v2.0.3"],
+      "tags": [
+        "v2.0.3"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -944,7 +1080,9 @@
     {
       "version": "2.0.2",
       "date": "2026-04-12",
-      "tags": ["v2.0.2"],
+      "tags": [
+        "v2.0.2"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -957,7 +1095,9 @@
     {
       "version": "2.0.1",
       "date": "2026-04-11",
-      "tags": ["v2.0.1"],
+      "tags": [
+        "v2.0.1"
+      ],
       "sections": [
         {
           "category": "Fixed",
@@ -972,7 +1112,9 @@
     {
       "version": "1.9.0",
       "date": "2026-04-09",
-      "tags": ["v1.9_dev"],
+      "tags": [
+        "v1.9_dev"
+      ],
       "sections": [
         {
           "category": "Added",
@@ -1097,11 +1239,15 @@
     {
       "version": "1.0.0",
       "date": null,
-      "tags": ["Initial Release"],
+      "tags": [
+        "Initial Release"
+      ],
       "sections": [
         {
           "category": "Added",
-          "items": ["Initial MVP with engine detection and one-click launch."]
+          "items": [
+            "Initial MVP with engine detection and one-click launch."
+          ]
         }
       ]
     }

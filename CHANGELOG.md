@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [3.0.0] - 2026-08-03 — `C++ Compiler & Debug Hub · VS Toolchain · IDE Integrations · UI`
+## [2.6.0] - 2026-08-03 — `C++ Compiler & Debug Hub · VS Toolchain · IDE Integrations · UI`
 
 ### Added
 
