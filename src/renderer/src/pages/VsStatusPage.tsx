@@ -141,7 +141,7 @@ const VsStatusPage = (): React.ReactElement => {
         style={{ borderColor: 'var(--color-border)' }}
       >
         {/* Title */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mx-1">
           <div className="flex flex-col">
             <h1
               className="text-sm font-bold tracking-tight"
@@ -454,7 +454,7 @@ const VsStatusPage = (): React.ReactElement => {
                   ) : (
                     <>
                       <Wrench size={13} />
-                      Execute Repair ({selectedComponentIds.length})
+                      Execute Repair
                     </>
                   )}
                 </button>
