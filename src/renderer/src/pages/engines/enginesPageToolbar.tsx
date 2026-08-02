@@ -95,7 +95,7 @@ export function EnginesPageToolbar({
           }}
         >
           <Hammer size={12} />
-          VS Setup
+          VS Status
         </button>
         {activeTab === 'plugins' && engines.length > 1 && (
           <>
