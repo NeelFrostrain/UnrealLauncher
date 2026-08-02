@@ -1,6 +1,6 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import type { CppBuildOptions } from '../main/ipc/projectCpp'
 
 if (process.contextIsolated) {
   try {
@@ -96,6 +96,8 @@ if (process.contextIsolated) {
       electronVersion: process.versions.electron ?? '',
       saveMainSettings: (settings) => ipcRenderer.invoke('save-main-settings', settings),
       selectFolder: () => ipcRenderer.invoke('select-folder'),
+      selectFile: (filters?: Array<{ name: string; extensions: string[] }>) =>
+        ipcRenderer.invoke('select-file', filters),
       loadSavedProjects: () => ipcRenderer.invoke('load-saved-projects'),
       updateProjectVersion: (projectPath: string, newVersion: string) =>
         ipcRenderer.invoke('update-project-version', projectPath, newVersion),
@@ -282,6 +284,42 @@ if (process.contextIsolated) {
         ipcRenderer.on('vs:log-output', listener)
         return (): void => {
           ipcRenderer.removeListener('vs:log-output', listener)
+        }
+      },
+      projectCppScan: (projectPath: string) => ipcRenderer.invoke('project-cpp-scan', projectPath),
+      projectCppCreateStructure: (projectPath: string) =>
+        ipcRenderer.invoke('project-cpp-create-structure', projectPath),
+      projectCppFixTargetRules: (projectPath: string) =>
+        ipcRenderer.invoke('project-cpp-fix-target-rules', projectPath),
+      projectCppOpenSln: (projectPath: string, ide?: 'vs' | 'rider', customRiderPath?: string) =>
+        ipcRenderer.invoke('project-cpp-open-sln', projectPath, ide, customRiderPath),
+      projectCppBuild: (options: CppBuildOptions) => ipcRenderer.invoke('project-cpp-build', options),
+      projectCppDebug: (projectPath: string, config?: string) =>
+        ipcRenderer.invoke('project-cpp-debug', projectPath, config),
+      projectCppFetchSavedLogs: (projectPath: string) =>
+        ipcRenderer.invoke('project-cpp-fetch-saved-logs', projectPath),
+      projectCppSaveLogFile: (projectPath: string, content: string) =>
+        ipcRenderer.invoke('project-cpp-save-log-file', projectPath, content),
+      onCppLogOutput: (
+        callback: (log: {
+          timestamp: string
+          text: string
+          type: 'info' | 'success' | 'warning' | 'error'
+          projectPath: string
+        }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          log: {
+            timestamp: string
+            text: string
+            type: 'info' | 'success' | 'warning' | 'error'
+            projectPath: string
+          }
+        ): void => callback(log)
+        ipcRenderer.on('project-cpp-log-output', listener)
+        return (): void => {
+          ipcRenderer.removeListener('project-cpp-log-output', listener)
         }
       }
     })

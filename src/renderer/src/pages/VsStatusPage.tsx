@@ -2,20 +2,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Wrench,
-  ShieldAlert,
   CheckCircle2,
   AlertCircle,
   RefreshCw,
   FolderOpen,
-  Cpu,
-  Monitor,
-  Zap,
   AlertTriangle,
   CheckCheck
 } from 'lucide-react'
 import { useToast } from '../components/ui/ToastContext'
 import PageWrapper from '../layout/PageWrapper'
-import { Card, SectionHeader, SettingRow, Toggle } from '../components/settings/SectionHelpers'
+import { Card, SectionHeader, SettingRow } from '../components/settings/SectionHelpers'
 import { RepairWorkloadsDialog } from '../components/vsStatus/RepairWorkloadsDialog'
 import { VsStatusTerminal, type LogEntry } from '../components/vsStatus/VsStatusTerminal'
 import type { VsSetupStatus } from '../components/vsStatus/vsStatusTypes'

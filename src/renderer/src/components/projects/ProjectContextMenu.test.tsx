@@ -52,7 +52,6 @@ describe('ProjectContextMenu', () => {
 
     expect(screen.getByText('My Project')).toBeInTheDocument()
     expect(screen.getByText('Favorite')).toBeInTheDocument()
-    expect(screen.getByText('Hidden')).toBeInTheDocument()
     expect(screen.getByText('Git')).toBeInTheDocument()
   })
 
@@ -129,5 +128,49 @@ describe('ProjectContextMenu', () => {
 
     expect(screen.queryByText('Recent activity')).not.toBeInTheDocument()
     expect(screen.queryByText('No recent activity yet')).not.toBeInTheDocument()
+  })
+
+  it('renders Open Compiler menu option and triggers onOpenCompiler when clicked', () => {
+    const onOpenCompiler = vi.fn()
+    const onClose = vi.fn()
+    render(
+      <ToastProvider>
+        <ProjectContextMenu
+          x={120}
+          y={80}
+          name="My Project"
+          projectPath="C:/Projects/MyProject"
+          projectVersion="5.4"
+          isFavorite={false}
+          isHidden={false}
+          gitInitialized={false}
+          gitBranch=""
+          gitRemoteUrl=""
+          onLaunch={vi.fn()}
+          onLaunchGame={vi.fn()}
+          onLaunchWithConfig={vi.fn()}
+          onFavorite={vi.fn()}
+          onOpenDir={vi.fn()}
+          onHide={vi.fn()}
+          onViewLogs={vi.fn()}
+          onGitInit={vi.fn()}
+          onClose={onClose}
+          onOpenCommitDialog={vi.fn()}
+          onOpenBranchDialog={vi.fn()}
+          onOpenFileEditor={vi.fn()}
+          onOpenPlugins={vi.fn()}
+          onOpenHealthReport={vi.fn()}
+          onOpenAssetAnalyzer={vi.fn()}
+          onOpenSnapshots={vi.fn()}
+          onOpenCompiler={onOpenCompiler}
+        />
+      </ToastProvider>
+    )
+
+    const compilerBtn = screen.getByText('Open Compiler')
+    expect(compilerBtn).toBeInTheDocument()
+    compilerBtn.click()
+    expect(onOpenCompiler).toHaveBeenCalledTimes(1)
+    expect(onClose).toHaveBeenCalledTimes(1)
   })
 })

@@ -1,9 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
-import { execFile } from 'child_process'
+import { execFile, spawn } from 'child_process'
 import { promisify } from 'util'
-import { spawn } from 'child_process'
-import { shell } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import { logger } from '../logger'
@@ -150,19 +148,16 @@ export function openFileOrDirectory(filePath: string): void {
     logger.info('process', 'Opening file or directory', { filePath, platform: process.platform })
 
     if (process.platform === 'win32') {
-      shell
-        .openPath(resolved)
-        .then((errorMessage) => {
-          if (errorMessage) {
-            logger.error('process', 'Failed to open path on Windows', {
-              path: resolved,
-              error: errorMessage
-            })
-          }
-        })
-        .catch((error) => {
-          logger.error('process', 'Failed to open path on Windows', { path: resolved, error })
-        })
+      // Use 'cmd /c start' instead of shell.openPath so the spawned process is
+      // completely detached from Electron's process tree.
+      // shell.openPath() keeps Electron as the parent, which is why UnrealEditor
+      // appears nested under Electron in Task Manager.
+      spawn('cmd', ['/c', 'start', '', resolved], {
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true,
+        shell: false
+      }).unref()
     } else if (process.platform === 'darwin') {
       spawn('open', [resolved], {
         detached: true,

@@ -27,6 +27,34 @@ const LaunchSection = ({
   const [gpuDisabled, setGpuDisabled] = useState(true)
   const [showRestartBanner, setShowRestartBanner] = useState(false)
   const [restarting, setRestarting] = useState(false)
+  const [preferredIde, setPreferredIde] = useState<'vs' | 'rider'>(() =>
+    getSetting('preferredIde') || 'vs'
+  )
+
+  const handleIdeChange = (ide: 'vs' | 'rider'): void => {
+    setPreferredIde(ide)
+    setSetting('preferredIde', ide)
+  }
+
+  const [riderPath, setRiderPath] = useState(() => getSetting('riderPath') || '')
+
+  const handleRiderPathChange = (val: string): void => {
+    setRiderPath(val)
+    setSetting('riderPath', val)
+  }
+
+  const handleBrowseRider = async (): Promise<void> => {
+    try {
+      const res = await window.electronAPI.selectFile([
+        { name: 'Executable Files', extensions: ['exe'] }
+      ])
+      if (res) {
+        handleRiderPathChange(res)
+      }
+    } catch {
+      /* ignore */
+    }
+  }
 
   useEffect(() => {
     window.electronAPI.getMainSettings().then((s) => {
@@ -77,6 +105,65 @@ const LaunchSection = ({
         >
           <Toggle on={gpuDisabled} onChange={handleGpuToggle} />
         </SettingRow>
+        <SettingRow
+          label="Preferred C++ IDE (.sln)"
+          description="Choose your primary IDE for opening solution files (.sln)."
+        >
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleIdeChange('vs')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors cursor-pointer border ${
+                preferredIde === 'vs'
+                  ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
+                  : 'bg-[var(--color-surface-card)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:text-[var(--color-text-primary)]'
+              }`}
+            >
+              Visual Studio (VS)
+            </button>
+            <button
+              onClick={() => handleIdeChange('rider')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors cursor-pointer border ${
+                preferredIde === 'rider'
+                  ? 'bg-rose-600 text-white border-rose-600'
+                  : 'bg-[var(--color-surface-card)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:text-[var(--color-text-primary)]'
+              }`}
+            >
+              JetBrains Rider
+            </button>
+          </div>
+        </SettingRow>
+        {preferredIde === 'rider' && (
+          <SettingRow
+            label="JetBrains Rider Executable Path"
+            description="Custom rider64.exe path if auto-detection does not find your installation."
+          >
+            <div className="flex items-center gap-2 w-72">
+              <input
+                type="text"
+                value={riderPath}
+                onChange={(e) => handleRiderPathChange(e.target.value)}
+                placeholder="Auto-detected or C:\...\rider64.exe"
+                className="w-full text-xs px-2.5 py-1.5 rounded border focus:outline-none"
+                style={{
+                  backgroundColor: 'var(--color-surface-card)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
+              />
+              <button
+                onClick={handleBrowseRider}
+                className="px-2.5 py-1.5 text-xs font-semibold rounded border cursor-pointer shrink-0 transition-colors"
+                style={{
+                  backgroundColor: 'var(--color-surface-elevated)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)'
+                }}
+              >
+                Browse
+              </button>
+            </div>
+          </SettingRow>
+        )}
         {showRestartBanner && (
           <div
             className="mt-2 mx-2 flex items-center justify-between gap-3 px-4 py-3 rounded-lg"

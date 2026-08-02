@@ -2,6 +2,43 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
 declare global {
+  interface CppModuleInfo {
+    name: string
+    buildCsPath: string
+    relativePath: string
+  }
+
+  interface CppSourceFileInfo {
+    name: string
+    path: string
+    relativePath: string
+    extension: string
+    sizeBytes: number
+  }
+
+  interface CppScanResult {
+    hasSourceFolder: boolean
+    isCppProject: boolean
+    sourceFolderPath: string
+    slnPath: string | null
+    hasSln: boolean
+    targets: string[]
+    modules: CppModuleInfo[]
+    cppFilesCount: number
+    headerFilesCount: number
+    csharpFilesCount: number
+    totalFilesCount: number
+    files: CppSourceFileInfo[]
+    error?: string
+  }
+
+  interface CppBuildOptions {
+    projectPath: string
+    config: 'Development Editor' | 'DebugGame Editor' | 'Development' | 'Shipping' | 'DebugGame'
+    platform: 'Win64' | 'Linux' | 'Mac' | 'Android' | 'iOS'
+    action: 'build' | 'rebuild' | 'clean' | 'generate'
+  }
+
   interface HealthIssue {
     type: 'info' | 'warning' | 'critical'
     message: string
@@ -206,6 +243,9 @@ declare global {
       calculateAllProjectSizes: () => Promise<void>
       // Filesystem
       openDirectory: (dirPath: string) => Promise<{ success: boolean; error?: string }>
+      selectFile: (
+        filters?: Array<{ name: string; extensions: string[] }>
+      ) => Promise<string | null>
       openExternal: (url: string) => Promise<{ success: boolean; error?: string }>
       // Window
       windowMinimize: () => void
@@ -451,6 +491,40 @@ declare global {
           timestamp: string
           text: string
           type: 'info' | 'success' | 'warning' | 'error'
+        }) => void
+      ) => () => void
+      projectCppScan: (projectPath: string) => Promise<CppScanResult>
+      projectCppCreateStructure: (
+        projectPath: string
+      ) => Promise<{ success: boolean; createdFiles?: string[]; error?: string }>
+      projectCppFixTargetRules: (
+        projectPath: string
+      ) => Promise<{ success: boolean; fixedFiles?: string[]; error?: string }>
+      projectCppOpenSln: (
+        projectPath: string,
+        ide?: 'vs' | 'rider',
+        customRiderPath?: string
+      ) => Promise<{ success: boolean; error?: string }>
+      projectCppBuild: (
+        options: CppBuildOptions
+      ) => Promise<{ success: boolean; exitCode: number | null; error?: string }>
+      projectCppDebug: (
+        projectPath: string,
+        config?: string
+      ) => Promise<{ success: boolean; error?: string }>
+      projectCppFetchSavedLogs: (
+        projectPath: string
+      ) => Promise<{ success: boolean; logFilesFound?: string[]; error?: string }>
+      projectCppSaveLogFile: (
+        projectPath: string,
+        content: string
+      ) => Promise<{ success: boolean; savedPath?: string; error?: string }>
+      onCppLogOutput: (
+        callback: (log: {
+          timestamp: string
+          text: string
+          type: 'info' | 'success' | 'warning' | 'error'
+          projectPath: string
         }) => void
       ) => () => void
     }

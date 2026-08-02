@@ -12,6 +12,7 @@ import { registerPaletteHandlers } from './ipc/paletteHandlers'
 import { registerProjectPluginHandlers } from './ipc/projectPlugins'
 import { registerTaskManagerHandlers } from './ipc/taskManager'
 import { registerVsStatusHandlers } from './ipc/vsStatus'
+import { registerProjectCppHandlers } from './ipc/projectCpp'
 
 export { cleanupWorkers } from './workers/workers'
 
@@ -28,4 +29,5 @@ export function registerIpcHandlers(): void {
   registerProjectPluginHandlers(ipcMain)
   registerTaskManagerHandlers(ipcMain)
   registerVsStatusHandlers(ipcMain)
+  registerProjectCppHandlers(ipcMain)
 }

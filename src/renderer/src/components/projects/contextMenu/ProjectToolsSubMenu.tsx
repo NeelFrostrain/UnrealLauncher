@@ -9,7 +9,8 @@ import {
   Package,
   Heart,
   Database,
-  Camera
+  Camera,
+  Code2
 } from 'lucide-react'
 import { useToast } from '../../ui/ToastContext'
 import { MenuItem, MenuSeparator, MENU_STYLE } from './contextMenuComponents'
@@ -27,6 +28,7 @@ export const ProjectToolsSubMenu = ({
   onOpenHealthReport,
   onOpenAssetAnalyzer,
   onOpenSnapshots,
+  onOpenCompiler,
   onClose,
   onMouseEnter,
   onMouseLeave
@@ -42,6 +44,7 @@ export const ProjectToolsSubMenu = ({
   onOpenHealthReport: () => void
   onOpenAssetAnalyzer: () => void
   onOpenSnapshots: () => void
+  onOpenCompiler?: () => void
   onClose: () => void
   onMouseEnter?: () => void
   onMouseLeave?: () => void
@@ -82,6 +85,17 @@ export const ProjectToolsSubMenu = ({
       onMouseLeave={onMouseLeave}
     >
       <div className="py-1">
+        <MenuItem
+          icon={<Code2 size={11} style={{ color: '#38bdf8' }} />}
+          label="Open Compiler"
+          sub="C++ build, debug & solution tools"
+          onClick={() => {
+            onOpenCompiler?.()
+            onClose()
+          }}
+          noClose
+          onClose={onClose}
+        />
         <MenuItem
           icon={<Settings2 size={11} style={{ color: '#94a3b8' }} />}
           label="Edit Default Config"
