@@ -121,13 +121,6 @@ const CompilePage = (): React.ReactElement => {
         {/* Scrollable Main Layout Body */}
         <div className="flex-1 overflow-y-auto mt-2 min-h-0 space-y-6 pb-6 pr-1">
           {/* Section 1: Overview & Paths */}
-          <OverviewTab
-            status={status}
-            customVsPath={customVsPath}
-            onCustomVsPathChange={setCustomVsPath}
-            onSelectFolder={handleSelectFolder}
-          />
-
           {/* Section 2: Workloads & Repair Summary Card with Open Dialog Button */}
           <div>
             <SectionHeader label="WORKLOADS & COMPONENT SELECTION" />
@@ -211,6 +204,13 @@ const CompilePage = (): React.ReactElement => {
               </div>
             </Card>
           </div>
+
+          <OverviewTab
+            status={status}
+            customVsPath={customVsPath}
+            onCustomVsPathChange={setCustomVsPath}
+            onSelectFolder={handleSelectFolder}
+          />
 
           {/* Section 3: Unreal Engine Version Matrix */}
           <EnvironmentTab />
