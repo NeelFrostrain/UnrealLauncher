@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { dialog } from 'electron'
 import {
   clearAppData,
@@ -84,6 +84,28 @@ export async function handleSelectFolder(): Promise<string[] | null> {
     firstPath: result.filePaths[0]
   })
   return result.filePaths
+}
+
+/**
+ * Handles the select-file IPC event
+ */
+export async function handleSelectFile(
+  filters?: Array<{ name: string; extensions: string[] }>
+): Promise<string | null> {
+  const win = getMainWindow()
+  if (!win) return null
+
+  logger.info('dialog', 'Select file dialog opened')
+  const result = await dialog.showOpenDialog(win, {
+    title: 'Select File',
+    properties: ['openFile'],
+    filters: filters || [{ name: 'Executable Files', extensions: ['exe'] }]
+  })
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return null
+  }
+  return result.filePaths[0]
 }
 
 /**

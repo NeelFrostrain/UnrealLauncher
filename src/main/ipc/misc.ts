@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
 import { registerWindowHandlers } from './windowHandlers'
 import { handleOpenExternal } from './externalLinks'
@@ -11,6 +11,7 @@ import {
   handleSaveMainSettings,
   handleGetRunningProjects,
   handleSelectFolder,
+  handleSelectFile,
   handleGetEngineScanPaths,
   handleSaveEngineScanPaths,
   handleGetProjectScanPaths,
@@ -47,6 +48,7 @@ export function registerMiscHandlers(ipcMain_: typeof ipcMain): void {
   ipcMain_.handle('save-main-settings', (_event, settings) => handleSaveMainSettings(settings))
   ipcMain_.handle('get-running-projects', handleGetRunningProjects)
   ipcMain_.handle('select-folder', handleSelectFolder)
+  ipcMain_.handle('select-file', (_event, filters) => handleSelectFile(filters))
 
   // Scan paths
   ipcMain_.handle('get-engine-scan-paths', handleGetEngineScanPaths)

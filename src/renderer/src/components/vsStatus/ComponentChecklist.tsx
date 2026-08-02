@@ -2,14 +2,15 @@
 import type React from 'react'
 import { CheckCircle2, AlertCircle, RefreshCw, Wrench } from 'lucide-react'
 import { SectionHeader, Card, Toggle } from '../settings/SectionHelpers'
-import type { VsSetupStatus } from './compileTypes'
+import type { VsSetupStatus } from './vsStatusTypes'
 
 interface ComponentChecklistProps {
   status: VsSetupStatus | null
   selectedComponentIds: string[]
   repairing: boolean
   onToggleSelection: (id: string) => void
-  onRepairAndInstall: () => void
+  onRepairAndInstall?: () => void
+  showActionButton?: boolean
 }
 
 export const ComponentChecklist = ({
@@ -17,7 +18,8 @@ export const ComponentChecklist = ({
   selectedComponentIds,
   repairing,
   onToggleSelection,
-  onRepairAndInstall
+  onRepairAndInstall,
+  showActionButton = false
 }: ComponentChecklistProps): React.ReactElement => {
   const installedCount = status?.components.filter((c) => c.installed).length || 0
   const totalCount = status?.components.length || 0
@@ -121,35 +123,37 @@ export const ComponentChecklist = ({
             })}
           </div>
 
-          {/* Action Footer */}
-          <div className="pt-3 border-t space-y-3" style={{ borderColor: 'var(--color-border)' }}>
-            <button
-              onClick={onRepairAndInstall}
-              disabled={repairing}
-              className={`w-full cursor-pointer flex justify-center items-center px-4 py-3 rounded-lg text-xs font-bold tracking-wide transition-all duration-200 ${
-                repairing
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:brightness-110 active:scale-[0.99]'
-              }`}
-              style={{
-                backgroundColor: 'var(--color-accent)',
-                color: 'white',
-                boxShadow: '0 4px 20px color-mix(in srgb, var(--color-accent) 30%, transparent)'
-              }}
-            >
-              {repairing ? (
-                <>
-                  <RefreshCw size={15} className="animate-spin mr-2" />
-                  Modifying Visual Studio Installation...
-                </>
-              ) : (
-                <>
-                  <Wrench size={15} className="mr-2" />
-                  Install &amp; Repair Selected Components ({selectedComponentIds.length})
-                </>
-              )}
-            </button>
-          </div>
+          {/* Optional Action Footer */}
+          {showActionButton && onRepairAndInstall && (
+            <div className="pt-3 border-t space-y-3" style={{ borderColor: 'var(--color-border)' }}>
+              <button
+                onClick={onRepairAndInstall}
+                disabled={repairing}
+                className={`w-full cursor-pointer flex justify-center items-center px-4 py-3 rounded-lg text-xs font-bold tracking-wide transition-all duration-200 ${
+                  repairing
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:brightness-110 active:scale-[0.99]'
+                }`}
+                style={{
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'white',
+                  boxShadow: '0 4px 20px color-mix(in srgb, var(--color-accent) 30%, transparent)'
+                }}
+              >
+                {repairing ? (
+                  <>
+                    <RefreshCw size={15} className="animate-spin mr-2" />
+                    Modifying Visual Studio Installation...
+                  </>
+                ) : (
+                  <>
+                    <Wrench size={15} className="mr-2" />
+                    Install &amp; Repair Selected Components ({selectedComponentIds.length})
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </Card>
     </div>

@@ -113,7 +113,7 @@ export const VirtualizedProjectGrid = ({
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="relative overflow-y-auto h-full"
+      className="relative overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden h-full"
       style={{ width: '100%' }}
     >
       {/* Virtual container — full width so cards spread evenly across the row */}

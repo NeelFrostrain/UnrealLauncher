@@ -6,6 +6,8 @@ export interface AppSettings {
   animationsEnabled: boolean
   showTitlebarButtons: boolean
   launchPauseDuration: number
+  preferredIde: 'vs' | 'rider'
+  riderPath: string
 }
 
 const SETTINGS_KEY = 'unrealLauncherSettings'
@@ -16,7 +18,9 @@ const defaultSettings: AppSettings = {
   logMaxLines: 2000,
   animationsEnabled: true,
   showTitlebarButtons: true,
-  launchPauseDuration: 5
+  launchPauseDuration: 5,
+  preferredIde: 'vs',
+  riderPath: ''
 }
 
 // In-memory cache — avoids re-parsing localStorage on every getSetting call

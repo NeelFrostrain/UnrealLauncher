@@ -12,6 +12,7 @@ const ProjectPluginsDialog = lazy(() => import('../ProjectPluginsDialog'))
 const ProjectHealthDialog = lazy(() => import('../ProjectHealthDialog'))
 const ProjectAssetsDialog = lazy(() => import('../ProjectAssetsDialog'))
 const ProjectSnapshotsDialog = lazy(() => import('../ProjectSnapshotsDialog'))
+const ProjectCompilerDialog = lazy(() => import('../ProjectCompilerDialog'))
 
 interface ProjectCardDialogsProps {
   ctxMenu: { x: number; y: number } | null
@@ -86,6 +87,7 @@ export function ProjectCardDialogs({
   const [showHealth, setShowHealth] = useState(false)
   const [showAssets, setShowAssets] = useState(false)
   const [showSnapshots, setShowSnapshots] = useState(false)
+  const [showCompiler, setShowCompiler] = useState(false)
   const showLaunchConfig =
     externalShowLaunchConfig !== undefined ? externalShowLaunchConfig : internalShowLaunchConfig
   const setShowLaunchConfig = externalSetShowLaunchConfig ?? internalSetShowLaunchConfig
@@ -151,6 +153,21 @@ export function ProjectCardDialogs({
     return () => window.removeEventListener('open-project-snapshots', handler as EventListener)
   }, [projectPath])
 
+  useEffect(() => {
+    const handler = (ev: Event): void => {
+      try {
+        const detail = (ev as CustomEvent).detail
+        if (!detail) return
+        if (!projectPath) return
+        if (detail.projectPath === projectPath) setShowCompiler(true)
+      } catch {
+        /* ignore */
+      }
+    }
+    window.addEventListener('open-project-compiler', handler as EventListener)
+    return () => window.removeEventListener('open-project-compiler', handler as EventListener)
+  }, [projectPath])
+
   return (
     <>
       {ctxMenu && projectPath && (
@@ -184,6 +201,7 @@ export function ProjectCardDialogs({
             onOpenHealthReport={() => setShowHealth(true)}
             onOpenAssetAnalyzer={() => setShowAssets(true)}
             onOpenSnapshots={() => setShowSnapshots(true)}
+            onOpenCompiler={() => setShowCompiler(true)}
             onClose={onCloseCtxMenu}
           />
         </Suspense>
@@ -284,6 +302,18 @@ export function ProjectCardDialogs({
             projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
             projectPath={projectPath}
             onClose={() => setShowSnapshots(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Compiler & Build Tools dialog */}
+      {showCompiler && projectPath && (
+        <Suspense fallback={null}>
+          <ProjectCompilerDialog
+            projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            projectPath={projectPath}
+            projectVersion={projectVersion}
+            onClose={() => setShowCompiler(false)}
           />
         </Suspense>
       )}

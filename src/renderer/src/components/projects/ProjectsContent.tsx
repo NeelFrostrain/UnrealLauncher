@@ -123,7 +123,7 @@ const VirtualizedList = memo(function VirtualizedList({
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="relative overflow-y-auto h-full py-1"
+      className="relative overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden h-full py-1"
     >
       <div style={{ position: 'relative', width: '100%', height: totalHeight }}>{visibleRows}</div>
     </div>

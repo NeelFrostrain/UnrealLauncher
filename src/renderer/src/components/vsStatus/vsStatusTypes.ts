@@ -23,4 +23,4 @@ export interface VsSetupStatus {
   isHealthy: boolean
 }
 
-export type CompileTabType = 'overview' | 'components' | 'environment'
+export type VsStatusTabType = 'overview' | 'components' | 'environment'

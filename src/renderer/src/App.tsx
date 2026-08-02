@@ -6,7 +6,7 @@ const EnginesPage = lazy(() => import('./pages/engines/EnginesPage'))
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const TasksPage = lazy(() => import('./pages/TasksPage'))
-const CompilePage = lazy(() => import('./pages/CompilePage'))
+const VsStatusPage = lazy(() => import('./pages/VsStatusPage'))
 
 const PageLoader = (): React.ReactNode => (
   <div className="flex items-center justify-center h-full">
@@ -31,7 +31,7 @@ function getInitialPath(): string {
     '/projects/hidden',
     '/projects/favorites',
     '/projects/recent',
-    '/compile',
+    '/vs-status',
     '/tasks',
     '/settings'
   ]
@@ -48,7 +48,7 @@ const App = (): React.ReactNode => {
         <Route path="/engines" element={<EnginesPage />} />
         <Route path="/engines/:tab" element={<EnginesPage />} />
         <Route path="/projects/*" element={<ProjectsPage />} />
-        <Route path="/compile" element={<CompilePage />} />
+        <Route path="/vs-status" element={<VsStatusPage />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/" element={<Navigate to={initialPath} replace />} />

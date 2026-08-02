@@ -2,7 +2,7 @@
 import type React from 'react'
 import { FolderOpen, Terminal, Cpu } from 'lucide-react'
 import { SectionHeader, Card } from '../settings/SectionHelpers'
-import type { VsSetupStatus } from './compileTypes'
+import type { VsSetupStatus } from './vsStatusTypes'
 
 interface OverviewTabProps {
   status: VsSetupStatus | null

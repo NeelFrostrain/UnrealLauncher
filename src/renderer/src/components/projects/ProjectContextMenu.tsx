@@ -10,7 +10,8 @@ import {
   GitBranch,
   Settings2,
   Cpu,
-  Trash2
+  Trash2,
+  Code2
 } from 'lucide-react'
 import {
   MenuItem,
@@ -53,6 +54,7 @@ export interface ProjectContextMenuProps {
   onOpenHealthReport: () => void
   onOpenAssetAnalyzer: () => void
   onOpenSnapshots: () => void
+  onOpenCompiler?: () => void
 }
 
 export default function ProjectContextMenu(p: ProjectContextMenuProps): React.ReactElement {
@@ -411,6 +413,13 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
 
           {/* Tools */}
           <MenuCategory label="Tools" />
+          <MenuItem
+            icon={<Code2 size={11} style={{ color: '#38bdf8' }} />}
+            label="Open Compiler"
+            sub="C++ build, debug & solution tools"
+            onClick={p.onOpenCompiler}
+            onClose={p.onClose}
+          />
           <SubMenuTrigger
             triggerRef={gitTriggerRef}
             icon={
@@ -496,6 +505,7 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             onOpenHealthReport={p.onOpenHealthReport}
             onOpenAssetAnalyzer={p.onOpenAssetAnalyzer}
             onOpenSnapshots={p.onOpenSnapshots}
+            onOpenCompiler={p.onOpenCompiler}
             onClose={p.onClose}
             onMouseEnter={keepSub}
             onMouseLeave={closeSub}

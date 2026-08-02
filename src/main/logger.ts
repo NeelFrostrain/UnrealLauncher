@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
@@ -129,13 +129,15 @@ function writeToConsole(level: LogLevel, line: string): void {
 
 export function log(level: LogLevel, scope: string, message: unknown, ...meta: unknown[]): void {
   if (level === 'debug' && process.env.DEBUG_LOGS !== '1') return
-  const timestamp = new Date().toISOString()
+  const now = new Date()
+  const timestamp =
+    now.toTimeString().slice(0, 8) + '.' + String(now.getMilliseconds()).padStart(3, '0')
   const safeScope = scope || 'app'
   const text = stringifyMessage(message, meta)
   const line = `[${timestamp}] [${LEVEL_LABELS[level]}] [${safeScope}] ${text}`
 
   writeToFile(line)
-  writeToConsole(level, `${DIM}${line.slice(0, 26)}${RESET}${line.slice(26)}`)
+  writeToConsole(level, `${DIM}${line.slice(0, 15)}${RESET}${line.slice(15)}`)
 }
 
 export const logger = {

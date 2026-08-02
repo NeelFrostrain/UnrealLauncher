@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.0] - 2026-08-03 — `C++ Compiler & Debug Hub · VS Toolchain · IDE Integrations · UI`
+
+### Added
+
+- Added **C++ Compiler & Debug Hub** (`ProjectCompilerDialog.tsx` & `projectCpp.ts`): An interactive dialog for Unreal Engine C++ projects supporting 1-click **Build**, **Debug**, **Rebuild**, **Generate Solution**, **Fix Target Rules**, and **Purge & Deep Clean**.
+- Added **Build-Before-Debug Pipeline**: Clicking Debug automatically compiles project C++ binaries (`DebugGame Editor` or `Development Editor`) via UnrealBuildTool before spawning the editor.
+- Added **Smart Configuration Binary Resolution**: Automatically resolves configuration-specific editor executables (e.g. `UnrealEditor-Win64-DebugGame.exe` or `UnrealEditor-Win64-Debug.exe`) created by UBT for custom and source-built Unreal Engines (UE 5.0–5.8+), eliminating splash screen rebuild popups.
+- Added **Live Debugger Status & Process Manager**: Real-time tracking of running C++ debug editor processes (`cpp-debug-status`) with a pulsing `Debugger Active` badge in the terminal header and a 1-click **`Stop Debugger`** cancellation button to terminate active debug processes via process tree termination.
+- Added **Build Cancellation**: Added process tree termination for `UnrealBuildTool` and compiler subprocesses (`taskkill /F /T`) with live build cancellation logs and a pulsing red Cancel button (scoped strictly to build/rebuild/debug operations).
+- Added **Target.cs Rules Fixer**: Added automatic inspection and fixing of `Target.cs` build rules (`bOverrideBuildEnvironment = true`, removing incompatible `TargetBuildEnvironment.Unique`) for seamless compatibility with installed engines.
+- Added **Purge & Deep Clean Utility**: Added 1-click purge functionality to clean build artifacts (`.vs`, `.idea`, `Saved`, `Intermediate`, `Binaries`, `DDC`, `.vscode`, `.sln`, `.slnx`).
+- Added **Compiler Log Terminal**: Built-in interactive log terminal with level filtering (Error, Warning, Info), auto-scrolling, log copying, and 1-click log export to `Saved/Logs/Compiler_Output_<timestamp>.log`.
+- Added **JetBrains Rider & Visual Studio Support**: IDE selector toggle in the compiler header. JetBrains Rider launching injects `DOTNET_ROOT` pointing to the engine's bundled DotNet SDK (`Engine\Binaries\ThirdParty\DotNet\win-x64`), and prefers `.sln` files when available to prevent system .NET 10 version mismatches.
+- Added **VS Toolchain Diagnostics**: Renamed `CompilePage` and related components to `VsStatusPage` / `vsStatus`, adding auto-scrolling, drag-to-resize terminal containers, live workload status badges, and Visual Studio environment repair utilities.
+
+### Fixed
+
+- Fixed **Cancel Button Visibility**: Restricted the Cancel Build button so it only appears during active `build`, `rebuild`, or `debug` operations, and does not show during local folder clean operations.
+- Fixed **Folder Opening in Explorer**: Re-added native `shell.openPath` in `openFileOrDirectory` (`processUtils.ts`) so clicking **Source** or **Folder** quick action buttons opens Windows Explorer reliably.
+- Fixed **Electron Process Coupling**: All launched C++ debug processes, IDE instances, and file explorer windows are spawned completely detached (`detached: true`, `stdio: 'ignore'`) from Electron's process tree to prevent launcher freezes and memory coupling.
+
+### Changed
+
+- Restructured the project compiler action toolbar into a unified single-row flex layout with standardized button heights (`h-8` / `h-9`) and clear visual hierarchy.
+- Suppressed scrollbars globally across all scrollable containers (`scrollbar-none`) using modern CSS design tokens.
+
 ## [2.5.8] - 2026-07-31 — `performance · settings · UI`
 
 ### Added

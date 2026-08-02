@@ -268,34 +268,17 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Smooth scroll on all scrollable containers */
+/* Hide scrollbars globally across all scrollable containers while maintaining scroll functionality */
 * {
   scroll-behavior: smooth;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-/* Custom scrollbar with better performance */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-::-webkit-scrollbar-corner {
-  background: rgba(255, 255, 255, 0.05);
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
 }
 
 /* Reduce motion for users who prefer it */

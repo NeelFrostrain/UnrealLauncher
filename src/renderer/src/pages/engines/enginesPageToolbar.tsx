@@ -9,7 +9,8 @@ import {
   ChevronDown,
   Check,
   Store,
-  Activity
+  Activity,
+  Hammer
 } from 'lucide-react'
 import DropdownPortal from '../../components/ui/DropdownPortal'
 import type { EngineCardProps } from '../../types'
@@ -82,6 +83,19 @@ export function EnginesPageToolbar({
         >
           <Activity size={12} />
           Tasks
+        </button>
+        <button
+          onClick={() => navigate('/vs-status')}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
+          style={{
+            borderRadius: 'var(--radius)',
+            backgroundColor: 'var(--color-surface-card)',
+            color: 'var(--color-text-secondary)',
+            border: '1px solid var(--color-border)'
+          }}
+        >
+          <Hammer size={12} />
+          VS Status
         </button>
         {activeTab === 'plugins' && engines.length > 1 && (
           <>

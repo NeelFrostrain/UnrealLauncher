@@ -25,22 +25,20 @@ export const MSVC_TOOLSETS = {
 
 function getBootstrapperPath(): string {
   if (app.isPackaged) {
-    return path.join(process.resourcesPath, 'vs_Community.exe')
+    // In packaged builds, asarUnpack moves native binaries to:
+    //   resources/app.asar.unpacked/resources/vs_Community.exe
+    // process.resourcesPath points to the 'resources' folder, so we must include
+    // the 'app.asar.unpacked/resources' segment.
+    return path.join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'vs_Community.exe')
   }
-  return path.join(app.getAppPath(), 'resources', 'vs_Community.exe')
+  // In electron-vite dev mode, __dirname = out/main.
+  // Going up 2 levels reaches the project root where resources/ lives.
+  return path.join(__dirname, '..', '..', 'resources', 'vs_Community.exe')
 }
 
 function getVsInstallerEnginePath(): string | null {
-  const programFilesX86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)'
-  const installerPath = path.join(
-    programFilesX86,
-    'Microsoft Visual Studio',
-    'Installer',
-    'vs_installer.exe'
-  )
-  if (fs.existsSync(installerPath)) {
-    return installerPath
-  }
+  // Always use the bundled vs_Community.exe bootstrapper from app resources.
+  // It supports both fresh installs and modify/repair of existing VS installations.
   const bootstrapper = getBootstrapperPath()
   if (fs.existsSync(bootstrapper)) {
     return bootstrapper
@@ -361,7 +359,7 @@ export function repairVsSetupAsync(
   })
 }
 
-export function registerCompileVsHandlers(ipcMain: IpcMain): void {
+export function registerVsStatusHandlers(ipcMain: IpcMain): void {
   ipcMain.handle('vs:check-setup', async (event) => {
     return checkVsSetupStatusAsync(event.sender)
   })

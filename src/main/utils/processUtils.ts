@@ -2,10 +2,9 @@
 
 import { execFile } from 'child_process'
 import { promisify } from 'util'
-import { spawn } from 'child_process'
-import { shell } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import { shell } from 'electron'
 import { logger } from '../logger'
 
 // Security: Allowed file extensions for opening
@@ -149,54 +148,9 @@ export function openFileOrDirectory(filePath: string): void {
 
     logger.info('process', 'Opening file or directory', { filePath, platform: process.platform })
 
-    if (process.platform === 'win32') {
-      shell
-        .openPath(resolved)
-        .then((errorMessage) => {
-          if (errorMessage) {
-            logger.error('process', 'Failed to open path on Windows', {
-              path: resolved,
-              error: errorMessage
-            })
-          }
-        })
-        .catch((error) => {
-          logger.error('process', 'Failed to open path on Windows', { path: resolved, error })
-        })
-    } else if (process.platform === 'darwin') {
-      spawn('open', [resolved], {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true,
-        shell: false // Prevent shell window creation
-      }).unref()
-    } else {
-      // Linux: executables must be spawned directly — xdg-open is blocked by KIO for binaries
-      let isExecutable = false
-      try {
-        fs.accessSync(resolved, fs.constants.X_OK)
-        isExecutable = true
-      } catch {
-        isExecutable = false
-      }
-
-      if (isExecutable) {
-        spawn(resolved, [], {
-          detached: true,
-          stdio: 'ignore',
-          env: { ...process.env },
-          windowsHide: true,
-          shell: false // Prevent shell window creation
-        }).unref()
-      } else {
-        spawn('xdg-open', [resolved], {
-          detached: true,
-          stdio: 'ignore',
-          windowsHide: true,
-          shell: false // Prevent shell window creation
-        }).unref()
-      }
-    }
+    shell.openPath(resolved).catch((err) => {
+      logger.error('process', 'Failed to open with shell.openPath', { filePath, err })
+    })
   } catch (error) {
     logger.error('process', 'Failed to open file or directory', { path: filePath, error })
   }
