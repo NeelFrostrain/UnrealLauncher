@@ -31,7 +31,9 @@ import {
   Activity,
   Gauge,
   Zap,
-  ShieldCheck
+  ShieldCheck,
+  Rocket,
+  Play
 } from 'lucide-react'
 import { useToast } from '../ui/ToastContext'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
@@ -219,6 +221,14 @@ export default function ProjectCompilerDialog({
     () => getSetting('preferredIde') || 'vs'
   )
 
+  // Launch with Config state — store full config objects as received from main process
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [launchConfigs, setLaunchConfigs] = useState<Array<Record<string, any>>>([]
+  )
+  const [showLaunchConfigMenu, setShowLaunchConfigMenu] = useState(false)
+  const [launchingWithConfig, setLaunchingWithConfig] = useState(false)
+  const launchConfigBtnRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     const listener = (ev: Event) => {
       const detail = (ev as CustomEvent).detail
@@ -230,9 +240,62 @@ export default function ProjectCompilerDialog({
     return () => window.removeEventListener('app-settings-changed', listener)
   }, [])
 
+  // Load launch configs on mount — store the raw objects so the full LaunchConfig data is preserved
+  useEffect(() => {
+    if (!window.electronAPI) return
+    window.electronAPI
+      .launchConfigsGet()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .then((configs: any[]) => {
+        if (Array.isArray(configs)) setLaunchConfigs(configs)
+      })
+      .catch(() => {})
+  }, [])
+
+  // Close launch config menu on outside click
+  useEffect(() => {
+    if (!showLaunchConfigMenu) return
+    const handler = (e: MouseEvent) => {
+      const btn = launchConfigBtnRef.current
+      if (btn && !btn.contains(e.target as Node)) {
+        setShowLaunchConfigMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showLaunchConfigMenu])
+
   const handleIdeChange = (ide: 'vs' | 'rider') => {
     setPreferredIde(ide)
     setSetting('preferredIde', ide)
+  }
+
+  const handleLaunchWithConfig = async (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    config: Record<string, any>
+  ): Promise<void> => {
+    if (!window.electronAPI || launchingWithConfig) return
+    setShowLaunchConfigMenu(false)
+    setLaunchingWithConfig(true)
+    const configName = String(config.name ?? 'Config')
+    appendLog(`Launching project with config: ${configName}…`, 'info')
+    try {
+      const result = await window.electronAPI.launchProjectWithConfig(projectPath, config as LaunchConfig)
+      const res = result as { success?: boolean; error?: string }
+      if (res.success) {
+        appendLog(`✅ Launched with config "${configName}" successfully.`, 'success')
+        addToast(`Launched with "${configName}"`, 'success')
+      } else {
+        appendLog(`❌ Launch failed: ${res.error ?? 'Unknown error'}`, 'error')
+        addToast(`Launch failed: ${res.error ?? 'Unknown error'}`, 'error')
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      appendLog(`❌ Launch error: ${msg}`, 'error')
+      addToast(`Launch error: ${msg}`, 'error')
+    } finally {
+      setLaunchingWithConfig(false)
+    }
   }
 
   const appendLog = useCallback(
@@ -1074,6 +1137,101 @@ export default function ProjectCompilerDialog({
                 >
                   <Bug size={14} /> Debug
                 </button>
+
+                {/* Launch with Config — dropdown button */}
+                <div className="relative shrink-0" ref={launchConfigBtnRef}>
+                  <button
+                    onClick={() => setShowLaunchConfigMenu((v) => !v)}
+                    disabled={isBuilding || launchingWithConfig || launchConfigs.length === 0}
+                    className="h-9 px-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                    style={{
+                      backgroundColor: showLaunchConfigMenu
+                        ? 'color-mix(in srgb, var(--color-accent) 20%, var(--color-surface-card))'
+                        : 'var(--color-surface-card)',
+                      border: `1px solid ${
+                        showLaunchConfigMenu ? 'var(--color-accent)' : 'var(--color-border)'
+                      }`,
+                      borderRadius: 'calc(var(--radius) * 0.75)',
+                      color: 'var(--color-text-primary)'
+                    }}
+                    title={
+                      launchConfigs.length === 0
+                        ? 'No launch configs saved — add them in Settings'
+                        : 'Launch project with a saved configuration'
+                    }
+                  >
+                    {launchingWithConfig ? (
+                      <RefreshCw size={13} className="animate-spin text-[var(--color-accent)]" />
+                    ) : (
+                      <Rocket size={13} className="text-violet-400" />
+                    )}
+                    Launch with Config
+                    <ChevronDown
+                      size={12}
+                      className="text-[var(--color-text-muted)] transition-transform"
+                      style={{
+                        transform: showLaunchConfigMenu ? 'rotate(180deg)' : 'rotate(0deg)'
+                      }}
+                    />
+                  </button>
+
+                  {/* Dropdown menu */}
+                  {showLaunchConfigMenu && (
+                    <div
+                      className="absolute top-full left-0 mt-1.5 z-50 min-w-[220px] max-w-[320px] shadow-2xl overflow-hidden"
+                      style={{
+                        backgroundColor: 'var(--color-surface-elevated)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'calc(var(--radius) * 0.85)'
+                      }}
+                    >
+                      <div
+                        className="px-3 py-2 border-b"
+                        style={{ borderColor: 'var(--color-border)' }}
+                      >
+                        <p
+                          className="text-[10px] font-semibold uppercase tracking-wider"
+                          style={{ color: 'var(--color-text-muted)' }}
+                        >
+                          Launch Configurations
+                        </p>
+                      </div>
+                      <div className="py-1 max-h-64 overflow-y-auto">
+                        {launchConfigs.map((cfg) => (
+                          <button
+                            key={cfg.id}
+                            onClick={() => handleLaunchWithConfig(cfg)}
+                            className="w-full text-left px-3 py-2 flex items-start gap-2.5 transition-colors cursor-pointer"
+                            style={{ color: 'var(--color-text-primary)' }}
+                            onMouseEnter={(e) => {
+                              ;(e.currentTarget as HTMLElement).style.backgroundColor =
+                                'color-mix(in srgb, var(--color-accent) 12%, transparent)'
+                            }}
+                            onMouseLeave={(e) => {
+                              ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+                            }}
+                          >
+                            <Play
+                              size={13}
+                              className="text-violet-400 mt-0.5 shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold truncate">{cfg.name}</p>
+                              {cfg.description && (
+                                <p
+                                  className="text-[10px] truncate mt-0.5"
+                                  style={{ color: 'var(--color-text-muted)' }}
+                                >
+                                  {cfg.description}
+                                </p>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Cancel — compact icon button when build/rebuild/debug is running */}
                 {isBuilding &&
