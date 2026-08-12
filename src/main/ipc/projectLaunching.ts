@@ -30,14 +30,21 @@ function spawnDetachedProcess(executable: string, args: string[]): void {
   }).unref()
 }
 
+const uprojectCache = new Map<string, string>()
+const resolvedExeCache = new Map<string, string>()
+
 /**
  * Locates the .uproject file in a project directory
  */
 export async function locateUproject(projectPath: string): Promise<string | null> {
+  const cached = uprojectCache.get(projectPath)
+  if (cached && fs.existsSync(cached)) return cached
+
   const projectName = path.basename(projectPath)
   const direct = path.join(projectPath, `${projectName}.uproject`)
   try {
     await fs.promises.access(direct)
+    uprojectCache.set(projectPath, direct)
     logger.debug('project', 'Found direct uproject file', { projectPath, uprojectPath: direct })
     return direct
   } catch {
@@ -47,8 +54,10 @@ export async function locateUproject(projectPath: string): Promise<string | null
     const files = await fs.promises.readdir(projectPath)
     const uprojectFile = files.find((file) => file.endsWith('.uproject'))
     const found = uprojectFile ? path.join(projectPath, uprojectFile) : null
-    if (found)
+    if (found) {
+      uprojectCache.set(projectPath, found)
       logger.debug('project', 'Found scanned uproject file', { projectPath, uprojectPath: found })
+    }
     return found
   } catch (error) {
     logger.warn('project', 'Failed to scan project directory for uproject', { projectPath, error })
@@ -74,16 +83,28 @@ async function getEngineAssociation(uprojectPath: string): Promise<string> {
  * Checks stored engines first, then falls back to a live scan on non-Windows.
  */
 async function findEditorExecutable(engineAssociation: string): Promise<string> {
+  if (engineAssociation && resolvedExeCache.has(engineAssociation)) {
+    const cached = resolvedExeCache.get(engineAssociation)!
+    if (fs.existsSync(cached)) return cached
+  }
+
   const engines = loadEngines()
 
   // Helper: given a stored path (file or directory) attempt to resolve a real editor executable
   const ext = getBinaryExtension()
   function resolvePossibleExe(p: string): string {
+    if (!p) return ''
+    const cached = resolvedExeCache.get(p)
+    if (cached && fs.existsSync(cached)) return cached
+
     try {
       const candidate = path.normalize(path.resolve(p))
       if (!fs.existsSync(candidate)) return ''
       const stat = fs.statSync(candidate)
-      if (stat.isFile()) return candidate
+      if (stat.isFile()) {
+        resolvedExeCache.set(p, candidate)
+        return candidate
+      }
 
       // If it's a directory, look for common editor binaries inside known subpaths
       if (stat.isDirectory()) {
@@ -94,25 +115,25 @@ async function findEditorExecutable(engineAssociation: string): Promise<string> 
         // Check Engine/Binaries/<platform>/
         for (const name of commonNames) {
           const p1 = path.join(candidate, 'Engine', 'Binaries', platformBin, name)
-          if (fs.existsSync(p1)) return p1
+          if (fs.existsSync(p1)) {
+            resolvedExeCache.set(p, p1)
+            return p1
+          }
         }
 
-        // Check candidate root for any editor-like executables
+        // Check candidate root for any editor-like executables without extra statSync calls
         try {
-          for (const f of fs.readdirSync(candidate)) {
-            const full = path.join(candidate, f)
-            try {
-              if (
-                fs.statSync(full).isFile() &&
-                f.toLowerCase().endsWith(ext) &&
-                f.toLowerCase().includes('editor')
-              ) {
+          const entries = fs.readdirSync(candidate, { withFileTypes: true })
+          for (const entry of entries) {
+            if (entry.isFile()) {
+              const fLower = entry.name.toLowerCase()
+              if (fLower.endsWith(ext) && fLower.includes('editor')) {
+                const full = path.join(candidate, entry.name)
+                resolvedExeCache.set(p, full)
                 return full
               }
-            } catch {
-              // ignore stat errors
             }
-          } // <-- Fixed missing closing brace for for-loop
+          }
         } catch {
           // ignore readdir errors
         }

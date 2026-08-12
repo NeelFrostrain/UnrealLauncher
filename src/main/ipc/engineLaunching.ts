@@ -1,9 +1,9 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { spawn } from 'child_process'
 import path from 'path'
 import { loadEngines, saveEngines } from '../store'
 import { isRegisteredEngineExePath } from '../utils/pathSanitization'
-import { openFileOrDirectory } from '../utils/processUtils'
+
 import { logger } from '../logger'
 import type { LaunchConfig } from '../utils/launchConfigArgs'
 import { buildLaunchArgs } from '../utils/launchConfigArgs'
@@ -19,7 +19,12 @@ export async function handleLaunchEngine(exePath: string): Promise<Record<string
     return { success: false, error: 'Engine executable is not registered' }
   }
   try {
-    openFileOrDirectory(safeExePath)
+    spawn(safeExePath, [], {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: false,
+      shell: false
+    }).unref()
 
     const engines = loadEngines()
     const engine = engines.find((e) => e.exePath === safeExePath)

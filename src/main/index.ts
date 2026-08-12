@@ -23,29 +23,33 @@ declare const __DISCORD_STARTUP_WEBHOOK__: string
 // --- Build-time constants injected by Vite ---
 
 let localAssetCacheTimestamp = 0
-let cachedProjectPaths: string[] = []
-let cachedEngineDirs: string[] = []
+let cachedProjectPaths = new Set<string>()
+let cachedEngineDirs = new Set<string>()
 
 function refreshLocalAssetCache(): void {
   const now = Date.now()
-  if (localAssetCacheTimestamp && now - localAssetCacheTimestamp < 5000) return
+  if (localAssetCacheTimestamp && now - localAssetCacheTimestamp < 30000) return
 
   try {
-    cachedProjectPaths = loadProjects()
-      .map((project) => project.projectPath)
-      .filter(Boolean)
-      .map((p) => p!.replace(/\\/g, '/').toLowerCase())
+    cachedProjectPaths = new Set(
+      loadProjects()
+        .map((project) => project.projectPath)
+        .filter(Boolean)
+        .map((p) => p!.replace(/\\/g, '/').toLowerCase())
+    )
   } catch {
-    cachedProjectPaths = []
+    cachedProjectPaths = new Set()
   }
 
   try {
-    cachedEngineDirs = loadEngines()
-      .map((engine) => engine.directoryPath)
-      .filter(Boolean)
-      .map((p) => p!.replace(/\\/g, '/').toLowerCase())
+    cachedEngineDirs = new Set(
+      loadEngines()
+        .map((engine) => engine.directoryPath)
+        .filter(Boolean)
+        .map((p) => p!.replace(/\\/g, '/').toLowerCase())
+    )
   } catch {
-    cachedEngineDirs = []
+    cachedEngineDirs = new Set()
   }
 
   localAssetCacheTimestamp = now
@@ -58,7 +62,7 @@ function isProjectThumbnailPath(normalizedResolved: string, resolved: string): b
 
   const projectDir = resolved.substring(0, resolved.length - normalizedResolved.length + savedIndex)
   const normalizedProjectDir = projectDir.replace(/\\/g, '/').toLowerCase()
-  return cachedProjectPaths.includes(normalizedProjectDir)
+  return cachedProjectPaths.has(normalizedProjectDir)
 }
 
 function isEnginePluginIconPath(normalizedResolved: string, resolved: string): boolean {
@@ -75,7 +79,7 @@ function isEnginePluginIconPath(normalizedResolved: string, resolved: string): b
 
   const engineDir = resolved.substring(0, resolved.length - normalizedResolved.length + engineIndex)
   const normalizedEngineDir = engineDir.replace(/\\/g, '/').toLowerCase()
-  return cachedEngineDirs.includes(normalizedEngineDir)
+  return cachedEngineDirs.has(normalizedEngineDir)
 }
 
 // Suppress noisy deprecation warnings from transitive dependencies before optional modules load.
