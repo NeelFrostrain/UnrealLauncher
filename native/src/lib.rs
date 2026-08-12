@@ -842,6 +842,98 @@ pub fn get_git_status(project_path: String) -> GitStatus {
   }
 }
 
+#[napi(object)]
+pub struct GitStatusEntry {
+  pub path: String,
+  pub status: GitStatus,
+}
+
+/// Bulk git status check offloaded to native Rust
+#[napi]
+pub fn get_git_status_bulk(project_paths: Vec<String>) -> Vec<GitStatusEntry> {
+  project_paths
+    .into_iter()
+    .map(|path| {
+      let status = get_git_status(path.clone());
+      GitStatusEntry { path, status }
+    })
+    .collect()
+}
+
+#[napi(object)]
+pub struct CppSourceFileInfo {
+  pub name: String,
+  pub path: String,
+  pub relative_path: String,
+  pub extension: String,
+  pub size_bytes: f64,
+}
+
+/// High-performance C++ source directory scanner offloaded to native Rust.
+/// Scans source files (.cpp, .h, .hpp, .cs, etc.) recursively with native I/O.
+#[napi]
+pub fn scan_cpp_source(dir_path: String, base_path: String, max_files: u32) -> Vec<CppSourceFileInfo> {
+  let root = Path::new(&dir_path);
+  let base = Path::new(&base_path);
+  let mut results = Vec::new();
+  if !root.exists() {
+    return results;
+  }
+  let allowed = ["cpp", "h", "hpp", "c", "cs", "inl"];
+  scan_cpp_source_recursive(root, base, max_files, &allowed, &mut results);
+  results
+}
+
+fn scan_cpp_source_recursive(
+  current: &Path,
+  base: &Path,
+  max_files: u32,
+  allowed: &[&str],
+  out: &mut Vec<CppSourceFileInfo>,
+) {
+  if out.len() as u32 >= max_files {
+    return;
+  }
+  let entries = match fs::read_dir(current) {
+    Ok(e) => e,
+    Err(_) => return,
+  };
+  for entry in entries.flatten() {
+    if out.len() as u32 >= max_files {
+      return;
+    }
+    let ft = match entry.file_type() {
+      Ok(t) => t,
+      Err(_) => continue,
+    };
+    let path = entry.path();
+    let name = entry.file_name().to_string_lossy().into_owned();
+
+    if ft.is_dir() {
+      if name != "Intermediate" && name != "Binaries" {
+        scan_cpp_source_recursive(&path, base, max_files, allowed, out);
+      }
+    } else if ft.is_file() {
+      let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+      if allowed.contains(&ext.as_str()) {
+        let rel_path = path
+          .strip_prefix(base)
+          .unwrap_or(&path)
+          .to_string_lossy()
+          .replace('\\', "/");
+        let size_bytes = entry.metadata().map(|m| m.len()).unwrap_or(0) as f64;
+        out.push(CppSourceFileInfo {
+          name,
+          path: path.to_string_lossy().into_owned(),
+          relative_path: rel_path,
+          extension: format!(".{}", ext),
+          size_bytes,
+        });
+      }
+    }
+  }
+}
+
 fn parse_git_remote_url(git_dir: &Path) -> String {
   let config = match fs::read_to_string(git_dir.join("config")) {
     Ok(c) => c,

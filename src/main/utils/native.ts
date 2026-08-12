@@ -59,6 +59,28 @@ export interface NativeModule {
     behind: number
     remoteUrl: string
   }
+  getGitStatusBulk?: (projectPaths: string[]) => {
+    path: string
+    status: {
+      initialized: boolean
+      branch: string
+      hasUncommitted: boolean
+      ahead: number
+      behind: number
+      remoteUrl: string
+    }
+  }[]
+  scanCppSource?: (
+    dirPath: string,
+    basePath: string,
+    maxFiles: number
+  ) => {
+    name: string
+    path: string
+    relativePath: string
+    extension: string
+    sizeBytes: number
+  }[]
   readLatestProjectLog?: (projectPath: string) => {
     logPath: string
     content: string

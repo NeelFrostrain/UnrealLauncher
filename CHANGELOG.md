@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.1] - 2026-08-12 — `launch performance · Rust offload · launch configs · UI`
+
+### Added
+
+- Added **Launch with Config Button** (`ProjectCompilerDialog.tsx`): Integrated a dedicated `Launch with Config` dropdown action button (Rocket icon + popover menu) into the C++ compiler dialog toolbar, allowing 1-click execution of saved rendering and performance profiles directly from the compiler terminal.
+- Added **Native Rust C++ Source Scanner** (`scan_cpp_source` in `lib.rs` & `projectCpp.ts`): Offloaded C++ project `.cpp`, `.h`, `.cs` file tree traversal, relative path calculations, and file size metadata scanning into high-performance native Rust.
+- Added **Native Bulk Git Status Inspection** (`get_git_status_bulk` in `lib.rs` & `projectGit.ts`): Offloaded multi-project `.git/HEAD` and `.git/config` branch, remote, and uncommitted status parsing directly into native Rust.
+
+### Fixed
+
+- Fixed **Windows Shell Launch Delays**: Replaced `shell.openPath` in `handleLaunchEngine` (`engineLaunching.ts`) with direct detached `spawn()` for engine binaries (`UnrealEditor.exe`), eliminating 500ms–1500ms of Windows ShellExecute / COM wrapper startup overhead.
+- Fixed **Main-Thread Log I/O Stalls**: Replaced synchronous `appendFileSync` in `logger.ts` with an async `setImmediate` write queue that batch-flushes via `fs.appendFile`. Memoized `getLogsDir()` to eliminate repeated `mkdirSync` calls.
+- Fixed **Redundant Settings Disk Reads**: Added in-memory caching for `loadMainSettings()` in `store/index.ts` (invalidated on `saveMainSettings`) to eliminate synchronous JSON reads on every IPC call.
+- Fixed **Redundant Store Directory Creation & Double-Syscalls**: Added a one-time directory verification flag in `storeIO.ts` and simplified `readJsonArray` to use a single `readFileSync` with `catch(ENOENT)` error handling instead of `existsSync` + `readFileSync`.
+
+### Changed
+
+- Optimized **`local-asset://` Protocol Security Cache**: Converted protocol validation path lookups in `src/main/index.ts` from $O(N)$ linear Array searches to $O(1)$ `Set<string>` lookups, and increased cache TTL from 5s to 30s.
+- Optimized **In-Memory Tab Filtering**: `useProjectLoader.ts` now reuses `allProjectsRef` for tab filter changes without triggering unnecessary disk scans.
+- Added **In-Memory `.uproject` & Editor Executable Caching**: Added `uprojectCache` and `resolvedExeCache` maps in `projectLaunching.ts` to cache resolved `.uproject` paths and editor executables across repeat launch requests.
+- Optimized **Dirent Candidate Directory Traversal**: Converted engine directory scanning in `projectLaunching.ts` from per-file `statSync` calls to `fs.readdirSync(..., { withFileTypes: true })`.
+
 ## [2.6.0] - 2026-08-03 — `C++ Compiler & Debug Hub · VS Toolchain · IDE Integrations · UI`
 
 ### Added

@@ -20,7 +20,11 @@ for (const file of filesToCopy) {
       fs.copyFileSync(src, dst)
       console.log(`Copied ${file} to native/dist/`)
     } catch (err) {
-      console.warn(`Could not copy ${file} to native/dist/ (${err.message})`)
+      if (err.code === 'EBUSY') {
+        console.log(`Note: ${file} is currently locked by running process in native/dist/ (using live native module in resources/)`)
+      } else {
+        console.warn(`Could not copy ${file} to native/dist/ (${err.message})`)
+      }
     }
   }
 }

@@ -75,14 +75,32 @@ function sendCppLog(
   }
 }
 
+import { getNative } from '../utils/native'
+
 /**
- * Scans recursive files in a directory up to a limit
+ * Scans recursive files in a directory up to a limit (delegates to Rust native scanner when available)
  */
 function scanSourceDirectory(
   dirPath: string,
   basePath: string,
   maxFiles = 1000
 ): CppSourceFileInfo[] {
+  const native = getNative()
+  if (native?.scanCppSource) {
+    try {
+      const nativeResults = native.scanCppSource(dirPath, basePath, maxFiles)
+      return nativeResults.map((r) => ({
+        name: r.name,
+        path: r.path,
+        relativePath: r.relativePath,
+        extension: r.extension,
+        sizeBytes: r.sizeBytes
+      }))
+    } catch {
+      /* fallback to JS scan */
+    }
+  }
+
   const result: CppSourceFileInfo[] = []
   const allowedExts = new Set(['.cpp', '.h', '.hpp', '.c', '.cs', '.inl'])
 

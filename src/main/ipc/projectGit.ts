@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Project git IPC handlers.
  * Template strings live in git/gitTemplates.ts.
@@ -31,12 +31,34 @@ const EMPTY_STATUS: GitStatus = {
   remoteUrl: ''
 }
 
+import { getNative } from '../utils/native'
+
 export function handleProjectGitStatus(projectPath: string): GitStatus {
   const safe = validatePathForGitRead(projectPath)
   if (!safe) {
     logger.debug('projectGit', 'Git status: path not valid', { projectPath })
     return EMPTY_STATUS
   }
+
+  const native = getNative()
+  if (native?.getGitStatus) {
+    try {
+      const res = native.getGitStatus(safe)
+      if (res) {
+        return {
+          initialized: res.initialized,
+          branch: res.branch,
+          hasUncommitted: res.hasUncommitted,
+          ahead: res.ahead,
+          behind: res.behind,
+          remoteUrl: res.remoteUrl
+        }
+      }
+    } catch {
+      /* fallback */
+    }
+  }
+
   const gitDir = path.join(safe, '.git')
   if (!fs.existsSync(gitDir)) return EMPTY_STATUS
 
@@ -62,6 +84,27 @@ export function handleProjectGitStatus(projectPath: string): GitStatus {
 }
 
 export function handleProjectGitStatusBulk(projectPaths: string[]): Record<string, GitStatus> {
+  const native = getNative()
+  if (native?.getGitStatusBulk) {
+    try {
+      const entries = native.getGitStatusBulk(projectPaths)
+      const res: Record<string, GitStatus> = {}
+      for (const entry of entries) {
+        res[entry.path] = {
+          initialized: entry.status.initialized,
+          branch: entry.status.branch,
+          hasUncommitted: entry.status.hasUncommitted,
+          ahead: entry.status.ahead,
+          behind: entry.status.behind,
+          remoteUrl: entry.status.remoteUrl
+        }
+      }
+      return res
+    } catch {
+      /* fallback */
+    }
+  }
+
   return Object.fromEntries(projectPaths.map((p) => [p, handleProjectGitStatus(p)]))
 }
 
