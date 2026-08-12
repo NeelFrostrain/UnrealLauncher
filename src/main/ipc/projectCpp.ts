@@ -2,7 +2,7 @@
 import { ipcMain, type WebContents } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import { spawn, exec, execSync } from 'child_process'
+import { spawn, exec } from 'child_process'
 import { promisify } from 'util'
 import { logger } from '../logger'
 
@@ -395,7 +395,14 @@ IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, ${projectName}, "${projec
   }
 }
 
-function findRiderExe(customPath?: string): string | null {
+// Session-level caches — IDE discovery is expensive and the result won't change during the session
+let _cachedRiderExe: string | null | undefined = undefined // undefined = not yet searched
+let _cachedVsExe: string | null | undefined = undefined
+
+async function findRiderExe(customPath?: string): Promise<string | null> {
+  // Always re-probe if a custom path is provided (user may have just changed settings)
+  if (_cachedRiderExe !== undefined && !customPath) return _cachedRiderExe
+
   // Helper: given a base dir, scan for rider64.exe in common sub-paths
   function tryDir(dir: string): string | null {
     if (!dir || !fs.existsSync(dir)) return null
@@ -436,12 +443,14 @@ function findRiderExe(customPath?: string): string | null {
     return null
   }
 
+  let result: string | null = null
+
   // 1. Check custom path passed from settings
   if (customPath && fs.existsSync(customPath)) {
     try {
       if (fs.statSync(customPath).isDirectory()) {
         const binExe = path.join(customPath, 'bin', 'rider64.exe')
-        if (fs.existsSync(binExe)) return binExe
+        if (fs.existsSync(binExe)) { result = binExe; return result }
       } else {
         return customPath
       }
@@ -452,19 +461,21 @@ function findRiderExe(customPath?: string): string | null {
 
   // 2. Check process.env.RIDER_PATH
   if (process.env.RIDER_PATH && fs.existsSync(process.env.RIDER_PATH)) {
-    return process.env.RIDER_PATH
+    _cachedRiderExe = process.env.RIDER_PATH
+    return _cachedRiderExe
   }
 
-  // 3. System PATH check via 'where rider64.exe'
+  // 3. System PATH check via 'where rider64.exe' (async — won't block the main thread)
   if (process.platform === 'win32') {
     try {
-      const whereOut = execSync('where rider64.exe 2>nul', { encoding: 'utf8' }).trim()
-      if (whereOut) {
-        const firstLine = whereOut.split(/\r?\n/)[0].trim()
-        if (fs.existsSync(firstLine)) return firstLine
+      const { stdout } = await execAsync('where rider64.exe', { timeout: 3000 })
+      const firstLine = stdout.trim().split(/\r?\n/)[0].trim()
+      if (firstLine && fs.existsSync(firstLine)) {
+        _cachedRiderExe = firstLine
+        return _cachedRiderExe
       }
     } catch {
-      /* ignore */
+      /* ignore — rider64.exe not on PATH */
     }
   }
 
@@ -489,8 +500,9 @@ function findRiderExe(customPath?: string): string | null {
       'rider64.exe'
     )
   ]) {
-    if (fs.existsSync(cand)) return cand
+    if (fs.existsSync(cand)) { result = cand; break }
   }
+  if (result) { _cachedRiderExe = result; return result }
 
   // 5. JetBrains Toolbox
   if (localAppData) {
@@ -502,48 +514,45 @@ function findRiderExe(customPath?: string): string | null {
           if (!fs.statSync(channelDir).isDirectory()) continue
           for (const v of fs.readdirSync(channelDir)) {
             const binRider = path.join(channelDir, v, 'bin', 'rider64.exe')
-            if (fs.existsSync(binRider)) return binRider
+            if (fs.existsSync(binRider)) { result = binRider; break }
           }
+          if (result) break
         }
       } catch {
         /* ignore */
       }
     }
   }
+  if (result) { _cachedRiderExe = result; return result }
 
   // 6. Sibling of VS install: if VS is at D:\Applications\VS, scan D:\Applications\ for Rider
-  //    Uses the same DEFAULT_INSTALL_PATH constant logic from vsStatus.ts
   const DEFAULT_VS_PATH = 'D:\\Applications\\VS'
-  const vsBase = (() => {
-    // Try vswhere to find the actual VS path
-    try {
-      const programFilesX86Path = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)'
-      const vsWherePath = path.join(
-        programFilesX86Path,
-        'Microsoft Visual Studio',
-        'Installer',
-        'vswhere.exe'
+  let vsBase: string | null = null
+  try {
+    const programFilesX86Path = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)'
+    const vsWherePath = path.join(
+      programFilesX86Path,
+      'Microsoft Visual Studio',
+      'Installer',
+      'vswhere.exe'
+    )
+    if (fs.existsSync(vsWherePath)) {
+      const { stdout } = await execAsync(
+        `"${vsWherePath}" -products * -utf8 -latest -property installationPath`,
+        { timeout: 5000 }
       )
-      if (fs.existsSync(vsWherePath)) {
-        const out = execSync(
-          `"${vsWherePath}" -products * -utf8 -latest -property installationPath`,
-          { encoding: 'utf8' }
-        ).trim()
-        if (out) return out
-      }
-    } catch {
-      /* ignore */
+      if (stdout.trim()) vsBase = stdout.trim()
     }
-    if (fs.existsSync(DEFAULT_VS_PATH)) return DEFAULT_VS_PATH
-    return null
-  })()
+  } catch {
+    /* ignore */
+  }
+  if (!vsBase && fs.existsSync(DEFAULT_VS_PATH)) vsBase = DEFAULT_VS_PATH
 
   if (vsBase) {
-    // Check sibling directories: D:\Applications\Rider or D:\Applications\JetBrains\Rider, etc.
     const vsParent = path.dirname(vsBase)
-    const found = tryDir(vsParent)
-    if (found) return found
+    result = tryDir(vsParent)
   }
+  if (result) { _cachedRiderExe = result; return result }
 
   // 7. Common drive directories
   const searchDirs = [
@@ -560,19 +569,20 @@ function findRiderExe(customPath?: string): string | null {
   ]
 
   for (const dir of searchDirs) {
-    const found = tryDir(dir)
-    if (found) return found
+    result = tryDir(dir)
+    if (result) break
   }
 
-  return null
+  _cachedRiderExe = result
+  return result
 }
 
-export function handleProjectCppOpenSln(
+export async function handleProjectCppOpenSln(
   projectPath: string,
   ide: 'vs' | 'rider' = 'vs',
   customRiderPath?: string,
   sender?: WebContents
-): { success: boolean; error?: string } {
+): Promise<{ success: boolean; error?: string }> {
   const ideName = ide === 'rider' ? 'JetBrains Rider' : 'Visual Studio'
   sendCppLog(sender, projectPath, `Locating C++ solution file (.sln) for ${ideName}...`, 'info')
   const safePath = isRegisteredProjectPath(projectPath)
@@ -622,7 +632,7 @@ export function handleProjectCppOpenSln(
     }
 
     if (ide === 'rider') {
-      const riderExe = findRiderExe(customRiderPath)
+      const riderExe = await findRiderExe(customRiderPath)
       const engineDir = findEngineDirectoryForProject(safePath)
 
       // Set environment variables so Rider & UBT find the engine's bundled DotNet SDK / runtime
@@ -1133,10 +1143,16 @@ function runBuildProcess(
 }
 
 function findVisualStudioExe(): string | null {
+  // Return cached result if already discovered this session
+  if (_cachedVsExe !== undefined) return _cachedVsExe
+
   const envVsPath = process.env.VSINSTALLDIR
   if (envVsPath) {
     const candidate = path.join(envVsPath, 'Common7', 'IDE', 'devenv.exe')
-    if (fs.existsSync(candidate)) return candidate
+    if (fs.existsSync(candidate)) {
+      _cachedVsExe = candidate
+      return _cachedVsExe
+    }
   }
 
   const commonPaths = [
@@ -1149,9 +1165,13 @@ function findVisualStudioExe(): string | null {
   ]
 
   for (const p of commonPaths) {
-    if (fs.existsSync(p)) return p
+    if (fs.existsSync(p)) {
+      _cachedVsExe = p
+      return _cachedVsExe
+    }
   }
 
+  _cachedVsExe = null
   return null
 }
 

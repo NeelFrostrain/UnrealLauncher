@@ -314,7 +314,7 @@ if (!gotTheLock) {
             },
             {
               label: 'Download Launcher',
-              url: `${process.env.VITE_WEBSITE_URL || 'https://neelfrostrain.github.io/unreal-launcher/'}`
+              url: `${process.env.VITE_WEBSITE_URL || 'https://neelfrostrain.github.io/UnrealLauncher/'}`
             }
           ]
         })

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Generic JSON read/write helpers with automatic backup-and-recover on corruption.
  */
@@ -12,7 +12,6 @@ import { ensureSaveDir } from './storePaths'
  */
 export function readJsonArray<T>(filePath: string, label: string): T[] {
   try {
-    if (!fs.existsSync(filePath)) return []
     const content = fs.readFileSync(filePath, 'utf8')
     if (!content.trim()) {
       logger.warn('store', `${label} file is empty — resetting`, { filePath })
@@ -21,16 +20,15 @@ export function readJsonArray<T>(filePath: string, label: string): T[] {
     }
     const parsed = JSON.parse(content)
     return Array.isArray(parsed) ? parsed : []
-  } catch (err) {
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return [] // file simply doesn't exist yet
     logger.error('store', `Error loading ${label}`, err)
     // Backup corrupt file then reset
     try {
       const backupPath = `${filePath}.backup.${Date.now()}`
-      if (fs.existsSync(filePath)) {
-        fs.copyFileSync(filePath, backupPath)
-        logger.info('store', `Corrupted ${label} backed up`, { backupPath })
-        fs.writeFileSync(filePath, '[]', 'utf8')
-      }
+      fs.copyFileSync(filePath, backupPath)
+      logger.info('store', `Corrupted ${label} backed up`, { backupPath })
+      fs.writeFileSync(filePath, '[]', 'utf8')
     } catch (recoveryErr) {
       logger.error('store', `Failed to recover corrupted ${label}`, recoveryErr)
     }
@@ -52,12 +50,17 @@ export function readJsonObject<T extends object>(filePath: string, defaults: T):
   return { ...defaults }
 }
 
+let _saveDirEnsured = false
+
 /**
  * Write a value as pretty-printed JSON. Logs on error — never throws.
  */
 export function writeJson(filePath: string, value: unknown, label: string): void {
   try {
-    ensureSaveDir()
+    if (!_saveDirEnsured) {
+      ensureSaveDir()
+      _saveDirEnsured = true
+    }
     fs.writeFileSync(filePath, JSON.stringify(value, null, 2), 'utf8')
     logger.info('store', `${label} saved`)
   } catch (error) {

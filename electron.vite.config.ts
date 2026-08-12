@@ -1,4 +1,4 @@
-﻿import { resolve } from 'path'
+import { resolve } from 'path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -75,6 +75,7 @@ export default defineConfig({
             if (!id) return undefined
             const normalizedId = id.replace(/\\\\/g, '/')
             if (normalizedId.includes('/node_modules/')) {
+              if (normalizedId.includes('react-router')) return 'router'
               if (normalizedId.includes('lucide-react')) return 'lucide'
               if (normalizedId.includes('zustand')) return 'state'
               return 'vendor'

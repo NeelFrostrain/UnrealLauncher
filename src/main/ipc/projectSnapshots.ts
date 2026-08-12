@@ -177,7 +177,7 @@ export function registerProjectSnapshotHandlers(ipcMain_: typeof ipcMain): void 
           } catch {
             /* ignore stat errors during write */
           }
-        }, 150)
+        }, 250)
       }
 
       startPolling()

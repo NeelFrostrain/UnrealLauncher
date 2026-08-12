@@ -72,7 +72,6 @@ export function useProjectLoader({
           source === 'saved'
             ? await window.electronAPI.loadSavedProjects()
             : await window.electronAPI.scanProjects()
-        clearGitCache()
         const deduped = dedupeProjectList(raw)
 
         // Apply cached sizes from previous runs to improve perceived performance
@@ -116,6 +115,10 @@ export function useProjectLoader({
           localStorage.setItem(snapshotKey, JSON.stringify(nextSnapshot))
 
           if (changed.length > 0) {
+            // Projects changed — clear and reprime the git status cache
+            clearGitCache()
+            primeGitCache(deduped.map((p) => p.projectPath).filter(Boolean) as string[])
+
             try {
               // Remove size cache entries for changed projects so next size calculation refreshes
               const rawSizeCache = localStorage.getItem('projectSizeCache')
@@ -158,7 +161,6 @@ export function useProjectLoader({
           rawCount: raw.length,
           dedupedCount: deduped.length
         })
-        primeGitCache(deduped.map((p) => p.projectPath).filter(Boolean) as string[])
         return deduped
       } catch (err) {
         logActivity('Projects load failed', {
@@ -193,8 +195,28 @@ export function useProjectLoader({
       if (!window.electronAPI) return []
       try {
         logActivity('Projects tab load started', { tab })
+
+        // Reuse the already-loaded in-memory list when possible to avoid a disk scan
+        const existing = allProjectsRef.current
+        if (existing.length > 0) {
+          const filtered = filterForTab(
+            tab,
+            existing,
+            favoritePathsRef.current,
+            hiddenPathsRef.current
+          )
+          setProjects(filtered)
+          setScanEpoch((e) => e + 1)
+          logActivity('Projects tab load completed (in-memory)', {
+            tab,
+            rawCount: existing.length,
+            filteredCount: filtered.length
+          })
+          return filtered
+        }
+
+        // Fallback: list is empty (first load), trigger a full scan
         const raw = await window.electronAPI.scanProjects()
-        clearGitCache()
         const deduped = dedupeProjectList(raw)
         allProjectsRef.current = deduped
         const filtered = filterForTab(
@@ -205,6 +227,7 @@ export function useProjectLoader({
         )
         setProjects(filtered)
         setScanEpoch((e) => e + 1)
+        clearGitCache()
         logActivity('Projects tab load completed', {
           tab,
           rawCount: raw.length,

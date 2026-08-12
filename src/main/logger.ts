@@ -34,6 +34,10 @@ let logFilePath: string | null = null
 let consoleBridgeInstalled = false
 let processHandlersInstalled = false
 
+// Write queue for async log flushing — prevents appendFileSync from blocking the main thread
+const _writeQueue: string[] = []
+let _flushScheduled = false
+
 function getTimestampForFile(date = new Date()): string {
   return date.toISOString().replace(/[:.]/g, '-')
 }
@@ -48,7 +52,9 @@ function getLogFilePath(): string {
   return logFilePath
 }
 
+let _logsDir: string | null = null
 export function getLogsDir(): string {
+  if (_logsDir) return _logsDir
   let baseDir = process.cwd()
   try {
     baseDir = app.getPath('userData')
@@ -58,6 +64,7 @@ export function getLogsDir(): string {
 
   const logsDir = path.join(baseDir, 'save', 'logs')
   fs.mkdirSync(logsDir, { recursive: true })
+  _logsDir = logsDir
   return logsDir
 }
 
@@ -106,12 +113,21 @@ function stringifyMessage(message: unknown, meta: unknown[]): string {
   return parts.join(' ')
 }
 
+function scheduleLogFlush(): void {
+  if (_flushScheduled) return
+  _flushScheduled = true
+  setImmediate(() => {
+    const batch = _writeQueue.splice(0).join('\n') + '\n'
+    _flushScheduled = false
+    fs.appendFile(getLogFilePath(), batch, 'utf8', () => {
+      /* logging must never crash the app */
+    })
+  })
+}
+
 function writeToFile(line: string): void {
-  try {
-    fs.appendFileSync(getLogFilePath(), `${line}\n`, 'utf8')
-  } catch {
-    /* logging must never crash the app */
-  }
+  _writeQueue.push(line)
+  scheduleLogFlush()
 }
 
 function writeToConsole(level: LogLevel, line: string): void {

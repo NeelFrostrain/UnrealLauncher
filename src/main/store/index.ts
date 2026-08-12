@@ -57,13 +57,19 @@ const DEFAULT_SETTINGS: MainSettings = {
   excludedScannerPaths: ['.git', 'Binaries', 'Intermediate', 'Saved', 'node_modules']
 }
 
+let _cachedSettings: MainSettings | null = null
+
 export function loadMainSettings(): MainSettings {
+  if (_cachedSettings) return _cachedSettings
   migrateIfNeeded()
-  return readJsonObject<MainSettings>(getSettingsPath(), DEFAULT_SETTINGS)
+  _cachedSettings = readJsonObject<MainSettings>(getSettingsPath(), DEFAULT_SETTINGS)
+  return _cachedSettings
 }
 
 export function saveMainSettings(settings: Partial<MainSettings>): void {
+  _cachedSettings = null // invalidate cache before re-reading
   const current = loadMainSettings()
+  _cachedSettings = null // invalidate again after write so next read is fresh
   writeJson(getSettingsPath(), { ...current, ...settings }, 'Settings')
 }
 
