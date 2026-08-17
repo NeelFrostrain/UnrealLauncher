@@ -1,6 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback } from 'react'
-import type { TabType } from '../types'
+import type { Project, TabType } from '../types'
 import {
   getSetting,
   checkLaunchCooldown,
@@ -12,7 +12,7 @@ import { logActivity } from '../utils/activityLogger'
 
 interface UseProjectActionsOptions {
   currentTab: TabType
-  loadProjectsForTab: (tab: TabType) => Promise<unknown>
+  loadProjects: (source: 'saved' | 'scan') => Promise<Project[]>
 }
 
 export interface UseProjectActionsReturn {
@@ -30,7 +30,7 @@ export interface UseProjectActionsReturn {
 
 export function useProjectActions({
   currentTab,
-  loadProjectsForTab
+  loadProjects
 }: UseProjectActionsOptions): UseProjectActionsReturn {
   const { addToast } = useToast()
 
@@ -43,21 +43,38 @@ export function useProjectActions({
       setCalculatingSizes: (v: boolean) => void
     }): Promise<void> => {
       setRefreshing(true)
-      setCalculatingSizes(true)
       logActivity('Project refresh started', { currentTab })
-      const projects = await loadProjectsForTab(currentTab)
-      logActivity('Project refresh scan completed', {
-        currentTab,
-        count: Array.isArray(projects) ? projects.length : 0
-      })
-      setRefreshing(false)
-      // Fire-and-forget: size updates stream back via 'size-calculated' IPC push events.
-      // Awaiting this would block the refresh from completing until ALL sizes are done.
-      void window.electronAPI.calculateAllProjectSizes()
-      logActivity('Project refresh size calculation requested')
-      setCalculatingSizes(false)
+      try {
+        const startTime = Date.now()
+        const projects = await loadProjects('scan')
+        const elapsed = Date.now() - startTime
+        // Guarantee visible visual feedback (minimum 400ms)
+        if (elapsed < 400) {
+          await new Promise((resolve) => setTimeout(resolve, 400 - elapsed))
+        }
+        logActivity('Project refresh scan completed', {
+          currentTab,
+          count: Array.isArray(projects) ? projects.length : 0
+        })
+      } finally {
+        setRefreshing(false)
+      }
+
+      // Fire size calculation in background — stream updates and update calculatingSizes state
+      if (window.electronAPI?.calculateAllProjectSizes) {
+        setCalculatingSizes(true)
+        logActivity('Project refresh size calculation requested')
+        window.electronAPI
+          .calculateAllProjectSizes()
+          .catch((err) => {
+            console.error('Failed to calculate project sizes:', err)
+          })
+          .finally(() => {
+            setCalculatingSizes(false)
+          })
+      }
     },
-    [currentTab, loadProjectsForTab]
+    [currentTab, loadProjects]
   )
 
   const handleLaunch = useCallback(
@@ -154,7 +171,7 @@ export function useProjectActions({
           addToast('No new projects were added', 'info')
         }
 
-        await loadProjectsForTab(currentTab)
+        await loadProjects('saved')
       } catch (error) {
         logActivity('Add project failed', {
           error: error instanceof Error ? error.message : String(error)
@@ -166,7 +183,7 @@ export function useProjectActions({
         setAddingProject(false)
       }
     },
-    [addToast, currentTab, loadProjectsForTab]
+    [addToast, currentTab, loadProjects]
   )
 
   return { handleRefresh, handleLaunch, handleOpenDir, handleAddProject }

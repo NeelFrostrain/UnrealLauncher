@@ -63,7 +63,7 @@ export function useProjectsPageState() {
   currentTabRef.current = currentTab
   favoritePathsRef.current = favoritePaths
 
-  const { loading, backgroundScanning, loadProjects, loadProjectsForTab } = useProjectLoader({
+  const { loading, backgroundScanning, loadProjects } = useProjectLoader({
     allProjectsRef,
     currentTabRef,
     favoritePathsRef,
@@ -75,7 +75,7 @@ export function useProjectsPageState() {
 
   const { handleRefresh, handleLaunch, handleOpenDir, handleAddProject } = useProjectActions({
     currentTab,
-    loadProjectsForTab
+    loadProjects
   })
 
   const [engineVersionOptions, setEngineVersionOptions] = useState<
@@ -90,10 +90,42 @@ export function useProjectsPageState() {
     return [{ value: 'all', label: 'All versions' }]
   })
 
+  const refreshEngineOptions = useCallback(async (): Promise<void> => {
+    if (!window.electronAPI?.scanEngines) return
+    try {
+      const engines = await window.electronAPI.scanEngines()
+      setEnginesCache(engines)
+      const versions = new Set<string>()
+      for (const engine of engines) {
+        const version = (engine.version ?? '').trim()
+        if (version && version.toLowerCase() !== 'unknown') versions.add(version)
+      }
+      const nextOptions = [{ value: 'all', label: 'All versions' }] as Array<{
+        value: string
+        label: string
+      }>
+      for (const version of [...versions].sort((a, b) =>
+        a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+      )) {
+        nextOptions.push({ value: version, label: formatVersion(version) })
+      }
+      nextOptions.push({ value: '__divider__', label: '' })
+      nextOptions.push({ value: 'broken', label: 'No engine / missing' })
+      try {
+        localStorage.setItem('engineVersionOptionsCache', JSON.stringify(nextOptions))
+      } catch {
+        /* ignore */
+      }
+      setEngineVersionOptions(nextOptions)
+    } catch {
+      setEngineVersionOptions([{ value: 'all', label: 'All versions' }])
+    }
+  }, [])
+
   useEffect(() => {
     let cancelled = false
     window.electronAPI
-      .scanEngines()
+      ?.scanEngines()
       .then((engines) => {
         if (cancelled) return
         setEnginesCache(engines)
@@ -214,10 +246,10 @@ export function useProjectsPageState() {
     [handleAddProject, addingProject]
   )
 
-  const handleRefreshClick = useCallback(
-    () => handleRefresh({ setRefreshing, setCalculatingSizes }),
-    [handleRefresh]
-  )
+  const handleRefreshClick = useCallback(() => {
+    void refreshEngineOptions()
+    return handleRefresh({ setRefreshing, setCalculatingSizes })
+  }, [handleRefresh, refreshEngineOptions])
 
   return {
     projects,

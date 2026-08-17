@@ -279,7 +279,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
           <div className="relative">
             <button
               onClick={onRefresh}
-              disabled={refreshing}
+              disabled={refreshing || backgroundScanning}
               className="flex items-center gap-1.5 px-3 py-1.5 font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               style={{
                 borderRadius: 'var(--radius)',
@@ -288,8 +288,12 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
                 border: '1px solid var(--color-border)',
                 fontSize: 'calc(var(--font-size) * 0.75)'
               }}
+              title="Refresh project list"
             >
-              <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
+              <RefreshCw
+                size={12}
+                className={refreshing || backgroundScanning ? 'animate-spin' : ''}
+              />
               <span className="ml-1" style={{ fontSize: 'calc(var(--font-size) * 0.75)' }}>
                 {refreshing
                   ? 'Refreshing…'
@@ -302,7 +306,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
             </button>
             {calculatingSizes && (
               <span
-                className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-semibold rounded-full"
+                className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-semibold rounded-full pointer-events-none"
                 style={{
                   backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-text-primary)',
