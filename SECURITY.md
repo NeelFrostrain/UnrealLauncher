@@ -1,7 +1,7 @@
-﻿# Security Policy
+# Security Policy
 
-> This project is proprietary software. All security reports are handled exclusively
-> by NeelFrostrain. Do not disclose vulnerabilities publicly before a fix is released.
+> This project is open source software licensed under the GNU General Public License v3.0 (GPLv3).
+> Security reports are handled by NeelFrostrain. Do not disclose vulnerabilities publicly before a fix is released.
 
 ---
 

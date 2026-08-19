@@ -1,8 +1,8 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState } from 'react'
 import { FolderOpen, Cpu } from 'lucide-react'
 import { Card, SettingRow, Toggle } from '../SectionHelpers'
-import { useTracerSettings } from '../../../hooks/useTracerSettings'
+import { useTracerSettings } from '../../../hooks'
 
 const TracerSection = (): React.ReactElement | null => {
   const {

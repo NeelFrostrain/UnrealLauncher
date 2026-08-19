@@ -24,8 +24,9 @@ import { OrganizeSubMenu } from './contextMenu/OrganizeSubMenu'
 import { ProjectToolsSubMenu } from './contextMenu/ProjectToolsSubMenu'
 import { GitSubMenu } from './contextMenu/GitSubMenu'
 import { EngineSubMenu } from './contextMenu/EngineSubMenu'
-import { useEngineCompatibility } from '../../hooks/useEngineCompatibility'
+import { useEngineCompatibility } from '../../hooks'
 import { useToast } from '../ui/ToastContext'
+import { toMajorMinorVersion } from './projectUtils'
 
 export interface ProjectContextMenuProps {
   x: number
@@ -111,8 +112,8 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
     if (ref.current) {
       const { offsetWidth: w, offsetHeight: h } = ref.current
       setPos({
-        top: Math.min(p.y, window.innerHeight - h - 8),
-        left: Math.min(p.x, window.innerWidth - w - 8),
+        top: Math.max(8, Math.min(p.y, window.innerHeight - h - 8)),
+        left: Math.max(8, Math.min(p.x, window.innerWidth - w - 8)),
         width: w
       })
     }
@@ -204,7 +205,8 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
         }
 
         const uprojectJson = JSON.parse(fileRes.content)
-        uprojectJson.EngineAssociation = newVersion
+        const v2 = toMajorMinorVersion(newVersion)
+        uprojectJson.EngineAssociation = v2
 
         const writeRes = await window.electronAPI.projectWriteTextFile(
           pathRes.filePath,
@@ -219,13 +221,13 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
 
         // Also update saved projects in main process store
         if (window.electronAPI.updateProjectVersion) {
-          await window.electronAPI.updateProjectVersion(p.projectPath, newVersion)
+          await window.electronAPI.updateProjectVersion(p.projectPath, v2)
         }
 
-        addToast(`Engine version updated to ${newVersion}`, 'success')
+        addToast(`Engine version updated to ${v2}`, 'success')
         window.dispatchEvent(
           new CustomEvent('project-engine-changed', {
-            detail: { projectPath: p.projectPath, version: newVersion }
+            detail: { projectPath: p.projectPath, version: v2 }
           })
         )
         p.onClose()

@@ -5,6 +5,8 @@ import { Check } from 'lucide-react'
 import { MenuItem, MENU_STYLE } from './contextMenuComponents'
 import { useContextMenuPosition } from './useContextMenuPosition'
 
+import { toMajorMinorVersion } from '../projectUtils'
+
 export const EngineSubMenu = ({
   engines,
   currentVersion,
@@ -50,7 +52,8 @@ export const EngineSubMenu = ({
           </div>
         ) : (
           engines.map((e) => {
-            const isActive = e.version === currentVersion
+            const v2 = toMajorMinorVersion(e.version)
+            const isActive = v2 === toMajorMinorVersion(currentVersion)
             return (
               <MenuItem
                 key={e.version}
@@ -59,9 +62,9 @@ export const EngineSubMenu = ({
                     <Check size={11} style={{ color: 'var(--color-accent)' }} />
                   ) : undefined
                 }
-                label={e.alias || `Unreal Engine ${e.version}`}
-                sub={`Version: ${e.version}`}
-                onClick={() => onSelectEngine(e.version)}
+                label={e.alias || `Unreal Engine ${v2}`}
+                sub={`Version: ${v2}`}
+                onClick={() => onSelectEngine(v2)}
                 onClose={onClose}
               />
             )

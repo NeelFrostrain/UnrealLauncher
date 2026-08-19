@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Activity, FolderOpen, X } from 'lucide-react'
 import type { Project } from '../../types'
-import { usePageVisibility } from '../../hooks/usePageVisibility'
+import { usePageVisibility } from '../../hooks'
 
 interface RunningProjectsBannerProps {
   /** Full project list used to resolve path → name */

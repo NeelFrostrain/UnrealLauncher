@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { RefreshCw, Download, CheckCircle, GitBranch } from 'lucide-react'
 import { Card } from '../SectionHelpers'
-import { useUpdateCheck } from '../../../hooks/useUpdateCheck'
+import { useUpdateCheck } from '../../../hooks'
 import { DownloadUpdateModal } from '../../ui/DownloadUpdateModal'
 
 // Status-specific semantic colors — these are intentional fixed colors, not theme tokens

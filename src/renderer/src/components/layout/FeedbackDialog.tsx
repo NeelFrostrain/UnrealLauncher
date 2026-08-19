@@ -1,9 +1,9 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef } from 'react'
 import { X, Paperclip, Send, Loader2, CheckCircle, AlertCircle, Trash2 } from 'lucide-react'
 import { useFeedbackState } from './useFeedbackState'
 import type { Mode } from './useFeedbackState'
-import { useFocusTrap } from '../../hooks/useFocusTrap'
+import { useFocusTrap } from '../../hooks'
 
 export default function FeedbackDialog({ onClose }: { onClose: () => void }): React.ReactElement {
   const dialogRef = useRef<HTMLDivElement>(null)

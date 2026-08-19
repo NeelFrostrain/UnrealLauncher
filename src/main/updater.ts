@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import pkg from 'electron-updater'
 const { autoUpdater } = pkg
 import { BrowserWindow, dialog } from 'electron'
@@ -191,6 +191,38 @@ export async function handleCheckGithubVersion(
   logger.info('updater', 'GitHub version check requested', { currentVersion })
   try {
     const release = await fetchGitHubLatestRelease()
+    const releaseJson = JSON.stringify(release)
+
+    // Try Rust native evaluation
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { getNative } = require('./utils/native')
+      const native = getNative()
+      if (native?.evaluateGithubUpdateNative) {
+        const evalRes = native.evaluateGithubUpdateNative(currentVersion, releaseJson)
+        if (evalRes) {
+          let message = ''
+          if (evalRes.updateAvailable) {
+            message = `New version ${evalRes.latestVersion} available on GitHub!`
+          } else {
+            message = `You have the latest version (${currentVersion}). GitHub latest is ${evalRes.latestVersion}.`
+          }
+          return {
+            success: true,
+            latestVersion: evalRes.latestVersion,
+            currentVersion: evalRes.currentVersion,
+            updateAvailable: evalRes.updateAvailable,
+            releaseName: evalRes.releaseName,
+            releaseNotes: evalRes.releaseNotes,
+            downloadUrl: evalRes.downloadUrl,
+            message
+          }
+        }
+      }
+    } catch {
+      /* fallback */
+    }
+
     const latestVersion = String(release.tag_name || release.name || '').replace(/^v/i, '')
     if (!latestVersion) return { success: false, error: 'Latest GitHub release tag not found' }
 

@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import type { CppBuildOptions } from '../main/ipc/projectCpp'
+import type { CppBuildOptions } from '../main/ipc/projects/projectCpp'
 
 if (process.contextIsolated) {
   try {

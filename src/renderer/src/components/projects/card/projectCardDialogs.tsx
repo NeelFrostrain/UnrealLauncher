@@ -3,16 +3,16 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 // All dialogs and the context menu are lazy-loaded — excluded from the initial
 // bundle chunk and only fetched on first user interaction.
 const ProjectContextMenu = lazy(() => import('../ProjectContextMenu'))
-const ProjectLogDialog = lazy(() => import('../ProjectLogDialog'))
-const GitCommitDialog = lazy(() => import('../GitCommitDialog'))
-const GitBranchDialog = lazy(() => import('../GitBranchDialog'))
-const ProjectFileEditorDialog = lazy(() => import('../ProjectFileEditorDialog'))
+const ProjectLogDialog = lazy(() => import('../dialogs/ProjectLogDialog'))
+const GitCommitDialog = lazy(() => import('../dialogs/GitCommitDialog'))
+const GitBranchDialog = lazy(() => import('../dialogs/GitBranchDialog'))
+const ProjectFileEditorDialog = lazy(() => import('../dialogs/ProjectFileEditorDialog'))
 const LaunchConfigDialog = lazy(() => import('../../engines/LaunchConfigDialog'))
-const ProjectPluginsDialog = lazy(() => import('../ProjectPluginsDialog'))
-const ProjectHealthDialog = lazy(() => import('../ProjectHealthDialog'))
-const ProjectAssetsDialog = lazy(() => import('../ProjectAssetsDialog'))
-const ProjectSnapshotsDialog = lazy(() => import('../ProjectSnapshotsDialog'))
-const ProjectCompilerDialog = lazy(() => import('../ProjectCompilerDialog'))
+const ProjectPluginsDialog = lazy(() => import('../dialogs/ProjectPluginsDialog'))
+const ProjectHealthDialog = lazy(() => import('../dialogs/ProjectHealthDialog'))
+const ProjectAssetsDialog = lazy(() => import('../dialogs/ProjectAssetsDialog'))
+const ProjectSnapshotsDialog = lazy(() => import('../dialogs/ProjectSnapshotsDialog'))
+const ProjectCompilerDialog = lazy(() => import('../dialogs/ProjectCompilerDialog'))
 
 interface ProjectCardDialogsProps {
   ctxMenu: { x: number; y: number } | null

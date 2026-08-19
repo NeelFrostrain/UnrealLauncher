@@ -1,6 +1,6 @@
-﻿import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import path from 'path'
-import { validatePath, validateDirectory, isPathWithinDirectory } from '../pathSanitization'
+import { validatePath, validateDirectory, isPathWithinDirectory } from '../system/pathSanitization'
 
 describe('Path Sanitizer Tests', () => {
   // Define mock authorized directories for testing

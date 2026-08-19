@@ -2,8 +2,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sidebar, Titlebar } from '../components'
-import { useNavigationPersist } from '../hooks/useNavigationPersist'
-import { useGlobalShortcuts } from '../hooks/useGlobalShortcuts'
+import { useNavigationPersist, useGlobalShortcuts } from '../hooks'
 import { CommandPalette } from '../components/ui/CommandPalette'
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => {

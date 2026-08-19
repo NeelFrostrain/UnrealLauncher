@@ -34,7 +34,8 @@ export function useGitBranchState(
   const load = useCallback(async () => {
     setLoading(true)
     const r = await window.electronAPI.projectGitBranches(projectPath)
-    setBranches(r.branches)
+    const list = (r.branches || []).map((b: any) => (typeof b === 'string' ? b : b?.name || String(b)))
+    setBranches(list)
     setLoading(false)
   }, [projectPath])
 

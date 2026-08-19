@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
 export const AboutHero = ({ version }: { version: string }): React.ReactElement => (
   <div
@@ -40,7 +40,7 @@ export const AboutHero = ({ version }: { version: string }): React.ReactElement 
           { label: 'Version', value: `v${version}` },
           { label: 'Features', value: '58' },
           { label: 'IPC Channels', value: '34+' },
-          { label: 'License', value: 'Proprietary' }
+          { label: 'License', value: 'GPLv3' }
         ].map(({ label, value }) => (
           <div
             key={label}

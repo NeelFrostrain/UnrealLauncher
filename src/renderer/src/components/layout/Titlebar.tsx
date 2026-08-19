@@ -4,8 +4,7 @@ import { Minus, Square, Minimize2, X, MessageSquarePlus, MessageCircle, Heart } 
 const FeedbackDialog = lazy(() => import('./FeedbackDialog'))
 import { SupportModal } from '../ui/SupportModal'
 import { getSetting } from '../../utils/settings'
-import { usePageVisibility } from '../../hooks/usePageVisibility'
-import { useAppVersion } from '../../hooks/useAppVersion'
+import { usePageVisibility, useAppVersion } from '../../hooks'
 import config from '../../../../config'
 
 // const IS_MAC = navigator.platform.toLowerCase().includes('mac')

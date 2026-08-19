@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Tracer merge helpers — reads the tracer's output files and merges any new
  * entries into the app's saved data. Kept separate to keep store.ts focused.
@@ -81,6 +81,23 @@ export function mergeTracerEngines(
 export function mergeTracerProjects(saved: Project[], tracerProjectsPath: string): Project[] {
   if (!loadMainSettings().tracerMergeEnabled) return saved
   if (!fs.existsSync(tracerProjectsPath)) return saved
+
+  // Try Rust native merge first
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getNative } = require('./utils/native')
+    const native = getNative()
+    if (native?.storeMergeTracerProjectsNative) {
+      const tracerContent = fs.readFileSync(tracerProjectsPath, 'utf8')
+      const mergedJson = native.storeMergeTracerProjectsNative(JSON.stringify(saved), tracerContent)
+      const parsed = JSON.parse(mergedJson)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed as Project[]
+      }
+    }
+  } catch {
+    /* fallback to JS */
+  }
 
   let tracerProjects: TracerProject[] = []
   try {

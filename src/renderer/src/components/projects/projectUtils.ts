@@ -1,10 +1,14 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type { Project } from '../../types'
-import { getEngineCompatibilitySync } from '../../hooks/useEngineCompatibility'
+import { getEngineCompatibilitySync } from '../../hooks'
 
 export const formatVersion = (v: string): string => {
   if (!v || v === 'Unknown') return '?'
   if (v.startsWith('{') || v.length > 12) return 'Custom'
+  const parts = v.trim().split('.')
+  if (parts.length >= 2) {
+    return `${parts[0]}.${parts[1]}`
+  }
   return v
 }
 
@@ -152,6 +156,17 @@ export function matchesProjectQuery(project: Project, query: string): boolean {
 
 export type EngineVersionFilter = 'all' | 'unspecified' | 'unsupported' | 'broken' | string
 
+export function toMajorMinorVersion(v: string | undefined): string {
+  if (!v || v === 'Unknown') return 'unspecified'
+  const trimmed = v.trim()
+  if (trimmed.startsWith('{') || trimmed.length > 12) return 'Custom'
+  const parts = trimmed.split('.')
+  if (parts.length >= 2) {
+    return `${parts[0]}.${parts[1]}`
+  }
+  return trimmed
+}
+
 function normalizeEngineVersion(value: string | undefined): string {
   const normalized = (value ?? '').trim()
   if (!normalized || normalized.toLowerCase() === 'unknown') return 'unspecified'
@@ -188,10 +203,19 @@ export function filterProjectsByEngineVersion(
     })
   }
 
+  const normalizedFilter = normalizeEngineVersion(filter)
+  const filterMM = toMajorMinorVersion(normalizedFilter)
+
   return projects.filter((project) => {
-    const version = normalizeEngineVersion(project.version)
-    if (filter === 'unspecified') return version === 'unspecified'
-    return version === normalizeEngineVersion(filter)
+    const rawVersion = normalizeEngineVersion(project.version)
+    if (normalizedFilter === 'unspecified') return rawVersion === 'unspecified'
+    const projectMM = toMajorMinorVersion(rawVersion)
+    return (
+      rawVersion === normalizedFilter ||
+      projectMM === filterMM ||
+      rawVersion.startsWith(filterMM + '.') ||
+      normalizedFilter.startsWith(projectMM + '.')
+    )
   })
 }
 
@@ -242,9 +266,10 @@ function toBytes(val: number, unit: string): number {
 }
 
 function toTimestamp(d: string | undefined): number {
-  if (!d) return 0
+  if (!d || d === 'Never' || d.trim() === '') return 0
   try {
-    return new Date(d).getTime()
+    const t = new Date(d).getTime()
+    return isNaN(t) ? 0 : t
   } catch {
     return 0
   }
@@ -263,15 +288,27 @@ export function sortProjects(projects: Project[], config: SortConfig): Project[]
       case 'size':
         cmp = parseSizeBytes(a.size) - parseSizeBytes(b.size)
         break
-      case 'createdAt':
-        cmp = toTimestamp(a.createdAt) - toTimestamp(b.createdAt)
+      case 'createdAt': {
+        const timeA = toTimestamp(a.createdAt)
+        const timeB = toTimestamp(b.createdAt)
+        cmp = timeA - timeB
         break
-      case 'lastOpenedAt':
-        cmp = toTimestamp(a.lastOpenedAt) - toTimestamp(b.lastOpenedAt)
+      }
+      case 'lastOpenedAt': {
+        const timeA = toTimestamp(a.lastOpenedAt)
+        const timeB = toTimestamp(b.lastOpenedAt)
+        cmp = timeA - timeB
+        if (cmp === 0) {
+          cmp = toTimestamp(a.createdAt) - toTimestamp(b.createdAt)
+        }
         break
+      }
       case 'version':
         cmp = (a.version || '').localeCompare(b.version || '', undefined, { numeric: true })
         break
+    }
+    if (cmp === 0) {
+      cmp = (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
     }
     return cmp * mul
   })

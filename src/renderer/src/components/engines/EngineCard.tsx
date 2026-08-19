@@ -20,6 +20,7 @@ interface EngineCardComponentProps extends EngineCardProps {
 const EngineCard: FC<EngineCardComponentProps> = memo(
   ({
     version,
+    fullVersion,
     exePath,
     directoryPath,
     folderSize,
@@ -122,7 +123,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
               Version
             </p>
             <h1 className="relative z-10 text-4xl font-black tracking-tight text-white">
-              {version}
+              {fullVersion || version}
             </h1>
           </div>
 

@@ -17,7 +17,7 @@ import {
   CheckCircle2
 } from 'lucide-react'
 import PageWrapper from '../layout/PageWrapper'
-import { useAppVersion } from '../hooks/useAppVersion'
+import { useAppVersion } from '../hooks'
 import config from '../../../config'
 import { Tabs } from '../components/ui/Tabs'
 import type { TabItem } from '../components/ui/Tabs'
@@ -588,7 +588,7 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
           </button>
         </p>
         <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-          Copyright &copy; 2026 NeelFrostrain. Proprietary Source License.
+          Copyright &copy; 2026 NeelFrostrain. Licensed under GNU GPLv3.
         </p>
       </div>
     </div>

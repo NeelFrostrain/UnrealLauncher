@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Path resolution for all data files in the main process store.
  * All paths are computed lazily (after app is ready) so app.getPath()
@@ -7,7 +7,7 @@
 import fs from 'fs'
 import path from 'path'
 import { app } from 'electron'
-import { getTracerDataDir } from '../utils/platformPaths'
+import { getTracerDataDir } from '../utils/system/platformPaths'
 
 export function getSaveDir(): string {
   return path.join(app.getPath('userData'), 'save')
@@ -65,6 +65,18 @@ export function ensureSaveDir(): void {
 }
 
 export function migrateIfNeeded(): void {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getNative } = require('../utils/native')
+    const native = getNative()
+    if (native?.migrateAndEnsureSaveDirsNative) {
+      native.migrateAndEnsureSaveDirsNative(app.getPath('userData'), getTracerDataDir())
+      return
+    }
+  } catch {
+    /* fallback */
+  }
+
   ensureSaveDir()
   for (const file of ['engines.json', 'projects.json']) {
     const oldPath = path.join(app.getPath('userData'), file)

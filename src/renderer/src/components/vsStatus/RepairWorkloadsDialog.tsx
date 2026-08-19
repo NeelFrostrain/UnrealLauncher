@@ -13,7 +13,7 @@ import {
   Sparkles
 } from 'lucide-react'
 import { Toggle } from '../settings/SectionHelpers'
-import { useFocusTrap } from '../../hooks/useFocusTrap'
+import { useFocusTrap } from '../../hooks'
 import type { VsSetupStatus } from './vsStatusTypes'
 
 interface RepairWorkloadsDialogProps {

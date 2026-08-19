@@ -1,6 +1,6 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { describe, it, expect } from 'vitest'
-import { isValidDiscordWebhookUrl } from '../discordWebhook'
+import { isValidDiscordWebhookUrl } from '../system/discordWebhook'
 
 describe('isValidDiscordWebhookUrl', () => {
   // ── Valid URLs ────────────────────────────────────────────────────────────

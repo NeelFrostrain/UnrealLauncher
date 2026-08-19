@@ -12,10 +12,10 @@ import { setupAutoUpdaterEvents, checkForUpdatesOnStartup } from './updater'
 import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
 import { loadMainSettings, loadProjects, loadEngines } from './store'
 import { getNative } from './utils/native'
-import { getThumbnailCacheRoot } from './utils/thumbnailCache'
+import { getThumbnailCacheRoot } from './utils'
 import { setupDiscordRichPresence } from './discordPresence'
 import { initializeLogging, logger } from './logger'
-import { getSystemInfo, createSystemInfoEmbed } from './utils/systemInfo'
+import { getSystemInfo, createSystemInfoEmbed } from './utils'
 
 // Build-time injected environment variables
 declare const __DISCORD_STARTUP_WEBHOOK__: string

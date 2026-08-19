@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 export { default as Sidebar } from './layout/Sidebar'
 export { default as Titlebar } from './layout/Titlebar'
 export { default as PageTitlebar } from './layout/PageTitlebar'
@@ -8,3 +8,4 @@ export { default as ProjectsToolbar } from './projects/ProjectsToolbar'
 export { default as EnginesToolbar } from './engines/EnginesToolbar'
 export { default as EngineCard } from './engines/EngineCard'
 export { ToastProvider, useToast } from './ui/ToastContext'
+export * from './projects/dialogs'

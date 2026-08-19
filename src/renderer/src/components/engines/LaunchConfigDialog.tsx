@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -15,7 +15,7 @@ import {
   Copy,
   Terminal
 } from 'lucide-react'
-import { useFocusTrap } from '../../hooks/useFocusTrap'
+import { useFocusTrap } from '../../hooks'
 import { useLaunchConfigState } from './launchConfig/useLaunchConfigState'
 import { Pill, FeatureRow, SectionHead, StyledSelect } from './launchConfig/LaunchConfigPrimitives'
 import {

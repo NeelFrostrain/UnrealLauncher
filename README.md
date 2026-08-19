@@ -8,7 +8,7 @@
 
 [![Version](https://img.shields.io/badge/version-2.5.6-blue)](https://github.com/NeelFrostrain/UnrealLauncher/releases)
 [![Status](https://img.shields.io/badge/status-ready-brightgreen)](https://github.com/NeelFrostrain/UnrealLauncher)
-[![License](https://img.shields.io/badge/license-proprietary-red)](LICENSE)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-777777)](#-distribution)
 [![CI](https://github.com/NeelFrostrain/UnrealLauncher/actions/workflows/ci.yml/badge.svg)](https://github.com/NeelFrostrain/UnrealLauncher/actions/workflows/ci.yml)
 
@@ -553,9 +553,9 @@ See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full guide.
 
 ## License
 
-Copyright (c) 2026 NeelFrostrain. All rights reserved.
+Copyright (c) 2026 NeelFrostrain.
 
-This project uses a **proprietary license**. You may download and run the compiled binary for personal use, but you may **not** copy, modify, redistribute, or use the source code in your own projects.
+This project is licensed under the **GNU General Public License v3.0** (GPLv3).
 
 See [LICENSE](LICENSE) for full terms.
 

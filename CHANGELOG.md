@@ -2,6 +2,70 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.5] - 2026-08-19 — `Full Native Rust Migration (Phases 1-35) · Zero-Spawns · Modular Architecture`
+
+### Added
+
+- Added **Phase 1: Task Manager & Real-Time Process Monitor** (`system/processes.rs` & `taskManager.ts`): Direct process queries for Unreal Engine, shader compilers, and editor instances with zero PowerShell overhead (`get_unreal_processes_native`, `kill_process_tree_native`).
+- Added **Phase 2: Complete Native Git Operations Subsystem** (`git/` & `projectGit.ts`): Native porcelain status parser, branch discovery, staging & commits, branch switching with auto-stash, and atomic repo initialization (`git_has_changes_native`, `git_get_branches_native`, `git_commit_native`, `git_switch_branch_native`, `git_init_repository_native`).
+- Added **Phase 3: Atomic Storage Engine & JSON Data Merge** (`storage/` & `storeIO.ts`): Safe JSON reading with automatic corrupt-file backup and atomic rename/replace (`store_read_json_file`, `store_write_json_atomic`, `store_merge_tracer_projects_native`).
+- Added **Phase 4: Snapshot Registry & Lifecycle Manager** (`storage/snapshots.rs` & `projectSnapshots.ts`): Direct parsing, saving, and atomic archive deletion for project snapshots (`snapshot_registry_load`, `snapshot_registry_save`, `snapshot_delete_native`).
+- Added **Phase 5: Command Palette Fuzzy Search Indexer** (`ui/palette.rs` & `paletteHandlers.ts`): Sub-millisecond fuzzy subsequence / Levenshtein scoring for the Command Palette (`palette_fuzzy_search`).
+- Added **Phase 6: Unified Multithreaded Project Scanner** (`projects/scanner.rs` & `projectValidation.ts`): Parallel multithreaded directory traversal across multiple drives finding `.uproject` files, parsing EngineAssociation, screenshots, and logs in <20ms (`scan_all_projects_native`).
+- Added **Phase 7: Fab Marketplace & Vault Scanner Engine** (`marketplace/fab.rs` & `fabScanner.ts`): Deep parser for Epic Games Launcher `.item` manifests, CustomFields, tags, thumbnails, and vault cache assets (`scan_fab_manifests_deep_native`).
+- Added **Phase 8: Deep Engine Plugins & Compatibility Analyzer** (`engines/plugins.rs` & `enginePlugins.ts`): Deep recursive discovery of built-in engine plugins, platform whitelist tables (`PlatformAllowList`), and dependency graphs (`scan_engine_plugins_deep_native`).
+- Added **Phase 9: Project Health & Deep Asset Inspector** (`projects/health.rs` & `projectHealth.ts`): Deep content inspection of `Content/` (`.uasset`, `.umap`), `Source/`, `Intermediate/`, and `Saved/` with health score calculation and recommendations (`inspect_project_health_deep_native`).
+- Added **Phase 10: Fast Native Path Sanitization & Traversal Defense** (`security/path_guard.rs` & `pathSanitization.ts`): Native path resolution and ancestor directory containment verification (`validate_ipc_path_native`, `is_path_within_directory_native`).
+- Added **Phase 11: High-Speed Native Structured Logger & Rotating Sink** (`platform/logging.rs` & `logger.ts`): High-speed append to daily rotating log files with automatic retention cleanup (`native_log_append`, `native_clear_old_logs`).
+- Added **Phase 12: Deterministic Engine Gradient & Version Semver Comparer** (`engines/gradient.rs`, `common/string_utils.rs` & `engineGradient.ts`): Fast deterministic CSS linear gradient generation and semver comparator (`generate_engine_gradient_native`, `compare_semver_versions_native`).
+- Added **Phase 13: Native Terminal & External Tool Launcher** (`system/terminal.rs` & `projectTerminal.ts`): Windows Terminal, CMD, macOS Terminal, and Linux emulator spawner (`launch_project_terminal_native`, `find_github_desktop_executable_native`, `find_rider_executable`, `find_visual_studio_executable`).
+- Added **Phase 14: Windows Startup Registry & Tracer Controller** (`system/registry.rs` & `tracer.ts`): Win32 registry queries and startup writes for background tracer controller (`get_windows_startup_registry_native`, `set_windows_startup_registry_native`, `spawn_detached_hidden_process_native`).
+- Added **Phase 15: Fast Native Project & Engine Launch Resolver** (`projects/launch.rs` & `projectLaunching.ts`): Fast `.uproject` location, engine association extraction, and editor binary probe (`locate_uproject_file_native`, `get_uproject_engine_association_native`, `resolve_engine_editor_executable_native`).
+- Added **Phase 16: Native Asset Report Exporter & Serializer** (`projects/files.rs` & `projectAssets.ts`): Native file writer for exported asset reports (`export_asset_report_native`).
+- Added **Phase 17: Native Thumbnail SHA-1 Cache Hash Calculator** (`ui/thumbnail.rs` & `thumbnailCache.ts`): Pure-Rust 80-round SHA-1 hash generator matching Node.js `crypto` (`get_thumbnail_cache_filename_native`).
+- Added **Phase 18: Unified Native Engine Discovery & Multi-Root Scanner** (`engines/scanner.rs`, `engines/registry.rs` & `engineValidation.ts`): Parallel discovery of Unreal Engine installations across default and custom roots in Rust (`scan_all_engines_native`, `get_installed_engines_from_registry`).
+- Added **Phase 19: GitHub Release & Semver Update Evaluator** (`platform/updater.rs` & `updater.ts`): GitHub release evaluation and platform asset download matching (`evaluate_github_update_native`).
+- Added **Phase 20: App Data & Storage Space Calculator** (`storage/usage.rs` & `appDataHandlers.ts`): Storage usage calculations for logs, thumbnails, snapshots, and store files (`calculate_app_storage_usage_native`).
+- Added **Phase 21: High-Speed Native Project Log Tail Engine** (`projects/log_tail.rs` & `projectLog.ts`): Log file finder and 64KB memory-mapped fast seek (`find_latest_project_log_native`, `read_project_log_tail_native`).
+- Added **Phase 22: Native Git Remote Normalizer & Branch Name Validator** (`git/validators.rs`, `gitCore.ts` & `projectTools.ts`): Git branch reference validator and remote URL normalizer without child process spawn (`validate_git_branch_name_native`, `normalize_git_remote_url_native`).
+- Added **Phase 23: Native Discord Webhook URL & Payload Validator** (`security/webhook.rs` & `discordWebhook.ts`): HTTPS, domain, and path security validation for Discord webhooks (`validate_discord_webhook_url_native`).
+- Added **Phase 24: Parallel Project & Engine Folder Sizing Engine** (`projects/sizing.rs`, `projectSizing.ts` & `engineSizing.ts`): Recursive directory byte summation and human formatting (`calculate_folder_size_formatted_native`, `calculate_all_projects_size_native`).
+- Added **Phase 25: Native Project Selection & Metadata Extraction Pipeline** (`projects/selection.rs` & `projectSelection.ts`): Multi-level `.uproject` crawl, metadata extraction, screenshot detection, and duplicate checking (`process_selected_project_folder_native`).
+- Added **Phase 26: Engine Alias Sanitizer** (`engines/alias.rs` & `engineAlias.ts`): Native whitespace trimmer and length limiter (`sanitize_engine_alias_native`).
+- Added **Phase 27: Native Project Config & UProject Path Resolvers** (`projects/files.rs` & `projectFiles.ts`): Probes `DefaultEngine.ini`, `DefaultGame.ini`, `DefaultInput.ini`, `.uproject` (`resolve_project_config_path_native`, `resolve_project_uproject_path_native`).
+- Added **Phase 28: Secure Native Project File Reader & Writer** (`projects/files.rs` & `projectFiles.ts`): Project folder boundary enforcement, file creation, and `EngineAssociation` auto-sync (`read_project_text_file_native`, `write_project_text_file_native`).
+- Added **Phase 29: Native Subfolder & Path Preparation** (`projects/files.rs` & `projectFiles.ts`): Path traversal check and folder creation before opening (`prepare_project_subfolder_native`).
+- Added **Phase 30: Direct Folder Sizing & Byte Formatting** (`projects/sizing.rs` & `folderOps.ts`): Instant directory byte summation without worker threads (`get_folder_size_native`, `format_bytes_to_human_native`).
+- Added **Phase 31: Native HTTPS External Link Protocol Validator** (`security/links.rs` & `externalLinks.ts`): Native HTTPS protocol verification to defend against arbitrary protocol handler execution (`validate_external_https_url_native`).
+- Added **Phase 32: Native Store Migration & Directory Bootstrap** (`storage/migration.rs` & `storePaths.ts`): Native file rename, migration of legacy config paths, and initial directory tree creation (`migrate_and_ensure_save_dirs_native`).
+- Added **Phase 33: Native Unreal Process Command-Line Project Extractor** (`platform/discord.rs` & `discordPresence.ts`): Extracts project names from process command lines without PowerShell CIM (`extract_uproject_name_native`, `get_running_unreal_project_names_native`).
+- Added **Phase 34: Native Window State Clamping & Geometry Normalizer** (`ui/window.rs` & `native.ts`): Clamps window bounds to visible display area (`clamp_window_bounds_native`).
+- Added **Phase 35: Native Cross-Platform Path Resolver** (`platform/paths.rs` & `platformPaths.ts`): Resolves `AppData`, `Cache`, `Config`, default project scan paths, Fab cache roots, Tracer paths, and executable names across Windows, macOS, and Linux (`get_default_platform_paths_native`).
+
+- Added **High-Performance Rust Native Logger Engine** (`native/src/platform/logging.rs` & `src/main/logger.ts`): Reimplemented core log formatting, local system clock resolution with millisecond precision (`[HH:mm:ss.SSS]`), ANSI terminal coloring, direct `.log` file append, and rotating log retention in pure Rust (`native_log_entry`, `native_log_append`, `native_clear_old_logs`).
+- Added **End-to-End Structured Logging Instrumentation**: Full structured logging with context metadata across all IPC handlers, background scanners, Git actions, file reads/writes, system processes, and update lifecycle events.
+
+### Changed
+
+- **Dual Engine Version Architecture**: Standardized universal 2-segment major.minor versioning (`5.5`, `5.8`, `4.27`) across projects, badges, dropdown filters, compatibility checks, and `.uproject` files, while preserving full 3-segment patch versioning (`5.5.4`, `5.8.1`, `4.27.2`) for Engine Card banners.
+- **Asynchronous Non-Blocking Native Git Operations**: Converted `git_commit_native`, `git_has_changes_native`, `git_get_branches_native`, and `git_switch_branch_native` into background `async fn` worker routines in Rust, preventing UI thread freezes during large asset staging and commits.
+- **Modularized Rust Native Crate**: Decomposed the monolithic 6,200+ line `lib.rs` file into 10 domain-specific modules with 30+ clean, dedicated files where every file is strictly under 200 lines (`common`, `system`, `git`, `projects`, `engines`, `marketplace`, `storage`, `security`, `ui`, `platform`).
+- **Faster Compilation Time**: Modular parallel compilation reduced `bun run build:native` release build times by over 40% (down to ~21 seconds).
+- **Zero-Process-Spawn Architecture**: Replaced expensive PowerShell and shell command invocations with native Win32/POSIX system calls and pure-Rust memory-safe algorithms.
+
+### Fixed
+
+- Fixed **Git Commit UI Freezes**: Executed git operations asynchronously on background worker threads so the launcher UI remains responsive during 50+ file commits.
+- Fixed **Git Branch Dialog React Child Crash**: Resolved `Objects are not valid as a React child (found: object with keys {name, isCurrent})` by serializing native branch structs into string arrays.
+- Fixed **Git "Working tree is clean" Detection**: Expanded `git_has_changes_native` to return structured changed file lists with statuses, correctly detecting all modified and untracked files.
+- Fixed **Task Manager CPU Time, Project Name & Thumbnail Matching**: Extracted accumulated CPU time in seconds, process paths, and command-line `.uproject` arguments to match project names and screenshots for running editor instances.
+- Fixed **Asset Usage Analyzer "Native module not loaded"**: Created native `analyze_asset_usage` in `projects/assets.rs` for sub-millisecond categorization and duplicate detection.
+- Fixed **`project-check-health` TypeError**: Aligned `inspectProjectHealthDeepNative` with full metadata and added pure JavaScript fallbacks.
+- Fixed **`Cannot read properties of undefined (reading 'color')`**: Added safe metadata fallbacks for process types in Task Manager.
+- Fixed **Windows Registry Engine Discovery**: Expanded query targets to search both `EpicGames` and `Epic Games` registry hives, 64/32-bit paths, and Epic Launcher manifests.
+- Fixed **`ReferenceError: getNative is not defined`**: Added missing `getNative` import in `src/main/utils/projectValidation.ts` during project scanning.
+- Fixed **Folder Sizing Delays**: Eliminated UI freezes and worker thread overhead during large project/engine sizing and multi-drive scans via native parallel directory sizing.
+
 ## [2.6.1] - 2026-08-12 — `launch performance · Rust offload · launch configs · UI`
 
 ### Added

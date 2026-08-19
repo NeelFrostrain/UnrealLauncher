@@ -40,7 +40,7 @@ export function Tabs<T extends string = string>({
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(tab.id)}
-            className="flex items-center gap-2 px-2 py-1 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer hover:text-(--color-text-primary)"
+            className="flex items-center gap-2 px-2 py-1 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer hover:text-[var(--color-text-primary)]"
             style={{
               color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
               backgroundColor: isActive

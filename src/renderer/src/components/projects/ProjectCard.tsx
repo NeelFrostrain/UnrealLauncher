@@ -7,7 +7,7 @@ import { useProjectCardState } from './card/projectCardState'
 import { useProjectCardHandlers } from './card/projectCardHandlers'
 import { ProjectCardDialogs } from './card/projectCardDialogs'
 import { toLocalAssetUrl } from '../../utils/resolveAsset'
-import { useEngineCompatibility } from '../../hooks/useEngineCompatibility'
+import { useEngineCompatibility } from '../../hooks'
 
 // ── Card ──────────────────────────────────────────────────────────────────────
 
@@ -307,11 +307,7 @@ const ProjectCard = memo(
                   const rect = e.currentTarget.getBoundingClientRect()
                   state.setCtxMenu({ x: rect.left, y: rect.bottom + 4 })
                 }}
-                onMouseEnter={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect()
-                  state.setCtxMenu({ x: rect.left, y: rect.bottom + 4 })
-                }}
-                className="flex p-1.5 cursor-pointer transition-colors duration-200 hover:bg-white/[0.015] hover:text-[var(--color-text-primary)]"
+                className="flex p-1.5 cursor-pointer transition-colors duration-200 hover:bg-white/[0.05] hover:text-[var(--color-text-primary)]"
                 style={{
                   borderRadius: 'var(--radius)',
                   backgroundColor: 'var(--color-surface-elevated)',

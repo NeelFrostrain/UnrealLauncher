@@ -1,12 +1,15 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect } from 'react'
 import PageWrapper from '@renderer/layout/PageWrapper'
-import { useEngineActions } from '../../hooks/useEngineActions'
+import {
+  useEngineActions,
+  useGlobalShortcuts,
+  setEnginesCache,
+  clearEngineCompatibilityCache
+} from '../../hooks'
 import { useEnginesPageState } from './enginesPageState'
 import { EnginesPageToolbar } from './enginesPageToolbar'
 import { EnginesPageContent } from './enginesPageContent'
-import { useGlobalShortcuts } from '../../hooks/useGlobalShortcuts'
-import { setEnginesCache, clearEngineCompatibilityCache } from '../../hooks/useEngineCompatibility'
 
 const EnginesPage = (): React.ReactElement => {
   const state = useEnginesPageState()

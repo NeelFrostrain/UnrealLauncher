@@ -70,6 +70,17 @@ export function getLogsDir(): string {
 
 export function clearLogFiles(): number {
   const logsDir = getLogsDir()
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getNative } = require('./utils/native')
+    const native = getNative()
+    if (native?.nativeClearOldLogs) {
+      return native.nativeClearOldLogs(logsDir, 7)
+    }
+  } catch {
+    /* fallback */
+  }
+
   let removed = 0
   for (const entry of fs.readdirSync(logsDir, { withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.log')) continue
@@ -145,12 +156,29 @@ function writeToConsole(level: LogLevel, line: string): void {
 
 export function log(level: LogLevel, scope: string, message: unknown, ...meta: unknown[]): void {
   if (level === 'debug' && process.env.DEBUG_LOGS !== '1') return
+
+  const safeScope = scope || 'app'
+  const textMsg = serialize(message)
+  const metaStr = meta.length > 0 ? meta.map(serialize).join(' ') : undefined
+  const filePath = getLogFilePath()
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getNative } = require('./utils/native')
+    const native = getNative()
+    if (native?.nativeLogEntry) {
+      native.nativeLogEntry(level, safeScope, textMsg, metaStr, filePath, true)
+      return
+    }
+  } catch {
+    /* fallback to JS */
+  }
+
   const now = new Date()
   const timestamp =
     now.toTimeString().slice(0, 8) + '.' + String(now.getMilliseconds()).padStart(3, '0')
-  const safeScope = scope || 'app'
-  const text = stringifyMessage(message, meta)
-  const line = `[${timestamp}] [${LEVEL_LABELS[level]}] [${safeScope}] ${text}`
+  const combined = stringifyMessage(message, meta)
+  const line = `[${timestamp}] [${LEVEL_LABELS[level]}] [${safeScope}] ${combined}`
 
   writeToFile(line)
   writeToConsole(level, `${DIM}${line.slice(0, 15)}${RESET}${line.slice(15)}`)

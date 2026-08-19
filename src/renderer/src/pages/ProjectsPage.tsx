@@ -6,11 +6,10 @@ import PageWrapper from '../layout/PageWrapper'
 import ProjectsToolbar from '../components/projects/ProjectsToolbar'
 import { ProjectsContent } from '../components/projects/ProjectsContent'
 // import { RunningProjectsBanner } from '../components/projects/RunningProjectsBanner'
-import { useProjectsPageState } from '../hooks/useProjectsPageState'
-import { useGlobalShortcuts } from '../hooks/useGlobalShortcuts'
+import { useProjectsPageState, useGlobalShortcuts } from '../hooks'
 import { getProjectActivityFeed } from '../components/projects/projectUtils'
 const ProjectHistoryDialog = lazy(async () => {
-  const mod = await import('../components/projects/ProjectHistoryDialog')
+  const mod = await import('../components/projects/dialogs/ProjectHistoryDialog')
   return { default: mod.ProjectHistoryDialog }
 })
 

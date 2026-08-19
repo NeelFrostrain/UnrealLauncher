@@ -154,7 +154,7 @@ export const PluginListCard = memo(
               type="checkbox"
               checked={!!selected}
               onChange={() => onSelectToggle(plugin.path)}
-              className="w-3.5 h-3.5 shrink-0 accent-(--color-accent) cursor-pointer"
+              className="w-3.5 h-3.5 shrink-0 accent-[var(--color-accent)] cursor-pointer"
             />
           )}
 
@@ -230,7 +230,7 @@ export const PluginListCard = memo(
             {onShowDetails && (
               <button
                 onClick={() => onShowDetails(plugin)}
-                className="shrink-0 p-1.5 cursor-pointer transition-all hover:bg-white/1.5 hover:text-(--color-text-primary)"
+                className="shrink-0 p-1.5 cursor-pointer transition-all hover:bg-white/5 hover:text-[var(--color-text-primary)]"
                 style={{
                   borderRadius: 'calc(var(--radius) * 0.6)',
                   color: 'var(--color-text-muted)',
@@ -244,7 +244,7 @@ export const PluginListCard = memo(
 
             <button
               onClick={() => window.electronAPI.openDirectory(plugin.path)}
-              className="shrink-0 p-1.5 cursor-pointer transition-all hover:bg-white/1.5 hover:text-(--color-text-primary)"
+              className="shrink-0 p-1.5 cursor-pointer transition-all hover:bg-white/5 hover:text-[var(--color-text-primary)]"
               style={{
                 borderRadius: 'calc(var(--radius) * 0.6)',
                 color: 'var(--color-text-muted)',
@@ -308,7 +308,7 @@ export const PluginGridCard = memo(
               type="checkbox"
               checked={!!selected}
               onChange={() => onSelectToggle(plugin.path)}
-              className="w-3.5 h-3.5 accent-(--color-accent) cursor-pointer"
+              className="w-3.5 h-3.5 accent-[var(--color-accent)] cursor-pointer"
             />
           </div>
         )}

@@ -99,6 +99,7 @@ declare global {
 
   interface EngineData {
     version: string
+    fullVersion?: string
     exePath: string
     directoryPath: string
     folderSize: string

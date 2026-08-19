@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { describe, it, expect } from 'vitest'
 import {
   buildLaunchArgs,
@@ -6,8 +6,8 @@ import {
   getSkeletonRhi,
   SKELETON_CONFIG,
   DEFAULT_CONFIG
-} from '../launchConfigArgs'
-import type { LaunchConfig } from '../launchConfigArgs'
+} from '../system/launchConfigArgs'
+import type { LaunchConfig } from '../system/launchConfigArgs'
 
 // Minimal valid config used as a base for each test.
 // ALL features are enabled and no flags are overridden — buildLaunchArgs should

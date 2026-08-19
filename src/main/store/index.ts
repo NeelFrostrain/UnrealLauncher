@@ -6,7 +6,7 @@
  */
 import path from 'path'
 import type { Engine, Project } from '../types'
-import type { LaunchConfig } from '../utils/launchConfigArgs'
+import type { LaunchConfig } from '../utils/system/launchConfigArgs'
 import {
   SKELETON_CONFIG,
   DEFAULT_CONFIG,
@@ -16,7 +16,7 @@ import {
   CINEMATIC_CONFIG,
   BALANCED_CONFIG,
   PERFORMANCE_CONFIG
-} from '../utils/launchConfigArgs'
+} from '../utils/system/launchConfigArgs'
 import {
   getEnginesDataPath,
   getProjectsDataPath,
@@ -127,7 +127,21 @@ function dedupeProjects(projects: Project[]): Project[] {
 }
 
 export function loadEngines(): Engine[] {
-  return readJsonArray<Engine>(getEnginesDataPath(), 'engines')
+  const raw = readJsonArray<Engine>(getEnginesDataPath(), 'engines')
+  return raw.map((e) => {
+    let fullVersion = e.fullVersion || e.version
+    let version = e.version
+    const match = fullVersion.match(/^(\d+\.\d+)(\.\d+)?(.*)$/)
+    if (match) {
+      version = match[1]
+      if (!e.fullVersion) fullVersion = match[0]
+    }
+    return {
+      ...e,
+      version,
+      fullVersion: fullVersion || version
+    }
+  })
 }
 export function saveEngines(engines: Engine[]): void {
   writeJson(getEnginesDataPath(), engines, `engines (${engines.length})`)

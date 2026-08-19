@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 // @vitest-environment jsdom
 import { beforeEach, describe, it, expect } from 'vitest'
 import {
@@ -44,7 +44,7 @@ describe('formatVersion', () => {
   it('returns Custom for version string > 12 chars', () =>
     expect(formatVersion('5.3.2-release-1234')).toBe('Custom'))
   it('passes through short version string', () => expect(formatVersion('5.3')).toBe('5.3'))
-  it('passes through 4-char version', () => expect(formatVersion('5.3.2')).toBe('5.3.2'))
+  it('normalizes 3-part version to 2-part major.minor', () => expect(formatVersion('5.3.2')).toBe('5.3'))
 })
 
 // ── formatDate ────────────────────────────────────────────────────────────────

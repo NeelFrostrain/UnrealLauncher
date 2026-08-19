@@ -49,6 +49,16 @@ function resolveClientId(clientId?: string): string | null {
 }
 
 function extractProjectNameFromCommand(commandLine: string): string | null {
+  try {
+    const native = getNative()
+    if (native?.extractUprojectNameNative) {
+      const extracted = native.extractUprojectNameNative(commandLine)
+      if (extracted) return extracted
+    }
+  } catch {
+    /* fallback */
+  }
+
   const match = commandLine.match(/(?:"([^"]+\.uproject)"|'([^']+\.uproject)'|(\S+\.uproject))/i)
   const uprojectPath = match?.[1] || match?.[2] || match?.[3]
   if (!uprojectPath) return null
@@ -105,12 +115,12 @@ async function findRunningUnrealCommands(): Promise<string[]> {
   const native = getNative()
   // Prioritize Rust native module (zero process spawns, native speed)
   try {
-    const runningProjects = native?.findRunningUnrealProjects?.()
+    const runningProjects = native?.getRunningUnrealProjectNamesNative?.() ?? native?.findRunningUnrealProjects?.()
     if (runningProjects && Array.isArray(runningProjects) && runningProjects.length > 0) {
       return runningProjects
     }
-  } catch (err) {
-    logger.warn('discord', 'Native process detection failed', { error: err })
+  } catch {
+    /* fallback to WMI / PowerShell */
   }
 
   // Fallback: PowerShell CIM only on Windows if native didn't return results

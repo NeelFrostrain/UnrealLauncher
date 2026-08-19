@@ -5,7 +5,7 @@ import { useToast } from '../components/ui/ToastContext'
 import PageWrapper from '../layout/PageWrapper'
 import TasksToolbar from '../components/tasks/TasksToolbar'
 import TasksContent from '../components/tasks/TasksContent'
-import { useGlobalShortcuts } from '../hooks/useGlobalShortcuts'
+import { useGlobalShortcuts } from '../hooks'
 import type { ProcessFilterType } from '../types'
 
 interface SavedProject {
@@ -52,11 +52,13 @@ export default function TasksPage(): React.ReactElement {
       try {
         const res = await window.electronAPI.taskManagerGetProcesses()
         const sorted = [...res].sort((a, b) => {
-          const typeOrder = { editor: 0, build: 1, service: 2, other: 3 }
-          if (typeOrder[a.type] !== typeOrder[b.type]) {
-            return typeOrder[a.type] - typeOrder[b.type]
+          const typeOrder: Record<string, number> = { editor: 0, build: 1, service: 2, other: 3 }
+          const orderA = typeOrder[a.type] ?? 3
+          const orderB = typeOrder[b.type] ?? 3
+          if (orderA !== orderB) {
+            return orderA - orderB
           }
-          return b.memoryBytes - a.memoryBytes
+          return (b.memoryBytes || 0) - (a.memoryBytes || 0)
         })
         setProcesses(sorted)
       } catch (err) {

@@ -1,0 +1,184 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+
+import { execFile } from 'child_process'
+import { promisify } from 'util'
+import fs from 'fs'
+import path from 'path'
+import { shell } from 'electron'
+import { logger } from '../../logger'
+import { getNative } from '../native'
+
+// Security: Allowed file extensions for opening
+const ALLOWED_EXTENSIONS = [
+  '.exe',
+  '.app',
+  '.sh',
+  '.uproject',
+  '.ini',
+  '.json',
+  '.txt',
+  '.md',
+  '.log'
+]
+
+// Security: Forbidden directories that should never be opened
+const FORBIDDEN_DIRS = [
+  'C:\\Windows',
+  'C:\\Program Files',
+  'C:\\Program Files (x86)',
+  '/System',
+  '/usr/bin',
+  '/usr/sbin',
+  '/bin',
+  '/sbin'
+]
+
+const execFileAsync = promisify(execFile)
+
+/**
+ * Cross-platform process management utilities
+ * NOTE: All process checks are now async to avoid blocking the main thread
+ */
+
+/**
+ * Check if a process is running (async, non-blocking)
+ * @param processName - Name of the process to check
+ * @returns Promise<boolean> - true if process is running
+ */
+export async function isProcessRunning(processName: string): Promise<boolean> {
+  // ── Try Rust native (synchronous, no subprocess overhead) ────────────────
+  const native = getNative()
+  if (native?.isProcessRunning) {
+    try {
+      return native.isProcessRunning(processName)
+    } catch {
+      /* fall through */
+    }
+  }
+
+  // ── JS fallback ───────────────────────────────────────────────────────────
+  try {
+    if (process.platform === 'win32') {
+      const { stdout } = await execFileAsync(
+        'tasklist',
+        ['/FI', `IMAGENAME eq ${processName}`, '/FO', 'CSV', '/NH'],
+        {
+          encoding: 'utf8',
+          timeout: 5000,
+          windowsHide: true
+        }
+      )
+      return (
+        stdout.trim().length > 0 && !stdout.toLowerCase().includes('info: no tasks are running')
+      )
+    } else {
+      // pgrep -f matches the full command line. To avoid false positives where the
+      // electron process matches (its bundle contains the binary name as a string),
+      // we anchor the pattern to only match processes where the binary IS the executable
+      // (i.e., the path ends with the binary name, not just contains it).
+      await execFileAsync('pgrep', ['-f', `/${processName}$`], { timeout: 5000 })
+      return true
+    }
+  } catch (error) {
+    logger.debug('process', 'Process check failed or process not running', { processName, error })
+    return false
+  }
+}
+
+/**
+ * Kill a running process (async, non-blocking)
+ * @param processName - Name of the process to kill
+ */
+export async function killProcess(processName: string): Promise<void> {
+  // ── Try Rust native ───────────────────────────────────────────────────────
+  const native = getNative()
+  if (native?.killProcessByName) {
+    try {
+      const ok = native.killProcessByName(processName)
+      if (ok) {
+        logger.info('process', 'Process killed via native', { processName })
+        return
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+
+  // ── JS fallback ───────────────────────────────────────────────────────────
+  try {
+    if (process.platform === 'win32') {
+      const { stdout } = await execFileAsync(
+        'tasklist',
+        ['/FI', `IMAGENAME eq ${processName}`, '/FO', 'CSV', '/NH'],
+        {
+          encoding: 'utf8',
+          timeout: 5000,
+          windowsHide: true
+        }
+      )
+      if (
+        stdout.trim().length === 0 ||
+        stdout.toLowerCase().includes('info: no tasks are running')
+      ) {
+        logger.debug('process', 'Process not found', { processName })
+        return
+      }
+      await execFileAsync('taskkill', ['/F', '/IM', processName], {
+        timeout: 5000,
+        windowsHide: true
+      })
+      logger.info('process', 'Process killed successfully', { processName })
+    } else {
+      // pkill -f with end-anchor to avoid matching the electron process itself
+      // (which contains the binary name as a string in its JS bundle path).
+      await execFileAsync('pkill', ['-f', `/${processName}$`], { timeout: 5000 })
+      logger.info('process', 'Process killed successfully', { processName })
+    }
+  } catch (error) {
+    logger.warn('process', 'Failed to kill process', { processName, error })
+  }
+}
+
+export function openFileOrDirectory(filePath: string): void {
+  try {
+    // SECURITY: Validate path is safe to open
+    const resolved = path.resolve(filePath)
+
+    // Check if it's a forbidden directory
+    const isForbidden = FORBIDDEN_DIRS.some((forbidden) => {
+      const normalizedForbidden = path.normalize(forbidden)
+      return resolved.toLowerCase().startsWith(normalizedForbidden.toLowerCase())
+    })
+
+    if (isForbidden) {
+      logger.warn('process', 'Attempt to open forbidden directory blocked', {
+        path: filePath,
+        resolved
+      })
+      return
+    }
+
+    // For files, validate extension
+    if (fs.existsSync(resolved)) {
+      const stats = fs.statSync(resolved)
+      if (stats.isFile()) {
+        const ext = path.extname(resolved).toLowerCase()
+        if (!ALLOWED_EXTENSIONS.includes(ext)) {
+          logger.warn('process', 'Attempt to open disallowed file type blocked', {
+            path: filePath,
+            ext
+          })
+          return
+        }
+      }
+    }
+
+    logger.info('process', 'Opening file or directory', { filePath, platform: process.platform })
+
+    shell.openPath(resolved).catch((err) => {
+      logger.error('process', 'Failed to open with shell.openPath', { filePath, err })
+    })
+  } catch (error) {
+    logger.error('process', 'Failed to open file or directory', { path: filePath, error })
+  }
+}

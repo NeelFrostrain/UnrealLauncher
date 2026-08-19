@@ -1,8 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback } from 'react'
 import { useToast } from '../../ui/ToastContext'
-import { clearGitCacheForPath } from '../../../hooks/useGitStatus'
-import type { GitStatus } from '../../../hooks/useGitStatus'
+import { clearGitCacheForPath, type GitStatus } from '../../../hooks'
 import { addProjectActivity } from '../projectUtils'
 
 /**

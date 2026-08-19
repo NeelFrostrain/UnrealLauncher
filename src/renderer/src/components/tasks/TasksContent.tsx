@@ -118,7 +118,7 @@ function ProcessCard({
   onKill: () => void
   onOpenFolder: () => void
 }): React.ReactElement {
-  const meta = TYPE_META[proc.type]
+  const meta = (proc.type && TYPE_META[proc.type]) ?? TYPE_META.other
 
   return (
     <div
@@ -225,14 +225,17 @@ function ProcessCard({
               <Cpu size={11} />
               <span className="text-[10px]">CPU Time: {fmtCpu(proc.cpuSeconds)}</span>
             </div>
-            {proc.path && (
+            {(proc.projectPath || proc.path) && (
               <div
                 className="flex items-center gap-1 min-w-0"
                 style={{ color: 'var(--color-text-muted)' }}
               >
                 <FolderOpen size={11} />
-                <span className="text-[10px] truncate max-w-[280px]" title={proc.path}>
-                  {proc.path}
+                <span
+                  className="text-[10px] truncate max-w-[320px]"
+                  title={proc.projectPath || proc.path}
+                >
+                  {proc.projectPath || proc.path}
                 </span>
               </div>
             )}
