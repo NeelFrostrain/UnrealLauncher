@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.8] - 2026-08-19 — `Tailwind v4 Theme Sync · ThemeContext Live Sync · Divider & Border Fixes · Launch Config Dialog`
+
+### Added
+
+- Added **Tailwind CSS v4 `@theme` Token Bridge** (`main.css`): Directly mapped Tailwind design tokens (`--color-surface`, `--color-border`, `--color-accent`, etc.) to runtime CSS variables managed by `ThemeContext`.
+- Added **Cross-Window ThemeContext Live Synchronization** (`ThemeContext.tsx`): Integrated a global `storage` event listener into `ThemeProvider` to keep theme presets, custom profiles, and appearance overrides in sync across the main window, settings, and standalone command palette in real time.
+- Added **Direct Theme Tokens Consumption Hook** (`ThemeContext.tsx`): Exposed `currentTokens` in `useTheme()` for instant synchronous access to resolved theme tokens in React components.
+
+### Fixed
+
+- Fixed **White Divider Lines in Launch Configuration Dialog** (`LaunchConfigDialog.tsx`, `AboutChangelog.tsx` & `main.css`): Resolved Tailwind CSS v4 divide utility regression where missing divide color classes caused separators between rendering features and startup flags to render in bright white (`#e5e7eb`).
+- Fixed **Global Default Border Color Fallback** (`main.css`): Enforced preflight baseline element borders (`*, ::after, ::before, ...`) to follow `var(--color-border)` rather than hardcoded light gray defaults.
+
+### Changed
+
+- **Theme-Synced Range Slider Tracks** (`main.css`): Updated unselected range input tracks to dynamically use `var(--color-border)` instead of hardcoded white-opacity overlays.
+
 ## [2.6.7] - 2026-08-19 — `Legal & Privacy Center · Zero-FOUC Preload · Discord RPC Toggle & Stability · Scan Offloading`
 
 ### Added

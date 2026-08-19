@@ -58,10 +58,7 @@ export default function LaunchConfigDialog({
     border: '1px solid var(--color-border)',
     borderRadius: 'var(--radius)'
   } as const
-  const divStyle = {
-    ...cardStyle,
-    '--tw-divide-color': 'var(--color-border)'
-  } as React.CSSProperties
+  const divStyle = cardStyle
 
   return createPortal(
     <div
@@ -472,7 +469,7 @@ export default function LaunchConfigDialog({
                   label="Rendering Features"
                   accent="#818cf8"
                 />
-                <div className="overflow-hidden divide-y" style={divStyle}>
+                <div className="overflow-hidden divide-y divide-[var(--color-border)]" style={divStyle}>
                   {RENDERING_FEATURES.map(([key, label, cvar, isHeavy]) => (
                     <FeatureRow
                       key={key}
@@ -490,7 +487,7 @@ export default function LaunchConfigDialog({
 
                 {/* Startup flags */}
                 <SectionHead icon={<Terminal size={13} />} label="Startup Flags" accent="#4ade80" />
-                <div className="overflow-hidden divide-y" style={divStyle}>
+                <div className="overflow-hidden divide-y divide-[var(--color-border)]" style={divStyle}>
                   {STARTUP_FLAGS.map(([key, label, flag]) => (
                     <FeatureRow
                       key={key}

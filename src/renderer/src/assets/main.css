@@ -1,5 +1,20 @@
 @import 'tailwindcss';
 
+@theme {
+  --color-surface: var(--color-surface);
+  --color-surface-elevated: var(--color-surface-elevated);
+  --color-surface-card: var(--color-surface-card);
+  --color-border: var(--color-border);
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-engine-version-text: var(--color-engine-version-text);
+  --font-sans: var(--font-family);
+  --radius: var(--radius);
+}
+
 :root {
   --color-surface: #242424;
   --color-surface-elevated: #1f1f1f;
@@ -16,6 +31,11 @@
   --ui-scale: 1;
   --font-size: 15px;
   --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ── Default border color across all elements follows theme border token ── */
+*, ::after, ::before, ::backdrop, ::file-selector-button {
+  border-color: var(--color-border);
 }
 
 /* ── UI Scale — applied uniformly across the entire app and all modals/portals ── */
@@ -202,6 +222,14 @@ body {
   border-color: color-mix(in srgb, var(--color-border) 150%, transparent) !important;
 }
 
+/* ── Divide utilities → theme border token ───────────────────────────────── */
+.divide-y > *,
+.divide-x > *,
+.divide-y > :not([hidden]) ~ :not([hidden]),
+.divide-x > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--color-border) !important;
+}
+
 /* ── Border radius — all rounded-* classes follow --radius ───────────────── */
 .rounded-sm {
   border-radius: calc(var(--radius) * 0.5) !important;
@@ -244,8 +272,8 @@ input[type='range']::-webkit-slider-runnable-track {
     to right,
     var(--color-accent) 0%,
     var(--color-accent) var(--range-pct, 33%),
-    rgba(255, 255, 255, 0.12) var(--range-pct, 33%),
-    rgba(255, 255, 255, 0.12) 100%
+    var(--color-border) var(--range-pct, 33%),
+    var(--color-border) 100%
   );
 }
 

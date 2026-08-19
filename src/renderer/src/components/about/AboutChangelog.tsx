@@ -1,5 +1,33 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { GitBranch, GitCommit, Plus, Wrench } from 'lucide-react'
+
+// ── v2.6.8 — ThemeContext sync + Tailwind v4 border/divider fixes ───────────────
+const v268commits = [
+  {
+    type: 'fix',
+    msg: 'White divider line in Launch Configuration dialog — mapped Tailwind v4 divide utilities to dynamic theme border token (var(--color-border))'
+  },
+  {
+    type: 'fix',
+    msg: 'Default preflight border color — forced global element borders to follow theme border token instead of Tailwind v4 default light gray'
+  },
+  {
+    type: 'feat',
+    msg: 'Full Tailwind v4 @theme synchronization — mapped design tokens directly to CSS variables managed by ThemeContext'
+  },
+  {
+    type: 'feat',
+    msg: 'Cross-window ThemeContext synchronization — added storage event listener to sync theme and appearance changes across main and palette windows in real time'
+  },
+  {
+    type: 'feat',
+    msg: 'Exposed resolved currentTokens directly in useTheme() hook for seamless component consumption'
+  },
+  {
+    type: 'refactor',
+    msg: 'Dynamic range slider track styling — replaced hardcoded opacity backgrounds with live theme border tokens'
+  }
+]
 
 // ── v2.2.8 — launch config profiles + theme sync ─────────────────────────────
 const v228commits = [
@@ -351,7 +379,7 @@ const VersionBlock = ({
         </span>
       </div>
     </div>
-    <div className="px-4 py-2 divide-y" style={{ borderColor: 'var(--color-border)' }}>
+    <div className="px-4 py-2 divide-y divide-[var(--color-border)]">
       {commits.map((c, i) => (
         <CommitRow key={i} type={c.type} msg={c.msg} />
       ))}
@@ -361,7 +389,8 @@ const VersionBlock = ({
 
 const AboutChangelog = (): React.ReactElement => (
   <div className="space-y-3">
-    <VersionBlock version="2.2.8" date="2026-05-30" branch="main" commits={v228commits} isCurrent />
+    <VersionBlock version="2.6.8" date="2026-08-19" branch="main" commits={v268commits} isCurrent />
+    <VersionBlock version="2.2.8" date="2026-05-30" branch="main" commits={v228commits} />
     <VersionBlock version="2.2.1" date="2026-05-07" branch="main" commits={v221commits} />
     <VersionBlock version="2.2.0" date="2026-05-03" branch="main" commits={v220commits} />
     <VersionBlock version="2.1.2" date="2026-04-20" branch="linux" commits={v212commits} />
