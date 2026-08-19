@@ -164,74 +164,35 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
         scanPathCount: engineScanPaths.length
       })
 
-      // Run native Rust scan if available, otherwise worker + registry scan
-      let workerScanned: Engine[] = []
-      let nativeScanSucceeded = false
-      const native = getNative()
-      if (native?.scanAllEnginesNative) {
-        try {
-          const rawEngines = native.scanAllEnginesNative(
+      // Run engine scanning in worker thread + async registry scan to prevent main thread lockup
+      logger.debug('engine-scan', 'Starting engine scan in background worker thread')
+      const [workerScanned, registryEngines] = await Promise.all([
+        new Promise<Engine[]>((resolve, reject) => {
+          const w = spawnWorker(ENGINE_SCAN_WORKER, {
+            saved,
+            nativePath: getNativeModulePath(),
             engineScanPaths,
-            saved.map((e) => e.directoryPath || '').filter(Boolean)
-          )
-          workerScanned = rawEngines.map((e) => {
-            const { version, fullVersion } = normalizeEngineVersion(e.version)
-            return {
-              version,
-              fullVersion,
-              exePath: e.exePath,
-              directoryPath: e.directoryPath,
-              folderSize: e.folderSize,
-              lastLaunch: e.lastLaunch,
-              gradient: generateGradient()
-            }
+            scanCachePath: getScanCachePath()
           })
-          nativeScanSucceeded = true
-          logger.info('engine-scan', 'Engine scan completed via native Rust engine', {
-            count: workerScanned.length
+          w.once('message', (msg) => {
+            logger.debug('engine-scan', 'Engine scan worker completed successfully')
+            resolve(msg as Engine[])
           })
-        } catch (err) {
-          logger.warn('engine-scan', 'Native engine scan failed, falling back to worker', { err })
-          workerScanned = []
-          nativeScanSucceeded = false
-        }
-      }
-
-      let registryEngines: ScannedEngine[] = []
-      if (!nativeScanSucceeded) {
-        const [wScanned, regEngines] = await Promise.all([
-          new Promise<Engine[]>((resolve, reject) => {
-            logger.debug('engine-scan', 'Starting engine scan worker')
-            const w = spawnWorker(ENGINE_SCAN_WORKER, {
-              saved,
-              nativePath: getNativeModulePath(),
-              engineScanPaths,
-              scanCachePath: getScanCachePath()
-            })
-            w.once('message', (msg) => {
-              logger.debug('engine-scan', 'Engine scan worker returned message')
-              resolve(msg as Engine[])
-            })
-            w.once('error', (error) => {
-              logger.error('engine-scan', 'Engine scan worker error', error)
-              reject(error)
-            })
-            w.once('exit', (c: number) => {
-              logger.debug('engine-scan', 'Engine scan worker exited', { code: c })
-              if (c !== 0) reject(new Error(`Worker exited ${c}`))
-            })
-          }),
-          // Registry scan only runs on Windows — returns [] on other platforms
-          getInstalledEngines().catch((error) => {
-            logger.warn('engine-scan', 'Registry engine scan failed', error)
-            return [] as ScannedEngine[]
+          w.once('error', (error) => {
+            logger.error('engine-scan', 'Engine scan worker error', error)
+            reject(error)
           })
-        ])
-        workerScanned = wScanned
-        registryEngines = regEngines
-      } else {
-        registryEngines = await getInstalledEngines().catch(() => [] as ScannedEngine[])
-      }
+          w.once('exit', (c: number) => {
+            logger.debug('engine-scan', 'Engine scan worker exited', { code: c })
+            if (c !== 0) reject(new Error(`Worker exited with code ${c}`))
+          })
+        }),
+        // Registry scan runs asynchronously
+        getInstalledEngines().catch((error) => {
+          logger.warn('engine-scan', 'Registry engine scan failed', error)
+          return [] as ScannedEngine[]
+        })
+      ])
 
       // Merge registry results into worker results — registry wins for exePath/version
       // since it's the authoritative source on Windows

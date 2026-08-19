@@ -15,15 +15,23 @@ pub fn get_folder_size_bytes(dir: &Path) -> f64 {
   let mut total = 0.0;
   if let Ok(entries) = fs::read_dir(dir) {
     for entry in entries.flatten() {
-      let p = entry.path();
-      if p.is_file() {
-        if let Ok(meta) = entry.metadata() {
-          total += meta.len() as f64;
-        }
-      } else if p.is_dir() {
-        let name = p.file_name().and_then(|n| n.to_str()).unwrap_or("");
-        if !name.starts_with('.') && name != "node_modules" {
-          total += get_folder_size_bytes(&p);
+      if let Ok(file_type) = entry.file_type() {
+        if file_type.is_file() {
+          if let Ok(meta) = entry.metadata() {
+            total += meta.len() as f64;
+          }
+        } else if file_type.is_dir() {
+          let name = entry.file_name();
+          let name_str = name.to_string_lossy();
+          if !name_str.starts_with('.')
+            && name_str != "node_modules"
+            && name_str != ".git"
+            && name_str != ".vs"
+            && name_str != "target"
+            && name_str != "dist"
+          {
+            total += get_folder_size_bytes(&entry.path());
+          }
         }
       }
     }

@@ -306,25 +306,30 @@ if (!gotTheLock) {
         }
       })
 
-      // 11. Setup Discord Rich Presence after window is ready
+      // 11. Setup Discord Rich Presence after window is ready (if enabled in settings)
       setTimeout(() => {
-        setupDiscordRichPresence({
-          clientId:
-            process.env.DISCORD_CLIENT_ID ||
-            process.env.VITE_DISCORD_CLIENT_ID ||
-            '1507980570725191740',
-          buttons: [
-            {
-              label: 'Join Discord',
-              url: `${process.env.VITE_DISCORD_INVITE_URL || 'https://discord.gg/vq4UDfevG2'}`
-            },
-            {
-              label: 'Download Launcher',
-              url: `${process.env.VITE_WEBSITE_URL || 'https://neelfrostrain.github.io/UnrealLauncher/'}`
-            }
-          ]
-        })
-        logger.info('discord', 'Rich Presence setup requested')
+        const settings = loadMainSettings()
+        if (settings.discordRpcEnabled ?? true) {
+          setupDiscordRichPresence({
+            clientId:
+              process.env.DISCORD_CLIENT_ID ||
+              process.env.VITE_DISCORD_CLIENT_ID ||
+              '1507980570725191740',
+            buttons: [
+              {
+                label: 'Join Discord',
+                url: `${process.env.VITE_DISCORD_INVITE_URL || 'https://discord.gg/vq4UDfevG2'}`
+              },
+              {
+                label: 'Download Launcher',
+                url: `${process.env.VITE_COMPANY_WEBSITE_URL || process.env.VITE_WEBSITE_URL || 'https://cyronicstudio.vercel.app'}`
+              }
+            ]
+          })
+          logger.info('discord', 'Rich Presence setup requested')
+        } else {
+          logger.info('discord', 'Rich Presence disabled by user settings')
+        }
       }, 2000)
 
       // 12. Send system startup notification to Discord (async, optional)

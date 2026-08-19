@@ -551,13 +551,14 @@ See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full guide.
 
 ---
 
-## License
+## License & Legal Policies
 
 Copyright (c) 2026 NeelFrostrain.
 
-This project is licensed under the **GNU General Public License v3.0** (GPLv3).
-
-See [LICENSE](LICENSE) for full terms.
+- **License:** Licensed under the **GNU General Public License v3.0** (GPLv3). See [LICENSE](LICENSE) for full terms.
+- **Privacy Policy:** Read how user data, telemetry, and local storage are handled in [PRIVACY_POLICY.md](PRIVACY_POLICY.md).
+- **Terms & Conditions:** Review terms of service, trademark disclaimers, and warranty limitations in [TERMS_AND_CONDITIONS.md](TERMS_AND_CONDITIONS.md).
+- **Legal Analysis:** Technical breakdown of all codebase subsystems mapped to policy clauses in [docs/LEGAL_AND_PRIVACY_ANALYSIS.md](docs/LEGAL_AND_PRIVACY_ANALYSIS.md).
 
 ---
 

@@ -1,5 +1,5 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { AlertTriangle, BookOpen, Code, GitBranch, MessageCircle } from 'lucide-react'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { AlertTriangle, BookOpen, Code, GitBranch, MessageCircle, Scale } from 'lucide-react'
 import config from '../../../../config'
 
 const LINKS = [
@@ -11,6 +11,17 @@ const LINKS = [
       color: 'var(--color-text-secondary)',
       borderColor: 'var(--color-border)',
       backgroundColor: 'var(--color-surface-card)'
+    }
+  },
+  {
+    label: 'Terms & Privacy',
+    icon: <Scale size={14} />,
+    onClick: () =>
+      window.dispatchEvent(new CustomEvent('open-legal-modal', { detail: { tab: 'terms' } })),
+    style: {
+      color: 'var(--color-accent)',
+      borderColor: 'color-mix(in srgb, var(--color-accent) 30%, var(--color-border))',
+      backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
     }
   },
   {
@@ -68,10 +79,16 @@ const LINKS = [
 export const AboutFooter = (): React.ReactElement => (
   <div className="text-center space-y-3 pt-2">
     <div className="flex flex-wrap items-center justify-center gap-2">
-      {LINKS.map(({ label, icon, url, style }) => (
+      {LINKS.map(({ label, icon, url, onClick, style }) => (
         <button
           key={label}
-          onClick={() => window.electronAPI.openExternal(url)}
+          onClick={() => {
+            if (onClick) {
+              onClick()
+            } else if (url) {
+              window.electronAPI.openExternal(url)
+            }
+          }}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border transition-all cursor-pointer hover:opacity-80"
           style={{ ...style, borderRadius: 'var(--radius)' }}
         >
@@ -84,12 +101,20 @@ export const AboutFooter = (): React.ReactElement => (
       className="text-[11px] uppercase tracking-widest font-medium"
       style={{ color: 'var(--color-text-muted)' }}
     >
-      Made by{' '}
+      Owned by{' '}
+      <button
+        onClick={() => window.electronAPI.openExternal(config.companyWebsite || 'https://cyronicstudio.vercel.app')}
+        className="font-semibold transition-colors cursor-pointer hover:underline"
+        style={{ color: 'var(--color-accent)' }}
+      >
+        {config.companyName || 'Cyronic Studio'}
+      </button>{' '}
+      &bull; Created by{' '}
       <button
         onClick={() =>
           window.electronAPI.openExternal(`${config.githubRepo.split('/').slice(0, 4).join('/')}`)
         }
-        className="transition-colors cursor-pointer hover:opacity-80"
+        className="transition-colors cursor-pointer hover:opacity-80 font-semibold"
         style={{ color: 'var(--color-text-secondary)' }}
       >
         Neel Frostrain

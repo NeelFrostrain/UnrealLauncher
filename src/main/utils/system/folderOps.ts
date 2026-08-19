@@ -127,21 +127,6 @@ function getOrCreateSizingWorker(): Worker {
 }
 
 export function getFullFolderSize(folderPath: string): Promise<number> {
-  // Direct fast path using native module if in main process
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    // native loaded statically
-    const native = getNative()
-    if (native?.getFolderSizeNative) {
-      return Promise.resolve(native.getFolderSizeNative(folderPath))
-    }
-    if (native?.getFolderSize) {
-      return Promise.resolve(native.getFolderSize(folderPath))
-    }
-  } catch {
-    /* fallback to worker */
-  }
-
   return new Promise((resolve, reject) => {
     try {
       const w = getOrCreateSizingWorker()

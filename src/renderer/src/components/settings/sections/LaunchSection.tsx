@@ -56,9 +56,19 @@ const LaunchSection = ({
     }
   }
 
+  const [discordRpcEnabled, setDiscordRpcEnabled] = useState(() => getSetting('discordRpcEnabled') ?? true)
+
+  const handleDiscordRpcToggle = async (): Promise<void> => {
+    const next = !discordRpcEnabled
+    setDiscordRpcEnabled(next)
+    setSetting('discordRpcEnabled', next)
+    await window.electronAPI.saveMainSettings({ discordRpcEnabled: next })
+  }
+
   useEffect(() => {
     window.electronAPI.getMainSettings().then((s) => {
       if (s && s.disableGpu !== undefined) setGpuDisabled(s.disableGpu as boolean)
+      if (s && s.discordRpcEnabled !== undefined) setDiscordRpcEnabled(s.discordRpcEnabled as boolean)
     })
   }, [])
 
@@ -88,6 +98,12 @@ const LaunchSection = ({
     <section className="w-full">
       <Card>
         <SettingRow
+          label="Discord Rich Presence"
+          description="Display your current Unreal Engine project and launcher activity on your Discord profile in real time."
+        >
+          <Toggle on={discordRpcEnabled} onChange={handleDiscordRpcToggle} />
+        </SettingRow>
+        <SettingRow
           label="Auto-close on launch"
           description="Close the launcher automatically when opening a project or engine."
         >
@@ -100,11 +116,41 @@ const LaunchSection = ({
           <Toggle on={backgroundCloseOnClose} onChange={onToggleBackgroundClose} />
         </SettingRow>
         <SettingRow
+          // className='flex flex-col'
           label="Disable GPU process"
           description="Runs rendering on CPU to eliminate the dedicated GPU process and save ~70–90 MB RAM. Requires restart to take effect."
         >
           <Toggle on={gpuDisabled} onChange={handleGpuToggle} />
         </SettingRow>
+        {showRestartBanner && (
+          <div
+            className="mt-2 mx-2 flex items-center justify-between gap-3 px-4 py-3 rounded-lg"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--color-accent) 35%, transparent)'
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Cpu size={13} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+              <span className="text-xs" style={{ color: 'var(--color-text-primary)' }}>
+                GPU setting changed — restart required
+              </span>
+            </div>
+            <button
+              onClick={handleRestart}
+              disabled={restarting}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
+              style={{
+                borderRadius: 'var(--radius)',
+                backgroundColor: 'var(--color-accent)',
+                color: '#000'
+              }}
+            >
+              <RefreshCw size={11} className={restarting ? 'animate-spin' : ''} />
+              {restarting ? 'Stopping...' : 'Force Stop'}
+            </button>
+          </div>
+        )}
         <SettingRow
           label="Preferred C++ IDE (.sln)"
           description="Choose your primary IDE for opening solution files (.sln)."
@@ -112,21 +158,19 @@ const LaunchSection = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleIdeChange('vs')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors cursor-pointer border ${
-                preferredIde === 'vs'
-                  ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
-                  : 'bg-[var(--color-surface-card)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:text-[var(--color-text-primary)]'
-              }`}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors cursor-pointer border ${preferredIde === 'vs'
+                ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
+                : 'bg-[var(--color-surface-card)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:text-[var(--color-text-primary)]'
+                }`}
             >
               Visual Studio (VS)
             </button>
             <button
               onClick={() => handleIdeChange('rider')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors cursor-pointer border ${
-                preferredIde === 'rider'
-                  ? 'bg-rose-600 text-white border-rose-600'
-                  : 'bg-[var(--color-surface-card)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:text-[var(--color-text-primary)]'
-              }`}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors cursor-pointer border ${preferredIde === 'rider'
+                ? 'bg-rose-600 text-white border-rose-600'
+                : 'bg-[var(--color-surface-card)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:text-[var(--color-text-primary)]'
+                }`}
             >
               JetBrains Rider
             </button>
@@ -163,35 +207,6 @@ const LaunchSection = ({
               </button>
             </div>
           </SettingRow>
-        )}
-        {showRestartBanner && (
-          <div
-            className="mt-2 mx-2 flex items-center justify-between gap-3 px-4 py-3 rounded-lg"
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, transparent)',
-              border: '1px solid color-mix(in srgb, var(--color-accent) 35%, transparent)'
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <Cpu size={13} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-              <span className="text-xs" style={{ color: 'var(--color-text-primary)' }}>
-                GPU setting changed — restart required
-              </span>
-            </div>
-            <button
-              onClick={handleRestart}
-              disabled={restarting}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
-              style={{
-                borderRadius: 'var(--radius)',
-                backgroundColor: 'var(--color-accent)',
-                color: '#000'
-              }}
-            >
-              <RefreshCw size={11} className={restarting ? 'animate-spin' : ''} />
-              {restarting ? 'Restarting…' : 'Restart Now'}
-            </button>
-          </div>
         )}
         <SettingRow
           label="Launch pause duration"

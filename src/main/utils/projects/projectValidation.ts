@@ -5,7 +5,7 @@ import { app } from 'electron'
 import { loadProjects, saveProjects, mergeTracerProjects, loadProjectScanPaths } from '../../store'
 import { spawnWorker } from '../../workers/workers'
 import { PROJECT_SCAN_WORKER } from '../../ipc'
-import { getNative, getNativeModulePath } from '../native'
+import { getNativeModulePath } from '../native'
 import type { Project } from '../../types'
 import { logger } from '../../logger'
 import { cacheProjectThumbnail } from './thumbnailCache'
@@ -52,60 +52,29 @@ async function _doScanAndMergeProjects(): Promise<Project[]> {
       scanPathCount: customScanPaths.length
     })
 
-    // Run native Rust scan if available, otherwise worker thread
-    let scanned: Project[] = []
-    let nativeScanSucceeded = false
-    const native = getNative()
-    if (native?.scanAllProjectsNative) {
-      try {
-        const rawDiscovered = native.scanAllProjectsNative(
-          customScanPaths,
-          saved.map((p) => p.projectPath || '').filter(Boolean)
-        )
-        scanned = rawDiscovered.map((p) => ({
-          name: p.name,
-          version: p.version,
-          size: p.size,
-          createdAt: p.createdAt,
-          lastOpenedAt: p.lastOpenedAt,
-          projectPath: p.projectPath,
-          thumbnail: p.thumbnail || null
-        }))
-        nativeScanSucceeded = true
-        logger.info('project-scan', 'Project scan completed via native Rust engine', {
-          scannedCount: scanned.length
-        })
-      } catch (err) {
-        logger.warn('project-scan', 'Native project scan failed, falling back to worker', { err })
-        scanned = []
-        nativeScanSucceeded = false
-      }
-    }
-
-    if (!nativeScanSucceeded) {
-      scanned = await new Promise<Project[]>((resolve, reject) => {
-        logger.debug('project-scan', 'Starting project scan worker')
-        const w = spawnWorker(PROJECT_SCAN_WORKER, {
-          saved,
-          nativePath: getNativeModulePath(),
-          customScanPaths,
-          scanCachePath: getScanCachePath()
-        })
-        w.once('message', (msg) => {
-          logger.debug('project-scan', 'Project scan worker returned message')
-          resolve(msg as Project[])
-        })
-        w.once('error', (error) => {
-          logger.error('project-scan', 'Project scan worker error', error)
-          reject(error)
-        })
-        w.once('exit', (c: number) => {
-          logger.debug('project-scan', 'Project scan worker exited', { code: c })
-          if (c !== 0) reject(new Error(`Worker exited ${c}`))
-        })
+    // Run project scan in background worker thread to prevent any main thread freezing
+    logger.debug('project-scan', 'Starting project scan in background worker thread')
+    const scanned = await new Promise<Project[]>((resolve, reject) => {
+      const w = spawnWorker(PROJECT_SCAN_WORKER, {
+        saved,
+        nativePath: getNativeModulePath(),
+        customScanPaths,
+        scanCachePath: getScanCachePath()
       })
-      logger.info('project-scan', 'Project scan worker finished', { scannedCount: scanned.length })
-    }
+      w.once('message', (msg) => {
+        logger.debug('project-scan', 'Project scan worker completed successfully')
+        resolve(msg as Project[])
+      })
+      w.once('error', (error) => {
+        logger.error('project-scan', 'Project scan worker error', error)
+        reject(error)
+      })
+      w.once('exit', (c: number) => {
+        logger.debug('project-scan', 'Project scan worker exited', { code: c })
+        if (c !== 0) reject(new Error(`Worker exited with code ${c}`))
+      })
+    })
+    logger.info('project-scan', 'Project scan finished', { scannedCount: scanned.length })
 
     // Merge: keep all saved projects, add any newly discovered ones.
     // For existing projects, refresh all fields that can change on disk —

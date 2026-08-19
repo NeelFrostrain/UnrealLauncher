@@ -6,16 +6,15 @@ import path from 'path'
 import { getNative } from './utils/native'
 import { logger } from './logger'
 
-const PRESENCE_POLL_MS = 30000 // 30 seconds instead of 10 seconds to reduce PowerShell calls
+const PRESENCE_POLL_MS = 20000 // Poll every 20s
 const DISCORD_RECONNECT_INITIAL_MS = 5000
 const DISCORD_RECONNECT_MAX_MS = 60000
 const DISCORD_APP_NAME = 'Unreal Launcher'
 const DEFAULT_DISCORD_CLIENT_ID = '1507980570725191740'
 const TRACER_ACTIVE_MAX_AGE_MS = 30000
 
-interface DiscordRichPresenceOptions {
+export interface DiscordRichPresenceOptions {
   clientId?: string
-  // Added optional buttons array
   buttons?: { label: string; url: string }[]
 }
 
@@ -97,14 +96,16 @@ function findRunningUnrealCommandsWithCim(): Promise<string[]> {
       {
         encoding: 'utf8',
         windowsHide: true,
-        timeout: 5000
+        timeout: 4000
       },
       (_error, stdout) => {
         resolve(
           stdout
-            .split(/\r?\n/)
-            .map((line) => line.trim())
-            .filter(Boolean)
+            ? stdout
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter(Boolean)
+            : []
         )
       }
     )
@@ -113,23 +114,25 @@ function findRunningUnrealCommandsWithCim(): Promise<string[]> {
 
 async function findRunningUnrealCommands(): Promise<string[]> {
   const native = getNative()
-  // Prioritize Rust native module (zero process spawns, native speed)
   try {
-    const runningProjects = native?.getRunningUnrealProjectNamesNative?.() ?? native?.findRunningUnrealProjects?.()
+    const runningProjects =
+      native?.getRunningUnrealProjectNamesNative?.() ?? native?.findRunningUnrealProjects?.()
     if (runningProjects && Array.isArray(runningProjects) && runningProjects.length > 0) {
       return runningProjects
     }
   } catch {
-    /* fallback to WMI / PowerShell */
+    /* fallback to WMI */
   }
 
-  // Fallback: PowerShell CIM only on Windows if native didn't return results
   if (process.platform !== 'win32') {
     return []
   }
 
-  const cimProjects = await findRunningUnrealCommandsWithCim()
-  return cimProjects
+  try {
+    return await findRunningUnrealCommandsWithCim()
+  } catch {
+    return []
+  }
 }
 
 function findTracerActiveProjectNames(): string[] {
@@ -165,8 +168,8 @@ async function getPresenceState(): Promise<PresenceState> {
   if (projectNames.length > 1) {
     return {
       mode: 'project',
-      details: `${projectNames.length} Projects`,
-      state: 'Editing'
+      details: `${projectNames.length} Projects Open`,
+      state: 'Editing in Unreal Engine'
     }
   }
 
@@ -174,7 +177,7 @@ async function getPresenceState(): Promise<PresenceState> {
     return {
       mode: 'project',
       details: projectNames[0],
-      state: 'Editing'
+      state: 'Editing Project'
     }
   }
 
@@ -182,177 +185,251 @@ async function getPresenceState(): Promise<PresenceState> {
     return {
       mode: 'editor',
       details: 'Unreal Editor',
-      state: 'Open'
+      state: 'Active'
     }
   }
 
   return {
     mode: 'launcher',
-    details: 'Ready to launch',
-    state: 'Idle'
+    details: 'Browsing Projects',
+    state: 'In Launcher'
   }
 }
 
-let presenceStarted = false
+// ── Module State ─────────────────────────────────────────────────────────────
+let storedOptions: DiscordRichPresenceOptions = {}
+let rpcClient: any = null
+let rpcIsReady = false
+let presencePollingTimer: NodeJS.Timeout | null = null
+let presenceReconnectTimer: NodeJS.Timeout | null = null
+let presenceReconnectDelayMs = DISCORD_RECONNECT_INITIAL_MS
+let previousPresenceKey = ''
+let currentActivityMode: PresenceState['mode'] | null = null
+let currentActivityStartedAt = Date.now()
+let isShuttingDown = false
+let isUpdatingPresence = false
+let isPresenceExplicitlyEnabled = false
+let isAppQuitListenerRegistered = false
 
-export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {}): void {
-  if (presenceStarted) return
-  presenceStarted = true
-
-  const clientId = resolveClientId(options.clientId)
-  if (!clientId) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.warn('discord', 'Rich Presence disabled: missing DISCORD_CLIENT_ID')
-    }
-    return
+function clearPollingTimer(): void {
+  if (presencePollingTimer) {
+    clearInterval(presencePollingTimer)
+    presencePollingTimer = null
   }
-  logger.info('discord', 'Rich Presence initializing', { clientId })
+}
 
-  // Load discord-rpc lazily so startup warning guards are active before transitive modules load.
+function clearReconnectTimer(): void {
+  if (presenceReconnectTimer) {
+    clearTimeout(presenceReconnectTimer)
+    presenceReconnectTimer = null
+  }
+}
+
+function resetState(): void {
+  rpcIsReady = false
+  previousPresenceKey = ''
+  clearPollingTimer()
+  clearReconnectTimer()
+}
+
+function destroyClient(client: any): void {
+  if (!client) return
+  try {
+    client.removeAllListeners?.()
+    const destroyResult = client.destroy?.()
+    if (destroyResult && typeof (destroyResult as Promise<void>).catch === 'function') {
+      ;(destroyResult as Promise<void>).catch(() => {})
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function scheduleReconnect(clientId: string): void {
+  if (presenceReconnectTimer || isShuttingDown || !isPresenceExplicitlyEnabled) return
+  presenceReconnectTimer = setTimeout(() => {
+    presenceReconnectTimer = null
+    startConnection(clientId)
+  }, presenceReconnectDelayMs)
+  presenceReconnectDelayMs = Math.min(presenceReconnectDelayMs * 2, DISCORD_RECONNECT_MAX_MS)
+}
+
+async function updatePresence(): Promise<void> {
+  if (!rpcIsReady || !rpcClient || isUpdatingPresence || isShuttingDown || !isPresenceExplicitlyEnabled) return
+  isUpdatingPresence = true
+
+  try {
+    const presence = await getPresenceState()
+    const presenceKey = `${presence.details}\n${presence.state}`
+    if (currentActivityMode !== presence.mode || presenceKey !== previousPresenceKey) {
+      currentActivityMode = presence.mode
+      currentActivityStartedAt = Date.now()
+    }
+    if (presenceKey === previousPresenceKey) {
+      return
+    }
+
+    const activityPayload: DiscordActivity = {
+      details: presence.details,
+      state: presence.state,
+      largeImageKey: 'icon',
+      largeImageText: DISCORD_APP_NAME,
+      startTimestamp: currentActivityStartedAt,
+      instance: false
+    }
+
+    if (storedOptions.buttons && storedOptions.buttons.length > 0) {
+      const validButtons = storedOptions.buttons
+        .filter((b) => b.label?.trim() && b.url && /^https?:\/\//i.test(b.url.trim()))
+        .map((b) => ({ label: b.label.trim().slice(0, 32), url: b.url.trim() }))
+        .slice(0, 2)
+      if (validButtons.length > 0) {
+        activityPayload.buttons = validButtons
+      }
+    }
+
+    try {
+      await rpcClient.setActivity(activityPayload)
+      previousPresenceKey = presenceKey
+    } catch (activityError) {
+      logger.warn('discord', 'Rich presence with assets failed, trying safe fallback', activityError)
+      try {
+        const minimalPayload: DiscordActivity = {
+          details: presence.details,
+          state: presence.state,
+          startTimestamp: currentActivityStartedAt,
+          instance: false
+        }
+        await rpcClient.setActivity(minimalPayload)
+        previousPresenceKey = presenceKey
+      } catch (minimalError) {
+        logger.warn('discord', 'Failed to update minimal activity payload', minimalError)
+        previousPresenceKey = ''
+      }
+    }
+  } catch (err) {
+    logger.warn('discord', 'Error resolving presence state', err)
+    previousPresenceKey = ''
+  } finally {
+    isUpdatingPresence = false
+  }
+}
+
+function startConnection(clientId: string): void {
+  if (isShuttingDown || !isPresenceExplicitlyEnabled) return
+  clearReconnectTimer()
+  resetState()
+
+  const old = rpcClient
+  rpcClient = null
+  destroyClient(old)
+
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const DiscordRPC = require('discord-rpc') as typeof import('discord-rpc')
-  DiscordRPC.register(clientId)
+  try {
+    DiscordRPC.register(clientId)
+  } catch {
+    /* ignore */
+  }
 
-  let rpc: InstanceType<typeof DiscordRPC.Client> | null = null
-  let rpcReady = false
-  let pollTimer: NodeJS.Timeout | null = null
-  let reconnectTimer: NodeJS.Timeout | null = null
-  let reconnectDelayMs = DISCORD_RECONNECT_INITIAL_MS
-  let lastPresenceKey = ''
-  let activityMode: PresenceState['mode'] | null = null
-  let activityStartedAt = Date.now()
-  let shuttingDown = false
-  let updatingPresence = false
+  const client = new DiscordRPC.Client({ transport: 'ipc' })
+  rpcClient = client
 
-  function clearPollTimer(): void {
-    if (pollTimer) {
-      clearInterval(pollTimer)
-      pollTimer = null
+  client.on('ready', () => {
+    if (rpcClient !== client || !isPresenceExplicitlyEnabled) return
+    rpcIsReady = true
+    presenceReconnectDelayMs = DISCORD_RECONNECT_INITIAL_MS
+    logger.info('discord', 'Rich Presence connected')
+
+    if (!isShuttingDown) {
+      updatePresence().catch(() => {})
+      clearPollingTimer()
+      presencePollingTimer = setInterval(() => {
+        updatePresence().catch(() => {})
+      }, PRESENCE_POLL_MS)
     }
-  }
+  })
 
-  function clearReconnectTimer(): void {
-    if (reconnectTimer) {
-      clearTimeout(reconnectTimer)
-      reconnectTimer = null
+  client.on('disconnected', () => {
+    if (rpcClient !== client) return
+    logger.warn('discord', 'Rich Presence disconnected')
+    resetState()
+    if (isPresenceExplicitlyEnabled) {
+      scheduleReconnect(clientId)
     }
+  })
+
+  client.on('error', (error) => {
+    if (rpcClient !== client) return
+    logger.warn('discord', 'Rich Presence client error', error)
+    resetState()
+    if (isPresenceExplicitlyEnabled) {
+      scheduleReconnect(clientId)
+    }
+  })
+
+  client.login({ clientId }).catch(() => {
+    if (rpcClient !== client) return
+    resetState()
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('discord', 'Rich Presence waiting for Discord to start')
+    }
+    if (isPresenceExplicitlyEnabled) {
+      scheduleReconnect(clientId)
+    }
+  })
+}
+
+export function enableDiscordRichPresence(options: DiscordRichPresenceOptions = {}): void {
+  storedOptions = { ...storedOptions, ...options }
+  const clientId = resolveClientId(storedOptions.clientId)
+  if (!clientId) {
+    logger.warn('discord', 'Rich Presence cannot enable: missing client ID')
+    return
   }
 
-  function resetConnectionState(): void {
-    rpcReady = false
-    lastPresenceKey = ''
-    clearPollTimer()
-    clearReconnectTimer()
+  if (isPresenceExplicitlyEnabled && rpcIsReady) {
+    return
   }
 
-  function destroyRpcClient(client: InstanceType<typeof DiscordRPC.Client> | null): void {
-    if (!client) return
+  isPresenceExplicitlyEnabled = true
+  logger.info('discord', 'Rich Presence enabling', { clientId })
+
+  if (!isAppQuitListenerRegistered) {
+    isAppQuitListenerRegistered = true
+    app.once('before-quit', () => {
+      logger.info('discord', 'Rich Presence shutting down')
+      isShuttingDown = true
+      disableDiscordRichPresence()
+    })
+  }
+
+  startConnection(clientId)
+}
+
+export function disableDiscordRichPresence(): void {
+  isPresenceExplicitlyEnabled = false
+  clearReconnectTimer()
+  clearPollingTimer()
+  resetState()
+
+  if (rpcClient) {
     try {
-      const destroyResult = client.destroy?.()
-      if (destroyResult && typeof (destroyResult as Promise<void>).catch === 'function') {
-        ;(destroyResult as Promise<void>).catch(() => {})
-      }
+      rpcClient.clearActivity?.()?.catch?.(() => {})
     } catch {
       /* ignore */
     }
+    const closing = rpcClient
+    rpcClient = null
+    destroyClient(closing)
   }
+  logger.info('discord', 'Rich Presence disabled')
+}
 
-  function scheduleReconnect(): void {
-    if (reconnectTimer || shuttingDown) return
-    reconnectTimer = setTimeout(() => {
-      reconnectTimer = null
-      connect()
-    }, reconnectDelayMs)
-    reconnectDelayMs = Math.min(reconnectDelayMs * 2, DISCORD_RECONNECT_MAX_MS)
-  }
+export function isDiscordRichPresenceActive(): boolean {
+  return isPresenceExplicitlyEnabled && rpcIsReady
+}
 
-  async function setDiscordPresenceDynamic(): Promise<void> {
-    if (!rpcReady || !rpc || updatingPresence) return
-    updatingPresence = true
-    try {
-      const presence = await getPresenceState()
-      const presenceKey = `${presence.details}\n${presence.state}`
-      if (activityMode !== presence.mode || presenceKey !== lastPresenceKey) {
-        activityMode = presence.mode
-        activityStartedAt = Date.now()
-      }
-      if (presenceKey === lastPresenceKey) return
-      lastPresenceKey = presenceKey
-
-      // Build the base activity payload
-      const activityPayload: DiscordActivity = {
-        details: presence.details,
-        state: presence.state,
-        largeImageKey: 'icon',
-        largeImageText: DISCORD_APP_NAME,
-        startTimestamp: activityStartedAt,
-        instance: false
-      }
-
-      // Inject custom buttons if provided (safely limited to 2)
-      if (options.buttons && options.buttons.length > 0) {
-        activityPayload.buttons = options.buttons.slice(0, 2)
-      }
-
-      await rpc.setActivity(activityPayload).catch((err) => {
-        logger.warn('discord', 'Failed to update activity payload', err)
-        lastPresenceKey = ''
-      })
-    } catch {
-      lastPresenceKey = ''
-    } finally {
-      updatingPresence = false
-    }
-  }
-
-  function connect(): void {
-    clearReconnectTimer()
-    resetConnectionState()
-
-    destroyRpcClient(rpc)
-
-    rpc = new DiscordRPC.Client({ transport: 'ipc' })
-
-    rpc.on('ready', () => {
-      rpcReady = true
-      reconnectDelayMs = DISCORD_RECONNECT_INITIAL_MS
-      logger.info('discord', 'Rich Presence connected')
-
-      if (!shuttingDown) {
-        setDiscordPresenceDynamic()
-        pollTimer = setInterval(setDiscordPresenceDynamic, PRESENCE_POLL_MS)
-      }
-    })
-
-    rpc.on('disconnected', () => {
-      logger.warn('discord', 'Rich Presence disconnected')
-      resetConnectionState()
-      scheduleReconnect()
-    })
-
-    rpc.on('error', (error) => {
-      logger.warn('discord', 'Rich Presence client error', error)
-      resetConnectionState()
-      scheduleReconnect()
-    })
-
-    rpc.login({ clientId }).catch(() => {
-      resetConnectionState()
-      if (process.env.NODE_ENV === 'development') {
-        logger.warn('discord', 'Rich Presence waiting for Discord to start')
-      }
-      scheduleReconnect()
-    })
-  }
-
-  app.once('before-quit', () => {
-    logger.info('discord', 'Rich Presence shutting down')
-    shuttingDown = true
-    clearReconnectTimer()
-    resetConnectionState()
-    destroyRpcClient(rpc)
-    rpc = null
-  })
-
-  connect()
+export function setupDiscordRichPresence(options: DiscordRichPresenceOptions = {}): void {
+  enableDiscordRichPresence(options)
 }

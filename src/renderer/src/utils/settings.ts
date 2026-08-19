@@ -8,6 +8,9 @@ export interface AppSettings {
   launchPauseDuration: number
   preferredIde: 'vs' | 'rider'
   riderPath: string
+  acceptedLegalPolicyVersion?: number | string
+  acceptedLegalVersion: string
+  discordRpcEnabled: boolean
 }
 
 const SETTINGS_KEY = 'unrealLauncherSettings'
@@ -20,7 +23,9 @@ const defaultSettings: AppSettings = {
   showTitlebarButtons: true,
   launchPauseDuration: 5,
   preferredIde: 'vs',
-  riderPath: ''
+  riderPath: '',
+  acceptedLegalVersion: '',
+  discordRpcEnabled: true
 }
 
 // In-memory cache — avoids re-parsing localStorage on every getSetting call

@@ -1,10 +1,10 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { app } from 'electron'
 import fs from 'fs'
+import { promises as fsPromises } from 'fs'
 import path from 'path'
 import { loadEngines, saveEngines } from '../../store'
 import { formatBytes, getFullFolderSize } from '../system/folderOps'
-import { getNative } from '../native'
 
 type SizeCacheEntry = {
   mtimeMs: number
@@ -37,36 +37,47 @@ function saveSizeCache(cache: SizeCache): void {
   }
 }
 
+async function getEngineMtime(dirPath: string): Promise<number> {
+  try {
+    const stat = await fsPromises.stat(dirPath)
+    return stat.mtimeMs
+  } catch {
+    return 0
+  }
+}
+
 async function getEngineSizeCached(directoryPath: string): Promise<string> {
   const normalized = path.normalize(directoryPath).toLowerCase()
   const cache = loadSizeCache()
-  const mtimeMs = fs.statSync(directoryPath).mtimeMs
-  const cached = cache[normalized]
-  if (cached && cached.mtimeMs === mtimeMs && cached.size) return cached.size
+  const mtimeMs = await getEngineMtime(directoryPath)
+  if (mtimeMs > 0) {
+    const cached = cache[normalized]
+    if (cached && cached.mtimeMs === mtimeMs && cached.size) return cached.size
+  }
 
-  const sizeStr = formatBytes(await getFullFolderSize(directoryPath))
-  cache[normalized] = { mtimeMs, size: sizeStr }
-  saveSizeCache(cache)
+  // Calculate size in the background worker thread without blocking main process
+  const bytes = await getFullFolderSize(directoryPath)
+  const sizeStr = formatBytes(bytes)
+  if (mtimeMs > 0) {
+    cache[normalized] = { mtimeMs, size: sizeStr }
+    saveSizeCache(cache)
+  }
   return sizeStr
 }
 
+/**
+ * Calculates engine installation folder size asynchronously in background worker thread.
+ * Never blocks the Electron main process event loop.
+ */
 export async function calculateEngineSize(directoryPath: string): Promise<Record<string, unknown>> {
   try {
-    let sizeStr = ''
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      // native loaded statically
-      const native = getNative()
-      if (native?.calculateFolderSizeFormattedNative) {
-        sizeStr = native.calculateFolderSizeFormattedNative(directoryPath)
-      }
+      await fsPromises.access(directoryPath)
     } catch {
-      /* fallback */
+      return { success: false, error: 'Engine directory not found' }
     }
 
-    if (!sizeStr) {
-      sizeStr = await getEngineSizeCached(directoryPath)
-    }
+    const sizeStr = await getEngineSizeCached(directoryPath)
 
     const engines = loadEngines()
     const engine = engines.find((e) => e.directoryPath === directoryPath)

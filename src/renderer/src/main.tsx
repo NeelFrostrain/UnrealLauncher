@@ -1,8 +1,37 @@
-// Apply radius/scale synchronously before first render to avoid layout shift
-import { loadPersistedRadius, applyRadius, loadPersistedScale, applyScale } from './utils/theme'
+// Apply theme, font, radius, and scale synchronously before first render to prevent layout shift & font pop
+import {
+  loadPersistedTheme,
+  getTheme,
+  applyTheme,
+  loadCustomProfiles,
+  loadActiveProfileId,
+  loadPersistedRadius,
+  applyRadius,
+  loadPersistedScale,
+  applyScale
+} from './utils/theme'
 import { loadSettings } from './utils/settings'
+
+try {
+  const savedProfileId = loadActiveProfileId()
+  const allProfiles = loadCustomProfiles()
+  if (savedProfileId) {
+    const profile = allProfiles.find((p) => p.id === savedProfileId)
+    if (profile) {
+      applyTheme(profile.tokens)
+    }
+  } else {
+    const persisted = loadPersistedTheme()
+    const base = getTheme(persisted.id)
+    applyTheme(base.tokens, persisted.overrides)
+  }
+} catch (err) {
+  console.warn('Initial theme application fallback:', err)
+}
+
 applyRadius(loadPersistedRadius())
 applyScale(loadPersistedScale())
+
 // Apply no-animations class synchronously so first frame respects user preference
 if (!loadSettings().animationsEnabled) {
   document.body.classList.add('no-animations')

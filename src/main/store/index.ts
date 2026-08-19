@@ -46,6 +46,7 @@ interface MainSettings {
   backgroundCloseEnabled: boolean
   disableGpu: boolean
   excludedScannerPaths: string[]
+  discordRpcEnabled: boolean
 }
 
 const DEFAULT_SETTINGS: MainSettings = {
@@ -54,7 +55,8 @@ const DEFAULT_SETTINGS: MainSettings = {
   registryEnginesEnabled: true,
   backgroundCloseEnabled: false,
   disableGpu: true,
-  excludedScannerPaths: ['.git', 'Binaries', 'Intermediate', 'Saved', 'node_modules']
+  excludedScannerPaths: ['.git', 'Binaries', 'Intermediate', 'Saved', 'node_modules'],
+  discordRpcEnabled: true
 }
 
 let _cachedSettings: MainSettings | null = null

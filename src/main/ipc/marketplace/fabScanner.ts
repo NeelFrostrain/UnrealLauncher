@@ -123,7 +123,11 @@ export async function scanFabFolder(rootDir: string): Promise<FabAsset[]> {
     }
 
     const subdirs = entries.filter((e) => e.isDirectory() && !SKIP_FOLDERS.has(e.name))
-    await Promise.all(subdirs.map((subdir) => traverse(path.join(normalized, subdir.name))))
+    for (const subdir of subdirs) {
+      await traverse(path.join(normalized, subdir.name))
+      // Yield to event loop to keep the main process responsive
+      await new Promise<void>((resolve) => setImmediate(resolve))
+    }
   }
 
   await traverse(rootDir)

@@ -12,9 +12,12 @@ import {
   Cpu,
   Layers,
   Sparkles,
-  Heart,
   Terminal,
-  CheckCircle2
+  CheckCircle2,
+  Shield,
+  FileText,
+  Scale,
+  Building2
 } from 'lucide-react'
 import PageWrapper from '../layout/PageWrapper'
 import { useAppVersion } from '../hooks'
@@ -29,12 +32,17 @@ import {
   TECH_STACK,
   FEATURES
 } from '../components/about/aboutConstants'
+import { CURRENT_LEGAL_POLICY_VERSION } from '../utils/legalConstants'
 
 type TabType = 'overview' | 'features' | 'architecture' | 'tech' | 'storage'
 
 export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactElement => {
   const version = useAppVersion()
   const [activeTab, setActiveTab] = useState<TabType>('overview')
+
+  const openLegalModal = (tab: 'terms' | 'privacy' | 'company' = 'terms'): void => {
+    window.dispatchEvent(new CustomEvent('open-legal-modal', { detail: { tab } }))
+  }
 
   const STATS = [
     { label: 'Version', value: `v${version}` },
@@ -44,6 +52,24 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
   ]
 
   const LINKS = [
+    {
+      label: 'Terms of Service',
+      icon: FileText,
+      onClick: () => openLegalModal('terms'),
+      url: `${config.githubRepo}/blob/main/TERMS_AND_CONDITIONS.md`
+    },
+    {
+      label: 'Privacy Policy',
+      icon: Shield,
+      onClick: () => openLegalModal('privacy'),
+      url: `${config.githubRepo}/blob/main/PRIVACY_POLICY.md`
+    },
+    {
+      label: 'Company & Ownership',
+      icon: Building2,
+      onClick: () => openLegalModal('company'),
+      url: config.companyWebsite || 'https://cyronicstudio.vercel.app'
+    },
     {
       label: 'GitHub Repository',
       icon: GitBranch,
@@ -57,7 +83,7 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
     {
       label: 'Contribute',
       icon: Code,
-      url: `${config.githubRepo}/blob/main/CONTRIBUTING.md`
+      url: `${config.githubRepo}/blob/main/docs/CONTRIBUTING.md`
     },
     {
       label: 'Report Issue',
@@ -533,6 +559,51 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
             </div>
           </div>
 
+          {/* Legal & Governance Banner */}
+          <div
+            className="p-4.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+            style={{
+              backgroundColor: 'var(--color-surface-elevated)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius)'
+            }}
+          >
+            <div className="flex items-center gap-3.5">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)',
+                  color: 'var(--color-accent)'
+                }}
+              >
+                <Scale size={18} />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                  Terms of Service, Privacy & Legal Ownership
+                </h3>
+                <p className="text-[11px] mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                  Published & Owned by <strong>{config.companyName || 'Cyronic Studio'}</strong> &bull; Policy Version v{CURRENT_LEGAL_POLICY_VERSION}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => openLegalModal('terms')}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer hover:opacity-85"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, transparent)',
+                  borderColor: 'color-mix(in srgb, var(--color-accent) 30%, transparent)',
+                  color: 'var(--color-accent)'
+                }}
+              >
+                <Scale size={13} />
+                Review Legal Agreements
+              </button>
+            </div>
+          </div>
+
           {/* Quick Links */}
           <div
             className="p-4 space-y-3"
@@ -546,13 +617,19 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
               className="text-xs font-bold uppercase tracking-wider"
               style={{ color: 'var(--color-text-muted)' }}
             >
-              Community & Project Links
+              Community, Legal & Project Links
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {LINKS.map(({ label, icon: Icon, url }) => (
+              {LINKS.map(({ label, icon: Icon, url, onClick }) => (
                 <button
                   key={label}
-                  onClick={() => window.electronAPI.openExternal(url)}
+                  onClick={() => {
+                    if (onClick) {
+                      onClick()
+                    } else if (url) {
+                      window.electronAPI.openExternal(url)
+                    }
+                  }}
                   className="flex items-center justify-between p-2.5 text-xs font-medium border transition-all cursor-pointer hover:opacity-85"
                   style={{
                     color: 'var(--color-text-secondary)',
@@ -575,10 +652,17 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
       )}
 
       {/* Footer Credits */}
-      <div className="pt-2 text-center space-y-1">
+      <div className="pt-3 text-center space-y-1.5">
         <p className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
-          Unreal Launcher &bull; Created with{' '}
-          <Heart size={12} className="inline text-red-400 mx-0.5" /> by{' '}
+          Unreal Launcher &bull; Owned by{' '}
+          <button
+            onClick={() => window.electronAPI.openExternal(config.companyWebsite || 'https://cyronicstudio.vercel.app')}
+            className="font-bold underline transition-colors cursor-pointer hover:opacity-80"
+            style={{ color: 'var(--color-accent)' }}
+          >
+            {config.companyName || 'Cyronic Studio'}
+          </button>{' '}
+          &bull; Created by{' '}
           <button
             onClick={() => window.electronAPI.openExternal('https://github.com/NeelFrostrain')}
             className="font-bold underline transition-colors cursor-pointer hover:opacity-80"
@@ -588,7 +672,7 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
           </button>
         </p>
         <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-          Copyright &copy; 2026 NeelFrostrain. Licensed under GNU GPLv3.
+          Copyright &copy; 2026 {config.companyName || 'Cyronic Studio'} / NeelFrostrain. Licensed under GNU GPLv3.
         </p>
       </div>
     </div>

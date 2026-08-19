@@ -1,5 +1,5 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useEffect } from 'react'
+import { CURRENT_LEGAL_POLICY_VERSION } from '../../utils/legalConstants'
 
 export function SystemInfoGrid(): React.ReactElement {
   const platform = window.electronAPI.platform
@@ -46,6 +46,11 @@ export function SystemInfoGrid(): React.ReactElement {
               : 'Unavailable',
       color:
         nativeLoaded === null ? 'var(--color-text-muted)' : nativeLoaded ? '#60a5fa' : '#f87171'
+    },
+    {
+      label: 'Legal Policy',
+      value: `v${CURRENT_LEGAL_POLICY_VERSION}`,
+      color: 'var(--color-accent)'
     },
     ...(platform === 'win32'
       ? [

@@ -13,6 +13,7 @@ import {
 import { getMainWindow } from '../../window'
 import { getNative, openFileOrDirectory } from '../../utils'
 import { clearLogFiles, getLogsDir, logger } from '../../logger'
+import { enableDiscordRichPresence, disableDiscordRichPresence } from '../../discordPresence'
 
 /**
  * Handles the get-native-status IPC event
@@ -51,6 +52,29 @@ export function handleSaveMainSettings(settings: Record<string, unknown>): void 
   const settingKeys = typeof settings === 'object' && settings !== null ? Object.keys(settings) : []
   logger.info('settings', 'Saving main settings', { keys: settingKeys })
   saveMainSettings(settings)
+
+  if (settings.discordRpcEnabled !== undefined) {
+    if (settings.discordRpcEnabled) {
+      enableDiscordRichPresence({
+        clientId:
+          process.env.DISCORD_CLIENT_ID ||
+          process.env.VITE_DISCORD_CLIENT_ID ||
+          '1507980570725191740',
+        buttons: [
+          {
+            label: 'Join Discord',
+            url: `${process.env.VITE_DISCORD_INVITE_URL || 'https://discord.gg/vq4UDfevG2'}`
+          },
+          {
+            label: 'Download Launcher',
+            url: `${process.env.VITE_COMPANY_WEBSITE_URL || process.env.VITE_WEBSITE_URL || 'https://cyronicstudio.vercel.app'}`
+          }
+        ]
+      })
+    } else {
+      disableDiscordRichPresence()
+    }
+  }
 }
 
 /**

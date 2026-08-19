@@ -1,6 +1,5 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { lazy, Suspense, useState } from 'react'
-import { Info, X } from 'lucide-react'
+import { Info, X, Scale } from 'lucide-react'
 import { SystemInfoGrid } from './SystemInfoGrid'
 
 const AboutPage = lazy(() => import('../../pages/AboutPage'))
@@ -37,19 +36,38 @@ export const AboutSection = ({ onClose: _onClose }: AboutSectionProps): React.Re
                 Features, architecture, and changelog
               </p>
             </div>
-            <button
-              onClick={() => setShowAbout(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium cursor-pointer transition-colors"
-              style={{
-                borderRadius: 'var(--radius)',
-                backgroundColor: 'color-mix(in srgb, #22d3ee 10%, transparent)',
-                color: '#22d3ee',
-                border: '1px solid color-mix(in srgb, #22d3ee 20%, transparent)'
-              }}
-            >
-              <Info size={12} />
-              View
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent('open-legal-modal', { detail: { tab: 'terms' } })
+                  )
+                }
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium cursor-pointer transition-colors"
+                style={{
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)',
+                  color: 'var(--color-accent)',
+                  border: '1px solid color-mix(in srgb, var(--color-accent) 20%, transparent)'
+                }}
+              >
+                <Scale size={12} />
+                Legal & Privacy
+              </button>
+              <button
+                onClick={() => setShowAbout(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium cursor-pointer transition-colors"
+                style={{
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'color-mix(in srgb, #22d3ee 10%, transparent)',
+                  color: '#22d3ee',
+                  border: '1px solid color-mix(in srgb, #22d3ee 20%, transparent)'
+                }}
+              >
+                <Info size={12} />
+                View
+              </button>
+            </div>
           </div>
           <SystemInfoGrid />
         </div>

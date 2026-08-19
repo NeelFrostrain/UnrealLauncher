@@ -2,6 +2,43 @@
   "project": "Unreal Launcher",
   "versions": [
     {
+      "version": "2.6.7",
+      "date": "2026-08-19",
+      "tags": [
+        "Legal & Privacy Center",
+        "Zero-FOUC Preload",
+        "Discord RPC Toggle & Stability",
+        "Scan Offloading"
+      ],
+      "sections": [
+        {
+          "category": "Added",
+          "items": [
+            "Added Legal & Privacy Policy Center (`LegalModal.tsx`, `AboutSection.tsx` & `SystemInfoGrid.tsx`): Interactive frosted dialog with tabbed navigation for Terms of Service, Privacy Policy, and Company & Ownership (Cyronic Studio & NeelFrostrain), including explicit disclosure for startup telemetry used for active launcher user counts.",
+            "Added Discord Rich Presence Settings Toggle (`LaunchSection.tsx`, `discordPresence.ts`, `appDataHandlers.ts` & `settings.ts`): Added a live toggle in the General Settings section to enable or disable Discord Rich Presence dynamically at runtime without restarting.",
+            "Added Two-Stage Discord RPC Fallback Engine (`discordPresence.ts`): Re-engineered Discord RPC client with automated fallback to minimal text activities if Discord rejects asset keys or buttons, eliminating socket reconnection disconnect loops.",
+            "Added Unified Legal Version Configuration (`legalConstants.ts`, `config.ts`, `.env`, `.env.example`): Consolidated separate policy versions into a single unified `VITE_LEGAL_VERSION=1.0.0` environment token."
+          ]
+        },
+        {
+          "category": "Fixed",
+          "items": [
+            "Fixed Startup & Dialog Font/Scale Layout Popping: Removed `transition-all` on modal root containers to eliminate 200ms font-size and scale morphing animations on open. Applied `zoom: var(--ui-scale, 1)` directly on `body` in `main.css` so that all `createPortal` modal dialogs inherit identical scaling.",
+            "Fixed Asynchronous Theme & Font Application Delay: Synchronously loaded and applied theme tokens, font families, font sizes, border radius, and UI scale in `main.tsx` before the first React render frame to eliminate FOUC.",
+            "Fixed Scan Thread Freezing: Offloaded folder sizing, project scanning, engine checks, and asset usage analysis to background worker threads with event-loop yields and root `mtime` caching.",
+            "Fixed Native Discord Process Detection: Updated `get_running_unreal_project_names_native` in `platform/discord.rs` to extract project names directly from `proc.project_path`."
+          ]
+        },
+        {
+          "category": "Changed",
+          "items": [
+            "Settings Navigation & About Section: Moved the Legal & Privacy policy button into the About Unreal Launcher card in Settings and added legal version badges to the system info grid.",
+            "Font Preloading Optimization: Added `<head>` preconnect links and baseline `:root` / `body` CSS variable defaults in `index.html`."
+          ]
+        }
+      ]
+    },
+    {
       "version": "2.6.5",
       "date": "2026-08-19",
       "tags": [

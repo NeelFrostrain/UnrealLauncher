@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 
-/* ── Theme CSS variables (injected by ThemeProvider) ─────────────────────── */
 :root {
   --color-surface: #242424;
   --color-surface-elevated: #1f1f1f;
@@ -13,13 +12,15 @@
   --color-text-muted: rgba(255, 255, 255, 0.4);
   /* Border radius token — controlled by the slider in Settings */
   --radius: 8px;
-  /* UI scale — set by applyScale() before first render */
+  /* UI scale — applied uniformly across the entire app and all dialog portals */
   --ui-scale: 1;
+  --font-size: 15px;
+  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ── UI Scale — applied instantly via CSS var set by applyScale() ─────────── */
-#app-scale-root {
-  zoom: var(--ui-scale);
+/* ── UI Scale — applied uniformly across the entire app and all modals/portals ── */
+body {
+  zoom: var(--ui-scale, 1);
 }
 
 /* ── Override Tailwind's hardcoded blue-600/500 to follow the accent token ── */

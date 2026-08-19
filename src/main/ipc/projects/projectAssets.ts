@@ -114,9 +114,11 @@ function classifyCategory(relPath: string, fileName: string, ext: string): strin
   return 'Other'
 }
 
-function analyzeAssetUsageJS(projectPath: string): AssetReport {
+async function analyzeAssetUsageJS(projectPath: string): Promise<AssetReport> {
   const contentDir = path.join(projectPath, 'Content')
-  if (!fs.existsSync(contentDir)) {
+  try {
+    await fs.promises.access(contentDir)
+  } catch {
     return {
       totalAssets: 0,
       totalSizeBytes: 0,
@@ -131,16 +133,21 @@ function analyzeAssetUsageJS(projectPath: string): AssetReport {
   const categoriesMap = new Map<string, { count: number; sizeBytes: number }>()
   const nameToAssets = new Map<string, AssetInfo[]>()
 
-  const scan = (dir: string): void => {
+  const scan = async (dir: string): Promise<void> => {
     try {
-      const entries = fs.readdirSync(dir, { withFileTypes: true })
+      const entries = await fs.promises.readdir(dir, { withFileTypes: true })
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name)
         if (entry.isFile()) {
           const ext = path.extname(entry.name).toLowerCase().replace('.', '')
           if (ext === 'uasset' || ext === 'umap') {
-            const stat = fs.statSync(fullPath)
-            const size = stat.size
+            let size = 0
+            try {
+              const stat = await fs.promises.stat(fullPath)
+              size = stat.size
+            } catch {
+              /* ignore stat error */
+            }
             const relPath = path.relative(contentDir, fullPath).replace(/\\/g, '/')
             const fileName = path.basename(entry.name, path.extname(entry.name))
 
@@ -162,7 +169,9 @@ function analyzeAssetUsageJS(projectPath: string): AssetReport {
             nameToAssets.set(entry.name, list)
           }
         } else if (entry.isDirectory()) {
-          scan(fullPath)
+          await scan(fullPath)
+          // Yield to event loop to keep the UI responsive
+          await new Promise<void>((resolve) => setImmediate(resolve))
         }
       }
     } catch {
@@ -170,7 +179,7 @@ function analyzeAssetUsageJS(projectPath: string): AssetReport {
     }
   }
 
-  scan(contentDir)
+  await scan(contentDir)
 
   const defaultCats = [
     'Textures',
@@ -264,7 +273,7 @@ export function registerProjectAssetHandlers(ipcMain_: typeof ipcMain): void {
       logger.info('asset-analyzer', 'Running asset usage scan via JS fallback', {
         projectPath: validatedPath
       })
-      return analyzeAssetUsageJS(validatedPath)
+      return await analyzeAssetUsageJS(validatedPath)
     } catch (err) {
       logger.error('asset-analyzer', 'JS asset analysis failed', err)
       return { error: 'Analysis failed: ' + (err as Error).message }

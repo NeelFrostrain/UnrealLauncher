@@ -22,10 +22,9 @@ pub fn get_running_unreal_project_names_native() -> Vec<String> {
   let processes = get_unreal_processes_native();
   let mut names = std::collections::HashSet::new();
   for proc in processes {
-    let name_lower = proc.name.to_lowercase();
-    if name_lower.contains("unrealeditor") || name_lower.contains("ue4editor") || name_lower.contains("ue5editor") {
-      if let Some(proj_name) = extract_uproject_name_native(proc.name) {
-        names.insert(proj_name);
+    if let Some(proj_path) = proc.project_path {
+      if let Some(stem) = Path::new(&proj_path).file_stem() {
+        names.insert(stem.to_string_lossy().to_string());
       }
     }
   }
