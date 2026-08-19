@@ -9,6 +9,10 @@ const v268commits = [
   },
   {
     type: 'fix',
+    msg: 'Context menu item border boxes — scoped default border colors to @layer base so .border-transparent and menu item styles properly override baseline border styling'
+  },
+  {
+    type: 'fix',
     msg: 'Default preflight border color — forced global element borders to follow theme border token instead of Tailwind v4 default light gray'
   },
   {

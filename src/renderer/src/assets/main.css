@@ -34,8 +34,14 @@
 }
 
 /* ── Default border color across all elements follows theme border token ── */
-*, ::after, ::before, ::backdrop, ::file-selector-button {
-  border-color: var(--color-border);
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-border);
+  }
 }
 
 /* ── UI Scale — applied uniformly across the entire app and all modals/portals ── */
@@ -227,7 +233,7 @@ body {
 .divide-x > *,
 .divide-y > :not([hidden]) ~ :not([hidden]),
 .divide-x > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--color-border) !important;
+  border-color: var(--color-border);
 }
 
 /* ── Border radius — all rounded-* classes follow --radius ───────────────── */

@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Fixed **White Divider Lines in Launch Configuration Dialog** (`LaunchConfigDialog.tsx`, `AboutChangelog.tsx` & `main.css`): Resolved Tailwind CSS v4 divide utility regression where missing divide color classes caused separators between rendering features and startup flags to render in bright white (`#e5e7eb`).
+- Fixed **Context Menu & Dropdown Item Border Boxes** (`contextMenuComponents.tsx` & `main.css`): Scoped default theme border color rules inside `@layer base` so utility classes like `.border-transparent` and component inline styles retain proper cascade priority over baseline element styles.
 - Fixed **Global Default Border Color Fallback** (`main.css`): Enforced preflight baseline element borders (`*, ::after, ::before, ...`) to follow `var(--color-border)` rather than hardcoded light gray defaults.
 
 ### Changed

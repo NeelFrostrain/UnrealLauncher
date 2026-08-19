@@ -65,6 +65,7 @@ export const MenuItem = ({
     className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer transition-all duration-150 disabled:opacity-40 rounded-md border border-transparent outline-none"
     style={{
       color: danger ? '#f87171' : 'var(--color-text-secondary)',
+      borderColor: 'transparent',
       width: 'calc(100% - 8px)',
       margin: '0 4px',
       paddingTop: sub ? '6px' : '5px',
