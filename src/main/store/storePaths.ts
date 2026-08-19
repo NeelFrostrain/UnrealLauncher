@@ -8,6 +8,7 @@ import fs from 'fs'
 import path from 'path'
 import { app } from 'electron'
 import { getTracerDataDir } from '../utils/system/platformPaths'
+import { getNative } from '../utils/native'
 
 export function getSaveDir(): string {
   return path.join(app.getPath('userData'), 'save')
@@ -67,7 +68,7 @@ export function ensureSaveDir(): void {
 export function migrateIfNeeded(): void {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.migrateAndEnsureSaveDirsNative) {
       native.migrateAndEnsureSaveDirsNative(app.getPath('userData'), getTracerDataDir())

@@ -3,6 +3,7 @@ import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import util from 'util'
+import { getNative } from './utils/native'
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
@@ -72,7 +73,7 @@ export function clearLogFiles(): number {
   const logsDir = getLogsDir()
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('./utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.nativeClearOldLogs) {
       return native.nativeClearOldLogs(logsDir, 7)
@@ -164,7 +165,7 @@ export function log(level: LogLevel, scope: string, message: unknown, ...meta: u
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('./utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.nativeLogEntry) {
       native.nativeLogEntry(level, safeScope, textMsg, metaStr, filePath, true)

@@ -1,7 +1,6 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 use napi_derive::napi;
 use std::path::Path;
-use std::process::Command;
+use crate::common::new_hidden_command;
 
 #[napi(object)]
 pub struct NativeVsStatusResult {
@@ -31,7 +30,7 @@ pub fn check_vs_setup_status_native() -> NativeVsStatusResult {
       };
     }
 
-    let output = Command::new(&vswhere)
+    let output = new_hidden_command(&vswhere)
       .args(["-latest", "-products", "*", "-format", "json"])
       .output();
 

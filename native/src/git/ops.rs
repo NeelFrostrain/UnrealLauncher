@@ -1,6 +1,5 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 use napi_derive::napi;
-use std::process::Command;
+use crate::common::new_hidden_command;
 
 #[napi(object)]
 pub struct GitChangedFile {
@@ -29,7 +28,7 @@ pub struct GitBranchResult {
 
 #[napi]
 pub async fn git_has_changes_native(project_path: String) -> GitChangesResult {
-  let output = Command::new("git")
+  let output = new_hidden_command("git")
     .args(["status", "--porcelain"])
     .current_dir(&project_path)
     .output();
@@ -70,7 +69,7 @@ pub async fn git_has_changes_native(project_path: String) -> GitChangesResult {
 
 #[napi]
 pub async fn git_get_branches_native(project_path: String) -> GitBranchResult {
-  let output = Command::new("git")
+  let output = new_hidden_command("git")
     .args(["branch", "--no-color"])
     .current_dir(&project_path)
     .output();
@@ -110,7 +109,7 @@ pub async fn git_get_branches_native(project_path: String) -> GitBranchResult {
 
 #[napi]
 pub async fn git_commit_native(project_path: String, message: String) -> bool {
-  let add_ok = Command::new("git")
+  let add_ok = new_hidden_command("git")
     .args(["add", "-A"])
     .current_dir(&project_path)
     .output()
@@ -121,7 +120,7 @@ pub async fn git_commit_native(project_path: String, message: String) -> bool {
     return false;
   }
 
-  let commit_out = Command::new("git")
+  let commit_out = new_hidden_command("git")
     .args(["commit", "-m", &message])
     .current_dir(&project_path)
     .output();
@@ -147,13 +146,13 @@ pub async fn git_switch_branch_native(
   strategy: String,
 ) -> bool {
   if strategy == "stash" {
-    let _ = Command::new("git")
+    let _ = new_hidden_command("git")
       .args(["stash", "save", "Auto-stash by Unreal Launcher"])
       .current_dir(&project_path)
       .output();
   }
 
-  let mut cmd = Command::new("git");
+  let mut cmd = new_hidden_command("git");
   cmd.current_dir(&project_path);
 
   if create {
@@ -168,12 +167,12 @@ pub async fn git_switch_branch_native(
 
   // If creating branch failed with checkout -b (e.g. empty repo or branch already exists), fallback to switch -c or branch
   if !ok && create {
-    let fallback = Command::new("git")
+    let fallback = new_hidden_command("git")
       .args(["branch", &branch_name])
       .current_dir(&project_path)
       .output();
     if matches!(fallback, Ok(out) if out.status.success()) {
-      let _ = Command::new("git")
+      let _ = new_hidden_command("git")
         .args(["checkout", &branch_name])
         .current_dir(&project_path)
         .output();
@@ -182,7 +181,7 @@ pub async fn git_switch_branch_native(
   }
 
   if strategy == "stash" {
-    let _ = Command::new("git")
+    let _ = new_hidden_command("git")
       .args(["stash", "pop"])
       .current_dir(&project_path)
       .output();

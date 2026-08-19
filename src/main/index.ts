@@ -183,9 +183,11 @@ if (!gotTheLock) {
   app.on('second-instance', (_event, argv) => {
     if (argv.includes('--palette')) {
       logger.info('app', 'Second instance requested palette open')
-      import('./window/paletteWindow')
-        .then(({ openPaletteWindow: open }) => open())
-        .catch((err) => logger.error('palette', 'Failed to open palette via second-instance', err))
+      try {
+        openPaletteWindow()
+      } catch (err) {
+        logger.error('palette', 'Failed to open palette via second-instance', err)
+      }
       return
     }
 

@@ -1,12 +1,12 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { app } from 'electron'
-import { getNativeModulePath } from '../native'
+import { getNative, getNativeModulePath } from '../native'
 import type { Worker } from 'worker_threads'
 
 export function formatBytes(bytes: number): string {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../native')
+    // native loaded statically
     const native = getNative()
     if (native?.formatBytesToHumanNative) {
       return native.formatBytesToHumanNative(bytes)
@@ -130,7 +130,7 @@ export function getFullFolderSize(folderPath: string): Promise<number> {
   // Direct fast path using native module if in main process
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('./native')
+    // native loaded statically
     const native = getNative()
     if (native?.getFolderSizeNative) {
       return Promise.resolve(native.getFolderSizeNative(folderPath))

@@ -5,6 +5,7 @@ import { app } from 'electron'
 import { loadProjects, saveProjects } from '../../store'
 import { formatBytes, getFullFolderSize } from '../system/folderOps'
 import { getMainWindow } from '../../window'
+import { getNative } from '../native'
 
 const CONCURRENCY = 1
 const SIZE_EVENT_BATCH_MS = 150
@@ -65,7 +66,7 @@ export async function calculateProjectSize(projectPath: string): Promise<Record<
     let sizeStr = ''
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getNative } = require('./native')
+      // native loaded statically
       const native = getNative()
       if (native?.calculateFolderSizeFormattedNative) {
         sizeStr = native.calculateFolderSizeFormattedNative(projectPath)
@@ -130,7 +131,7 @@ export async function calculateAllProjectSizes(): Promise<void> {
   // Try Rust native parallel sizing
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('./native')
+    // native loaded statically
     const native = getNative()
     if (native?.calculateAllProjectsSizeNative) {
       const results = native.calculateAllProjectsSizeNative(existing.map((p) => p.projectPath))

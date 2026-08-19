@@ -1,6 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 use napi_derive::napi;
-use std::process::Command;
+use sysinfo::{Disks, System};
 
 #[napi(object)]
 pub struct SystemHardwareInfo {
@@ -45,85 +45,112 @@ pub struct NetworkInterfaceInfo {
 
 #[napi]
 pub fn get_system_hardware_info() -> SystemHardwareInfo {
-  let os_name = if cfg!(target_os = "windows") {
-    "Windows".to_string()
-  } else if cfg!(target_os = "macos") {
-    "macOS".to_string()
+  let mut sys = System::new_all();
+  sys.refresh_all();
+
+  let os_name = System::name().unwrap_or_else(|| {
+    if cfg!(target_os = "windows") {
+      "Windows".to_string()
+    } else if cfg!(target_os = "macos") {
+      "macOS".to_string()
+    } else {
+      "Linux".to_string()
+    }
+  });
+
+  let os_version = System::os_version().unwrap_or_default();
+  let os_arch = std::env::consts::ARCH.to_string();
+  let hostname = System::host_name().unwrap_or_else(|| "localhost".to_string());
+
+  let cpus = sys.cpus();
+  let cpu_brand = if let Some(cpu) = cpus.first() {
+    cpu.brand().trim().to_string()
   } else {
-    "Linux".to_string()
+    "x86_64 Processor".to_string()
   };
 
-  let os_arch = std::env::consts::ARCH.to_string();
-  let hostname = std::env::var("COMPUTERNAME")
-    .or_else(|_| std::env::var("HOSTNAME"))
-    .unwrap_or_else(|_| "localhost".to_string());
+  let cpu_cores_logical = cpus.len() as u32;
+  let cpu_cores_physical = sys.physical_core_count().unwrap_or(cpu_cores_logical as usize) as u32;
+  let cpu_frequency_mhz = cpus.first().map(|c| c.frequency() as f64).unwrap_or(3200.0);
+  let cpu_usage_percent = sys.global_cpu_usage() as f64;
 
-  let mut cpu_brand = "x86_64 Processor".to_string();
-  let mut total_ram_mb = 16384.0;
-  let mut free_ram_mb = 8192.0;
+  let total_ram_bytes = sys.total_memory() as f64;
+  let free_ram_bytes = sys.available_memory() as f64;
+  let used_ram_bytes = (total_ram_bytes - free_ram_bytes).max(0.0);
 
-  #[cfg(target_os = "windows")]
-  {
-    if let Ok(output) = Command::new("wmic").args(["cpu", "get", "name"]).output() {
-      let text = String::from_utf8_lossy(&output.stdout);
-      for line in text.lines().skip(1) {
-        let t = line.trim();
-        if !t.is_empty() {
-          cpu_brand = t.to_string();
-          break;
-        }
-      }
-    }
+  let total_ram_mb = (total_ram_bytes / (1024.0 * 1024.0) * 10.0).round() / 10.0;
+  let free_ram_mb = (free_ram_bytes / (1024.0 * 1024.0) * 10.0).round() / 10.0;
+  let used_ram_mb = (used_ram_bytes / (1024.0 * 1024.0) * 10.0).round() / 10.0;
 
-    if let Ok(output) = Command::new("wmic").args(["OS", "get", "TotalVisibleMemorySize,FreePhysicalMemory"]).output() {
-      let text = String::from_utf8_lossy(&output.stdout);
-      for line in text.lines().skip(1) {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() >= 2 {
-          if let (Ok(free_kb), Ok(total_kb)) = (parts[0].parse::<f64>(), parts[1].parse::<f64>()) {
-            total_ram_mb = (total_kb / 1024.0 * 10.0).round() / 10.0;
-            free_ram_mb = (free_kb / 1024.0 * 10.0).round() / 10.0;
-          }
-        }
-      }
-    }
-  }
-
-  let used_ram_mb = (total_ram_mb - free_ram_mb).max(0.0);
-  let ram_usage_percent = if total_ram_mb > 0.0 {
-    ((used_ram_mb / total_ram_mb) * 100.0 * 10.0).round() / 10.0
+  let ram_usage_percent = if total_ram_bytes > 0.0 {
+    ((used_ram_bytes / total_ram_bytes) * 100.0 * 10.0).round() / 10.0
   } else {
     0.0
   };
 
-  let disks = vec![DiskDriveInfo {
-    name: "System Drive".to_string(),
-    mount_point: if cfg!(target_os = "windows") { "C:\\".to_string() } else { "/".to_string() },
-    total_space_gb: 512.0,
-    available_space_gb: 256.0,
-    used_space_gb: 256.0,
-    usage_percent: 50.0,
-    file_system: "NTFS".to_string(),
-    is_removable: false,
-  }];
+  let total_swap_mb = (sys.total_swap() as f64 / (1024.0 * 1024.0) * 10.0).round() / 10.0;
+  let used_swap_mb = (sys.used_swap() as f64 / (1024.0 * 1024.0) * 10.0).round() / 10.0;
+  let system_uptime_secs = System::uptime() as f64;
+
+  let disks_list = Disks::new_with_refreshed_list();
+  let mut disks = Vec::new();
+
+  for d in &disks_list {
+    let total = d.total_space() as f64;
+    let avail = d.available_space() as f64;
+    let used = (total - avail).max(0.0);
+
+    let total_gb = (total / (1024.0 * 1024.0 * 1024.0) * 10.0).round() / 10.0;
+    let avail_gb = (avail / (1024.0 * 1024.0 * 1024.0) * 10.0).round() / 10.0;
+    let used_gb = (used / (1024.0 * 1024.0 * 1024.0) * 10.0).round() / 10.0;
+    let usage_pct = if total > 0.0 {
+      ((used / total) * 100.0 * 10.0).round() / 10.0
+    } else {
+      0.0
+    };
+
+    disks.push(DiskDriveInfo {
+      name: d.name().to_string_lossy().to_string(),
+      mount_point: d.mount_point().to_string_lossy().to_string(),
+      total_space_gb: total_gb,
+      available_space_gb: avail_gb,
+      used_space_gb: used_gb,
+      usage_percent: usage_pct,
+      file_system: d.file_system().to_string_lossy().to_string(),
+      is_removable: d.is_removable(),
+    });
+  }
+
+  if disks.is_empty() {
+    disks.push(DiskDriveInfo {
+      name: "System Drive".to_string(),
+      mount_point: if cfg!(target_os = "windows") { "C:\\".to_string() } else { "/".to_string() },
+      total_space_gb: 512.0,
+      available_space_gb: 256.0,
+      used_space_gb: 256.0,
+      usage_percent: 50.0,
+      file_system: "NTFS".to_string(),
+      is_removable: false,
+    });
+  }
 
   SystemHardwareInfo {
     os_name,
-    os_version: "".to_string(),
+    os_version,
     os_arch,
     hostname,
     cpu_brand,
-    cpu_cores_physical: 8,
-    cpu_cores_logical: 16,
-    cpu_frequency_mhz: 3600.0,
-    cpu_usage_percent: 15.0,
+    cpu_cores_physical,
+    cpu_cores_logical,
+    cpu_frequency_mhz,
+    cpu_usage_percent,
     total_ram_mb,
     used_ram_mb,
     free_ram_mb,
     ram_usage_percent,
-    total_swap_mb: 0.0,
-    used_swap_mb: 0.0,
-    system_uptime_secs: 3600.0,
+    total_swap_mb,
+    used_swap_mb,
+    system_uptime_secs,
     disks,
   }
 }

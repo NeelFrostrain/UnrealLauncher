@@ -54,7 +54,7 @@ export async function locateUproject(projectPath: string): Promise<string | null
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.locateUprojectFileNative) {
       const found = native.locateUprojectFileNative(projectPath)
@@ -98,7 +98,7 @@ export async function locateUproject(projectPath: string): Promise<string | null
 async function getEngineAssociation(uprojectPath: string): Promise<string> {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.getUprojectEngineAssociationNative) {
       const assoc = native.getUprojectEngineAssociationNative(uprojectPath)
@@ -138,7 +138,7 @@ async function findEditorExecutable(engineAssociation: string): Promise<string> 
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getNative } = require('../../utils/native')
+      // native loaded statically
       const native = getNative()
       if (native?.resolveEngineEditorExecutableNative) {
         const found = native.resolveEngineEditorExecutableNative(p)

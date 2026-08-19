@@ -6,7 +6,8 @@ import { spawn } from 'child_process'
 import {
   isRegisteredProjectPath,
   isPathWithinDirectory,
-  sanitizePath
+  sanitizePath,
+  getNative
 } from '../../utils'
 import { logger } from '../../logger'
 
@@ -88,7 +89,7 @@ export function handleProjectOpenSubfolder(
   // Try Rust native subfolder preparer
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.prepareProjectSubfolderNative) {
       const prepared = native.prepareProjectSubfolderNative(safeProjectPath, subfolder)
@@ -169,7 +170,7 @@ export async function handleProjectCleanIntermediate(
   }
 
   // Try Rust native cleanup
-  const { getNative } = await import('../../utils/native')
+  // native loaded statically
   const native = getNative()
   if (native?.cleanProjectIntermediateFiles) {
     try {
@@ -253,7 +254,7 @@ export function handleProjectReadTextFile(
     // Try Rust native project file reader
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getNative } = require('../../utils/native')
+      // native loaded statically
       const native = getNative()
       if (native?.readProjectTextFileNative) {
         return native.readProjectTextFileNative(filePath, validatedProjectPath)
@@ -306,7 +307,7 @@ export function handleProjectWriteTextFile(
     // Try Rust native project file writer
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getNative } = require('../../utils/native')
+      // native loaded statically
       const native = getNative()
       if (native?.writeProjectTextFileNative) {
         const res = native.writeProjectTextFileNative(filePath, content, validatedProjectPath)
@@ -374,7 +375,7 @@ export function handleProjectResolveConfigPath(projectPath: string): {
   // Try Rust native config resolver
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.resolveProjectConfigPathNative) {
       const resolved = native.resolveProjectConfigPathNative(safeProjectPath)
@@ -409,7 +410,7 @@ export function handleProjectResolveUprojectPath(projectPath: string): {
   // Try Rust native uproject resolver
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.resolveProjectUprojectPathNative) {
       const resolved = native.resolveProjectUprojectPathNative(safeProjectPath)

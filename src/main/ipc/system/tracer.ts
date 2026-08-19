@@ -7,7 +7,7 @@ import { promisify } from 'util'
 import { saveMainSettings, loadMainSettings } from '../../store'
 
 const execFileAsync = promisify(execFile)
-import { getTracerDataDir, getTracerBinaryName, isProcessRunning } from '../../utils'
+import { getTracerDataDir, getTracerBinaryName, isProcessRunning, getNative } from '../../utils'
 import { logger } from '../../logger'
 export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
   // In production: resources/ sits inside app and dev uses the project root.
@@ -23,7 +23,7 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
     // Try Rust native registry query
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getNative } = require('../../utils/native')
+      // native loaded statically
       const native = getNative()
       if (native?.getWindowsStartupRegistryNative) {
         return native.getWindowsStartupRegistryNative(TRACER_KEY_NAME)
@@ -61,7 +61,7 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
         let regOk = false
         try {
           // eslint-disable-next-line @typescript-eslint/no-require-imports
-          const { getNative } = require('../../utils/native')
+          // native loaded statically
           const native = getNative()
           if (native?.setWindowsStartupRegistryNative) {
             regOk = native.setWindowsStartupRegistryNative(TRACER_KEY_NAME, tracerExe, true)
@@ -87,7 +87,7 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
           logger.info('tracer', 'Starting tracer from settings', { tracerExe })
           try {
             // eslint-disable-next-line @typescript-eslint/no-require-imports
-            const { getNative } = require('../../utils/native')
+            // native loaded statically
             const native = getNative()
             if (native?.spawnDetachedHiddenProcessNative) {
               native.spawnDetachedHiddenProcessNative(tracerExe, [])
@@ -108,7 +108,7 @@ export function registerTracerHandlers(ipcMain_: typeof ipcMain): void {
         // The tracer owns the Ctrl+K hotkey pipe; killing it breaks the hotkey.
         try {
           // eslint-disable-next-line @typescript-eslint/no-require-imports
-          const { getNative } = require('../../utils/native')
+          // native loaded statically
           const native = getNative()
           if (native?.setWindowsStartupRegistryNative) {
             native.setWindowsStartupRegistryNative(TRACER_KEY_NAME, '', false)

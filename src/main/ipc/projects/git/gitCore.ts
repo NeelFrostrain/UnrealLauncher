@@ -6,7 +6,7 @@
  */
 import { execFile } from 'child_process'
 import { promisify } from 'util'
-import { isRegisteredProjectPath } from '../../../utils'
+import { isRegisteredProjectPath, getNative } from '../../../utils'
 
 const execFileAsync = promisify(execFile)
 
@@ -28,7 +28,7 @@ export async function runGitAsync(projectPath: string, args: string[]): Promise<
 export function assertValidBranchName(branch: string): void {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../../../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.validateGitBranchNameNative) {
       if (!native.validateGitBranchNameNative(branch)) {

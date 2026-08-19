@@ -3,6 +3,7 @@ import { app, nativeImage } from 'electron'
 import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
+import { getNative } from '../native'
 
 const THUMBNAIL_WIDTH = 320
 
@@ -13,7 +14,7 @@ function getThumbnailCacheDir(): string {
 function getCachePath(sourcePath: string, mtimeMs: number): string {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../native')
+    // native loaded statically
     const native = getNative()
     if (native?.getThumbnailCacheFilenameNative) {
       const filename = native.getThumbnailCacheFilenameNative(sourcePath, mtimeMs)

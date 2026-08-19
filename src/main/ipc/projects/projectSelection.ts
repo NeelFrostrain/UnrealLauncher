@@ -3,7 +3,7 @@ import { dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { loadProjects, saveProjects } from '../../store'
-import { findUprojectFiles, findProjectScreenshot } from '../../utils'
+import { findUprojectFiles, findProjectScreenshot, getNative } from '../../utils'
 import { getMainWindow } from '../../window'
 import type { Project, ProjectSelectionResult } from '../../types'
 import { logger } from '../../logger'
@@ -91,7 +91,7 @@ export async function handleSelectProjectFolder(): Promise<ProjectSelectionResul
   // Try Rust native project folder scanner and parser
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.processSelectedProjectFolderNative) {
       const nativeRes = native.processSelectedProjectFolderNative(folder, JSON.stringify(savedProjects))
@@ -102,7 +102,7 @@ export async function handleSelectProjectFolder(): Promise<ProjectSelectionResul
           size: p.size,
           createdAt: p.createdAt,
           projectPath: p.projectPath,
-          thumbnail: p.thumbnail,
+          thumbnail: p.thumbnail ?? null,
           projectId: p.projectId
         }))
 

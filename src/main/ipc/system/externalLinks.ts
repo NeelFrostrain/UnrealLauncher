@@ -1,5 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { shell } from 'electron'
+import { getNative } from '../../utils'
 
 /**
  * Handles the open-external IPC event
@@ -9,7 +10,7 @@ export async function handleOpenExternal(url: string): Promise<Record<string, un
     let isValid = false
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getNative } = require('../../utils/native')
+      // native loaded statically
       const native = getNative()
       if (native?.validateExternalHttpsUrlNative) {
         isValid = native.validateExternalHttpsUrlNative(url)

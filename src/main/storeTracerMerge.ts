@@ -7,6 +7,7 @@ import fs from 'fs'
 import path from 'path'
 import type { Engine, Project } from './types'
 import { loadMainSettings, saveEngines, saveProjects } from './store'
+import { getNative } from './utils/native'
 
 interface TracerEngine {
   directoryPath: string
@@ -85,7 +86,7 @@ export function mergeTracerProjects(saved: Project[], tracerProjectsPath: string
   // Try Rust native merge first
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('./utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.storeMergeTracerProjectsNative) {
       const tracerContent = fs.readFileSync(tracerProjectsPath, 'utf8')

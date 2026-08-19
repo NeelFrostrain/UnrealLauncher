@@ -1,6 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
 import { logger } from '../../logger'
+import { getNative } from '../../utils'
 import { handleProjectReadLog } from './projectLog'
 import {
   handleProjectGitStatus,
@@ -100,7 +101,7 @@ export function registerProjectToolHandlers(ipcMain_: typeof ipcMain): void {
     let url = remoteUrl
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getNative } = require('../../utils/native')
+      // native loaded statically
       const native = getNative()
       if (native?.normalizeGitRemoteUrlNative) {
         url = native.normalizeGitRemoteUrlNative(remoteUrl)

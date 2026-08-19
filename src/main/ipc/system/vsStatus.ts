@@ -4,6 +4,7 @@ import { promisify } from 'util'
 import fs from 'fs'
 import path from 'path'
 import { app, type IpcMain } from 'electron'
+import { getNative } from '../../utils'
 
 const execFileAsync = promisify(execFile)
 const DEFAULT_INSTALL_PATH = 'D:\\Applications\\VS'
@@ -53,7 +54,9 @@ function getVsWherePath(): string {
 
 async function execVsWhereAsync(vsWherePath: string, args: string[]): Promise<string> {
   try {
-    const { stdout } = await execFileAsync(vsWherePath, ['-products', '*', '-utf8', ...args])
+    const { stdout } = await execFileAsync(vsWherePath, ['-products', '*', '-utf8', ...args], {
+      windowsHide: true
+    })
     return stdout.trim()
   } catch {
     return ''
@@ -127,7 +130,7 @@ export async function checkVsSetupStatusAsync(
   const installerEnginePath = getVsInstallerEnginePath()
 
   // Try Rust native VS check first
-  const { getNative } = await import('../../utils/native')
+  // native loaded statically
   const native = getNative()
   if (native?.checkVsSetupStatusNative) {
     try {

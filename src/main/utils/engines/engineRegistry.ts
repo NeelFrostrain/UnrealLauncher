@@ -9,7 +9,7 @@ import { spawn } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 import { getBinaryExtension } from '../system/platformPaths'
-import type { ScannedEngine } from '../native'
+import { getNative, type ScannedEngine } from '../native'
 
 const REGISTRY_KEYS = [
   'HKLM\\SOFTWARE\\EpicGames\\Unreal Engine',
@@ -131,7 +131,7 @@ export async function getInstalledEngines(): Promise<ScannedEngine[]> {
   if (process.platform !== 'win32') return []
 
   // ── Try Rust native path ─────────────────────────────────────────────────
-  const { getNative } = await import('../native')
+  // native loaded statically
   const native = getNative()
   if (native?.getInstalledEnginesFromRegistry) {
     try {

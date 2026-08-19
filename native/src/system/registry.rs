@@ -1,12 +1,12 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 use napi_derive::napi;
-use std::process::Command;
+use crate::common::new_hidden_command;
 
 #[napi]
 pub fn get_windows_startup_registry_native(key_name: String) -> bool {
   #[cfg(target_os = "windows")]
   {
-    let output = Command::new("reg")
+    let output = new_hidden_command("reg")
       .args(["query", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "/v", &key_name])
       .output();
     matches!(output, Ok(out) if out.status.success())
@@ -24,12 +24,12 @@ pub fn set_windows_startup_registry_native(key_name: String, exe_path: String, e
   {
     if enabled {
       let val = format!("\"{}\"", exe_path);
-      let output = Command::new("reg")
+      let output = new_hidden_command("reg")
         .args(["add", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "/v", &key_name, "/t", "REG_SZ", "/d", &val, "/f"])
         .output();
       matches!(output, Ok(out) if out.status.success())
     } else {
-      let output = Command::new("reg")
+      let output = new_hidden_command("reg")
         .args(["delete", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "/v", &key_name, "/f"])
         .output();
       matches!(output, Ok(out) if out.status.success())
@@ -44,7 +44,7 @@ pub fn set_windows_startup_registry_native(key_name: String, exe_path: String, e
 
 #[napi]
 pub fn spawn_detached_hidden_process_native(executable: String, args: Vec<String>) -> bool {
-  let mut cmd = Command::new(executable);
+  let mut cmd = std::process::Command::new(executable);
   cmd.args(args);
 
   #[cfg(target_os = "windows")]

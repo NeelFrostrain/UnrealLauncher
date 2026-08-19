@@ -294,38 +294,6 @@ function validateExtraArgs(extraArgs: string): { valid: boolean; error?: string 
  * SECURITY: Validates extraArgs server-side before building args.
  */
 export function buildLaunchArgs(config: LaunchConfig): string[] {
-  // Try Rust native argument builder first
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('./native')
-    const native = getNative()
-    if (native?.buildLaunchArgsNative) {
-      return native.buildLaunchArgsNative({
-        rhi: config.rhi,
-        scalability: String(config.scalability),
-        lumen: Boolean(config.lumen),
-        nanite: Boolean(config.nanite),
-        vsm: Boolean(config.vsm),
-        rayTracing: Boolean(config.rayTracing),
-        ssr: Boolean(config.ssr),
-        taa: Boolean(config.taa),
-        bloom: Boolean(config.bloom),
-        ambientOcclusion: Boolean(config.ambientOcclusion),
-        motionBlur: Boolean(config.motionBlur),
-        lensFlare: Boolean(config.lensFlare),
-        autoExposure: Boolean(config.autoExposure),
-        depthOfField: Boolean(config.depthOfField),
-        noSplash: Boolean(config.noSplash),
-        noLoadingScreen: Boolean(config.noLoadingScreen),
-        noShaderCompile: Boolean(config.noShaderCompile),
-        unattended: Boolean(config.unattended),
-        extraArgs: config.extraArgs || ''
-      })
-    }
-  } catch {
-    /* fallback to JS */
-  }
-
   // Validate extraArgs server-side before use
   const validation = validateExtraArgs(config.extraArgs)
   if (!validation.valid) {

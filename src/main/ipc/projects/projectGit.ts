@@ -115,7 +115,6 @@ export async function handleProjectGitInit(
     const safe = isRegisteredProjectPath(projectPath)
     if (!safe) throw new Error('Project path not found or invalid')
 
-    const { getNative } = await import('../../utils/native')
     const native = getNative()
     if (native?.gitInitRepositoryNative) {
       try {
@@ -221,7 +220,6 @@ export async function handleProjectGitHasChanges(projectPath: string): Promise<{
       return { hasChanges: false, summary: '', fileList: [] }
     }
 
-    const { getNative } = await import('../../utils/native')
     const native = getNative()
     if (native?.gitHasChangesNative) {
       try {
@@ -297,7 +295,6 @@ export async function handleProjectGitCommit(
       return { success: false, error: 'Project path not found or invalid' }
     }
 
-    const { getNative } = await import('../../utils/native')
     const native = getNative()
     if (native?.gitCommitNative) {
       try {
@@ -340,7 +337,6 @@ export async function handleProjectGitBranches(
       return { branches: [], current: '', error: 'Project path not found or invalid' }
     }
 
-    const { getNative } = await import('../../utils/native')
     const native = getNative()
     if (native?.gitGetBranchesNative) {
       try {
@@ -409,7 +405,6 @@ export async function handleProjectGitSwitchBranch(
       return { success: false, error: 'Project path not found or invalid' }
     }
 
-    const { getNative } = await import('../../utils/native')
     const native = getNative()
     if (native?.gitSwitchBranchNative) {
       try {

@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import { loadEngines, saveEngines } from '../../store'
 import { formatBytes, getFullFolderSize } from '../system/folderOps'
+import { getNative } from '../native'
 
 type SizeCacheEntry = {
   mtimeMs: number
@@ -54,7 +55,7 @@ export async function calculateEngineSize(directoryPath: string): Promise<Record
     let sizeStr = ''
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getNative } = require('./native')
+      // native loaded statically
       const native = getNative()
       if (native?.calculateFolderSizeFormattedNative) {
         sizeStr = native.calculateFolderSizeFormattedNative(directoryPath)

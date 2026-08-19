@@ -3,6 +3,7 @@
 import * as os from 'os'
 import * as path from 'path'
 import * as fs from 'fs'
+import { getNative } from '../native'
 
 /**
  * Cross-platform path utilities for UnrealLauncher
@@ -12,7 +13,7 @@ import * as fs from 'fs'
 function getCachedNativePaths() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('./native')
+    // native loaded statically
     const native = getNative()
     if (native?.getDefaultPlatformPathsNative) {
       return native.getDefaultPlatformPathsNative()

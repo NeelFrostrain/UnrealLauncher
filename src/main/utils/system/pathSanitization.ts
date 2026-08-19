@@ -4,6 +4,7 @@ import fs from 'fs'
 import { loadEngines, loadProjectScanPaths, loadProjects, mergeTracerProjects } from '../../store'
 import { getSettingsPath } from '../../store/storePaths'
 import { getTracerDataDir } from './platformPaths'
+import { getNative } from '../native'
 
 // Restrict IPC file read/write operations to text-based configuration formats (e.g., .uproject, .ini, .conf, .cfg, .yaml, .json).
 // Explicitly block reading or writing binary executables (.exe, .dll, .sh, .bat) over these channels.
@@ -45,23 +46,6 @@ export function validatePath(
   try {
     if (!filePath || typeof filePath !== 'string') {
       return { success: false, error: 'Path is empty or invalid' }
-    }
-
-    // Try Rust native path validation
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getNative } = require('../native')
-      const native = getNative()
-      if (native?.validateIpcPathNative) {
-        return native.validateIpcPathNative(
-          filePath,
-          allowedDirs,
-          APPROVED_EXTENSIONS,
-          BLOCKED_EXTENSIONS
-        )
-      }
-    } catch {
-      /* fallback */
     }
 
     // 1. Resolve and normalize the path absolute representation
@@ -284,7 +268,7 @@ export function sanitizeDirectory(
 export function isPathWithinDirectory(childPath: string, parentPath: string): boolean {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('./native')
+    // native loaded statically
     const native = getNative()
     if (native?.isPathWithinDirectoryNative) {
       return native.isPathWithinDirectoryNative(childPath, parentPath)

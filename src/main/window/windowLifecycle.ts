@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * App lifecycle and window management.
  */
@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url'
 import { optimizer } from '@electron-toolkit/utils'
 import { MAIN_WINDOW_CONFIG } from './windowConfig'
 import { createSplashWindow, closeSplashWindow } from './splashWindow'
+import { openPaletteWindow } from './paletteWindow'
 import {
   enableBackgroundMode,
   setupWindowEventHandlers,
@@ -37,11 +38,11 @@ function registerBackgroundShortcut(): void {
   // On Windows the tracer owns this key; this will fail silently — that's fine.
   const ok = globalShortcut.register(PALETTE_SHORTCUT, () => {
     logger.info('shortcut', 'Background Ctrl+K triggered — opening palette window')
-    import('./paletteWindow')
-      .then(({ openPaletteWindow }) => {
-        openPaletteWindow()
-      })
-      .catch((err) => logger.error('shortcut', 'Failed to open palette window', err))
+    try {
+      openPaletteWindow()
+    } catch (err) {
+      logger.error('shortcut', 'Failed to open palette window', err)
+    }
   })
   if (ok) {
     logger.info('shortcut', 'Background Ctrl+K registered (tracer not running)')

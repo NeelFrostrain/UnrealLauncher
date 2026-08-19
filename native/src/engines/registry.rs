@@ -2,6 +2,7 @@
 use napi_derive::napi;
 use std::fs;
 use std::path::{Path, PathBuf};
+use crate::common::new_hidden_command;
 use crate::engines::scanner::{find_editor_exe, is_engine_root, resolve_engine_version};
 
 #[napi(object)]
@@ -17,8 +18,6 @@ pub fn get_installed_engines_from_registry() -> Vec<RegistryEngine> {
 
   #[cfg(target_os = "windows")]
   {
-    use std::process::Command;
-
     let subkeys = [
       "HKLM\\SOFTWARE\\EpicGames\\Unreal Engine",
       "HKLM\\SOFTWARE\\Epic Games\\Unreal Engine",
@@ -55,7 +54,7 @@ pub fn get_installed_engines_from_registry() -> Vec<RegistryEngine> {
     };
 
     for subkey in &subkeys {
-      let output = Command::new("reg")
+      let output = new_hidden_command("reg")
         .args(["query", subkey, "/s", "/v", "InstalledDirectory"])
         .output();
 
@@ -76,7 +75,7 @@ pub fn get_installed_engines_from_registry() -> Vec<RegistryEngine> {
     }
 
     for bkey in &builds_keys {
-      let output = Command::new("reg").args(["query", bkey]).output();
+      let output = new_hidden_command("reg").args(["query", bkey]).output();
       if let Ok(out) = output {
         if out.status.success() {
           let text = String::from_utf8_lossy(&out.stdout);

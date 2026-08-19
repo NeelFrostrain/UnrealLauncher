@@ -46,7 +46,11 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
         // Query process list via powershell, including WMI CommandLine for project detection (excluding UnrealLauncher app itself)
         const currentPid = process.pid
         const cmd = `powershell -NoProfile -ExecutionPolicy Bypass -Command "$procs = Get-Process | Where-Object { ($_.ProcessName -like '*Unreal*' -or $_.ProcessName -like '*UE4*' -or $_.ProcessName -like '*UE5*' -or $_.ProcessName -like '*Shader*' -or $_.ProcessName -like '*Epic*' -or $_.ProcessName -like '*Swarm*' -or $_.ProcessName -like '*CrashReport*') -and $_.ProcessName -notlike '*unreal-launcher*' -and $_.ProcessName -notlike '*UnrealLauncher*' -and $_.Id -ne ${currentPid} }; $wmi = Get-WmiObject Win32_Process | Where-Object { $procs.Id -contains $_.ProcessId } | Select-Object ProcessId, CommandLine; $result = $procs | ForEach-Object { $p = $_; $w = $wmi | Where-Object { $_.ProcessId -eq $p.Id }; [PSCustomObject]@{ Id=$p.Id; ProcessName=$p.ProcessName; WorkingSet64=$p.WorkingSet64; CPU=$p.CPU; Path=$p.Path; CommandLine=$w.CommandLine } }; $result | ConvertTo-Json -Compress"`
-        const { stdout } = await execAsync(cmd, { encoding: 'utf8', timeout: 10000 })
+        const { stdout } = await execAsync(cmd, {
+          encoding: 'utf8',
+          timeout: 10000,
+          windowsHide: true
+        })
         const trimmed = stdout.trim()
         if (!trimmed) return []
 

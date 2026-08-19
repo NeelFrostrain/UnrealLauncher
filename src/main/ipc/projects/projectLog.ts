@@ -1,14 +1,14 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import path from 'path'
 import fs from 'fs'
-import { validatePathForGitRead } from '../../utils'
+import { validatePathForGitRead, getNative } from '../../utils'
 
 const TAIL_BYTES = 64 * 1024
 
 export function findLatestLog(projectPath: string): string | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.findLatestProjectLogNative) {
       const found = native.findLatestProjectLogNative(projectPath)
@@ -47,7 +47,7 @@ export function handleProjectReadLog(
   // Try Rust native project log reader
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.readProjectLogTailNative) {
       const res = native.readProjectLogTailNative(validatedPath, fromByte)

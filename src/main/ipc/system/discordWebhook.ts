@@ -1,6 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 
 import { logger } from '../../logger'
+import { getNative } from '../../utils/native'
 
 // Build-time injected environment variables
 declare const __DISCORD_WEBHOOK__: string
@@ -18,7 +19,7 @@ interface DiscordPayload {
 export function isValidDiscordWebhookUrl(webhookUrl: string): boolean {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.validateDiscordWebhookUrlNative) {
       return native.validateDiscordWebhookUrlNative(webhookUrl)

@@ -2,6 +2,7 @@
 use napi_derive::napi;
 use std::path::Path;
 use std::process::Command;
+use crate::common::new_hidden_command;
 
 #[napi]
 pub fn launch_project_terminal_native(project_path: String) -> bool {
@@ -91,7 +92,7 @@ pub fn find_visual_studio_executable() -> Option<String> {
     let program_files = std::env::var("ProgramFiles(x86)").unwrap_or_else(|_| "C:\\Program Files (x86)".to_string());
     let vswhere = format!("{}\\Microsoft Visual Studio\\Installer\\vswhere.exe", program_files);
     if Path::new(&vswhere).exists() {
-      if let Ok(output) = Command::new(&vswhere)
+      if let Ok(output) = new_hidden_command(&vswhere)
         .args(["-latest", "-products", "*", "-requires", "Microsoft.Component.MSBuild", "-find", "Common7\\IDE\\devenv.exe"])
         .output()
       {

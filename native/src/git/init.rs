@@ -2,7 +2,7 @@
 use napi_derive::napi;
 use std::fs;
 use std::path::Path;
-use std::process::Command;
+use crate::common::new_hidden_command;
 use crate::git::templates::{get_ue_gitattributes_template, get_ue_gitignore_template};
 
 #[napi]
@@ -12,7 +12,7 @@ pub fn git_init_repository_native(project_path: String) -> bool {
     return false;
   }
 
-  let init_ok = Command::new("git")
+  let init_ok = new_hidden_command("git")
     .arg("init")
     .current_dir(&project_path)
     .output()
@@ -33,7 +33,7 @@ pub fn git_init_repository_native(project_path: String) -> bool {
     let _ = fs::write(&gitattributes_path, get_ue_gitattributes_template());
   }
 
-  let _ = Command::new("git")
+  let _ = new_hidden_command("git")
     .args(["lfs", "install"])
     .current_dir(&project_path)
     .output();

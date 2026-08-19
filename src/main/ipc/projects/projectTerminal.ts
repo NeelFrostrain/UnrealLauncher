@@ -4,7 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import { spawn } from 'child_process'
 
-import { isRegisteredProjectPath } from '../../utils'
+import { isRegisteredProjectPath, getNative } from '../../utils'
 import { logger } from '../../logger'
 
 export async function handleProjectOpenTerminal(
@@ -26,7 +26,7 @@ export async function handleProjectOpenTerminal(
   // Try Rust native terminal launcher
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.launchProjectTerminalNative) {
       const ok = native.launchProjectTerminalNative(projectPath_safe)
@@ -132,7 +132,7 @@ export async function handleProjectOpenGithubDesktop(
 
   if (process.platform === 'win32') {
     try {
-      const { getNative } = await import('../../utils/native')
+      // native loaded statically
       const native = getNative()
       if (native?.findGithubDesktopExecutableNative) {
         const exe = native.findGithubDesktopExecutableNative()

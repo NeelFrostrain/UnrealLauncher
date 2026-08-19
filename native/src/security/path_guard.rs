@@ -11,21 +11,20 @@ pub struct NativePathValidationResult {
 
 #[napi]
 pub fn is_path_within_directory_native(child_path: String, parent_dir: String) -> bool {
-  let child = match Path::new(&child_path).canonicalize() {
-    Ok(p) => p,
-    Err(_) => return false,
-  };
-  let parent = match Path::new(&parent_dir).canonicalize() {
-    Ok(p) => p,
-    Err(_) => return false,
+  let child_clean = child_path.trim().to_lowercase().replace('\\', "/");
+  let parent_clean = parent_dir.trim().to_lowercase().replace('\\', "/");
+
+  if child_clean == parent_clean {
+    return true;
+  }
+
+  let parent_slash = if parent_clean.ends_with('/') {
+    parent_clean
+  } else {
+    format!("{}/", parent_clean)
   };
 
-  let child_str = child.to_string_lossy().to_lowercase().replace('\\', "/");
-  let parent_str = parent.to_string_lossy().to_lowercase().replace('\\', "/");
-
-  child_str == parent_str
-    || child_str.starts_with(&format!("{}/", parent_str))
-    || child.starts_with(&parent)
+  child_clean.starts_with(&parent_slash)
 }
 
 #[napi]

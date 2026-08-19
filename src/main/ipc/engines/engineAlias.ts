@@ -1,5 +1,6 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { loadEngines, saveEngines } from '../../store'
+import { getNative } from '../../utils'
 
 const MAX_ALIAS_LENGTH = 32
 
@@ -18,7 +19,7 @@ export async function handleUpdateEngineAlias(
   let sanitized: string | undefined = undefined
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getNative } = require('../../utils/native')
+    // native loaded statically
     const native = getNative()
     if (native?.sanitizeEngineAliasNative) {
       sanitized = native.sanitizeEngineAliasNative(alias) ?? undefined

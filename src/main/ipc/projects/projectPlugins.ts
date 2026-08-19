@@ -2,7 +2,7 @@
 import { IpcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
-import { isRegisteredProjectPath } from '../../utils'
+import { isRegisteredProjectPath, getNative } from '../../utils'
 import { ensureSaveDir, getSaveDir } from '../../store/storePaths'
 
 export interface ProjectPlugin {
@@ -198,7 +198,7 @@ export async function scanProjectPlugins(projectPath: string): Promise<ProjectPl
 
   // Try Rust native scanner first (high performance)
   let plugins: ProjectPlugin[] | null = null
-  const { getNative } = await import('../../utils/native')
+  // native loaded statically
   const native = getNative()
   if (native?.scanProjectPlugins) {
     try {

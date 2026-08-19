@@ -50,11 +50,13 @@ All notable changes to this project will be documented in this file.
 - **Dual Engine Version Architecture**: Standardized universal 2-segment major.minor versioning (`5.5`, `5.8`, `4.27`) across projects, badges, dropdown filters, compatibility checks, and `.uproject` files, while preserving full 3-segment patch versioning (`5.5.4`, `5.8.1`, `4.27.2`) for Engine Card banners.
 - **Asynchronous Non-Blocking Native Git Operations**: Converted `git_commit_native`, `git_has_changes_native`, `git_get_branches_native`, and `git_switch_branch_native` into background `async fn` worker routines in Rust, preventing UI thread freezes during large asset staging and commits.
 - **Modularized Rust Native Crate**: Decomposed the monolithic 6,200+ line `lib.rs` file into 10 domain-specific modules with 30+ clean, dedicated files where every file is strictly under 200 lines (`common`, `system`, `git`, `projects`, `engines`, `marketplace`, `storage`, `security`, `ui`, `platform`).
+- **Full Physical Subfolder Reorganization**: Restructured all IPC handlers (`src/main/ipc/`), utilities (`src/main/utils/`), custom React hooks (`src/renderer/src/hooks/`), and project modal dialogs (`src/renderer/src/components/projects/dialogs/`) into physical domain subfolders (`projects/`, `engines/`, `marketplace/`, `system/`, `dialogs/`) with unified barrel index files.
 - **Faster Compilation Time**: Modular parallel compilation reduced `bun run build:native` release build times by over 40% (down to ~21 seconds).
 - **Zero-Process-Spawn Architecture**: Replaced expensive PowerShell and shell command invocations with native Win32/POSIX system calls and pure-Rust memory-safe algorithms.
 
 ### Fixed
 
+- Fixed **Console / PowerShell / CMD Window Flashing on Scans and Startup**: Completely eliminated all visible console window popups across Windows by migrating process monitoring and system hardware queries to in-memory `sysinfo`, utilizing `new_hidden_command` with Windows `CREATE_NO_WINDOW` (`0x08000000`) creation flags on all child process commands (`reg`, `git`, `vswhere`, `taskkill`), and enforcing `windowsHide: true` on all Node.js `spawn`, `execFile`, and `exec` calls.
 - Fixed **Git Commit UI Freezes**: Executed git operations asynchronously on background worker threads so the launcher UI remains responsive during 50+ file commits.
 - Fixed **Git Branch Dialog React Child Crash**: Resolved `Objects are not valid as a React child (found: object with keys {name, isCurrent})` by serializing native branch structs into string arrays.
 - Fixed **Git "Working tree is clean" Detection**: Expanded `git_has_changes_native` to return structured changed file lists with statuses, correctly detecting all modified and untracked files.

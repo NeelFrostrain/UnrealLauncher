@@ -3,7 +3,7 @@ import pkg from 'electron-updater'
 const { autoUpdater } = pkg
 import { BrowserWindow, dialog } from 'electron'
 import https from 'https'
-import { compareVersions } from './utils'
+import { compareVersions, getNative } from './utils'
 import { logger } from './logger'
 
 autoUpdater.autoDownload = false
@@ -196,7 +196,7 @@ export async function handleCheckGithubVersion(
     // Try Rust native evaluation
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getNative } = require('./utils/native')
+      // native loaded statically
       const native = getNative()
       if (native?.evaluateGithubUpdateNative) {
         const evalRes = native.evaluateGithubUpdateNative(currentVersion, releaseJson)
