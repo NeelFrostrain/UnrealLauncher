@@ -26,17 +26,17 @@ jobs:
   # ── 1. Typecheck ────────────────────────────────────────────────────────────
   typecheck:
     name: Typecheck
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22' # Explicitly forcing modern LTS Node
+          node-version: '22'
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --include=optional
+        run: npm ci
 
       - name: Typecheck (node)
         run: npm run typecheck:node
@@ -47,7 +47,7 @@ jobs:
   # ── 2. Lint ─────────────────────────────────────────────────────────────────
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -57,7 +57,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --include=optional
+        run: npm ci
 
       - name: Lint
         run: npm run lint
@@ -65,7 +65,7 @@ jobs:
   # ── 3. Unit tests ───────────────────────────────────────────────────────────
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -74,8 +74,22 @@ jobs:
           node-version: '22'
           cache: npm
 
+      - name: Install Rust toolchain (MSVC)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            native -> native/target
+
       - name: Install dependencies
-        run: npm ci --include=optional
+        run: npm ci
+
+      - name: Build Rust native module
+        run: npm run build:native
 
       - name: Run tests
         run: npm run test:run
@@ -88,10 +102,10 @@ jobs:
           path: coverage/
           if-no-files-found: ignore
 
-  # ── 4. Build (renderer + main, no native, no Rust) ─────────────────────────
+  # ── 4. Build verification ──────────────────────────────────────────────────
   build:
-    name: Build (vite bundle)
-    runs-on: ubuntu-latest
+    name: Build (Vite & Tracer bundle verification)
+    runs-on: windows-latest
     needs: [typecheck, lint, test]
     steps:
       - uses: actions/checkout@v4
@@ -101,26 +115,32 @@ jobs:
           node-version: '22'
           cache: npm
 
+      - name: Install Rust toolchain (MSVC)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            native -> native/target
+            tracer -> tracer/target
+
       - name: Install dependencies
-        run: npm ci --include=optional
+        run: npm ci
 
-      # Provide a stub native module so electron-vite build doesn't fail when
-      # the Rust .node file is absent
-      - name: Stub native module
+      - name: Build Rust native addon
+        run: npm run build:native
+
+      - name: Build Rust tracer binary
         run: |
-          mkdir -p native/dist
-          echo "module.exports = {};" > native/dist/index.js
-          echo "{}" > native/dist/index.d.ts
+          npm run build:tracer
+          npm run copy:tracer
 
-      # Stub tracer binary so copy:tracer doesn't error
-      - name: Stub tracer binary
-        run: |
-          mkdir -p resources
-          touch resources/unreal_launcher_tracer
-          touch resources/unreal_launcher_tracer.exe
-
-      - name: Build (electron-vite bundle verification)
+      - name: Build Electron App (Vite)
         run: npm run build:app
         env:
           NODE_ENV: production
+
 
