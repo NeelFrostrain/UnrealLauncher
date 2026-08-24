@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'v*'
+      - 'v*.*.*'
+    branches:
+      - release
   release:
     types: [published]
   workflow_dispatch:
@@ -76,7 +79,13 @@ jobs:
       - name: Build & Publish Windows Installer (electron-builder)
         shell: pwsh
         run: |
-          $publishMode = if ('${{ github.event_name }}' -eq 'workflow_dispatch') { '${{ github.event.inputs.publish_mode }}' } else { 'always' }
+          $publishMode = if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+            '${{ github.event.inputs.publish_mode }}'
+          } elseif ('${{ github.ref_type }}' -eq 'tag' -or '${{ github.event_name }}' -eq 'release') {
+            'always'
+          } else {
+            'onTagOrDraft'
+          }
           Write-Host "Publishing Windows installer with mode: $publishMode"
           npx electron-builder --win --publish $publishMode
         env:
