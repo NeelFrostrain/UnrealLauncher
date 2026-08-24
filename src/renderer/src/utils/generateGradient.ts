@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 export const generateGradient = (): string => {
   const directions: Record<string, string> = {
     'to-t': 'to top',

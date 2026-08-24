@@ -45,7 +45,7 @@ export function useContextMenuPosition(
     ro.observe(subRef.current)
 
     return () => ro.disconnect()
-  }, [recalc])
+  }, [recalc, subRef])
 
   return pos
 }

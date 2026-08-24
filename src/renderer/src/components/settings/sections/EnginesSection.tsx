@@ -68,7 +68,7 @@ const EnginesSection = (): React.ReactElement => {
           className="items-start pt-5"
           last={scanPaths.length === 0 && !error}
         >
-          <div className="space-y-3 w-full max-w-sm">
+          <div className="w-full space-y-3">
             {scanPaths.length === 0 ? (
               <div
                 className="border border-dashed px-4 py-4 text-xs"

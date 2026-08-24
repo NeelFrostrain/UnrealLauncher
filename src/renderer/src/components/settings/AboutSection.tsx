@@ -1,8 +1,8 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useState } from 'react'
-import { Info, X } from 'lucide-react'
-import AboutPage from '../../pages/AboutPage'
+import { lazy, Suspense, useState } from 'react'
+import { Info, X, Scale } from 'lucide-react'
 import { SystemInfoGrid } from './SystemInfoGrid'
+
+const AboutPage = lazy(() => import('../../pages/AboutPage'))
 
 export interface AboutSectionProps {
   onClose?: () => void
@@ -15,11 +15,13 @@ export const AboutSection = ({ onClose: _onClose }: AboutSectionProps): React.Re
     <>
       <section>
         <div
-          className="overflow-hidden"
+          className="overflow-hidden transition-all duration-300"
           style={{
-            backgroundColor: 'var(--color-surface-elevated)',
+            background:
+              'linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface) 100%)',
             border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)'
+            borderRadius: 'var(--radius)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
           }}
         >
           <div
@@ -34,19 +36,38 @@ export const AboutSection = ({ onClose: _onClose }: AboutSectionProps): React.Re
                 Features, architecture, and changelog
               </p>
             </div>
-            <button
-              onClick={() => setShowAbout(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium cursor-pointer transition-colors"
-              style={{
-                borderRadius: 'var(--radius)',
-                backgroundColor: 'color-mix(in srgb, #22d3ee 10%, transparent)',
-                color: '#22d3ee',
-                border: '1px solid color-mix(in srgb, #22d3ee 20%, transparent)'
-              }}
-            >
-              <Info size={12} />
-              View
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent('open-legal-modal', { detail: { tab: 'terms' } })
+                  )
+                }
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium cursor-pointer transition-colors"
+                style={{
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)',
+                  color: 'var(--color-accent)',
+                  border: '1px solid color-mix(in srgb, var(--color-accent) 20%, transparent)'
+                }}
+              >
+                <Scale size={12} />
+                Legal & Privacy
+              </button>
+              <button
+                onClick={() => setShowAbout(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium cursor-pointer transition-colors"
+                style={{
+                  borderRadius: 'var(--radius)',
+                  backgroundColor: 'color-mix(in srgb, #22d3ee 10%, transparent)',
+                  color: '#22d3ee',
+                  border: '1px solid color-mix(in srgb, #22d3ee 20%, transparent)'
+                }}
+              >
+                <Info size={12} />
+                View
+              </button>
+            </div>
           </div>
           <SystemInfoGrid />
         </div>
@@ -85,7 +106,21 @@ export const AboutSection = ({ onClose: _onClose }: AboutSectionProps): React.Re
               </button>
             </div>
             <div className="overflow-y-auto max-h-[calc(90vh-56px)]">
-              <AboutPage modal />
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center h-48">
+                    <div
+                      className="w-5 h-5 rounded-full border-2 animate-spin"
+                      style={{
+                        borderColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
+                        borderTopColor: 'var(--color-accent)'
+                      }}
+                    />
+                  </div>
+                }
+              >
+                <AboutPage modal />
+              </Suspense>
             </div>
           </div>
         </div>

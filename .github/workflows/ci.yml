@@ -21,7 +21,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version: '22' # Explicitly forcing modern LTS Node
           cache: npm
 
       - name: Install dependencies
@@ -42,7 +42,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version: '22'
           cache: npm
 
       - name: Install dependencies
@@ -60,7 +60,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version: '22'
           cache: npm
 
       - name: Install dependencies
@@ -78,9 +78,6 @@ jobs:
           if-no-files-found: ignore
 
   # ── 4. Build (renderer + main, no native, no Rust) ─────────────────────────
-  # Validates that electron-vite can bundle both entry points cleanly.
-  # The native Rust module and Tracer binary are skipped here — those need
-  # platform-specific runners and are covered by the release workflow.
   build:
     name: Build (vite bundle)
     runs-on: ubuntu-latest
@@ -90,7 +87,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version: '22'
           cache: npm
 
       - name: Install dependencies

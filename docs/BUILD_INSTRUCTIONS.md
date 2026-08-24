@@ -1,4 +1,4 @@
-# Build Instructions for Unreal Launcher
+﻿# Build Instructions for Unreal Launcher
 
 ## Quick Build Commands
 

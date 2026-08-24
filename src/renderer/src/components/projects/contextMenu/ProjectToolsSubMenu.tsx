@@ -1,8 +1,16 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { motion } from 'framer-motion'
-import { Settings2, FileCode2, ScrollText, Trash2 } from 'lucide-react'
+import {
+  Settings2,
+  FileCode2,
+  ScrollText,
+  Trash2,
+  Package,
+  Heart,
+  Database,
+  Camera
+} from 'lucide-react'
 import { useToast } from '../../ui/ToastContext'
 import { MenuItem, MenuSeparator, MENU_STYLE } from './contextMenuComponents'
 import { useContextMenuPosition } from './useContextMenuPosition'
@@ -15,6 +23,11 @@ export const ProjectToolsSubMenu = ({
   parentWidth,
   onViewLogs,
   onOpenFileEditor,
+  onOpenPlugins,
+  onOpenHealthReport,
+  onOpenAssetAnalyzer,
+  onOpenSnapshots,
+  onOpenCompiler: _onOpenCompiler,
   onClose,
   onMouseEnter,
   onMouseLeave
@@ -26,6 +39,11 @@ export const ProjectToolsSubMenu = ({
   parentWidth: number
   onViewLogs: () => void
   onOpenFileEditor: (mode: 'config' | 'uproject') => void
+  onOpenPlugins: () => void
+  onOpenHealthReport: () => void
+  onOpenAssetAnalyzer: () => void
+  onOpenSnapshots: () => void
+  onOpenCompiler?: () => void
   onClose: () => void
   onMouseEnter?: () => void
   onMouseLeave?: () => void
@@ -55,7 +73,7 @@ export const ProjectToolsSubMenu = ({
   )
 
   return createPortal(
-    <motion.div
+    <div
       ref={subRef}
       data-menu-panel
       role="menu"
@@ -64,10 +82,6 @@ export const ProjectToolsSubMenu = ({
       style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 230 }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      initial={{ opacity: 0, x: -6 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -6 }}
-      transition={{ duration: 0.1 }}
     >
       <div className="py-1">
         <MenuItem
@@ -91,6 +105,50 @@ export const ProjectToolsSubMenu = ({
           onClick={onViewLogs}
           onClose={onClose}
         />
+        <MenuItem
+          icon={<Package size={11} style={{ color: '#a78bfa' }} />}
+          label="Plugins"
+          sub="Enable / disable project plugins"
+          onClick={() => {
+            onOpenPlugins()
+            onClose()
+          }}
+          noClose
+          onClose={onClose}
+        />
+        <MenuItem
+          icon={<Heart size={11} style={{ color: '#ec4899' }} />}
+          label="Health Report"
+          sub="Check configuration, size and compatibility"
+          onClick={() => {
+            onOpenHealthReport()
+            onClose()
+          }}
+          noClose
+          onClose={onClose}
+        />
+        <MenuItem
+          icon={<Database size={11} style={{ color: '#06b6d4' }} />}
+          label="Asset Analyzer"
+          sub="Scan categories and detect duplicates"
+          onClick={() => {
+            onOpenAssetAnalyzer()
+            onClose()
+          }}
+          noClose
+          onClose={onClose}
+        />
+        <MenuItem
+          icon={<Camera size={11} style={{ color: '#f43f5e' }} />}
+          label="Snapshots"
+          sub="Backup and restore project state"
+          onClick={() => {
+            onOpenSnapshots()
+            onClose()
+          }}
+          noClose
+          onClose={onClose}
+        />
         <MenuSeparator />
         <MenuItem
           icon={<Trash2 size={11} style={{ color: '#f87171' }} />}
@@ -103,7 +161,7 @@ export const ProjectToolsSubMenu = ({
           onClose={onClose}
         />
       </div>
-    </motion.div>,
+    </div>,
     document.body
   )
 }

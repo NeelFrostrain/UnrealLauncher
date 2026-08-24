@@ -1,14 +1,29 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import type { FabAsset } from './AssetCard'
 import { useToast } from '../../../components/ui/ToastContext'
 
 type ViewMode = 'list' | 'grid'
 
+interface FabTabState {
+  folderPath: string
+  assets: FabAsset[]
+  loading: boolean
+  searchQuery: string
+  setSearchQuery: (query: string) => void
+  typeFilter: FabAsset['type'] | 'all'
+  setTypeFilter: (type: FabAsset['type'] | 'all') => void
+  viewMode: ViewMode
+  filtered: FabAsset[]
+  scan: (dir: string) => Promise<void>
+  handlePickFolder: () => Promise<void>
+  handleViewChange: (mode: ViewMode) => void
+}
+
 /**
  * Custom hook for managing FabTab state
  */
-export function useFabTabState() {
+export function useFabTabState(): FabTabState {
   const { addToast } = useToast()
   const [folderPath, setFolderPath] = useState('')
   const [assets, setAssets] = useState<FabAsset[]>([])
@@ -45,20 +60,20 @@ export function useFabTabState() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const scan = useCallback(async (dir: string): Promise<void> => {
-    if (!dir) return
-    setLoading(true)
-    try {
-      setAssets(await window.electronAPI.fabScanFolder(dir))
-    } catch (err) {
-      setAssets([])
-      addToast(
-        'Fab scan failed: ' + (err instanceof Error ? err.message : String(err)),
-        'error'
-      )
-    }
-    setLoading(false)
-  }, [addToast])
+  const scan = useCallback(
+    async (dir: string): Promise<void> => {
+      if (!dir) return
+      setLoading(true)
+      try {
+        setAssets(await window.electronAPI.fabScanFolder(dir))
+      } catch (err) {
+        setAssets([])
+        addToast('Fab scan failed: ' + (err instanceof Error ? err.message : String(err)), 'error')
+      }
+      setLoading(false)
+    },
+    [addToast]
+  )
 
   const handlePickFolder = async (): Promise<void> => {
     const picked = await window.electronAPI.fabSelectFolder()

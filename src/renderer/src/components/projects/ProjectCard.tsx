@@ -1,38 +1,13 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { memo } from 'react'
-import { motion } from 'framer-motion'
+import { memo, useState, useEffect } from 'react'
 import type { Project } from '../../types'
-import { Play, Gamepad2, MoreVertical, Clock, Database, GitBranch, CheckCircle2, AlertTriangle, XCircle, HelpCircle } from 'lucide-react'
-import { formatVersion, formatDate } from './projectUtils'
+import { Play, Gamepad2, MoreVertical, Clock, Database, GitBranch, Heart } from 'lucide-react'
+import { formatVersion, formatDate, getProjectActivitySummary } from './projectUtils'
 import { useProjectCardState } from './card/projectCardState'
 import { useProjectCardHandlers } from './card/projectCardHandlers'
 import { ProjectCardDialogs } from './card/projectCardDialogs'
-import { useEngineCompatibility } from '../../hooks/useEngineCompatibility'
-import type { CompatibilityStatus } from '../../hooks/useEngineCompatibility'
-
-// ── Compatibility badge ───────────────────────────────────────────────────────
-const COMPAT_STYLES: Record<CompatibilityStatus, { color: string; bg: string; border: string; Icon: React.FC<{ size?: number }> }> = {
-  matched: { color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.25)', Icon: CheckCircle2 },
-  partial: { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.25)', Icon: AlertTriangle },
-  missing: { color: '#f87171', bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.25)', Icon: XCircle },
-  unknown: { color: 'var(--color-text-muted)', bg: 'transparent', border: 'transparent', Icon: HelpCircle },
-}
-
-function CompatBadge({ version }: { version: string }): React.ReactElement | null {
-  const { status, tooltip } = useEngineCompatibility(version)
-  if (status === 'unknown') return null
-  const { color, bg, border, Icon } = COMPAT_STYLES[status]
-  return (
-    <span
-      className="flex items-center shrink-0"
-      title={tooltip}
-      aria-label={tooltip}
-      style={{ color, background: bg, border: `1px solid ${border}`, borderRadius: 'calc(var(--radius) * 0.4)', padding: '1px 5px' }}
-    >
-      <Icon size={10} />
-    </span>
-  )
-}
+import { toLocalAssetUrl } from '../../utils/resolveAsset'
+import { useEngineCompatibility } from '../../hooks'
 
 // ── Card ──────────────────────────────────────────────────────────────────────
 
@@ -49,8 +24,6 @@ const ProjectCard = memo(
     isHidden,
     // Use a per-project thumbnailKey so only cards with changed thumbnails re-render
     thumbnailKey,
-    // Index used to limit entrance animations to the first few cards
-    index,
     onToggleFavorite,
     onLaunch,
     onOpenDir,
@@ -65,7 +38,6 @@ const ProjectCard = memo(
     onOpenDir: (p: string) => void
     onHide: (p: string) => void
   }) => {
-    // Removed scanEpoch here; git status cache handles invalidation
     const state = useProjectCardState(projectPath)
     const handlers = useProjectCardHandlers(
       projectPath,
@@ -79,25 +51,57 @@ const ProjectCard = memo(
 
     const displayName = name || projectPath!.split(/[/\\]/).pop() || 'Unknown Project'
     // Use thumbnailKey as a cache-busting token for the per-project thumbnail
-    const imageSrc = thumbnail
-      ? `local-asset:///${thumbnail.replace(/\\/g, '/')}?t=${thumbnailKey ?? ''}`
-      : null
+    const imageSrc = thumbnail ? toLocalAssetUrl(thumbnail, thumbnailKey) : null
     const dateLabel = lastOpenedAt ? formatDate(lastOpenedAt) : createdAt
     const dateType = lastOpenedAt ? 'Opened' : 'Created'
+    const compatibility = useEngineCompatibility(version)
+    const activitySummary = projectPath
+      ? getProjectActivitySummary(projectPath)
+      : 'No recent activity'
+
+    const [health, setHealth] = useState<{
+      score: number
+      status: 'healthy' | 'warning' | 'critical'
+    } | null>(null)
+
+    useEffect(() => {
+      if (!projectPath) return
+      const loadHealth = (): void => {
+        window.electronAPI
+          .projectCheckHealth(projectPath)
+          .then((h) => {
+            setHealth({ score: h.score, status: h.status })
+          })
+          .catch(() => {})
+      }
+      loadHealth()
+
+      const handler = (ev: Event): void => {
+        try {
+          const detail = (ev as CustomEvent).detail
+          if (detail && detail.projectPath === projectPath) {
+            loadHealth()
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+      window.addEventListener('project-health-updated', handler as EventListener)
+      return (): void => {
+        window.removeEventListener('project-health-updated', handler as EventListener)
+      }
+    }, [projectPath])
 
     return (
       <>
-        <motion.div
-          className="w-full"
+        <div
+          className="w-full transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
           style={{
             backgroundColor: 'var(--color-surface-card)',
             border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)'
+            borderRadius: 'var(--radius)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)'
           }}
-          // Only animate the first 8 cards to avoid many simultaneous animations
-          initial={index !== undefined && index < 8 ? { opacity: 0, y: 8 } : false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
           onContextMenu={handlers.handleContextMenu}
         >
           <div className="flex items-center gap-3 px-3 py-2.5">
@@ -111,7 +115,15 @@ const ProjectCard = memo(
               }}
             >
               {imageSrc ? (
-                <img src={imageSrc} alt={displayName} className="w-full h-full object-cover" />
+                <img
+                  src={imageSrc}
+                  alt={displayName}
+                  width={64}
+                  height={64}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <span className="text-2xl font-black" style={{ color: 'var(--color-border)' }}>
                   {displayName.charAt(0).toUpperCase()}
@@ -132,15 +144,81 @@ const ProjectCard = memo(
                 <span
                   className="shrink-0 text-[10px] font-mono px-1.5 py-px"
                   style={{
-                    color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
-                    backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)',
-                    border: '1px solid color-mix(in srgb, var(--color-accent) 20%, transparent)',
+                    color: 'var(--color-engine-version-text)',
+                    backgroundColor:
+                      'color-mix(in srgb, var(--color-engine-version-text) 10%, transparent)',
+                    border:
+                      '1px solid color-mix(in srgb, var(--color-engine-version-text) 20%, transparent)',
                     borderRadius: 'calc(var(--radius) * 0.5)'
                   }}
                 >
                   UE {formatVersion(version)}
                 </span>
-                <CompatBadge version={version} />
+                <span
+                  className="shrink-0 text-[10px] px-1.5 py-px"
+                  style={{
+                    color:
+                      compatibility.status === 'matched'
+                        ? '#34d399'
+                        : compatibility.status === 'partial'
+                          ? '#f59e0b'
+                          : compatibility.status === 'missing'
+                            ? '#f87171'
+                            : 'var(--color-text-secondary)',
+                    backgroundColor:
+                      compatibility.status === 'matched'
+                        ? 'color-mix(in srgb, #34d399 12%, transparent)'
+                        : compatibility.status === 'partial'
+                          ? 'color-mix(in srgb, #f59e0b 12%, transparent)'
+                          : compatibility.status === 'missing'
+                            ? 'color-mix(in srgb, #f87171 12%, transparent)'
+                            : 'color-mix(in srgb, var(--color-text-muted) 12%, transparent)',
+                    border: '1px solid color-mix(in srgb, currentColor 24%, transparent)',
+                    borderRadius: 'calc(var(--radius) * 0.5)'
+                  }}
+                  title={compatibility.tooltip}
+                >
+                  {compatibility.status === 'matched'
+                    ? 'Ready'
+                    : compatibility.status === 'partial'
+                      ? 'Compatible'
+                      : compatibility.status === 'missing'
+                        ? 'Engine Missing'
+                        : 'Unknown'}
+                </span>
+                {health && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      window.dispatchEvent(
+                        new CustomEvent('open-project-health-report', {
+                          detail: { projectPath }
+                        })
+                      )
+                    }}
+                    className="shrink-0 text-[10px] px-1.5 py-px flex items-center gap-1 cursor-pointer transition-all hover:brightness-110 active:scale-95"
+                    style={{
+                      color:
+                        health.status === 'healthy'
+                          ? '#34d399'
+                          : health.status === 'warning'
+                            ? '#f59e0b'
+                            : '#f87171',
+                      backgroundColor:
+                        health.status === 'healthy'
+                          ? 'color-mix(in srgb, #34d399 12%, transparent)'
+                          : health.status === 'warning'
+                            ? 'color-mix(in srgb, #f59e0b 12%, transparent)'
+                            : 'color-mix(in srgb, #f87171 12%, transparent)',
+                      border: '1px solid color-mix(in srgb, currentColor 24%, transparent)',
+                      borderRadius: 'calc(var(--radius) * 0.5)'
+                    }}
+                    title={`Project Health: ${health.score}/100. Click to view detailed health report.`}
+                  >
+                    <Heart size={10} fill="currentColor" />
+                    <span>{health.score}%</span>
+                  </button>
+                )}
                 {state.git.initialized && (
                   <span
                     className="flex items-center gap-1 text-[9px] font-mono px-1.5 py-px shrink-0"
@@ -156,7 +234,7 @@ const ProjectCard = memo(
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
                 <div
                   className="flex items-center gap-1"
                   style={{ color: 'var(--color-text-muted)' }}
@@ -173,6 +251,15 @@ const ProjectCard = memo(
                   <Database size={11} />
                   <span className="text-[10px] font-mono">{size}</span>
                 </div>
+                <div
+                  className="flex items-center gap-1"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  <Clock size={11} />
+                  <span className="text-[10px] truncate" title={activitySummary}>
+                    {activitySummary}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -181,9 +268,7 @@ const ProjectCard = memo(
               className="shrink-0 flex items-center gap-2 pl-3"
               style={{ borderLeft: '1px solid var(--color-border)' }}
             >
-              <motion.button
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
+              <button
                 onClick={handlers.handleLaunchGame}
                 className="flex items-center p-1.5 cursor-pointer"
                 style={{
@@ -196,11 +281,9 @@ const ProjectCard = memo(
                 aria-label="Launch as Game"
               >
                 <Gamepad2 size={14} />
-              </motion.button>
+              </button>
 
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={handlers.handleClick}
                 disabled={state.launching}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold cursor-pointer disabled:opacity-60"
@@ -215,18 +298,16 @@ const ProjectCard = memo(
               >
                 <Play size={13} className={state.launching ? 'animate-pulse' : ''} />
                 {state.launching ? 'Launching…' : 'Launch'}
-              </motion.button>
+              </button>
 
               {/* ⋮ button — opens the same context menu as right-click */}
-              <motion.button
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.92 }}
+              <button
                 onClick={(e) => {
                   e.stopPropagation()
                   const rect = e.currentTarget.getBoundingClientRect()
                   state.setCtxMenu({ x: rect.left, y: rect.bottom + 4 })
                 }}
-                className="flex p-1.5 cursor-pointer"
+                className="flex p-1.5 cursor-pointer transition-colors duration-200 hover:bg-white/[0.05] hover:text-[var(--color-text-primary)]"
                 style={{
                   borderRadius: 'var(--radius)',
                   backgroundColor: 'var(--color-surface-elevated)',
@@ -238,10 +319,10 @@ const ProjectCard = memo(
                 aria-haspopup="menu"
               >
                 <MoreVertical size={16} />
-              </motion.button>
+              </button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Same full dialog set as the grid card */}
         <ProjectCardDialogs

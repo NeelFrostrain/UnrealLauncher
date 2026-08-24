@@ -2,6 +2,90 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
 declare global {
+  interface CppModuleInfo {
+    name: string
+    buildCsPath: string
+    relativePath: string
+  }
+
+  interface CppSourceFileInfo {
+    name: string
+    path: string
+    relativePath: string
+    extension: string
+    sizeBytes: number
+  }
+
+  interface CppScanResult {
+    hasSourceFolder: boolean
+    isCppProject: boolean
+    sourceFolderPath: string
+    slnPath: string | null
+    hasSln: boolean
+    targets: string[]
+    modules: CppModuleInfo[]
+    cppFilesCount: number
+    headerFilesCount: number
+    csharpFilesCount: number
+    totalFilesCount: number
+    files: CppSourceFileInfo[]
+    error?: string
+  }
+
+  interface CppBuildOptions {
+    projectPath: string
+    config: 'Development Editor' | 'DebugGame Editor' | 'Development' | 'Shipping' | 'DebugGame'
+    platform: 'Win64' | 'Linux' | 'Mac' | 'Android' | 'iOS'
+    action: 'build' | 'rebuild' | 'clean' | 'generate'
+  }
+
+  interface HealthIssue {
+    type: 'info' | 'warning' | 'critical'
+    message: string
+    recommendation: string
+  }
+
+  interface HealthReport {
+    score: number
+    status: 'healthy' | 'warning' | 'critical'
+    issues: HealthIssue[]
+    intermediateSize: number
+    savedSize: number
+    isCpp: boolean
+    hasEngine: boolean
+    engineVersion: string
+  }
+
+  interface AssetInfo {
+    name: string
+    path: string
+    sizeBytes: number
+  }
+
+  interface CategoryInfo {
+    category: string
+    count: number
+    sizeBytes: number
+  }
+
+  interface AssetReport {
+    totalAssets: number
+    totalSizeBytes: number
+    categories: CategoryInfo[]
+    largestAssets: AssetInfo[]
+    duplicates: AssetInfo[][]
+    error?: string
+  }
+
+  interface SnapshotMeta {
+    id: string
+    name: string
+    timestamp: string
+    fileSizeBytes: number
+    archivePath: string
+    projectPath: string
+  }
+
   interface ProjectData {
     name: string
     version: string
@@ -15,6 +99,7 @@ declare global {
 
   interface EngineData {
     version: string
+    fullVersion?: string
     exePath: string
     directoryPath: string
     folderSize: string
@@ -40,6 +125,15 @@ declare global {
     type: 'engine' | 'project'
     path: string
     size: string
+  }
+
+  interface SystemProcess {
+    pid: number
+    name: string
+    memoryBytes: number
+    cpuSeconds?: number
+    path?: string
+    type: 'editor' | 'build' | 'service' | 'other'
   }
 
   interface UpdateInfo {
@@ -82,6 +176,23 @@ declare global {
     isExperimental: boolean
     icon: string | null
     createdBy: string
+    enabledByDefault?: boolean
+    dependencies?: string[]
+    docsUrl?: string
+    supportUrl?: string
+  }
+
+  interface ProjectPlugin {
+    name: string
+    internalName: string
+    path: string
+    description: string
+    version: string
+    enabled: boolean
+    enabledByDefault?: boolean
+    dependencies?: string[]
+    docsUrl?: string
+    supportUrl?: string
   }
 
   interface LaunchConfig {
@@ -114,6 +225,7 @@ declare global {
     electronAPI: {
       // Engines
       scanEngines: () => Promise<EngineData[]>
+      loadSavedEngines: () => Promise<EngineData[]>
       launchEngine: (exePath: string) => Promise<{ success: boolean; error?: string }>
       selectEngineFolder: () => Promise<EngineSelectionResult | null>
       deleteEngine: (directoryPath: string) => Promise<boolean>
@@ -131,7 +243,10 @@ declare global {
       ) => Promise<{ success: boolean; size?: string; error?: string }>
       calculateAllProjectSizes: () => Promise<void>
       // Filesystem
-      openDirectory: (dirPath: string) => Promise<void>
+      openDirectory: (dirPath: string) => Promise<{ success: boolean; error?: string }>
+      selectFile: (
+        filters?: Array<{ name: string; extensions: string[] }>
+      ) => Promise<string | null>
       openExternal: (url: string) => Promise<{ success: boolean; error?: string }>
       // Window
       windowMinimize: () => void
@@ -181,22 +296,39 @@ declare global {
       openLogsFolder: () => Promise<void>
       clearLogs: () => Promise<{ success: boolean; removed: number }>
       logActivity: (activity: Record<string, unknown>) => Promise<void>
-      getMainSettings: () => Promise<any>
+      getMainSettings: () => Promise<Record<string, unknown>>
       getRunningProjects: () => Promise<string[]>
       platform: string
       appVersion: string
       electronVersion: string
-      saveMainSettings: (settings: any) => Promise<void>
+      saveMainSettings: (settings: Record<string, unknown>) => Promise<void>
       selectFolder: () => Promise<string[] | null>
       loadSavedProjects: () => Promise<ProjectData[]>
+      deleteProject: (projectPath: string) => Promise<boolean>
+      eraseProjectFromDisk: (projectPath: string) => Promise<{ success: boolean; error?: string }>
+      updateProjectVersion: (projectPath: string, newVersion: string) => Promise<boolean>
       scanEnginePlugins: (engineDir: string) => Promise<EnginePlugin[]>
-      // Fab cache
+      toggleEnginePluginDefault: (
+        pluginPath: string,
+        enabled: boolean
+      ) => Promise<{ success: boolean; error?: string }>
+      clearEnginePluginCache: () => Promise<void>
+      getEnginePluginCacheTTL: () => Promise<number>
+      setEnginePluginCacheTTL: (ms: number) => Promise<void>
+      projectScanPlugins: (projectPath: string) => Promise<ProjectPlugin[]>
+      clearProjectPluginCache: () => Promise<void>
+      getProjectPluginCacheTTL: () => Promise<number>
+      setProjectPluginCacheTTL: (ms: number) => Promise<void>
+      projectTogglePlugin: (
+        projectPath: string,
+        pluginName: string,
+        enabled: boolean
+      ) => Promise<{ success: boolean; error?: string }>
       fabGetDefaultPath: () => Promise<string>
       fabSelectFolder: () => Promise<string | null>
       fabScanFolder: (folderPath: string) => Promise<FabAsset[]>
       fabSavePath: (folderPath: string) => Promise<void>
       fabLoadPath: () => Promise<string>
-      // Project tools
       projectReadLog: (
         projectPath: string,
         fromByte?: number
@@ -206,6 +338,30 @@ declare global {
         sizeBytes: number
         startByte: number
       } | null>
+      projectCheckHealth: (projectPath: string) => Promise<HealthReport>
+      projectAnalyzeAssets: (projectPath: string) => Promise<AssetReport>
+      projectExportAssetReport: (
+        projectPath: string,
+        reportContent: string,
+        format: 'json' | 'md'
+      ) => Promise<{ success?: boolean; canceled?: boolean; filePath?: string; error?: string }>
+      projectGetSnapshots: (projectPath: string) => Promise<SnapshotMeta[] | { error: string }>
+      projectCreateSnapshot: (
+        projectPath: string,
+        name: string
+      ) => Promise<{ success?: boolean; snapshot?: SnapshotMeta; error?: string }>
+      projectCreateSnapshotWithProgress: (
+        projectPath: string,
+        name: string
+      ) => Promise<{ success?: boolean; snapshot?: SnapshotMeta; error?: string }>
+      projectRestoreSnapshot: (
+        projectPath: string,
+        snapshotId: string
+      ) => Promise<{ success?: boolean; error?: string }>
+      projectDeleteSnapshot: (
+        projectPath: string,
+        snapshotId: string
+      ) => Promise<{ success?: boolean; error?: string }>
       projectGitStatus: (projectPath: string) => Promise<{
         initialized: boolean
         branch: string
@@ -304,6 +460,82 @@ declare global {
       ) => Promise<{ success: boolean; error?: string }>
       onOpenCommandPalette: (callback: () => void) => () => void
       onPaletteNavigate: (callback: (route: string) => void) => () => void
-      onPaletteAction: (callback: (commandId: string) => void) => () => void    }
+      onPaletteAction: (callback: (commandId: string) => void) => () => void
+      onSnapshotProgress: (
+        callback: (data: {
+          current: number
+          total: number
+          message: string
+          percentage: number
+        }) => void
+      ) => () => void
+      taskManagerGetProcesses: () => Promise<SystemProcess[]>
+      taskManagerKillProcess: (pid: number) => Promise<{ success: boolean; error?: string }>
+      relaunchApp: () => Promise<void>
+      checkVsSetup: () => Promise<{
+        vsPath: string
+        msvcPath: string
+        msvcVersions: Array<{ version: string; path: string }>
+        sdkPath: string
+        hasVsWhere: boolean
+        hasInstallerEngine: boolean
+        components: Array<{ id: string; label: string; installed: boolean }>
+        missingComponentIds: string[]
+        isHealthy: boolean
+      }>
+      repairVsSetup: (options?: {
+        targetInstallPath?: string
+        missingComponentIds?: string[]
+      }) => Promise<{ success: boolean; exitCode: number | null; error?: string }>
+      onVsLogOutput: (
+        callback: (log: {
+          timestamp: string
+          text: string
+          type: 'info' | 'success' | 'warning' | 'error'
+        }) => void
+      ) => () => void
+      projectCppScan: (projectPath: string) => Promise<CppScanResult>
+      projectCppCreateStructure: (
+        projectPath: string
+      ) => Promise<{ success: boolean; createdFiles?: string[]; error?: string }>
+      projectCppFixTargetRules: (
+        projectPath: string
+      ) => Promise<{ success: boolean; fixedFiles?: string[]; error?: string }>
+      projectCppOpenSln: (
+        projectPath: string,
+        ide?: 'vs' | 'rider',
+        customRiderPath?: string
+      ) => Promise<{ success: boolean; error?: string }>
+      projectCppBuild: (
+        options: CppBuildOptions
+      ) => Promise<{ success: boolean; exitCode: number | null; error?: string }>
+      projectCppDebug: (
+        projectPath: string,
+        config?: string
+      ) => Promise<{ success: boolean; error?: string }>
+      projectCppStopDebug: (projectPath: string) => Promise<{ success: boolean }>
+      projectCppCheckDebug: (
+        projectPath: string
+      ) => Promise<{ isDebugging: boolean; exeName?: string }>
+      projectCppCancelBuild: () => Promise<{ success: boolean }>
+      projectCppFetchSavedLogs: (
+        projectPath: string
+      ) => Promise<{ success: boolean; logFilesFound?: string[]; error?: string }>
+      projectCppSaveLogFile: (
+        projectPath: string,
+        content: string
+      ) => Promise<{ success: boolean; savedPath?: string; error?: string }>
+      onCppDebugStatus: (
+        callback: (status: { isDebugging: boolean; projectPath: string; exeName?: string }) => void
+      ) => () => void
+      onCppLogOutput: (
+        callback: (log: {
+          timestamp: string
+          text: string
+          type: 'info' | 'success' | 'warning' | 'error'
+          projectPath: string
+        }) => void
+      ) => () => void
+    }
   }
 }

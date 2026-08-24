@@ -1,9 +1,10 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import PageWrapper from '../layout/PageWrapper'
-import { SettingsNavigation, type SectionId } from '../components/settings/SettingsNavigation'
+import type { SectionId } from '../components/settings/SettingsNavigation'
+import { SettingsNavigation } from '../components/settings/SettingsNavigation'
 import { AboutSection } from '../components/settings/AboutSection'
-import { useSettingsState } from '../hooks/useSettingsState'
+import { useSettingsState } from '../hooks'
 import AppearanceSection from '../components/settings/AppearanceSection'
 import LaunchSection from '../components/settings/sections/LaunchSection'
 import TracerSection from '../components/settings/sections/TracerSection'
@@ -18,14 +19,21 @@ import { logActivity } from '../utils/activityLogger'
 const SettingsPage = (): React.ReactElement => {
   const [activeSection, setActiveSection] = useState<SectionId>('general')
   const platform = window.electronAPI.platform
-
   const settingsState = useSettingsState()
 
-  const sectionContent = useMemo((): React.ReactNode => {
+  const handleSectionChange = useCallback(
+    (section: SectionId): void => {
+      logActivity('Settings section switched', { from: activeSection, to: section })
+      setActiveSection(section)
+    },
+    [activeSection]
+  )
+
+  const renderContent = (): React.ReactNode => {
     switch (activeSection) {
       case 'general':
         return (
-          <div className="space-y-6">
+          <div className="w-full">
             <LaunchSection
               autoCloseOnLaunch={settingsState.autoCloseOnLaunch}
               onToggle={() => settingsState.handleAutoCloseToggle(!settingsState.autoCloseOnLaunch)}
@@ -70,7 +78,7 @@ const SettingsPage = (): React.ReactElement => {
         return (
           <div className="space-y-6">
             <ProjectsSection />
-            {platform === 'linux' && <EnginesSection />}
+            <EnginesSection />
             <ExclusionsSection />
           </div>
         )
@@ -87,30 +95,19 @@ const SettingsPage = (): React.ReactElement => {
       default:
         return null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSection, settingsState, platform])
-
-  const handleSectionChange = useCallback(
-    (section: SectionId): void => {
-      logActivity('Settings section switched', { from: activeSection, to: section })
-      setActiveSection(section)
-    },
-    [activeSection]
-  )
+  }
 
   return (
     <PageWrapper>
-      <div className="flex flex-col h-full min-h-0">
-        <SettingsNavigation
-          activeSection={activeSection}
-          onSectionChange={handleSectionChange}
-          platform={platform}
-        />
+      <SettingsNavigation
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        platform={platform}
+      />
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto min-h-0">
-          <div className="py-5">{sectionContent}</div>
-        </div>
+      {/* Content area */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="mt-4">{renderContent()}</div>
       </div>
     </PageWrapper>
   )

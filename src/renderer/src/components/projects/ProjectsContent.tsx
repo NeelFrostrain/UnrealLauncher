@@ -1,11 +1,15 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useMemo } from 'react'
+import { memo, useMemo, useState, useRef, useEffect, useCallback } from 'react'
 import ProjectCard from './ProjectCard'
-import ProjectCardGrid from './ProjectCardGrid'
+import { VirtualizedProjectGrid } from './VirtualizedProjectGrid'
 import type { Project, TabType } from '../../types'
 import type { ViewMode } from './ProjectsToolbar'
 import type { SortConfig } from './projectUtils'
-import { sortProjects } from './projectUtils'
+import {
+  filterProjectsByEngineVersion,
+  sortProjects,
+  type EngineVersionFilter
+} from './projectUtils'
 
 export interface ProjectsContentProps {
   projects: Project[]
@@ -15,21 +19,118 @@ export interface ProjectsContentProps {
   viewMode: ViewMode
   sortConfig: SortConfig
   favoritePaths: string[]
-  hiddenPaths: string[]
+  hiddenPaths?: string[]
+  // These props are kept for API compatibility but unused — list is self-contained
   displayStart: number
   containerRef: React.RefObject<HTMLDivElement | null>
   onToggleFavorite: (path: string) => void
-  onHide: (path: string) => void
+  onHide?: (path: string) => void
   onLaunch: (path: string) => void
   onOpenDir: (path: string) => void
   onListScroll: (e: React.UIEvent<HTMLDivElement>) => void
+  engineVersionFilter: EngineVersionFilter
 }
 
 type ProjectWithFlags = Project & { isFavorite: boolean; isHidden: boolean }
 
-const ITEMS_PER_BATCH = 50
+// List card height in px — must match what ProjectCard renders
+const LIST_ITEM_HEIGHT = 84 // px (64px thumbnail + padding + borders)
+const LIST_GAP = 1 // gap-3 (12px gap between rows)
+const ROW_HEIGHT = LIST_ITEM_HEIGHT + LIST_GAP
+const BUFFER_ROWS = 4
 
-export const ProjectsContent = ({
+/**
+ * Virtualised list renderer — same absolute-position approach as VirtualizedProjectGrid.
+ * Only renders cards that are within the visible viewport + BUFFER_ROWS rows above/below.
+ */
+const VirtualizedList = memo(function VirtualizedList({
+  items,
+  onToggleFavorite,
+  onHide,
+  onLaunch,
+  onOpenDir
+}: {
+  items: ProjectWithFlags[]
+  onToggleFavorite: (path: string) => void
+  onHide?: (path: string) => void
+  onLaunch: (path: string) => void
+  onOpenDir: (path: string) => void
+}): React.ReactElement {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [scrollTop, setScrollTop] = useState(0)
+  const [containerHeight, setContainerHeight] = useState(800)
+  const rafRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    setContainerHeight(el.clientHeight)
+    const ro = new ResizeObserver(() => setContainerHeight(el.clientHeight))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const top = (e.currentTarget as HTMLDivElement).scrollTop
+    if (rafRef.current !== null) return
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null
+      setScrollTop(top)
+    })
+  }, [])
+
+  useEffect(
+    () => () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+    },
+    []
+  )
+
+  const firstVisible = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - BUFFER_ROWS)
+  const lastVisible = Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + BUFFER_ROWS
+  const totalHeight = items.length * ROW_HEIGHT - LIST_GAP // no trailing gap
+
+  const visibleRows: React.ReactElement[] = []
+  for (let i = firstVisible; i < Math.min(lastVisible, items.length); i++) {
+    const data = items[i]
+    if (!data?.projectPath) continue
+    visibleRows.push(
+      <div
+        key={data.projectPath}
+        style={{
+          position: 'absolute',
+          top: i * ROW_HEIGHT,
+          left: 0,
+          right: 0,
+          height: LIST_ITEM_HEIGHT
+        }}
+      >
+        <ProjectCard
+          {...data}
+          isFavorite={data.isFavorite}
+          isHidden={data.isHidden}
+          thumbnailKey={`${data.projectPath}:${data.thumbnail}`}
+          onToggleFavorite={onToggleFavorite}
+          onHide={onHide ?? (() => {})}
+          onLaunch={onLaunch}
+          onOpenDir={onOpenDir}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      onScroll={handleScroll}
+      className="relative overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden h-full py-1"
+    >
+      <div style={{ position: 'relative', width: '100%', height: totalHeight }}>{visibleRows}</div>
+    </div>
+  )
+})
+
+export const ProjectsContent = memo(function ProjectsContent({
   projects,
   loading,
   currentTab,
@@ -37,31 +138,30 @@ export const ProjectsContent = ({
   viewMode,
   sortConfig,
   favoritePaths,
-  hiddenPaths,
-  displayStart,
-  containerRef,
+  hiddenPaths = [],
   onToggleFavorite,
   onHide,
   onLaunch,
   onOpenDir,
-  onListScroll
-}: ProjectsContentProps): React.ReactElement => {
-  // Hoist processed search query to avoid per-project computation on each keystroke
+  engineVersionFilter
+}: ProjectsContentProps): React.ReactElement {
   const q = searchQuery.trim().toLowerCase()
 
   const visibleProjects = useMemo((): ProjectWithFlags[] => {
+    const favoriteSet = new Set(favoritePaths)
+    const hiddenSet = new Set(hiddenPaths)
     const filtered = (q ? projects.filter((p) => p.name.toLowerCase().includes(q)) : projects).map(
       (project): ProjectWithFlags => ({
         ...project,
-        isFavorite: project.projectPath ? favoritePaths.includes(project.projectPath) : false,
-        isHidden: project.projectPath ? hiddenPaths.includes(project.projectPath) : false
+        isFavorite: project.projectPath ? favoriteSet.has(project.projectPath) : false,
+        isHidden: project.projectPath ? hiddenSet.has(project.projectPath) : false
       })
     )
-    return sortProjects(filtered, sortConfig) as ProjectWithFlags[]
-  }, [projects, q, favoritePaths, hiddenPaths, sortConfig])
-
-  // Stabilize handlers — pass props directly, no identity wrapper needed
-  // (onLaunch/onOpenDir are already stable useCallback refs from the parent)
+    return sortProjects(
+      filterProjectsByEngineVersion(filtered, engineVersionFilter),
+      sortConfig
+    ) as ProjectWithFlags[]
+  }, [projects, q, favoritePaths, hiddenPaths, sortConfig, engineVersionFilter])
 
   if (loading) {
     return (
@@ -85,74 +185,42 @@ export const ProjectsContent = ({
             ? 'No projects match your search'
             : currentTab === 'favorites'
               ? 'No favorite projects'
-              : currentTab === 'hidden'
-                ? 'No hidden projects'
-                : currentTab === 'recent'
-                  ? 'No recently opened projects'
-                  : 'No projects found'}
+              : currentTab === 'recent'
+                ? 'No recently opened projects'
+                : 'No projects found'}
         </p>
         <p className="text-sm mb-4" style={{ color: 'var(--color-text-muted)' }}>
           {searchQuery.trim()
             ? 'Try a different project name or clear the search.'
             : currentTab === 'favorites'
               ? 'Add projects to favorites from the All Projects tab'
-              : currentTab === 'hidden'
-                ? 'Hide projects using the context menu or the hide button on each card'
-                : currentTab === 'recent'
-                  ? 'Open a project at least once to see it here'
-                  : 'Use Add Project to add one manually.'}
+              : currentTab === 'recent'
+                ? 'Open a project at least once to see it here'
+                : 'Use Add Project to add one manually.'}
         </p>
       </div>
     )
   }
 
   if (viewMode === 'grid') {
-    // Filter out entries missing a projectPath and pass a per-project thumbnailKey so only changed cards re-render
     return (
-      <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto py-2 h-full content-start">
-        {visibleProjects
-          .filter((p) => !!p.projectPath)
-          .map((data, idx) => (
-            <ProjectCardGrid
-              key={data.projectPath}
-              {...data}
-              index={idx}
-              isFavorite={data.isFavorite}
-              isHidden={data.isHidden}
-              thumbnailKey={`${data.projectPath}:${data.thumbnail}`}
-              onToggleFavorite={onToggleFavorite}
-              onHide={onHide}
-              onLaunch={onLaunch}
-              onOpenDir={onOpenDir}
-            />
-          ))}
-      </div>
+      <VirtualizedProjectGrid
+        items={visibleProjects.filter((p) => !!p.projectPath)}
+        onToggleFavorite={onToggleFavorite}
+        onHide={onHide ?? (() => {})}
+        onLaunch={onLaunch}
+        onOpenDir={onOpenDir}
+      />
     )
   }
 
   return (
-    <div
-      ref={containerRef}
-      onScroll={onListScroll}
-      className="flex flex-col gap-2 overflow-y-auto py-2 h-full"
-    >
-      {visibleProjects
-        .slice(displayStart, displayStart + ITEMS_PER_BATCH)
-        .filter((p) => !!p.projectPath)
-        .map((data, idx) => (
-          <ProjectCard
-            key={data.projectPath}
-            {...data}
-            index={displayStart + idx}
-            isFavorite={data.isFavorite}
-            isHidden={data.isHidden}
-            thumbnailKey={`${data.projectPath}:${data.thumbnail}`}
-            onToggleFavorite={onToggleFavorite}
-            onHide={onHide}
-            onLaunch={onLaunch}
-            onOpenDir={onOpenDir}
-          />
-        ))}
-    </div>
+    <VirtualizedList
+      items={visibleProjects.filter((p) => !!p.projectPath)}
+      onToggleFavorite={onToggleFavorite}
+      onHide={onHide}
+      onLaunch={onLaunch}
+      onOpenDir={onOpenDir}
+    />
   )
-}
+})

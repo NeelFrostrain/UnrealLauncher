@@ -1,5 +1,5 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { RefreshCw, CheckCircle2 } from 'lucide-react'
+import { RefreshCw, CheckCircle2, Sparkles } from 'lucide-react'
 
 interface ChangedFile {
   status: string
@@ -33,6 +33,7 @@ interface GitCommitContentProps {
   inputRef: React.RefObject<HTMLInputElement | null>
   onCommitMsgChange: (msg: string) => void
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  onGenerateSmartCommit?: () => void
 }
 
 /**
@@ -46,8 +47,9 @@ export function GitCommitContent({
   commitMsg,
   inputRef,
   onCommitMsgChange,
-  onKeyDown
-}: GitCommitContentProps) {
+  onKeyDown,
+  onGenerateSmartCommit
+}: GitCommitContentProps): React.ReactElement {
   return (
     <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3" style={{ minHeight: 0 }}>
       {loading ? (
@@ -113,33 +115,56 @@ export function GitCommitContent({
 
           {/* Commit message */}
           <div>
-            <label
-              className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5"
-              style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
-            >
-              Commit Message
-            </label>
-            <input
-              ref={inputRef}
-              type="text"
+            <div className="flex items-center justify-between mb-1.5">
+              <label
+                className="block text-[10px] font-semibold uppercase tracking-widest"
+                style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
+              >
+                Commit Message
+              </label>
+              {onGenerateSmartCommit && (
+                <button
+                  type="button"
+                  onClick={onGenerateSmartCommit}
+                  className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded cursor-pointer transition-colors"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)',
+                    color: 'var(--color-accent)',
+                    border: '1px solid color-mix(in srgb, var(--color-accent) 30%, transparent)'
+                  }}
+                  title="Auto-generate a smart commit message from modified files"
+                >
+                  <Sparkles size={10} /> Smart Commit Msg
+                </button>
+              )}
+            </div>
+            <textarea
+              ref={inputRef as any}
+              rows={4}
               placeholder="Describe your changes…"
               value={commitMsg}
               onChange={(e) => onCommitMsgChange(e.target.value)}
-              onKeyDown={onKeyDown}
-              className="w-full text-sm px-3 py-2 rounded outline-none transition-colors"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                  onKeyDown(e as any)
+                }
+              }}
+              className="w-full text-xs px-3 py-2 rounded outline-none transition-colors font-mono resize-y"
               style={{
                 backgroundColor: 'var(--color-surface-card)',
                 border: '1px solid var(--color-border)',
-                color: 'var(--color-text-primary)'
+                color: 'var(--color-text-primary)',
+                minHeight: '80px'
               }}
               onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--color-accent)')}
               onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--color-border)')}
             />
             <p
-              className="text-[10px] mt-1"
+              className="text-[10px] mt-1 flex items-center justify-between"
               style={{ color: 'var(--color-text-muted)', opacity: 0.5 }}
             >
-              Press Enter to commit
+              <span>Press Ctrl+Enter to commit</span>
+              <span>All uncommitted changes will be included</span>
             </p>
           </div>
         </>

@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface SidebarControlsProps {
@@ -14,7 +14,7 @@ export function SidebarControls({
   collapsed,
   onToggleCollapse,
   onMouseDown
-}: SidebarControlsProps) {
+}: SidebarControlsProps): React.ReactElement {
   return (
     <>
       {/* Collapse toggle */}

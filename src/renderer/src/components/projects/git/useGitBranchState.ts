@@ -9,7 +9,20 @@ export function useGitBranchState(
   currentBranch: string,
   onClose: () => void,
   onBranchChanged: (branch: string) => void
-) {
+): {
+  loading: boolean
+  branches: string[]
+  newBranch: string
+  setNewBranch: (v: string) => void
+  switching: string | null
+  creating: boolean
+  conflict: ConflictState
+  setConflict: (v: ConflictState) => void
+  handleSwitch: (branch: string, strategy?: 'normal' | 'stash' | 'force') => Promise<void>
+  handleConflictResolve: (strategy: 'stash' | 'force') => Promise<void>
+  handleCreate: () => Promise<void>
+  isConflictSwitching: boolean
+} {
   const { addToast } = useToast()
   const [loading, setLoading] = useState(true)
   const [branches, setBranches] = useState<string[]>([])
@@ -21,11 +34,13 @@ export function useGitBranchState(
   const load = useCallback(async () => {
     setLoading(true)
     const r = await window.electronAPI.projectGitBranches(projectPath)
-    setBranches(r.branches)
+    const list = (r.branches || []).map((b: any) => (typeof b === 'string' ? b : b?.name || String(b)))
+    setBranches(list)
     setLoading(false)
   }, [projectPath])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
   }, [load])
 

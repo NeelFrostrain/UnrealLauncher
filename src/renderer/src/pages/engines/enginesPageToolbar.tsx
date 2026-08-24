@@ -1,8 +1,20 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React from 'react'
-import { Plus, RefreshCw, Zap, ShoppingBag, ChevronDown, Check, Store } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import {
+  Plus,
+  RefreshCw,
+  Zap,
+  ShoppingBag,
+  ChevronDown,
+  Check,
+  Store,
+  Activity,
+  Hammer
+} from 'lucide-react'
 import DropdownPortal from '../../components/ui/DropdownPortal'
 import type { EngineCardProps } from '../../types'
+import { Tabs } from '../../components/ui/Tabs'
 
 type EngineTab = 'engines' | 'plugins' | 'fab'
 
@@ -45,54 +57,46 @@ export function EnginesPageToolbar({
   onAddEngine,
   onSelectEngine,
   onDropdownToggle
-}: EnginesPageToolbarProps) {
+}: EnginesPageToolbarProps): React.ReactElement {
+  const navigate = useNavigate()
+
   return (
     <div
-      className="flex items-center gap-3 py-3 shrink-0 border-b"
+      className="flex flex-wrap items-center gap-3 py-3 shrink-0 border-b"
       style={{ borderColor: 'var(--color-border)' }}
     >
-      {/* Tabs */}
-      <div
-        role="tablist"
-        aria-label="Engine tabs"
-        className="flex items-center gap-0.5 px-1 py-1 rounded-lg"
-        style={{
-          backgroundColor: 'var(--color-surface-card)',
-          border: '1px solid var(--color-border)'
-        }}
-      >
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            role="tab"
-            aria-selected={activeTab === tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer"
-            style={{
-              color: activeTab === tab.id ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-              backgroundColor:
-                activeTab === tab.id
-                  ? 'color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-elevated))'
-                  : 'transparent',
-              boxShadow: activeTab === tab.id ? '0 1px 3px rgba(0,0,0,0.3)' : 'none'
-            }}
-          >
-            <span
-              style={{
-                color: activeTab === tab.id ? 'var(--color-accent)' : 'var(--color-text-muted)'
-              }}
-            >
-              {tab.icon}
-            </span>
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <Tabs tabs={TABS} activeTab={activeTab} onChange={onTabChange} />
 
       <div className="flex-1" />
 
       {/* Actions */}
       <div className="flex items-center gap-1.5">
+        <button
+          onClick={() => navigate('/tasks')}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
+          style={{
+            borderRadius: 'var(--radius)',
+            backgroundColor: 'var(--color-surface-card)',
+            color: 'var(--color-text-secondary)',
+            border: '1px solid var(--color-border)'
+          }}
+        >
+          <Activity size={12} />
+          Tasks
+        </button>
+        <button
+          onClick={() => navigate('/vs-status')}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
+          style={{
+            borderRadius: 'var(--radius)',
+            backgroundColor: 'var(--color-surface-card)',
+            color: 'var(--color-text-secondary)',
+            border: '1px solid var(--color-border)'
+          }}
+        >
+          <Hammer size={12} />
+          VS Status
+        </button>
         {activeTab === 'plugins' && engines.length > 1 && (
           <>
             <button

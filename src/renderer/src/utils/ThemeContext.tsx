@@ -1,5 +1,5 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode } from 'react'
 import {
   type ThemeToken,
   type ThemeTokenMap,
@@ -31,6 +31,8 @@ interface ThemeContextType {
   applyProfile: (id: string) => void
   updateProfile: (id: string, patch: Partial<Pick<CustomProfile, 'name' | 'tokens'>>) => void
   deleteProfile: (id: string) => void
+  // Current resolved tokens
+  currentTokens: ThemeTokenMap
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
@@ -43,13 +45,50 @@ export const useTheme = (): ThemeContextType => {
 
 export const ThemeProvider = ({ children }: { children: ReactNode }): React.ReactElement => {
   const [activeThemeId, setActiveThemeId] = useState<string>(() => loadPersistedTheme().id)
-  const [customOverrides, setCustomOverrides] = useState<Partial<ThemeTokenMap>>(
-    () => loadPersistedTheme().overrides
-  )
+  const [customOverrides, setCustomOverrides] = useState<Partial<ThemeTokenMap>>(() => {
+    const persisted = loadPersistedTheme()
+    return persisted.overrides
+  })
   const [profiles, setProfiles] = useState<CustomProfile[]>(() => loadCustomProfiles())
-  const [activeProfileId, setActiveProfileId] = useState<string | null>(() => loadActiveProfileId())
+  const [activeProfileId, setActiveProfileId] = useState<string | null>(() => {
+    const savedProfileId = loadActiveProfileId()
+    const allProfiles = loadCustomProfiles()
+    // Apply theme synchronously before first render to avoid flash
+    if (savedProfileId) {
+      const profile = allProfiles.find((p) => p.id === savedProfileId)
+      if (profile) {
+        applyTheme(profile.tokens)
+        return savedProfileId
+      }
+    }
+    const persisted = loadPersistedTheme()
+    const base = getTheme(persisted.id)
+    applyTheme(base.tokens, persisted.overrides)
+    return null
+  })
 
-  // Apply CSS variables whenever active theme/overrides/profile changes
+  // Keep state in sync with localStorage updates from other windows/events
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent): void => {
+      if (
+        e.key === 'unreal_launcher_theme' ||
+        e.key === 'unreal_launcher_custom_profiles' ||
+        e.key === 'unreal_launcher_active_profile_id'
+      ) {
+        const persisted = loadPersistedTheme()
+        const savedProfileId = loadActiveProfileId()
+        const allProfiles = loadCustomProfiles()
+        setActiveThemeId(persisted.id)
+        setCustomOverrides(persisted.overrides)
+        setProfiles(allProfiles)
+        setActiveProfileId(savedProfileId)
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
+
+  // Apply CSS variables whenever active theme/overrides/profile changes (after initial render)
   useEffect(() => {
     if (activeProfileId) {
       const profile = profiles.find((p) => p.id === activeProfileId)
@@ -60,6 +99,15 @@ export const ThemeProvider = ({ children }: { children: ReactNode }): React.Reac
     }
     const base = getTheme(activeThemeId)
     applyTheme(base.tokens, customOverrides)
+  }, [activeThemeId, customOverrides, activeProfileId, profiles])
+
+  const currentTokens = useMemo<ThemeTokenMap>(() => {
+    if (activeProfileId) {
+      const profile = profiles.find((p) => p.id === activeProfileId)
+      if (profile) return profile.tokens
+    }
+    const base = getTheme(activeThemeId)
+    return { ...base.tokens, ...customOverrides } as ThemeTokenMap
   }, [activeThemeId, customOverrides, activeProfileId, profiles])
 
   const setTheme = useCallback((id: string) => {
@@ -166,7 +214,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }): React.Reac
         saveAsProfile,
         applyProfile,
         updateProfile,
-        deleteProfile
+        deleteProfile,
+        currentTokens
       }}
     >
       {children}

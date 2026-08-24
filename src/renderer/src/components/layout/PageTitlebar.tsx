@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { Plus, RefreshCw } from 'lucide-react'
 import type { FC } from 'react'
 

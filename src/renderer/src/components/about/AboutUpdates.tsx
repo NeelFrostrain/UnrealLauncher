@@ -1,15 +1,9 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState } from 'react'
 import { RefreshCw, Download, CheckCircle, GitBranch } from 'lucide-react'
 
 type UpdateStatus =
-  | 'idle'
-  | 'checking'
-  | 'available'
-  | 'downloading'
-  | 'ready'
-  | 'no-update'
-  | 'error'
+  'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'no-update' | 'error'
 type GithubStatus = 'idle' | 'checking' | 'success' | 'error'
 
 function compareVersions(v1: string, v2: string): boolean {

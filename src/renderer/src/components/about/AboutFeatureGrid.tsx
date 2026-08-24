@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { Sparkles } from 'lucide-react'
 import { SectionHeader } from '../settings/SectionHelpers'
 import { FEATURES } from './aboutConstants'

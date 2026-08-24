@@ -23,7 +23,7 @@ const SystemSection = (): React.ReactElement => {
     if (platform === 'win32') {
       window.electronAPI.isTracerRunning().then(setTracerRunning)
     }
-  }, [])
+  }, [platform])
 
   const nativeColor =
     nativeLoaded === null ? 'var(--color-text-muted)' : nativeLoaded ? '#60a5fa' : '#f87171'

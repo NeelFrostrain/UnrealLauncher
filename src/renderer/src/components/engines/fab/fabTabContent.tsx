@@ -1,7 +1,8 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { FolderOpen, RefreshCw, Package } from 'lucide-react'
 import { AssetListCard, AssetGridCard } from './AssetCard'
 import type { FabAsset } from './AssetCard'
+import type { ReactElement } from 'react'
 
 interface FabTabContentProps {
   folderPath: string
@@ -22,7 +23,7 @@ export function FabTabContent({
   searchQuery,
   viewMode,
   onPickFolder
-}: FabTabContentProps) {
+}: FabTabContentProps): ReactElement {
   if (!folderPath) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-8 px-6">

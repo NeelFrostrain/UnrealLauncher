@@ -6,17 +6,33 @@
  */
 import path from 'path'
 import type { Engine, Project } from '../types'
-import type { LaunchConfig } from '../utils/launchConfigArgs'
-import { SKELETON_CONFIG, DEFAULT_CONFIG, getSkeletonRhi } from '../utils/launchConfigArgs'
+import type { LaunchConfig } from '../utils/system/launchConfigArgs'
 import {
-  getEnginesDataPath, getProjectsDataPath, getSettingsPath,
-  getLaunchConfigsPath, getProjectScanPathsPath, getEngineScanPathsPath,
+  SKELETON_CONFIG,
+  DEFAULT_CONFIG,
+  getSkeletonRhi,
+  HEADLESS_CI_CONFIG,
+  RAYTRACE_SHOWCASE_CONFIG,
+  CINEMATIC_CONFIG,
+  BALANCED_CONFIG,
+  PERFORMANCE_CONFIG
+} from '../utils/system/launchConfigArgs'
+import {
+  getEnginesDataPath,
+  getProjectsDataPath,
+  getSettingsPath,
+  getLaunchConfigsPath,
+  getProjectScanPathsPath,
+  getEngineScanPathsPath,
   getTracerEnginesPath as _getTracerEnginesPath,
   getTracerProjectsPath as _getTracerProjectsPath,
   migrateIfNeeded
 } from './storePaths'
 import { readJsonArray, readJsonObject, writeJson } from './storeIO'
-import { mergeTracerEngines as _mergeTracerEngines, mergeTracerProjects as _mergeTracerProjects } from '../storeTracerMerge'
+import {
+  mergeTracerEngines as _mergeTracerEngines,
+  mergeTracerProjects as _mergeTracerProjects
+} from '../storeTracerMerge'
 
 // ── Re-export paths needed by external modules ────────────────────────────────
 export { getTracerEnginesPath, getTracerProjectsPath } from './storePaths'
@@ -28,7 +44,9 @@ interface MainSettings {
   tracerStartupEnabled: boolean
   registryEnginesEnabled: boolean
   backgroundCloseEnabled: boolean
+  disableGpu: boolean
   excludedScannerPaths: string[]
+  discordRpcEnabled: boolean
 }
 
 const DEFAULT_SETTINGS: MainSettings = {
@@ -36,16 +54,24 @@ const DEFAULT_SETTINGS: MainSettings = {
   tracerStartupEnabled: false,
   registryEnginesEnabled: true,
   backgroundCloseEnabled: false,
-  excludedScannerPaths: ['.git', 'Binaries', 'Intermediate', 'Saved', 'node_modules']
+  disableGpu: true,
+  excludedScannerPaths: ['.git', 'Binaries', 'Intermediate', 'Saved', 'node_modules'],
+  discordRpcEnabled: true
 }
 
+let _cachedSettings: MainSettings | null = null
+
 export function loadMainSettings(): MainSettings {
+  if (_cachedSettings) return _cachedSettings
   migrateIfNeeded()
-  return readJsonObject<MainSettings>(getSettingsPath(), DEFAULT_SETTINGS)
+  _cachedSettings = readJsonObject<MainSettings>(getSettingsPath(), DEFAULT_SETTINGS)
+  return _cachedSettings
 }
 
 export function saveMainSettings(settings: Partial<MainSettings>): void {
+  _cachedSettings = null // invalidate cache before re-reading
   const current = loadMainSettings()
+  _cachedSettings = null // invalidate again after write so next read is fresh
   writeJson(getSettingsPath(), { ...current, ...settings }, 'Settings')
 }
 
@@ -76,7 +102,9 @@ export function clearAppData(): void {
     const stripped = { ...current } as Record<string, unknown>
     delete stripped['fabCachePath']
     writeJson(getSettingsPath(), stripped, 'settings (clear fab path)')
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 export function clearTracerData(): void {
@@ -101,7 +129,21 @@ function dedupeProjects(projects: Project[]): Project[] {
 }
 
 export function loadEngines(): Engine[] {
-  return readJsonArray<Engine>(getEnginesDataPath(), 'engines')
+  const raw = readJsonArray<Engine>(getEnginesDataPath(), 'engines')
+  return raw.map((e) => {
+    let fullVersion = e.fullVersion || e.version
+    let version = e.version
+    const match = fullVersion.match(/^(\d+\.\d+)(\.\d+)?(.*)$/)
+    if (match) {
+      version = match[1]
+      if (!e.fullVersion) fullVersion = match[0]
+    }
+    return {
+      ...e,
+      version,
+      fullVersion: fullVersion || version
+    }
+  })
 }
 export function saveEngines(engines: Engine[]): void {
   writeJson(getEnginesDataPath(), engines, `engines (${engines.length})`)
@@ -109,12 +151,21 @@ export function saveEngines(engines: Engine[]): void {
 
 // ── Projects ──────────────────────────────────────────────────────────────────
 
+let pendingProjects: Project[] | null = null
+let saveProjectsTimer: ReturnType<typeof setTimeout> | null = null
+
 export function loadProjects(): Project[] {
+  if (pendingProjects) return pendingProjects
   const raw = readJsonArray<Project>(getProjectsDataPath(), 'projects')
   return dedupeProjects(raw)
 }
 export function saveProjects(projects: Project[]): void {
-  writeJson(getProjectsDataPath(), dedupeProjects(projects), `projects (${projects.length})`)
+  pendingProjects = dedupeProjects(projects)
+  writeJson(getProjectsDataPath(), pendingProjects, `projects (${pendingProjects.length})`)
+  if (saveProjectsTimer) {
+    clearTimeout(saveProjectsTimer)
+    saveProjectsTimer = null
+  }
 }
 
 // ── Launch configs ────────────────────────────────────────────────────────────
@@ -127,8 +178,48 @@ function getSkeletonDescription(): string {
 
 function makeBuiltInConfigs(): LaunchConfig[] {
   return [
-    { id: 'builtin-default',  name: 'Default',          description: 'Launch with Unreal Engine defaults — no overrides applied.', ...DEFAULT_CONFIG },
-    { id: 'builtin-skeleton', name: 'Skeleton (Lowest)', description: getSkeletonDescription(), ...SKELETON_CONFIG }
+    {
+      id: 'builtin-default',
+      name: 'Default',
+      description: 'Launch with Unreal Engine defaults — no overrides applied.',
+      ...DEFAULT_CONFIG
+    },
+    {
+      id: 'builtin-skeleton',
+      name: 'Skeleton (Lowest)',
+      description: getSkeletonDescription(),
+      ...SKELETON_CONFIG
+    },
+    {
+      id: 'builtin-performance',
+      name: 'Performance',
+      description: 'High FPS: Lumen/VSM off, no ray tracing, post-process trimmed down.',
+      ...PERFORMANCE_CONFIG
+    },
+    {
+      id: 'builtin-balanced',
+      name: 'Balanced',
+      description: 'Modern GI and shadows on, cosmetic post-process (bloom aside) trimmed.',
+      ...BALANCED_CONFIG
+    },
+    {
+      id: 'builtin-cinematic',
+      name: 'Cinematic',
+      description: 'Everything maxed for screenshots and trailers — not for playable framerates.',
+      ...CINEMATIC_CONFIG
+    },
+    {
+      id: 'builtin-raytrace-showcase',
+      name: 'Ray Tracing Showcase',
+      description: 'DX12 + hardware ray tracing driving GI, reflections, and shadows.',
+      ...RAYTRACE_SHOWCASE_CONFIG
+    },
+    {
+      id: 'builtin-headless-ci',
+      name: 'Headless (CI)',
+      description: 'Null RHI, unattended, no shader precompile skip — built for build farms.',
+      ...HEADLESS_CI_CONFIG
+    }
   ]
 }
 

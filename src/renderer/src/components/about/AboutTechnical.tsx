@@ -1,5 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useAppVersion } from '../../hooks/useAppVersion'
+import { useAppVersion } from '../../hooks'
 
 export const AboutTechnical = (): React.ReactElement => {
   const version = useAppVersion()
@@ -10,7 +9,7 @@ export const AboutTechnical = (): React.ReactElement => {
     { label: 'UI Library', value: 'React 19.2.1' },
     { label: 'Language', value: 'TypeScript 5.9.3' },
     { label: 'Build Tool', value: 'Vite 7.2.6' },
-    { label: 'License', value: 'MIT' }
+    { label: 'License', value: 'GPL-3.0' }
   ]
 
   return (

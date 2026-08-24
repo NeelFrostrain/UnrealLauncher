@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback } from 'react'
 import { useToast } from '../../ui/ToastContext'
 
@@ -11,7 +11,7 @@ export function useGitCommitHandlers(
   committing: boolean,
   setCommitting: (v: boolean) => void,
   onClose: () => void
-) {
+): { handleCommit: () => Promise<void> } {
   const { addToast } = useToast()
 
   const handleCommit = useCallback(async () => {

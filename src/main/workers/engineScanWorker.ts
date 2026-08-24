@@ -10,7 +10,7 @@ const fs = require('fs'), path = require('path');
 let native = null;
 try { native = require(workerData.nativePath); } catch {}
 
-function scanEnginePaths() {
+async function scanEnginePaths() {
   // Collect extra paths: user-configured paths + UE_ROOT env var (Linux only)
   const extra = [];
   if (Array.isArray(workerData.engineScanPaths)) {
@@ -25,7 +25,7 @@ function scanEnginePaths() {
     if (ueRoot && !extra.includes(ueRoot)) extra.push(ueRoot);
   }
 
-  if (native) { try { return native.scanEngines(extra); } catch {} }
+  if (native) { try { return await native.scanEngines(extra); } catch {} }
 
   // Fallback engine scanning when native module is not available
   const bases = [];
@@ -63,6 +63,24 @@ function scanEnginePaths() {
   // Append user-configured and UE_ROOT paths
   for (const p of extra) {
     if (!bases.includes(p)) bases.push(p);
+  }
+
+  const cachePath = workerData.scanCachePath || null;
+  const existingBases = bases.filter(p => {
+    try { return fs.existsSync(p); } catch { return false; }
+  });
+  const signature = JSON.stringify(existingBases.map(p => {
+    try {
+      return [path.normalize(p).toLowerCase(), fs.statSync(p).mtimeMs];
+    } catch {
+      return [path.normalize(p).toLowerCase(), 0];
+    }
+  }));
+  if (cachePath) {
+    try {
+      const cached = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+      if (cached.signature === signature && Array.isArray(cached.engines)) return cached.engines;
+    } catch {}
   }
   
   const results = [];
@@ -112,6 +130,12 @@ function scanEnginePaths() {
       }
     } catch {}
   }
+  if (cachePath) {
+    try {
+      fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+      fs.writeFileSync(cachePath, JSON.stringify({ signature, engines: results }), 'utf8');
+    } catch {}
+  }
   return results;
 }
 
@@ -124,26 +148,40 @@ function generateGradient() {
   return 'linear-gradient(' + pick(dirs) + ', ' + from + ', ' + to + ')';
 }
 
-const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
-const scanned = scanEnginePaths().map(e => {
-  const ex = saved.find(s => s.directoryPath === e.directoryPath);
-  return { version: e.version, exePath: e.exePath, directoryPath: e.directoryPath,
-    folderSize: ex?.folderSize || '~35-45 GB',
-    lastLaunch: ex?.lastLaunch || 'Unknown',
-    gradient: ex?.gradient || generateGradient() };
-});
-const merged = [];
-for (const s of scanned) {
-  const ex = saved.find(e => e.directoryPath === s.directoryPath);
-  if (ex) {
-    if (ex.gradient) s.gradient = ex.gradient;
-    if (ex.folderSize && !ex.folderSize.startsWith('~')) s.folderSize = ex.folderSize;
-    if (ex.lastLaunch) s.lastLaunch = ex.lastLaunch;
+async function run() {
+  const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
+  const savedByDirectory = new Map();
+  for (const engine of saved) {
+    if (!engine?.directoryPath) continue;
+    savedByDirectory.set(engine.directoryPath, engine);
   }
-  merged.push(s);
+  const rawScanned = await scanEnginePaths();
+  const scanned = rawScanned.map(e => {
+    const ex = savedByDirectory.get(e.directoryPath);
+    return { version: e.version, exePath: e.exePath, directoryPath: e.directoryPath,
+      folderSize: ex?.folderSize || '~35-45 GB',
+      lastLaunch: ex?.lastLaunch || 'Unknown',
+      gradient: ex?.gradient || generateGradient() };
+  });
+  const merged = [];
+  for (const s of scanned) {
+    const ex = savedByDirectory.get(s.directoryPath);
+    if (ex) {
+      if (ex.gradient) s.gradient = ex.gradient;
+      if (ex.folderSize && !ex.folderSize.startsWith('~')) s.folderSize = ex.folderSize;
+      if (ex.lastLaunch) s.lastLaunch = ex.lastLaunch;
+    }
+    merged.push(s);
+  }
+  const mergedDirectoryPaths = new Set(merged.map((m) => m.directoryPath));
+  for (const e of saved) {
+    if (!mergedDirectoryPaths.has(e.directoryPath)) merged.push(e);
+  }
+  parentPort.postMessage(merged.filter(e => fs.existsSync(e.exePath)));
 }
-for (const e of saved) {
-  if (!merged.find(m => m.directoryPath === e.directoryPath)) merged.push(e);
-}
-parentPort.postMessage(merged.filter(e => fs.existsSync(e.exePath)));
+
+run().catch(err => {
+  console.error("Worker error:", err);
+  process.exit(1);
+});
 `

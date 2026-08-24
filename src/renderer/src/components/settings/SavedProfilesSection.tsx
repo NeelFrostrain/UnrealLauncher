@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { type RefObject } from 'react'
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { type ThemeToken } from '../../utils/theme'

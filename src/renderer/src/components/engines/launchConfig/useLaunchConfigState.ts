@@ -1,25 +1,59 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /** All state and handlers for LaunchConfigDialog. */
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, Ref } from 'react'
 import { useToast } from '../../ui/ToastContext'
 import { UE_DEFAULTS } from './launchConfigConstants'
+
+import {
+  getSetting,
+  checkLaunchCooldown,
+  recordProjectLaunch,
+  clearLaunchCooldown
+} from '../../../utils/settings'
+
+export interface UseLaunchConfigStateReturn {
+  configs: LaunchConfig[]
+  selectedId: string
+  setSelectedId: (id: string) => void
+  editing: LaunchConfig | null
+  setEditing: (config: LaunchConfig | null) => void
+  launching: boolean
+  newName: string
+  setNewName: (name: string) => void
+  showNewForm: boolean
+  setShowNewForm: (show: boolean) => void
+  renamingId: string | null
+  setRenamingId: (id: string | null) => void
+  renameValue: string
+  setRenameValue: (value: string) => void
+  renameRef: Ref<HTMLInputElement>
+  persist: (updated: LaunchConfig[]) => void
+  startEdit: (cfg: LaunchConfig) => void
+  saveEdit: () => void
+  createNew: () => void
+  deleteConfig: (id: string) => void
+  commitRename: () => void
+  patch: (partial: Partial<LaunchConfig>) => void
+  handleLaunch: () => Promise<void>
+  startRename: (id: string, name: string) => void
+}
 
 export function useLaunchConfigState(
   exePath: string | undefined,
   projectPath: string | undefined,
   onClose: () => void
-) {
+): UseLaunchConfigStateReturn {
   const { addToast } = useToast()
   const renameRef = useRef<HTMLInputElement>(null)
 
-  const [configs,      setConfigs]      = useState<LaunchConfig[]>([])
-  const [selectedId,   setSelectedId]   = useState<string>('builtin-skeleton')
-  const [editing,      setEditing]      = useState<LaunchConfig | null>(null)
-  const [launching,    setLaunching]    = useState(false)
-  const [newName,      setNewName]      = useState('')
-  const [showNewForm,  setShowNewForm]  = useState(false)
-  const [renamingId,   setRenamingId]   = useState<string | null>(null)
-  const [renameValue,  setRenameValue]  = useState('')
+  const [configs, setConfigs] = useState<LaunchConfig[]>([])
+  const [selectedId, setSelectedId] = useState<string>('builtin-skeleton')
+  const [editing, setEditing] = useState<LaunchConfig | null>(null)
+  const [launching, setLaunching] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [showNewForm, setShowNewForm] = useState(false)
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
 
   // Load configs on mount
   useEffect(() => {
@@ -31,7 +65,9 @@ export function useLaunchConfigState(
 
   // Escape to close
   useEffect(() => {
-    const handler = (e: KeyboardEvent): void => { if (e.key === 'Escape') onClose() }
+    const handler = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') onClose()
+    }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
@@ -41,17 +77,24 @@ export function useLaunchConfigState(
     window.electronAPI.launchConfigsSave(updated)
   }, [])
 
-  const startEdit = useCallback((cfg: LaunchConfig) => {
-    if (cfg.id.startsWith('builtin-')) {
-      const clone: LaunchConfig = { ...cfg, id: `custom-${Date.now()}`, name: `${cfg.name} (copy)` }
-      const updated = [...configs, clone]
-      persist(updated)
-      setSelectedId(clone.id)
-      setEditing(clone)
-    } else {
-      setEditing({ ...cfg })
-    }
-  }, [configs, persist])
+  const startEdit = useCallback(
+    (cfg: LaunchConfig) => {
+      if (cfg.id.startsWith('builtin-')) {
+        const clone: LaunchConfig = {
+          ...cfg,
+          id: `custom-${Date.now()}`,
+          name: `${cfg.name} (copy)`
+        }
+        const updated = [...configs, clone]
+        persist(updated)
+        setSelectedId(clone.id)
+        setEditing(clone)
+      } else {
+        setEditing({ ...cfg })
+      }
+    },
+    [configs, persist]
+  )
 
   const saveEdit = useCallback(() => {
     if (!editing) return
@@ -62,7 +105,12 @@ export function useLaunchConfigState(
 
   const createNew = useCallback(() => {
     if (!newName.trim()) return
-    const cfg: LaunchConfig = { id: `custom-${Date.now()}`, name: newName.trim(), description: '', ...UE_DEFAULTS }
+    const cfg: LaunchConfig = {
+      id: `custom-${Date.now()}`,
+      name: newName.trim(),
+      description: '',
+      ...UE_DEFAULTS
+    }
     const updated = [...configs, cfg]
     persist(updated)
     setSelectedId(cfg.id)
@@ -71,15 +119,21 @@ export function useLaunchConfigState(
     setShowNewForm(false)
   }, [newName, configs, persist])
 
-  const deleteConfig = useCallback((id: string) => {
-    const updated = configs.filter((c) => c.id !== id)
-    persist(updated)
-    if (selectedId === id) setSelectedId(updated[0]?.id ?? '')
-    if (editing?.id === id) setEditing(null)
-  }, [configs, selectedId, editing, persist])
+  const deleteConfig = useCallback(
+    (id: string) => {
+      const updated = configs.filter((c) => c.id !== id)
+      persist(updated)
+      if (selectedId === id) setSelectedId(updated[0]?.id ?? '')
+      if (editing?.id === id) setEditing(null)
+    },
+    [configs, selectedId, editing, persist]
+  )
 
   const commitRename = useCallback(() => {
-    if (!renamingId || !renameValue.trim()) { setRenamingId(null); return }
+    if (!renamingId || !renameValue.trim()) {
+      setRenamingId(null)
+      return
+    }
     persist(configs.map((c) => (c.id === renamingId ? { ...c, name: renameValue.trim() } : c)))
     if (editing?.id === renamingId) setEditing((e) => (e ? { ...e, name: renameValue.trim() } : e))
     setRenamingId(null)
@@ -92,6 +146,18 @@ export function useLaunchConfigState(
   const handleLaunch = useCallback(async () => {
     const selected = configs.find((c) => c.id === selectedId) ?? null
     if (!selected || launching) return
+
+    if (projectPath) {
+      const cooldown = checkLaunchCooldown()
+      if (!cooldown.allowed) {
+        addToast(
+          `Launch prevented: Please wait ${cooldown.remaining}s before launching another project.`,
+          'warning'
+        )
+        return
+      }
+    }
+
     setLaunching(true)
     try {
       const result = projectPath
@@ -99,9 +165,24 @@ export function useLaunchConfigState(
         : exePath
           ? await window.electronAPI.launchEngineWithConfig(exePath, selected)
           : { success: false, error: 'No target' }
-      if (result.success) { addToast(`Launching with "${selected.name}"…`, 'success'); onClose() }
-      else addToast(result.error ?? 'Launch failed', 'error')
-    } finally { setLaunching(false) }
+      if (result.success) {
+        addToast(`Launching with "${selected.name}"…`, 'success')
+        onClose()
+        if (projectPath) {
+          recordProjectLaunch()
+        }
+        if (getSetting('autoCloseOnLaunch')) {
+          setTimeout(() => window.electronAPI?.windowClose(), 1000)
+        }
+      } else {
+        addToast(result.error ?? 'Launch failed', 'error')
+        if (projectPath) {
+          clearLaunchCooldown()
+        }
+      }
+    } finally {
+      setLaunching(false)
+    }
   }, [configs, selectedId, launching, projectPath, exePath, addToast, onClose])
 
   const startRename = useCallback((id: string, name: string) => {
@@ -111,16 +192,29 @@ export function useLaunchConfigState(
   }, [])
 
   return {
-    configs, selectedId, setSelectedId,
-    editing, setEditing,
+    configs,
+    selectedId,
+    setSelectedId,
+    editing,
+    setEditing,
     launching,
-    newName, setNewName,
-    showNewForm, setShowNewForm,
-    renamingId, setRenamingId,
-    renameValue, setRenameValue,
+    newName,
+    setNewName,
+    showNewForm,
+    setShowNewForm,
+    renamingId,
+    setRenamingId,
+    renameValue,
+    setRenameValue,
     renameRef,
-    persist, startEdit, saveEdit,
-    createNew, deleteConfig,
-    commitRename, patch, handleLaunch, startRename
+    persist,
+    startEdit,
+    saveEdit,
+    createNew,
+    deleteConfig,
+    commitRename,
+    patch,
+    handleLaunch,
+    startRename
   }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { Layers, ChevronRight } from 'lucide-react'
 import { SectionHeader } from '../settings/SectionHelpers'
 import { ARCHITECTURE_LAYERS } from './aboutConstants'

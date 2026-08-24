@@ -1,11 +1,11 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { motion } from 'framer-motion'
 import type { FC, ReactElement, KeyboardEvent } from 'react'
-import { useState, useRef, memo, useCallback } from 'react'
+import { useState, useRef, memo, useCallback, useEffect, lazy, Suspense } from 'react'
 import { Play, FolderOpen, XCircle, Pencil, Settings2 } from 'lucide-react'
 import type { EngineCardProps } from '../../types'
 import { generateGradient } from '@renderer/utils/generateGradient'
-import LaunchConfigDialog from './LaunchConfigDialog'
+
+const LaunchConfigDialog = lazy(() => import('./LaunchConfigDialog'))
 
 const MAX_ALIAS = 32
 
@@ -20,12 +20,12 @@ interface EngineCardComponentProps extends EngineCardProps {
 const EngineCard: FC<EngineCardComponentProps> = memo(
   ({
     version,
+    fullVersion,
     exePath,
     directoryPath,
     folderSize,
     gradient,
     alias,
-    index,
     onLaunch,
     onOpenDir,
     onDelete,
@@ -46,11 +46,25 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
     const [savingAlias, setSavingAlias] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
 
-    const handleLaunch = async (): Promise<void> => {
+    const launchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    const handleLaunch = (): void => {
       setLaunching(true)
       onLaunch(exePath)
-      setTimeout(() => setLaunching(false), 3000)
+      if (launchTimeoutRef.current) clearTimeout(launchTimeoutRef.current)
+      launchTimeoutRef.current = setTimeout(() => {
+        launchTimeoutRef.current = null
+        setLaunching(false)
+      }, 3000)
     }
+
+    // Clear launch timeout if the card unmounts before it fires
+    useEffect(
+      () => () => {
+        if (launchTimeoutRef.current) clearTimeout(launchTimeoutRef.current)
+      },
+      []
+    )
 
     const handleCalculateSize = async (): Promise<void> => {
       if (calculating) return
@@ -90,17 +104,14 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
 
     return (
       <>
-        <motion.div
-          className="w-full h-36 overflow-hidden flex select-text"
-          initial={index !== undefined && index < 8 ? { opacity: 0, y: 12 } : false}
+        <div
+          className="w-full h-36 overflow-hidden flex select-text transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
           style={{
             backgroundColor: 'var(--color-surface-card)',
             border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)'
+            borderRadius: 'var(--radius)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)'
           }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -1 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
         >
           {/* ── Gradient panel ─────────────────────────────────────────── */}
           <div
@@ -112,7 +123,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
               Version
             </p>
             <h1 className="relative z-10 text-4xl font-black tracking-tight text-white">
-              {version}
+              {fullVersion || version}
             </h1>
           </div>
 
@@ -202,7 +213,8 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                         className="text-[8px] px-1 py-0.5 rounded cursor-pointer transition-colors"
                         style={{
                           color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
-                          backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
+                          backgroundColor:
+                            'color-mix(in srgb, var(--color-accent) 10%, transparent)'
                         }}
                         title="Calculate exact size"
                       >
@@ -242,7 +254,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
               <div className="flex gap-2">
                 <button
                   onClick={() => onOpenDir(directoryPath)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer hover:bg-white/[0.015] hover:text-[var(--color-text-primary)]"
                   style={{
                     backgroundColor: 'var(--color-surface-elevated)',
                     border: '1px solid var(--color-border)',
@@ -273,7 +285,7 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
                 </button>
                 <button
                   onClick={() => setShowConfigDialog(true)}
-                  className="flex items-center justify-center p-1.5 transition-all cursor-pointer hover:scale-105 ease-in-out duration-100"
+                  className="flex items-center justify-center p-1.5 transition-all cursor-pointer hover:scale-105 hover:bg-white/[0.015] hover:text-[var(--color-text-primary)] ease-in-out duration-100"
                   style={{
                     borderRadius: 'var(--radius)',
                     backgroundColor: 'var(--color-surface-elevated)',
@@ -287,14 +299,16 @@ const EngineCard: FC<EngineCardComponentProps> = memo(
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {showConfigDialog && (
-          <LaunchConfigDialog
-            exePath={exePath}
-            displayName={alias || `Unreal Engine ${version}`}
-            onClose={() => setShowConfigDialog(false)}
-          />
+          <Suspense fallback={null}>
+            <LaunchConfigDialog
+              exePath={exePath}
+              displayName={alias || `Unreal Engine ${version}`}
+              onClose={() => setShowConfigDialog(false)}
+            />
+          </Suspense>
         )}
       </>
     )

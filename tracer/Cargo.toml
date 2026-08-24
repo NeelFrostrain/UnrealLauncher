@@ -2,6 +2,7 @@
 name = "unreal-launcher-tracer"
 version = "0.1.0"
 edition = "2021"
+license = "GPL-3.0-or-later"
 
 [[bin]]
 name = "unreal_launcher_tracer"
@@ -19,7 +20,10 @@ windows = { version = "0.58", features = [
     "Win32_System_ProcessStatus",
     "Win32_Foundation",
     "Win32_Security",
-] }
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_System_LibraryLoader",
+]}
 
 [build-dependencies]
 [target.'cfg(target_os = "windows")'.build-dependencies]

@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { BookOpen, GitBranch } from 'lucide-react'
 
 export const AboutContributing = (): React.ReactElement => (

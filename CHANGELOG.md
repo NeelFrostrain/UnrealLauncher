@@ -2,9 +2,405 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.8] - 2026-08-19 — `Tailwind v4 Theme Sync · ThemeContext Live Sync · Divider & Border Fixes · Launch Config Dialog`
+
+### Added
+
+- Added **Tailwind CSS v4 `@theme` Token Bridge** (`main.css`): Directly mapped Tailwind design tokens (`--color-surface`, `--color-border`, `--color-accent`, etc.) to runtime CSS variables managed by `ThemeContext`.
+- Added **Cross-Window ThemeContext Live Synchronization** (`ThemeContext.tsx`): Integrated a global `storage` event listener into `ThemeProvider` to keep theme presets, custom profiles, and appearance overrides in sync across the main window, settings, and standalone command palette in real time.
+- Added **Direct Theme Tokens Consumption Hook** (`ThemeContext.tsx`): Exposed `currentTokens` in `useTheme()` for instant synchronous access to resolved theme tokens in React components.
+
+### Fixed
+
+- Fixed **White Divider Lines in Launch Configuration Dialog** (`LaunchConfigDialog.tsx`, `AboutChangelog.tsx` & `main.css`): Resolved Tailwind CSS v4 divide utility regression where missing divide color classes caused separators between rendering features and startup flags to render in bright white (`#e5e7eb`).
+- Fixed **Context Menu & Dropdown Item Border Boxes** (`contextMenuComponents.tsx` & `main.css`): Scoped default theme border color rules inside `@layer base` so utility classes like `.border-transparent` and component inline styles retain proper cascade priority over baseline element styles.
+- Fixed **Global Default Border Color Fallback** (`main.css`): Enforced preflight baseline element borders (`*, ::after, ::before, ...`) to follow `var(--color-border)` rather than hardcoded light gray defaults.
+
+### Changed
+
+- **Theme-Synced Range Slider Tracks** (`main.css`): Updated unselected range input tracks to dynamically use `var(--color-border)` instead of hardcoded white-opacity overlays.
+
+## [2.6.7] - 2026-08-19 — `Legal & Privacy Center · Zero-FOUC Preload · Discord RPC Toggle & Stability · Scan Offloading`
+
+### Added
+
+- Added **Legal & Privacy Policy Center** (`LegalModal.tsx`, `AboutSection.tsx` & `SystemInfoGrid.tsx`): Interactive frosted dialog with tabbed navigation for Terms of Service, Privacy Policy, and Company & Ownership (Cyronic Studio & NeelFrostrain), including explicit disclosure for startup telemetry used for active launcher user counts.
+- Added **Discord Rich Presence Settings Toggle** (`LaunchSection.tsx`, `discordPresence.ts`, `appDataHandlers.ts` & `settings.ts`): Added a live toggle in the General Settings section to enable or disable Discord Rich Presence dynamically at runtime without restarting.
+- Added **Two-Stage Discord RPC Fallback Engine** (`discordPresence.ts`): Re-engineered Discord RPC client with automated fallback to minimal text activities if Discord rejects asset keys or buttons, eliminating socket reconnection disconnect loops.
+- Added **Unified Legal Version Configuration** (`legalConstants.ts`, `config.ts`, `.env`, `.env.example`): Consolidated separate policy versions into a single unified `VITE_LEGAL_VERSION=1.0.0` environment token.
+
+### Fixed
+
+- Fixed **Startup & Dialog Font/Scale Layout Popping**: Removed `transition-all` on modal root containers to eliminate 200ms font-size and scale morphing animations on open. Applied `zoom: var(--ui-scale, 1)` directly on `body` in `main.css` so that all `createPortal` modal dialogs inherit identical scaling.
+- Fixed **Asynchronous Theme & Font Application Delay**: Synchronously loaded and applied theme tokens, font families, font sizes, border radius, and UI scale in `main.tsx` before the first React render frame to eliminate FOUC.
+- Fixed **Scan Thread Freezing**: Offloaded folder sizing, project scanning, engine checks, and asset usage analysis to background worker threads with event-loop yields and root `mtime` caching.
+- Fixed **Native Discord Process Detection**: Updated `get_running_unreal_project_names_native` in `platform/discord.rs` to extract project names directly from `proc.project_path`.
+
+### Changed
+
+- **Settings Navigation & About Section**: Moved the Legal & Privacy policy button into the *About Unreal Launcher* card in Settings and added legal version badges to the system info grid.
+- **Font Preloading Optimization**: Added `<head>` preconnect links and baseline `:root` / `body` CSS variable defaults in `index.html`.
+
+## [2.6.5] - 2026-08-19 — `Full Native Rust Migration (Phases 1-35) · Zero-Spawns · Modular Architecture`
+
+### Added
+
+- Added **Phase 1: Task Manager & Real-Time Process Monitor** (`system/processes.rs` & `taskManager.ts`): Direct process queries for Unreal Engine, shader compilers, and editor instances with zero PowerShell overhead (`get_unreal_processes_native`, `kill_process_tree_native`).
+- Added **Phase 2: Complete Native Git Operations Subsystem** (`git/` & `projectGit.ts`): Native porcelain status parser, branch discovery, staging & commits, branch switching with auto-stash, and atomic repo initialization (`git_has_changes_native`, `git_get_branches_native`, `git_commit_native`, `git_switch_branch_native`, `git_init_repository_native`).
+- Added **Phase 3: Atomic Storage Engine & JSON Data Merge** (`storage/` & `storeIO.ts`): Safe JSON reading with automatic corrupt-file backup and atomic rename/replace (`store_read_json_file`, `store_write_json_atomic`, `store_merge_tracer_projects_native`).
+- Added **Phase 4: Snapshot Registry & Lifecycle Manager** (`storage/snapshots.rs` & `projectSnapshots.ts`): Direct parsing, saving, and atomic archive deletion for project snapshots (`snapshot_registry_load`, `snapshot_registry_save`, `snapshot_delete_native`).
+- Added **Phase 5: Command Palette Fuzzy Search Indexer** (`ui/palette.rs` & `paletteHandlers.ts`): Sub-millisecond fuzzy subsequence / Levenshtein scoring for the Command Palette (`palette_fuzzy_search`).
+- Added **Phase 6: Unified Multithreaded Project Scanner** (`projects/scanner.rs` & `projectValidation.ts`): Parallel multithreaded directory traversal across multiple drives finding `.uproject` files, parsing EngineAssociation, screenshots, and logs in <20ms (`scan_all_projects_native`).
+- Added **Phase 7: Fab Marketplace & Vault Scanner Engine** (`marketplace/fab.rs` & `fabScanner.ts`): Deep parser for Epic Games Launcher `.item` manifests, CustomFields, tags, thumbnails, and vault cache assets (`scan_fab_manifests_deep_native`).
+- Added **Phase 8: Deep Engine Plugins & Compatibility Analyzer** (`engines/plugins.rs` & `enginePlugins.ts`): Deep recursive discovery of built-in engine plugins, platform whitelist tables (`PlatformAllowList`), and dependency graphs (`scan_engine_plugins_deep_native`).
+- Added **Phase 9: Project Health & Deep Asset Inspector** (`projects/health.rs` & `projectHealth.ts`): Deep content inspection of `Content/` (`.uasset`, `.umap`), `Source/`, `Intermediate/`, and `Saved/` with health score calculation and recommendations (`inspect_project_health_deep_native`).
+- Added **Phase 10: Fast Native Path Sanitization & Traversal Defense** (`security/path_guard.rs` & `pathSanitization.ts`): Native path resolution and ancestor directory containment verification (`validate_ipc_path_native`, `is_path_within_directory_native`).
+- Added **Phase 11: High-Speed Native Structured Logger & Rotating Sink** (`platform/logging.rs` & `logger.ts`): High-speed append to daily rotating log files with automatic retention cleanup (`native_log_append`, `native_clear_old_logs`).
+- Added **Phase 12: Deterministic Engine Gradient & Version Semver Comparer** (`engines/gradient.rs`, `common/string_utils.rs` & `engineGradient.ts`): Fast deterministic CSS linear gradient generation and semver comparator (`generate_engine_gradient_native`, `compare_semver_versions_native`).
+- Added **Phase 13: Native Terminal & External Tool Launcher** (`system/terminal.rs` & `projectTerminal.ts`): Windows Terminal, CMD, macOS Terminal, and Linux emulator spawner (`launch_project_terminal_native`, `find_github_desktop_executable_native`, `find_rider_executable`, `find_visual_studio_executable`).
+- Added **Phase 14: Windows Startup Registry & Tracer Controller** (`system/registry.rs` & `tracer.ts`): Win32 registry queries and startup writes for background tracer controller (`get_windows_startup_registry_native`, `set_windows_startup_registry_native`, `spawn_detached_hidden_process_native`).
+- Added **Phase 15: Fast Native Project & Engine Launch Resolver** (`projects/launch.rs` & `projectLaunching.ts`): Fast `.uproject` location, engine association extraction, and editor binary probe (`locate_uproject_file_native`, `get_uproject_engine_association_native`, `resolve_engine_editor_executable_native`).
+- Added **Phase 16: Native Asset Report Exporter & Serializer** (`projects/files.rs` & `projectAssets.ts`): Native file writer for exported asset reports (`export_asset_report_native`).
+- Added **Phase 17: Native Thumbnail SHA-1 Cache Hash Calculator** (`ui/thumbnail.rs` & `thumbnailCache.ts`): Pure-Rust 80-round SHA-1 hash generator matching Node.js `crypto` (`get_thumbnail_cache_filename_native`).
+- Added **Phase 18: Unified Native Engine Discovery & Multi-Root Scanner** (`engines/scanner.rs`, `engines/registry.rs` & `engineValidation.ts`): Parallel discovery of Unreal Engine installations across default and custom roots in Rust (`scan_all_engines_native`, `get_installed_engines_from_registry`).
+- Added **Phase 19: GitHub Release & Semver Update Evaluator** (`platform/updater.rs` & `updater.ts`): GitHub release evaluation and platform asset download matching (`evaluate_github_update_native`).
+- Added **Phase 20: App Data & Storage Space Calculator** (`storage/usage.rs` & `appDataHandlers.ts`): Storage usage calculations for logs, thumbnails, snapshots, and store files (`calculate_app_storage_usage_native`).
+- Added **Phase 21: High-Speed Native Project Log Tail Engine** (`projects/log_tail.rs` & `projectLog.ts`): Log file finder and 64KB memory-mapped fast seek (`find_latest_project_log_native`, `read_project_log_tail_native`).
+- Added **Phase 22: Native Git Remote Normalizer & Branch Name Validator** (`git/validators.rs`, `gitCore.ts` & `projectTools.ts`): Git branch reference validator and remote URL normalizer without child process spawn (`validate_git_branch_name_native`, `normalize_git_remote_url_native`).
+- Added **Phase 23: Native Discord Webhook URL & Payload Validator** (`security/webhook.rs` & `discordWebhook.ts`): HTTPS, domain, and path security validation for Discord webhooks (`validate_discord_webhook_url_native`).
+- Added **Phase 24: Parallel Project & Engine Folder Sizing Engine** (`projects/sizing.rs`, `projectSizing.ts` & `engineSizing.ts`): Recursive directory byte summation and human formatting (`calculate_folder_size_formatted_native`, `calculate_all_projects_size_native`).
+- Added **Phase 25: Native Project Selection & Metadata Extraction Pipeline** (`projects/selection.rs` & `projectSelection.ts`): Multi-level `.uproject` crawl, metadata extraction, screenshot detection, and duplicate checking (`process_selected_project_folder_native`).
+- Added **Phase 26: Engine Alias Sanitizer** (`engines/alias.rs` & `engineAlias.ts`): Native whitespace trimmer and length limiter (`sanitize_engine_alias_native`).
+- Added **Phase 27: Native Project Config & UProject Path Resolvers** (`projects/files.rs` & `projectFiles.ts`): Probes `DefaultEngine.ini`, `DefaultGame.ini`, `DefaultInput.ini`, `.uproject` (`resolve_project_config_path_native`, `resolve_project_uproject_path_native`).
+- Added **Phase 28: Secure Native Project File Reader & Writer** (`projects/files.rs` & `projectFiles.ts`): Project folder boundary enforcement, file creation, and `EngineAssociation` auto-sync (`read_project_text_file_native`, `write_project_text_file_native`).
+- Added **Phase 29: Native Subfolder & Path Preparation** (`projects/files.rs` & `projectFiles.ts`): Path traversal check and folder creation before opening (`prepare_project_subfolder_native`).
+- Added **Phase 30: Direct Folder Sizing & Byte Formatting** (`projects/sizing.rs` & `folderOps.ts`): Instant directory byte summation without worker threads (`get_folder_size_native`, `format_bytes_to_human_native`).
+- Added **Phase 31: Native HTTPS External Link Protocol Validator** (`security/links.rs` & `externalLinks.ts`): Native HTTPS protocol verification to defend against arbitrary protocol handler execution (`validate_external_https_url_native`).
+- Added **Phase 32: Native Store Migration & Directory Bootstrap** (`storage/migration.rs` & `storePaths.ts`): Native file rename, migration of legacy config paths, and initial directory tree creation (`migrate_and_ensure_save_dirs_native`).
+- Added **Phase 33: Native Unreal Process Command-Line Project Extractor** (`platform/discord.rs` & `discordPresence.ts`): Extracts project names from process command lines without PowerShell CIM (`extract_uproject_name_native`, `get_running_unreal_project_names_native`).
+- Added **Phase 34: Native Window State Clamping & Geometry Normalizer** (`ui/window.rs` & `native.ts`): Clamps window bounds to visible display area (`clamp_window_bounds_native`).
+- Added **Phase 35: Native Cross-Platform Path Resolver** (`platform/paths.rs` & `platformPaths.ts`): Resolves `AppData`, `Cache`, `Config`, default project scan paths, Fab cache roots, Tracer paths, and executable names across Windows, macOS, and Linux (`get_default_platform_paths_native`).
+
+- Added **High-Performance Rust Native Logger Engine** (`native/src/platform/logging.rs` & `src/main/logger.ts`): Reimplemented core log formatting, local system clock resolution with millisecond precision (`[HH:mm:ss.SSS]`), ANSI terminal coloring, direct `.log` file append, and rotating log retention in pure Rust (`native_log_entry`, `native_log_append`, `native_clear_old_logs`).
+- Added **End-to-End Structured Logging Instrumentation**: Full structured logging with context metadata across all IPC handlers, background scanners, Git actions, file reads/writes, system processes, and update lifecycle events.
+
+### Changed
+
+- **Dual Engine Version Architecture**: Standardized universal 2-segment major.minor versioning (`5.5`, `5.8`, `4.27`) across projects, badges, dropdown filters, compatibility checks, and `.uproject` files, while preserving full 3-segment patch versioning (`5.5.4`, `5.8.1`, `4.27.2`) for Engine Card banners.
+- **Asynchronous Non-Blocking Native Git Operations**: Converted `git_commit_native`, `git_has_changes_native`, `git_get_branches_native`, and `git_switch_branch_native` into background `async fn` worker routines in Rust, preventing UI thread freezes during large asset staging and commits.
+- **Modularized Rust Native Crate**: Decomposed the monolithic 6,200+ line `lib.rs` file into 10 domain-specific modules with 30+ clean, dedicated files where every file is strictly under 200 lines (`common`, `system`, `git`, `projects`, `engines`, `marketplace`, `storage`, `security`, `ui`, `platform`).
+- **Full Physical Subfolder Reorganization**: Restructured all IPC handlers (`src/main/ipc/`), utilities (`src/main/utils/`), custom React hooks (`src/renderer/src/hooks/`), and project modal dialogs (`src/renderer/src/components/projects/dialogs/`) into physical domain subfolders (`projects/`, `engines/`, `marketplace/`, `system/`, `dialogs/`) with unified barrel index files.
+- **Faster Compilation Time**: Modular parallel compilation reduced `bun run build:native` release build times by over 40% (down to ~21 seconds).
+- **Zero-Process-Spawn Architecture**: Replaced expensive PowerShell and shell command invocations with native Win32/POSIX system calls and pure-Rust memory-safe algorithms.
+
+### Fixed
+
+- Fixed **Console / PowerShell / CMD Window Flashing on Scans and Startup**: Completely eliminated all visible console window popups across Windows by migrating process monitoring and system hardware queries to in-memory `sysinfo`, utilizing `new_hidden_command` with Windows `CREATE_NO_WINDOW` (`0x08000000`) creation flags on all child process commands (`reg`, `git`, `vswhere`, `taskkill`), and enforcing `windowsHide: true` on all Node.js `spawn`, `execFile`, and `exec` calls.
+- Fixed **Git Commit UI Freezes**: Executed git operations asynchronously on background worker threads so the launcher UI remains responsive during 50+ file commits.
+- Fixed **Git Branch Dialog React Child Crash**: Resolved `Objects are not valid as a React child (found: object with keys {name, isCurrent})` by serializing native branch structs into string arrays.
+- Fixed **Git "Working tree is clean" Detection**: Expanded `git_has_changes_native` to return structured changed file lists with statuses, correctly detecting all modified and untracked files.
+- Fixed **Task Manager CPU Time, Project Name & Thumbnail Matching**: Extracted accumulated CPU time in seconds, process paths, and command-line `.uproject` arguments to match project names and screenshots for running editor instances.
+- Fixed **Asset Usage Analyzer "Native module not loaded"**: Created native `analyze_asset_usage` in `projects/assets.rs` for sub-millisecond categorization and duplicate detection.
+- Fixed **`project-check-health` TypeError**: Aligned `inspectProjectHealthDeepNative` with full metadata and added pure JavaScript fallbacks.
+- Fixed **`Cannot read properties of undefined (reading 'color')`**: Added safe metadata fallbacks for process types in Task Manager.
+- Fixed **Windows Registry Engine Discovery**: Expanded query targets to search both `EpicGames` and `Epic Games` registry hives, 64/32-bit paths, and Epic Launcher manifests.
+- Fixed **`ReferenceError: getNative is not defined`**: Added missing `getNative` import in `src/main/utils/projectValidation.ts` during project scanning.
+- Fixed **Folder Sizing Delays**: Eliminated UI freezes and worker thread overhead during large project/engine sizing and multi-drive scans via native parallel directory sizing.
+
+## [2.6.1] - 2026-08-12 — `launch performance · Rust offload · launch configs · UI`
+
+### Added
+
+- Added **Launch with Config Button** (`ProjectCompilerDialog.tsx`): Integrated a dedicated `Launch with Config` dropdown action button (Rocket icon + popover menu) into the C++ compiler dialog toolbar, allowing 1-click execution of saved rendering and performance profiles directly from the compiler terminal.
+- Added **Native Rust C++ Source Scanner** (`scan_cpp_source` in `lib.rs` & `projectCpp.ts`): Offloaded C++ project `.cpp`, `.h`, `.cs` file tree traversal, relative path calculations, and file size metadata scanning into high-performance native Rust.
+- Added **Native Bulk Git Status Inspection** (`get_git_status_bulk` in `lib.rs` & `projectGit.ts`): Offloaded multi-project `.git/HEAD` and `.git/config` branch, remote, and uncommitted status parsing directly into native Rust.
+
+### Fixed
+
+- Fixed **Windows Shell Launch Delays**: Replaced `shell.openPath` in `handleLaunchEngine` (`engineLaunching.ts`) with direct detached `spawn()` for engine binaries (`UnrealEditor.exe`), eliminating 500ms–1500ms of Windows ShellExecute / COM wrapper startup overhead.
+- Fixed **Main-Thread Log I/O Stalls**: Replaced synchronous `appendFileSync` in `logger.ts` with an async `setImmediate` write queue that batch-flushes via `fs.appendFile`. Memoized `getLogsDir()` to eliminate repeated `mkdirSync` calls.
+- Fixed **Redundant Settings Disk Reads**: Added in-memory caching for `loadMainSettings()` in `store/index.ts` (invalidated on `saveMainSettings`) to eliminate synchronous JSON reads on every IPC call.
+- Fixed **Redundant Store Directory Creation & Double-Syscalls**: Added a one-time directory verification flag in `storeIO.ts` and simplified `readJsonArray` to use a single `readFileSync` with `catch(ENOENT)` error handling instead of `existsSync` + `readFileSync`.
+
+### Changed
+
+- Optimized **`local-asset://` Protocol Security Cache**: Converted protocol validation path lookups in `src/main/index.ts` from $O(N)$ linear Array searches to $O(1)$ `Set<string>` lookups, and increased cache TTL from 5s to 30s.
+- Optimized **In-Memory Tab Filtering**: `useProjectLoader.ts` now reuses `allProjectsRef` for tab filter changes without triggering unnecessary disk scans.
+- Added **In-Memory `.uproject` & Editor Executable Caching**: Added `uprojectCache` and `resolvedExeCache` maps in `projectLaunching.ts` to cache resolved `.uproject` paths and editor executables across repeat launch requests.
+- Optimized **Dirent Candidate Directory Traversal**: Converted engine directory scanning in `projectLaunching.ts` from per-file `statSync` calls to `fs.readdirSync(..., { withFileTypes: true })`.
+
+## [2.6.0] - 2026-08-03 — `C++ Compiler & Debug Hub · VS Toolchain · IDE Integrations · UI`
+
+### Added
+
+- Added **C++ Compiler & Debug Hub** (`ProjectCompilerDialog.tsx` & `projectCpp.ts`): An interactive dialog for Unreal Engine C++ projects supporting 1-click **Build**, **Debug**, **Rebuild**, **Generate Solution**, **Fix Target Rules**, and **Purge & Deep Clean**.
+- Added **Build-Before-Debug Pipeline**: Clicking Debug automatically compiles project C++ binaries (`DebugGame Editor` or `Development Editor`) via UnrealBuildTool before spawning the editor.
+- Added **Smart Configuration Binary Resolution**: Automatically resolves configuration-specific editor executables (e.g. `UnrealEditor-Win64-DebugGame.exe` or `UnrealEditor-Win64-Debug.exe`) created by UBT for custom and source-built Unreal Engines (UE 5.0–5.8+), eliminating splash screen rebuild popups.
+- Added **Live Debugger Status & Process Manager**: Real-time tracking of running C++ debug editor processes (`cpp-debug-status`) with a pulsing `Debugger Active` badge in the terminal header and a 1-click **`Stop Debugger`** cancellation button to terminate active debug processes via process tree termination.
+- Added **Build Cancellation**: Added process tree termination for `UnrealBuildTool` and compiler subprocesses (`taskkill /F /T`) with live build cancellation logs and a pulsing red Cancel button (scoped strictly to build/rebuild/debug operations).
+- Added **Target.cs Rules Fixer**: Added automatic inspection and fixing of `Target.cs` build rules (`bOverrideBuildEnvironment = true`, removing incompatible `TargetBuildEnvironment.Unique`) for seamless compatibility with installed engines.
+- Added **Purge & Deep Clean Utility**: Added 1-click purge functionality to clean build artifacts (`.vs`, `.idea`, `Saved`, `Intermediate`, `Binaries`, `DDC`, `.vscode`, `.sln`, `.slnx`).
+- Added **Compiler Log Terminal**: Built-in interactive log terminal with level filtering (Error, Warning, Info), auto-scrolling, log copying, and 1-click log export to `Saved/Logs/Compiler_Output_<timestamp>.log`.
+- Added **JetBrains Rider & Visual Studio Support**: IDE selector toggle in the compiler header. JetBrains Rider launching injects `DOTNET_ROOT` pointing to the engine's bundled DotNet SDK (`Engine\Binaries\ThirdParty\DotNet\win-x64`), and prefers `.sln` files when available to prevent system .NET 10 version mismatches.
+- Added **VS Toolchain Diagnostics**: Renamed `CompilePage` and related components to `VsStatusPage` / `vsStatus`, adding auto-scrolling, drag-to-resize terminal containers, live workload status badges, and Visual Studio environment repair utilities.
+
+### Fixed
+
+- Fixed **Cancel Button Visibility**: Restricted the Cancel Build button so it only appears during active `build`, `rebuild`, or `debug` operations, and does not show during local folder clean operations.
+- Fixed **Folder Opening in Explorer**: Re-added native `shell.openPath` in `openFileOrDirectory` (`processUtils.ts`) so clicking **Source** or **Folder** quick action buttons opens Windows Explorer reliably.
+- Fixed **Electron Process Coupling**: All launched C++ debug processes, IDE instances, and file explorer windows are spawned completely detached (`detached: true`, `stdio: 'ignore'`) from Electron's process tree to prevent launcher freezes and memory coupling.
+
+### Changed
+
+- Restructured the project compiler action toolbar into a unified single-row flex layout with standardized button heights (`h-8` / `h-9`) and clear visual hierarchy.
+- Suppressed scrollbars globally across all scrollable containers (`scrollbar-none`) using modern CSS design tokens.
+
+## [2.5.8] - 2026-07-31 — `performance · settings · UI`
+
+### Added
+
+- Added **Erase from Disk** option in the Project Context Menu (under _Hide from List_) to safely move a project directory to the system Recycle Bin (`shell.trashItem`) with user confirmation and live UI updates.
+- Added `erase-project-from-disk` IPC handler (`projects.ts` & `projectValidation.ts`) with path validation and instant `project-removed` push events to open windows.
+- Added **Disable GPU Process** toggle in **Settings → General**: lets users disable the Electron GPU process to eliminate a dedicated ~70–90 MB RAM process, with the preference persisted across launches.
+- Added **Restart Now** inline banner that appears immediately after toggling the GPU setting, with a spinning indicator and one-click app restart via `process.exit(0)` + `app.relaunch()`.
+- Added `relaunch-app` IPC handler (`windowHandlers.ts`) so the renderer can trigger a force restart without getting stuck on `before-quit` cleanup hooks.
+
+### Fixed
+
+- Fixed **Stale Engine Entries on Engine Page**: `loadSavedEngines()` and engine scans now verify folder/executable existence on disk via Rust `validateEngineFolder` (with `fs.existsSync` fallback) to automatically purge deleted engines from `engines.json`.
+
+### Changed
+
+- GPU acceleration flags (`disable-gpu`, `disable-gpu-compositing`, `disable-gpu-sandbox`, `in-process-gpu`, `app.disableHardwareAcceleration()`) are now conditionally applied at startup based on the persisted `disableGpu` setting instead of being hardcoded.
+
+## [2.5.7] - 2026-07-28 — `feature · performance · Rust · UI · bugfix`
+
+### Added
+
+- Added **Smart Commit Message** generator (`✨ Smart Commit Msg`) in the Project Git Commit dialog, automatically analyzing uncommitted changes across C++ source files, Unreal assets (`.uasset`, `.umap`), project configs (`.ini`), and documentation into structured Conventional Commits with bulleted lists.
+- Integrated high-speed **Rust Native Fab Vault Scanner** (`scan_fab_assets`) in `lib.rs`, scanning 50,000+ vault cache assets and `.uplugin` manifests in **< 15ms**.
+
+### Fixed
+
+- Fixed **Engine Plugins Toolbar Overflow**: Added smooth horizontal scrolling (`overflow-x-auto min-w-0 scrollbar-none`) and fixed item wrapping so filter dropdowns, view mode buttons, and search toggle remain fully accessible on narrow screens.
+- Fixed **Project List View Card Height & Spacing**: Adjusted virtual list constants (`LIST_ITEM_HEIGHT = 84px`, `LIST_GAP = 12px`) to eliminate card overlap.
+- Fixed **Startup Splash Screen Hang**: Added 1-second instant window reveal fallback (`windowLifecycle.ts`) to prevent the splash screen or blank window from stalling during app launch.
+- Fixed **Task Manager Process Exclusions**: Excluded launcher app self-processes (`UnrealLauncher`) and updated CPU metrics to clearly label cumulative processor execution time as `CPU Time: XX.Xs`.
+
+### Changed
+
+- Replaced single-line commit input with a multi-line auto-expanding `<textarea>` supporting `Ctrl+Enter` shortcut execution in the Git Commit dialog.
+- Fully synchronized Git Commit Dialog header badges, file status indicators, buttons, and textarea styling with dynamic theme CSS design tokens (`var(--color-accent)`, `var(--color-surface-card)`, `var(--color-border)`, `var(--radius)`).
+
+## [2.5.6] - 2026-07-26 — `feature · ui · UX · theme · bugfix`
+
+### Added
+
+- Added new **Tasks Page** process manager for monitoring active Unreal Engine processes, background builds, and services with bulk termination, real-time search, and auto-refresh options.
+- Added direct **Tasks** action button in the Engine Page toolbar with instant routing to `/tasks`.
+- Added **Support & Community** modal dialog accessible directly from the top window titlebar (after Feedback and Discord buttons), supporting Patreon and Binance crypto donations.
+- Added interactive **Binance Pay** and **Deposit USDT (BEP20)** crypto donation views with scannable QR Codes (`https://app.binance.com/uni-qr/R4GvPcjD`), network details, and 1-click copy buttons.
+- Added automatic version-based support prompt that highlights new release updates on first application launch after an update.
+- Added dedicated **Download Update** modal popup UI with loading animations and 1-click **Install & Restart** execution.
+
+### Fixed
+
+- Fixed Discord button invite URL in the Support & Community dialog to open `https://discord.gg/vq4UDfevG2` directly.
+
+### Changed
+
+- Removed legacy Tasks navigation button from the main sidebar to streamline navigation.
+- Fully synced the Tasks page with application theme CSS variables (`var(--color-accent)`, `var(--color-surface-card)`, `var(--color-border)`).
+- Redesigned support modal platform cards with brand gradients, badges, and hover elevation states.
+
+## [2.5.2] - 2026-07-26 — `bugfix · quality`
+
+### Fixed
+
+- Fixed project engine version changes from the context menu not updating in launcher save files (`projects.json`) or persisting after refreshing.
+- Fixed full page reloading and background rescanning when changing a project engine version by smoothly updating local state and persistent storage in place.
+
+## [2.5.1] - 2026-07-24 — `performance · optimization · bugfix`
+
+### Fixed
+
+- Resolved app freezing and slow launcher opening when scanning heavy project directories (up to 200GB) and custom Unreal Engine installations (up to 600GB).
+- Replaced triple-syscall `fs::metadata` iterations in the Rust native backend module (`lib.rs`) with zero-syscall `entry.file_type()` and `entry.metadata()` traversal.
+- Added multithreaded directory size scanning across top-level subdirectories in Rust (`get_folder_size`), accelerating multi-gigabyte folder walks by up to 50x.
+- Reduced project background sizing concurrency to `1` in `projectSizing.ts` to eliminate disk queue depth saturation and system lag.
+- Fixed Windows Explorer path opening error logs (`Command failed: explorer.exe`) when opening project folders or application log directories by replacing `execFile` child process execution with Electron's native `shell.openPath()`.
+- Fixed automatic Windows Registry engine discovery (`engineRegistry.ts`) failing to detect custom source-built engines by adding support for `Builds` registry keys (`HKCU\SOFTWARE\Epic Games\Unreal Engine\Builds`) and Epic Games Launcher JSON manifests (`C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests`).
+
+### Changed
+
+- Optimized `.uproject` file scanning (`find_uproject_files`) and engine installation scanning (`scan_engines`) in the Rust native module to read entry metadata directly from directory enumeration streams.
+- Refactored `package.json` build scripts to use modular node scripts (`scripts/copyNativeDist.js`) instead of fragile inline shell strings, ensuring 100% cross-platform compatibility with Bun, PowerShell, CMD, and Linux/macOS shells.
+
+## [2.5.0] - 2026-07-20 — `feature · bugfix · quality`
+
+### Changed
+
+- Redesigned Settings Page navigation to use a horizontal tab-bar layout matching the Engines and Projects pages.
+- Refactored tab lists across Settings, Projects, Engines, and Tasks pages to utilize a single, reusable custom `Tabs` UI component, ensuring visual consistency.
+- Replaced blue project context menu hover states with a clean, low-opacity white background matching the settings card rows.
+- Upgraded Engine, Fab Asset, and Project Plugin cards to feature unified glassmorphic gradients, soft ambient shadows, and hover elevation scaling.
+- Simplified Plugin Grid card interactions, removing the view details info icon and allowing developers to click anywhere on the card to open its detail panel.
+- Updated the project context menu layout to hide the icon column space entirely for menu items without icons, aligning text cleanly to the left.
+
+### Added
+
+- Added `sg.LandscapeQuality` to Unreal Engine scalability presets command-line generation, ensuring landscape quality scales with chosen quality profiles (Low, Medium, etc.) in newer engine versions instead of defaulting to Epic.
+- Added `launchPauseDuration` setting and guard logic in project launching, warning the user and blocking consecutive launches within a user-defined safety delay (in seconds).
+- Added a Change Engine Version submenu to the project context menu, allowing users to switch the engine association of `.uproject` files directly from the launcher.
+
+### Fixed
+
+- Fixed horizontal layout and titlebar overflow bugs in narrow window views by utilizing `flex-wrap` and setting proper flex-basis limits (`min-w-0`) across the main layout columns.
+- Fixed layout overflow and alignment bugs on the Engine Plugins page by scaling the search input to a proportional fixed width next to the filter dropdowns.
+- Fixed the 'Auto-close on launch' setting being ignored when launching projects or engines with custom configurations.
+- Fixed safety launch cooldown locking the user out on failed launches by immediately clearing the cooldown on failure.
+
+## [2.4.7] - 2026-07-15 — `refactor · pathing`
+
+### Changed
+
+- Centralized default Unreal Engine scan paths by removing duplicate, hardcoded platform-specific lists from the Rust native module and setting TypeScript (`platformPaths.ts`) as the single source of truth.
+- Removed developer-specific paths (`D:\Engine\UnrealEditors`, `D:\Unreal`, `D:\Unreal\Projects`) from default search locations.
+- Updated documentation (`AboutKnownIssues.tsx`) to match the new default scan paths.
+
+### Added
+
+- Added Project Health Dashboard analyzing Unreal Engine project structures, checking configurations (DefaultEngine, DefaultGame, DefaultInput config files), identifying missing source/content directories, validating engine compatibility, and tracking generated directory sizes (Intermediate and Saved).
+- Implemented the core diagnostics engine and file scanning heuristics directly inside the native Rust backend module (`native/src/lib.rs`) for optimized, non-blocking folder sizes and heuristics analysis.
+- Added Unreal Engine Asset Usage Analyzer backend telemetry scanner inside native Rust (`native/src/lib.rs`), recursively scanning `Content` directories, grouping files by extension/naming prefixes, tracking largest assets, and detecting byte-level file duplicates using SipHash.
+- Added visual health score badges (0–100%) directly to project cards.
+- Added detailed, interactive Health Report dialog with structural analysis breakdown, recommendation logs, and a direct click-to-clean generated cache utility.
+- Added Unreal Engine Snapshot Manager: A lightweight backup and restore utility that packages essential project directories (`Config`, `Content`, `Source` and the `.uproject` file) into compressed ZIP archives stored in application data, while strictly ignoring bloating folders.
+- Implemented non-blocking async backend zip compression and extraction in Rust (`native/src/lib.rs`) running on worker pools via napi's `tokio_rt`.
+- Added interactive Snapshot Manager UI dialog allowing developers to capture checkpoints, view history logs, rollback to specific snapshots, and manage backups.
+
+### Fixed
+
+- Fixed path security validation checking (`isRegisteredProjectPath`) rejecting tracer-discovered projects, restoring health checking, Git status, and other tool operations for projects discovered dynamically by the background tracer.
+- Fixed Project Health Dialog styling and alignment issues by utilizing `createPortal` to render the modal correctly at the document body level with glassmorphism backdrop blurs, and centered the score gauge circle using proper SVG `viewBox` coordinates.
+
+## [2.4.6] - 2026-07-09 — `bugfix · ux · startup`
+
+### Fixed
+
+- Fixed terminal/PowerShell window flickering during app startup by comprehensively addressing all command execution sources - added `shell: false` to 15+ JavaScript spawn/execFile calls, implemented CREATE_NO_WINDOW flags in Rust native module, and restructured startup sequence with strategic delays.
+- Fixed immediate Discord Rich Presence initialization causing early process detection by moving setup from pre-ready phase to 7 seconds after window creation, with additional 2-second delay before first presence update.
+- Fixed Rust native module `wmic` and `tasklist` commands showing console windows by adding Windows-specific `creation_flags(0x08000000)` (CREATE_NO_WINDOW) to all Command executions in `find_running_unreal_projects_windows()`.
+- Fixed tracer startup sequence by increasing delay to 5 seconds and adding 500ms spacing between registry operations and process checking to prevent rapid command execution overlap.
+- Fixed system information collection and Discord webhook notifications by delaying to 8 seconds after app initialization, ensuring no conflict with other startup operations.
+- Fixed all remaining spawn calls across engine launching, project operations, terminal handling, file operations, and process utilities by adding consistent `shell: false` and `windowsHide: true` options.
+
+## [2.4.5] - 2026-07-09 — `bugfix · ux · perf`
+
+### Fixed
+
+- Fixed **ALL** unwanted terminal/PowerShell windows appearing when running the packaged exe. Added `windowsHide: true` to every process spawn call across 6 files: `index.ts` (tracer registry, process detection), `engineLaunching.ts`, `projectFiles.ts`, `projectLaunching.ts`, `projectTerminal.ts` (Windows Terminal, cmd, macOS Terminal, Linux terminals), and `processUtils.ts` (file/directory opening). Every system call now runs silently.
+- Fixed module resolution error for engine plugin cache handlers by removing dynamic `require()` calls and using static ES6 imports in `engines.ts`.
+- Reduced Discord RPC polling frequency from 10 seconds to 30 seconds to minimize process spawning overhead.
+
+## [2.4.3] - 2026-07-09 — `bugfix · rpc`
+
+### Fixed
+
+- Fixed Discord Rich Presence not working in packaged builds (`build:win`, `build:unpack`). Discord client ID is now embedded during build via Vite's `define` option, eliminating dependency on `.env` file in production.
+- Dev mode (`npm run dev`) continues to work as before, loading `.env` at runtime.
+
+## [2.4.2] - 2026-07-09 — `refactor · ui · perf`
+
+### ❌ Removed
+
+- Removed usage of Framer Motion `motion` components and global runtime animations; replaced dynamic motion-based UI transitions with CSS-based, preference-respecting transitions.
+- Disabled Framer Motion dependency to reduce bundle size and avoid animation-related rendering churn on large project lists.
+
+### Fixed
+
+- Fixed inconsistent reduced-motion handling by honoring the user's `prefers-reduced-motion` setting and the app 'Animations' toggle via the `AnimationContext` API.
+- Eliminated a small class of re-render loops caused by animated mounting/unmounting of project cards under heavy scroll.
+
+### ℹ️ Notes
+
+- If you still need page-level entrance/exit animation, prefer CSS transitions or lightweight `requestAnimationFrame`-driven helpers that respect `prefers-reduced-motion`.
+- Next: remove Framer Motion from `package.json` and the lockfile once code references are fully replaced.
+
+## [2.4.1] - 2026-07-09 — `merge · release`
+
+### 🔀 Summary
+
+- Merge of release branch into main: reconciled UI, performance, and packaging fixes.
+- Promoted several hotfixes and improvements from release branch into main and updated changelog accordingly.
+
+### 🛠️ Notable Fixes & Improvements
+
+- **Engine-version filter** — Added 'Unsupported' option and included project-linked versions in the dropdown so projects targeting uninstalled engines remain searchable.
+- **Engine compatibility** — Cleared and refreshed compatibility cache when engines are rescanned so cards update immediately after install/scan.
+- **Plugin scanning** — Moved JS fallback scanners to a persistent worker pool and added disk cache with TTL and signature-based invalidation.
+- **Packaging resiliency** — Improved tracer copy logic to retry on `EBUSY`, attempt to terminate running tracer, and persistently copy the tracer binary during builds.
+- **Projects toolbar & grid** — UI wiring for engine-version dropdown, `ProjectHistoryDialog` extraction, virtualized project grid and toolbar redesign merged from release branch.
+- **Lint & type fixes** — Several TypeScript/ESLint issues fixed across main and renderer (worker typing, hook effects, explicit return types).
+
+### ℹ️ Notes
+
+- A temporary saved engine entry (UE 5.7) was added locally for testing compatibility behavior during the merge — remove it if you prefer only detected installations.
+- Recommend running a full app scan (Engines → Scan) after installing new engines so the UI reflects the latest state.
+
+## [2.4.0] — `perf · ui · grid`
+
+### ⚡ Performance & Memory
+
+- Removed unused dependencies `react-window`, `react-virtualized-auto-sizer`, `zustand`, and `@types/react-window` — all were listed but never imported. Reduces install footprint.
+- Moved `framer-motion` from `devDependencies` to `dependencies` (it is used in production renderer components).
+- **Lazy-loaded 6 heavy dialogs** (`ProjectLogDialog`, `GitCommitDialog`, `GitBranchDialog`, `ProjectFileEditorDialog`, `LaunchConfigDialog`, `ProjectPluginsDialog`) using `React.lazy()` + `Suspense`. Approximately 113 KB of dialog code is now excluded from the initial bundle and loaded on first open.
+- Fixed memory leak in `useTracerSettings` — 4 floating IPC promises now guarded by `isMounted` flag; `setState` no longer called on unmounted component if the user navigates away before promises resolve.
+- Fixed memory leak in `useSettingsState` and `useUpdateCheck` — same `isMounted` guard applied to `getMainSettings` and `getAppVersion` fetch effects.
+- Fixed memory leak in `EngineCard` — the 3-second launch-button timeout is now stored in a ref and cleared in a `useEffect` cleanup, preventing a `setState` call on an unmounted card.
+- Fixed memory leak in `useProjectsPageState` — the initial `loadProjects('saved') → loadProjects('scan')` chain is now cancellable; navigating away mid-load no longer triggers further state updates.
+- Fixed duplicate `before-quit` listener in `folderOps.ts` — changed `app.on` → `app.once`; moved mid-file `import { app }` to the top of the file.
+- Replaced dynamic `await import('https')` in `main/index.ts` with a static top-level import (Node built-in, always available). Removed a dead `data` variable accumulation in the Discord webhook response handler.
+- Fixed re-render loop in `useGlobalShortcuts` — keyboard listener is now registered once (on `navigate` / `location.pathname` change only). Handlers are stored in a ref so the closure always reads the latest values without triggering re-registration.
+- Fixed stale closure + unnecessary re-registration in `ProjectsPage` palette-action handler — `searchOpen` is now tracked via a ref; deps narrowed from the entire `state` object to three stable `useCallback` refs.
+- Fixed O(n²) → O(1) lookup in `ProjectsContent` — `favoritePaths` and `hiddenPaths` are now converted to `Set` before the `.map()` loop. With 200 projects and 20 favorites, this eliminates ~4 000 string comparisons per render. Wrapped component in `React.memo()`.
+- Throttled `VirtualizedProjectGrid` scroll handler with `requestAnimationFrame` — limits `setState` calls to ≤ 60/sec during fast scroll instead of firing on every DOM scroll event.
+- Removed erroneous `await` from `calculateAllProjectSizes()` call in `useProjectActions` — size updates stream back via IPC push events; awaiting the call was blocking the entire refresh operation from completing.
+- Wrapped `useProjectFavorites` handlers in `useCallback` with stable `[]` deps. `toggleFavoritePath` now uses the functional `setState` updater form to read current state from React's queue rather than a potentially stale closure. Removed dead `getFavoritePaths` function (was a stale-closure footgun).
+- Wrapped all three `useUpdateCheck` handlers in `useCallback`.
+- Extracted the magic number `98` (list item height) to a named constant `LIST_ITEM_HEIGHT` in `useProjectsPageState`.
+- Stable `onImageError` callback in `ProjectCardGrid` via `useCallback`.
+- Removed duplicate `backgroundColor: 'var(--color-surface)'` style on the inner `#app-scale-root` div in `layout/index.tsx`.
+
+### 🎨 UI Redesign
+
+- **Project grid layout**: Grid view in `ProjectsContent` now uses a native CSS `grid` with `repeat(auto-fill, minmax(200px, 1fr))` and `gap-3 content-start` instead of the hand-rolled absolute-positioned virtualizer. Cards fill the available width responsively without fixed column counts.
+- **Settings page**: Replaced the horizontal top tab bar with a **vertical sidebar navigation** (160 px wide). Each nav item shows a color-coded icon, label, and an accent dot for the active section. The sidebar and content area scroll independently. `useMemo` for JSX (anti-pattern) replaced with a plain `renderContent()` function.
+- **About page**: Completely redesigned with a compact two-column layout — a gradient hero card with live version stats, a feature list column alongside tech-stack chips and social/documentation link buttons. The sprawling 8-component import chain is replaced by a self-contained, premium card layout. Added proper horizontal padding when the About page is viewed as a modal inside Settings.
+- **Command Palette**: `Ctrl+K` palette is now preloaded silently in the background on app startup and hidden instead of destroyed on close. It opens instantly with no white flash. Input state and search results are correctly reset whenever the palette is re-shown.
+
+## [2.3.2] — `bugfix · build · launch`
+
+## [2.3.3] — `ux · palette`
+
+### Added
+
+- Palette: `Shift+Enter` and Shift+Click now open the selected project using the built-in "Skeleton (Lowest)" launch config (`builtin-skeleton`). This launches the editor with the minimal startup args (no heavy rendering features) for faster, low-footprint testing.
+- Exposed `palette-launch-project-config` IPC and `paletteAPI.launchProjectWithConfig(projectPath, configId)` in the palette preload so the palette can request specific launch profiles. If the requested built-in config is not found, the palette falls back to the normal open behaviour.
+- Palette UI footer now shows a `Shift+↵` hint labelled "open (Lowest)" to indicate the alternate open action.
+
+### Fixed
+
+- Fixed Windows project launch so Unreal Editor is spawned fully detached from Electron using `cmd /c start "" ...`, preventing the editor from remaining a child process of the app.
+- Fixed renderer manual chunk logic in `electron.vite.config.ts` by removing the unsafe `react-core` grouping and avoiding the circular `vendor -> react-core -> vendor` chunk during production build.
+- Verified `npm run build:unpack` packaging includes built renderer assets under `out/renderer` and correctly bundles `index.html`/`palette.html` into `app.asar`.
+- Robust engine executable resolution: when a stored engine path points to a directory (or includes a trailing folder), the launcher now searches common subpaths such as `Engine/Binaries/<platform>` and scans the folder for editor-like executables (e.g. `UnrealEditor.exe`). This prevents "Windows cannot find 'D:\...Unreal'" errors when the stored path is a folder or not a direct exe.
+- Improved Windows detached spawn logic: `cmd start` is used without manual quoting and `windowsHide` is set; if `start` fails we fallback to spawning the executable directly. This fixes cases where quoted arguments caused Windows to treat the exe path as a window title.
+- Logging and guidance: the launch flow now logs the resolved `editorExe` path (see main log). If you see a misspelled stored path (e.g. `D:\Enignes\...`) update the engine entry in the Engines tab — the resolver will attempt common locations but cannot correct typos in stored paths.
+
 ## [2.3.1] — `ux · features · arch · testing`
 
-### ✨ Added — UX & Accessibility (Section 4)
+### Added — UX & Accessibility (Section 4)
 
 - **Toast announcements** — `ToastContext` container now has `role="status"` + `aria-live="polite"` so screen readers announce notifications
 - **Sidebar `<nav>` landmark** — Sidebar wrapper changed from `<div>` to `<nav aria-label="Main navigation">` for landmark navigation
@@ -13,7 +409,7 @@ All notable changes to this project will be documented in this file.
 - **`role="menu"` on sub-menus** — `OrganizeSubMenu`, `ProjectToolsSubMenu`, `GitSubMenu` panels all have `role="menu"` + `aria-label`
 - **`aria-haspopup="menu"` on More options button** — Project card `⋮` button now declares it opens a menu
 
-### ✨ Added — New Features (Section 5)
+### Added — New Features (Section 5)
 
 - **Recent Projects tab** — Fourth tab in the Projects toolbar; shows up to 20 most-recently opened projects sorted descending by `lastOpenedAt`. Route `/projects/recent` is persisted across sessions
 - **Engine compatibility badges** — Each project card (list and grid) shows a coloured icon beside the version pill: green ✓ (engine matched), yellow △ (partial/minor version match), red ✗ (no engine found). GUID-based associations (Epic Games Launcher) show nothing to avoid false negatives on Windows. Badge cache shared across all card instances — only one `scanEngines` call ever made
@@ -21,7 +417,7 @@ All notable changes to this project will be documented in this file.
 - **Bulk git status** — After every project scan, `projectGitStatusBulk` is called once with all project paths. Cards that call `getGitStatus()` hit the pre-populated cache synchronously — no per-card IPC waterfall
 - **`primeGitCache(paths[])`** — New export from `useGitStatus` that feeds bulk results into the existing generation-safe cache
 
-### ✨ Added — Global Command Palette
+### Added — Global Command Palette
 
 - **`Ctrl+K` in-app** — Opens a full-featured command palette modal over any page. Fuzzy search across 13 commands (navigate + actions) grouped by category. Keyboard nav (↑↓/Enter/Esc), shortcut hints, animated open/close
 - **Standalone palette window** (`palette.html` / `palette.tsx` / `PaletteWindow.tsx`) — When the app is in the system tray, `Ctrl+K` opens a dedicated 580×420 frameless `alwaysOnTop` BrowserWindow. Loads its own minimal React tree (no sidebar, no router) via a second Vite entry point
@@ -30,7 +426,7 @@ All notable changes to this project will be documented in this file.
 - **`palette-navigate` / `palette-action` IPC push events** — After the palette window executes a command, the main process routes it to the main window. `ProjectsPage` and `EnginesPage` each listen for `palette-action` CustomEvents to handle refresh/add/search actions triggered remotely
 - **Background OS global shortcut** — Registered (`CommandOrControl+K`) when the window closes to tray; unregistered when the window is restored so the renderer takes over. `globalShortcut.unregisterAll()` called in `before-quit`
 
-### ✨ Added — Keyboard Shortcuts Settings (Section 4)
+### Added — Keyboard Shortcuts Settings (Section 4)
 
 - **Settings → Shortcuts tab** — New section (`SectionId: 'shortcuts'`) listing all keyboard shortcuts in five groups: Global, Projects, Log Viewer, File Editor, Dialogs & Menus. Each row shows styled `<kbd>` chips and a copy-to-clipboard button (hover-revealed). Top banner links to the command palette. Footer note mentions rebinding is planned
 
@@ -60,7 +456,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.3.0] - 2026-05-30 — `feature · performance · ui`
 
-### ✨ Added — Launch Configuration Profiles
+### Added — Launch Configuration Profiles
 
 - **Launch Config dialog** — New per-engine and per-project launch profile system. Access via the `⚙` icon on engine cards or "Launch with Config" in the project context menu
   - **Built-in profiles** — Two presets ship out of the box:
@@ -79,7 +475,7 @@ All notable changes to this project will be documented in this file.
 - **`launch-configs-get` / `launch-configs-save` IPC** — Full CRUD for the config list
 - **`project-removed` push event** — Emitted by `calculateAllProjectSizes` when a project folder is found missing. Renderer subscribes via `onProjectRemoved` and removes the card immediately without a manual refresh
 
-### 🐛 Fixed
+### Fixed
 
 - **Splash screen suppressed when launching from Skeleton preset** — `SKELETON_CONFIG.noSplash` was `true` by default, passing `-nosplash` and hiding the UE loading screen. Changed to `false`
 - **Deleted project folder shows 0 B size** — `calculateProjectSize` and `calculateAllProjectSizes` now check `fs.existsSync` before walking the folder. Missing folders no longer write `0 B` to the store
@@ -146,7 +542,7 @@ All notable changes to this project will be documented in this file.
 - **Unvalidated Discord webhook URLs** — Added URL validation for Discord webhooks. Validates protocol (HTTPS), hostname (discord.com), and path structure. Prevents sending webhooks to malicious URLs.
 - **Path traversal protection refinement** — Normalized path separators to forward slashes for consistent validation. Now correctly allows legitimate files (project thumbnails, plugin icons) while blocking malicious access attempts.
 
-### 🐛 Critical Fixes
+### Critical Fixes
 
 - **Engine plugins tab freeze** — Fixed CRITICAL UI freeze when navigating to Engines → Plugins tab. Converted synchronous plugin scanning to async using `fs.promises` with event loop yields. Main thread no longer blocks during plugin directory traversal.
 - **Engine plugin icons not loading** — Fixed path traversal protection blocking plugin icons at `Engine/Plugins/*/Resources/Icon128.png`. Icons now display correctly.
@@ -197,7 +593,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.2.4] - 2026-05-24 — `main`
 
-### ✨ Added
+### Added
 
 - **Centralized logging system** — New `logger.ts` module with structured logging across all main process modules
   - Log levels: `info`, `warn`, `error`, `debug`
@@ -238,7 +634,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.2.3] - 2026-05-22 — `main`
 
-### ✨ Added
+### Added
 
 - **Per-project thumbnail keys** — `thumbnailKey` (`${projectPath}:${thumbnail}`) passed to project cards so only cards whose thumbnails change re-render.
 
@@ -260,7 +656,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.2.2] - 2026-05-16 — `hotfix`
 
-### ✨ Added
+### Added
 
 - **Engine custom alias** — Set a nickname for any engine instance so duplicate versions are easy to tell apart
   - Alias displays as the primary title on the engine card; "Unreal Engine X.X" becomes the subtitle when an alias is set
@@ -319,7 +715,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.2.0] - 2026-05-03 — `main`
 
-### ✨ Added
+### Added
 
 - **In-app file editor** — Edit `DefaultEngine.ini` and `.uproject` files directly in the launcher without opening an external editor
   - Find bar (`Ctrl+F`) with match counter, prev/next navigation, case-sensitive toggle
@@ -370,7 +766,7 @@ All notable changes to this project will be documented in this file.
 
 ## [2.1.2] - 2026-04-26 — `v2.1.2`
 
-### ✨ Added
+### Added
 
 - **Linux support** — Full Linux compatibility with platform-specific adaptations:
   - Disabled hardware acceleration on Linux to prevent GPU errors in VMs

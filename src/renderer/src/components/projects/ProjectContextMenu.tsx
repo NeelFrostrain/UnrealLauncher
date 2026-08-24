@@ -1,18 +1,18 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   Play,
   Gamepad2,
   Star,
   GitMerge,
   Wrench,
-  AlertTriangle,
   GitBranch,
-  Settings2
+  Settings2,
+  Cpu,
+  Trash2,
+  Code2
 } from 'lucide-react'
-import { useToast } from '../ui/ToastContext'
 import {
   MenuItem,
   MenuSeparator,
@@ -23,6 +23,10 @@ import {
 import { OrganizeSubMenu } from './contextMenu/OrganizeSubMenu'
 import { ProjectToolsSubMenu } from './contextMenu/ProjectToolsSubMenu'
 import { GitSubMenu } from './contextMenu/GitSubMenu'
+import { EngineSubMenu } from './contextMenu/EngineSubMenu'
+import { useEngineCompatibility } from '../../hooks'
+import { useToast } from '../ui/ToastContext'
+import { toMajorMinorVersion } from './projectUtils'
 
 export interface ProjectContextMenuProps {
   x: number
@@ -47,6 +51,11 @@ export interface ProjectContextMenuProps {
   onOpenCommitDialog: () => void
   onOpenBranchDialog: () => void
   onOpenFileEditor: (mode: 'config' | 'uproject') => void
+  onOpenPlugins: () => void
+  onOpenHealthReport: () => void
+  onOpenAssetAnalyzer: () => void
+  onOpenSnapshots: () => void
+  onOpenCompiler?: () => void
 }
 
 export default function ProjectContextMenu(p: ProjectContextMenuProps): React.ReactElement {
@@ -54,18 +63,57 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
   const organizeTriggerRef = useRef<HTMLButtonElement>(null)
   const toolsTriggerRef = useRef<HTMLButtonElement>(null)
   const gitTriggerRef = useRef<HTMLButtonElement>(null)
-  const [pos, setPos] = useState({ top: p.y, left: p.x, width: 220 })
-  const [activeSub, setActiveSub] = useState<'organize' | 'tools' | 'git' | null>(null)
+  const engineTriggerRef = useRef<HTMLButtonElement>(null)
+  const [pos, setPos] = useState({ top: p.y, left: p.x, width: 248 })
+  const [activeSub, setActiveSub] = useState<'organize' | 'tools' | 'git' | 'engine' | null>(null)
+  const [engines, setEngines] = useState<any[]>([])
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const compatibility = useEngineCompatibility(p.projectVersion)
   const { addToast } = useToast()
+
+  const handleEraseFromDisk = useCallback(() => {
+    if (!p.projectPath) return
+    const confirmErase = window.confirm(
+      `Are you sure you want to erase "${p.name}" from disk?\n\nThis will move the project folder to the Recycle Bin:\n${p.projectPath}`
+    )
+    p.onClose()
+    if (!confirmErase) return
+
+    if (!window.electronAPI?.eraseProjectFromDisk) {
+      addToast('Please restart the app to enable Erase from Disk.', 'warning')
+      return
+    }
+
+    window.electronAPI
+      .eraseProjectFromDisk(p.projectPath)
+      .then((res) => {
+        if (res?.success) {
+          addToast(`Moved "${p.name}" to Recycle Bin`, 'info')
+        } else {
+          addToast(`Failed to erase project: ${res?.error || 'Unknown error'}`, 'error')
+        }
+      })
+      .catch((err) => {
+        addToast(
+          `Failed to erase project: ${err instanceof Error ? err.message : String(err)}`,
+          'error'
+        )
+      })
+  }, [p.projectPath, p.name, p.onClose, addToast])
+
+  useEffect(() => {
+    window.electronAPI.loadSavedEngines().then((saved) => {
+      setEngines(saved || [])
+    })
+  }, [])
 
   // Position menu within viewport bounds
   useEffect(() => {
     if (ref.current) {
       const { offsetWidth: w, offsetHeight: h } = ref.current
       setPos({
-        top: Math.min(p.y, window.innerHeight - h - 8),
-        left: Math.min(p.x, window.innerWidth - w - 8),
+        top: Math.max(8, Math.min(p.y, window.innerHeight - h - 8)),
+        left: Math.max(8, Math.min(p.x, window.innerWidth - w - 8)),
         width: w
       })
     }
@@ -82,9 +130,7 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
         e.preventDefault()
         const menu = ref.current
         if (!menu) return
-        const items = Array.from(
-          menu.querySelectorAll<HTMLButtonElement>('button:not([disabled])')
-        )
+        const items = Array.from(menu.querySelectorAll<HTMLButtonElement>('button:not([disabled])'))
         const current = document.activeElement as HTMLElement
         const idx = items.indexOf(current as HTMLButtonElement)
         if (e.key === 'ArrowDown') {
@@ -109,19 +155,13 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
       return () => document.removeEventListener('pointerdown', handler)
     }, 50)
 
-    // Focus first item on mount
-    setTimeout(() => {
-      const first = ref.current?.querySelector<HTMLButtonElement>('button:not([disabled])')
-      first?.focus()
-    }, 60)
-
     return () => {
       document.removeEventListener('keydown', keyHandler)
       clearTimeout(t)
     }
-  }, [p.onClose])
+  }, [p])
 
-  const openSub = useCallback((sub: 'organize' | 'tools' | 'git') => {
+  const openSub = useCallback((sub: 'organize' | 'tools' | 'git' | 'engine') => {
     if (closeTimer.current) clearTimeout(closeTimer.current)
     setActiveSub(sub)
   }, [])
@@ -146,54 +186,166 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
     p.onOpenBranchDialog()
   }, [p])
 
-  // Suppress unused warning
-  void addToast
+  const handleSelectEngine = useCallback(
+    async (newVersion: string) => {
+      try {
+        const pathRes = await window.electronAPI.projectResolveUprojectPath(p.projectPath)
+        if (!pathRes.success || !pathRes.filePath) {
+          addToast(pathRes.error || 'Failed to resolve uproject path', 'error')
+          return
+        }
+
+        const fileRes = await window.electronAPI.projectReadTextFile(
+          pathRes.filePath,
+          p.projectPath
+        )
+        if (!fileRes.success || !fileRes.content) {
+          addToast(fileRes.error || 'Failed to read uproject file', 'error')
+          return
+        }
+
+        const uprojectJson = JSON.parse(fileRes.content)
+        const v2 = toMajorMinorVersion(newVersion)
+        uprojectJson.EngineAssociation = v2
+
+        const writeRes = await window.electronAPI.projectWriteTextFile(
+          pathRes.filePath,
+          JSON.stringify(uprojectJson, null, 2),
+          p.projectPath
+        )
+
+        if (!writeRes.success) {
+          addToast(writeRes.error || 'Failed to update uproject file', 'error')
+          return
+        }
+
+        // Also update saved projects in main process store
+        if (window.electronAPI.updateProjectVersion) {
+          await window.electronAPI.updateProjectVersion(p.projectPath, v2)
+        }
+
+        addToast(`Engine version updated to ${v2}`, 'success')
+        window.dispatchEvent(
+          new CustomEvent('project-engine-changed', {
+            detail: { projectPath: p.projectPath, version: v2 }
+          })
+        )
+        p.onClose()
+      } catch (error) {
+        addToast(
+          'Error changing engine version: ' +
+          (error instanceof Error ? error.message : String(error)),
+          'error'
+        )
+      }
+    },
+    [p, addToast]
+  )
 
   return createPortal(
     <>
-      <motion.div
+      <div
         ref={ref}
         data-menu-panel
         role="menu"
         aria-label={`${p.name} context menu`}
         className="fixed z-9999 select-none"
-        style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 220 }}
-        initial={{ opacity: 0, scale: 0.95, y: -4 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.1 }}
+        style={{ ...MENU_STYLE, top: pos.top, left: pos.left, width: 248 }}
       >
         {/* Header */}
-        <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-          <p
-            className="text-xs font-semibold truncate"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            {p.name}
-          </p>
-          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-            <span
-              className="text-[9px] font-mono px-1 py-px"
-              style={{
-                borderRadius: 'calc(var(--radius) * 0.4)',
-                backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, transparent)',
-                color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
-                border: '1px solid color-mix(in srgb, var(--color-accent) 22%, transparent)'
-              }}
-            >
-              UE {p.projectVersion}
-            </span>
-            {p.gitInitialized && (
-              <span className="flex items-center gap-1">
-                <GitBranch size={9} style={{ color: '#34d399' }} />
-                <span className="text-[9px] font-mono" style={{ color: '#34d399' }}>
-                  {p.gitBranch}
+        <div
+          className="px-3 py-2.5"
+          style={{
+            borderBottom: '1px solid var(--color-border)',
+            background:
+              'linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 8%, transparent) 0%, transparent 100%)'
+          }}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p
+                className="text-[12px] font-semibold truncate"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                {p.name}
+              </p>
+              <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                <span
+                  className="text-[9px] font-mono px-1.5 py-px"
+                  style={{
+                    borderRadius: 'calc(var(--radius) * 0.4)',
+                    backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, transparent)',
+                    color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
+                    border: '1px solid color-mix(in srgb, var(--color-accent) 22%, transparent)'
+                  }}
+                >
+                  UE {p.projectVersion}
                 </span>
-              </span>
-            )}
+                <span
+                  className="flex items-center gap-1 rounded-full px-1.5 py-px text-[9px]"
+                  style={{
+                    backgroundColor:
+                      compatibility.status === 'matched'
+                        ? 'color-mix(in srgb, #34d399 12%, transparent)'
+                        : compatibility.status === 'partial'
+                          ? 'color-mix(in srgb, #f59e0b 12%, transparent)'
+                          : compatibility.status === 'missing'
+                            ? 'color-mix(in srgb, #f87171 12%, transparent)'
+                            : 'color-mix(in srgb, var(--color-text-muted) 12%, transparent)',
+                    color:
+                      compatibility.status === 'matched'
+                        ? '#34d399'
+                        : compatibility.status === 'partial'
+                          ? '#f59e0b'
+                          : compatibility.status === 'missing'
+                            ? '#f87171'
+                            : 'var(--color-text-secondary)',
+                    border: '1px solid color-mix(in srgb, currentColor 24%, transparent)'
+                  }}
+                  title={compatibility.tooltip}
+                >
+                  {compatibility.status === 'matched'
+                    ? 'Ready'
+                    : compatibility.status === 'partial'
+                      ? 'Compatible'
+                      : compatibility.status === 'missing'
+                        ? 'Engine Missing'
+                        : 'Unknown'}
+                </span>
+                {p.isFavorite && (
+                  <span
+                    className="flex items-center gap-1 rounded-full px-1.5 py-px text-[9px]"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, #facc15 12%, transparent)',
+                      color: '#facc15',
+                      border: '1px solid color-mix(in srgb, #facc15 24%, transparent)'
+                    }}
+                  >
+                    <Star size={9} fill="currentColor" />
+                    Favorite
+                  </span>
+                )}
+                {p.gitInitialized && (
+                  <span
+                    className="flex items-center gap-1 rounded-full px-1.5 py-px text-[9px]"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, #34d399 12%, transparent)',
+                      color: '#34d399',
+                      border: '1px solid color-mix(in srgb, #34d399 24%, transparent)'
+                    }}
+                  >
+                    <GitBranch size={9} />
+                    Git
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="py-1">
+          <MenuSeparator />
+
           {/* Launch */}
           <MenuCategory label="Launch" />
           <MenuItem
@@ -210,6 +362,13 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             onClick={p.onLaunchGame}
             onClose={p.onClose}
           />
+            <MenuItem
+              icon={<Code2 size={11} style={{ color: '#38bdf8' }} />}
+              label="Open Compiler"
+              sub="C++ build, debug & solution tools"
+              onClick={p.onOpenCompiler}
+              onClose={p.onClose}
+            />
           <MenuItem
             icon={<Settings2 size={11} style={{ color: 'var(--color-text-muted)' }} />}
             label="Launch with Config"
@@ -291,21 +450,37 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             onOpen={() => openSub('tools')}
             onLeave={closeSub}
           />
+          <SubMenuTrigger
+            triggerRef={engineTriggerRef}
+            icon={
+              <Cpu
+                size={11}
+                style={{
+                  color: activeSub === 'engine' ? 'var(--color-accent)' : 'var(--color-text-muted)'
+                }}
+              />
+            }
+            label="Change Engine"
+            isOpen={activeSub === 'engine'}
+            onOpen={() => openSub('engine')}
+            onLeave={closeSub}
+          />
 
           <MenuSeparator />
 
           <MenuItem
-            icon={<AlertTriangle size={11} />}
-            label={p.isHidden ? 'Unhide from List' : 'Hide from List'}
-            sub={p.isHidden ? 'Restore to main list' : 'Move to Hidden tab'}
-            onClick={p.onHide}
+            icon={<Trash2 size={11} />}
+            label="Erase from Disk"
+            sub="Move project folder to Recycle Bin"
+            onClick={handleEraseFromDisk}
+            noClose
             danger
             onClose={p.onClose}
           />
         </div>
-      </motion.div>
+      </div>
 
-      <AnimatePresence>
+      <>
         {activeSub === 'organize' && (
           <OrganizeSubMenu
             projectPath={p.projectPath}
@@ -328,6 +503,11 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             parentWidth={pos.width}
             onViewLogs={p.onViewLogs}
             onOpenFileEditor={p.onOpenFileEditor}
+            onOpenPlugins={p.onOpenPlugins}
+            onOpenHealthReport={p.onOpenHealthReport}
+            onOpenAssetAnalyzer={p.onOpenAssetAnalyzer}
+            onOpenSnapshots={p.onOpenSnapshots}
+            onOpenCompiler={p.onOpenCompiler}
             onClose={p.onClose}
             onMouseEnter={keepSub}
             onMouseLeave={closeSub}
@@ -350,7 +530,20 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             onMouseLeave={closeSub}
           />
         )}
-      </AnimatePresence>
+        {activeSub === 'engine' && (
+          <EngineSubMenu
+            engines={engines}
+            currentVersion={p.projectVersion}
+            anchorRef={engineTriggerRef}
+            parentLeft={pos.left}
+            parentWidth={pos.width}
+            onSelectEngine={handleSelectEngine}
+            onClose={p.onClose}
+            onMouseEnter={keepSub}
+            onMouseLeave={closeSub}
+          />
+        )}
+      </>
     </>,
     document.body
   )

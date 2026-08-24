@@ -3,6 +3,7 @@ import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import util from 'util'
+import { getNative } from './utils/native'
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
@@ -34,6 +35,10 @@ let logFilePath: string | null = null
 let consoleBridgeInstalled = false
 let processHandlersInstalled = false
 
+// Write queue for async log flushing — prevents appendFileSync from blocking the main thread
+const _writeQueue: string[] = []
+let _flushScheduled = false
+
 function getTimestampForFile(date = new Date()): string {
   return date.toISOString().replace(/[:.]/g, '-')
 }
@@ -48,7 +53,9 @@ function getLogFilePath(): string {
   return logFilePath
 }
 
+let _logsDir: string | null = null
 export function getLogsDir(): string {
+  if (_logsDir) return _logsDir
   let baseDir = process.cwd()
   try {
     baseDir = app.getPath('userData')
@@ -58,11 +65,23 @@ export function getLogsDir(): string {
 
   const logsDir = path.join(baseDir, 'save', 'logs')
   fs.mkdirSync(logsDir, { recursive: true })
+  _logsDir = logsDir
   return logsDir
 }
 
 export function clearLogFiles(): number {
   const logsDir = getLogsDir()
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // native loaded statically
+    const native = getNative()
+    if (native?.nativeClearOldLogs) {
+      return native.nativeClearOldLogs(logsDir, 7)
+    }
+  } catch {
+    /* fallback */
+  }
+
   let removed = 0
   for (const entry of fs.readdirSync(logsDir, { withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.log')) continue
@@ -106,12 +125,21 @@ function stringifyMessage(message: unknown, meta: unknown[]): string {
   return parts.join(' ')
 }
 
+function scheduleLogFlush(): void {
+  if (_flushScheduled) return
+  _flushScheduled = true
+  setImmediate(() => {
+    const batch = _writeQueue.splice(0).join('\n') + '\n'
+    _flushScheduled = false
+    fs.appendFile(getLogFilePath(), batch, 'utf8', () => {
+      /* logging must never crash the app */
+    })
+  })
+}
+
 function writeToFile(line: string): void {
-  try {
-    fs.appendFileSync(getLogFilePath(), `${line}\n`, 'utf8')
-  } catch {
-    /* logging must never crash the app */
-  }
+  _writeQueue.push(line)
+  scheduleLogFlush()
 }
 
 function writeToConsole(level: LogLevel, line: string): void {
@@ -129,13 +157,32 @@ function writeToConsole(level: LogLevel, line: string): void {
 
 export function log(level: LogLevel, scope: string, message: unknown, ...meta: unknown[]): void {
   if (level === 'debug' && process.env.DEBUG_LOGS !== '1') return
-  const timestamp = new Date().toISOString()
+
   const safeScope = scope || 'app'
-  const text = stringifyMessage(message, meta)
-  const line = `[${timestamp}] [${LEVEL_LABELS[level]}] [${safeScope}] ${text}`
+  const textMsg = serialize(message)
+  const metaStr = meta.length > 0 ? meta.map(serialize).join(' ') : undefined
+  const filePath = getLogFilePath()
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // native loaded statically
+    const native = getNative()
+    if (native?.nativeLogEntry) {
+      native.nativeLogEntry(level, safeScope, textMsg, metaStr, filePath, true)
+      return
+    }
+  } catch {
+    /* fallback to JS */
+  }
+
+  const now = new Date()
+  const timestamp =
+    now.toTimeString().slice(0, 8) + '.' + String(now.getMilliseconds()).padStart(3, '0')
+  const combined = stringifyMessage(message, meta)
+  const line = `[${timestamp}] [${LEVEL_LABELS[level]}] [${safeScope}] ${combined}`
 
   writeToFile(line)
-  writeToConsole(level, `${DIM}${line.slice(0, 26)}${RESET}${line.slice(26)}`)
+  writeToConsole(level, `${DIM}${line.slice(0, 15)}${RESET}${line.slice(15)}`)
 }
 
 export const logger = {

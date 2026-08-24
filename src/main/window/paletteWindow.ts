@@ -15,9 +15,19 @@ import { logger } from '../logger'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 let paletteWindow: BrowserWindow | null = null
+// Set to true when openPaletteWindow() is called before the renderer has sent
+// 'palette-ready'.  The ready handler checks this flag before showing the window,
+// so a background preload never flashes the window on screen.
+let pendingShow = false
 
 export function getPaletteWindow(): BrowserWindow | null {
   return paletteWindow
+}
+
+export function isPendingShow(): boolean {
+  const val = pendingShow
+  pendingShow = false // consume the flag
+  return val
 }
 
 export function isPaletteOpen(): boolean {
@@ -25,15 +35,11 @@ export function isPaletteOpen(): boolean {
 }
 
 /**
- * Opens the palette window, creating it if needed.
- * Subsequent calls while it's already open just focus it.
+ * Preloads the palette window silently in the background.
+ * Should be called once during app startup.
  */
-export function openPaletteWindow(): void {
-  // If already open — focus it
-  if (paletteWindow && !paletteWindow.isDestroyed()) {
-    paletteWindow.focus()
-    return
-  }
+export function preloadPaletteWindow(): void {
+  if (paletteWindow && !paletteWindow.isDestroyed()) return
 
   // Use workAreaSize with scaleFactor to correctly size the window on
   // high-DPI displays (125%, 150%, 200% Windows scaling)
@@ -44,7 +50,7 @@ export function openPaletteWindow(): void {
   const W = Math.round(Math.min(600, sw * 0.5))
   const H = Math.round(Math.min(600, sh * 0.75))
   const x = Math.round((sw - W) / 2)
-  const y = Math.round(sh * 0.08)   // ~8% from top
+  const y = Math.round(sh * 0.08) // ~8% from top
 
   paletteWindow = new BrowserWindow({
     width: W,
@@ -57,7 +63,7 @@ export function openPaletteWindow(): void {
     movable: true,
     alwaysOnTop: true,
     skipTaskbar: true,
-    show: false,                       // shown only after 'palette-ready' IPC
+    show: false, // shown only after 'palette-ready' IPC
     backgroundColor: '#1f1f1f',
     webPreferences: {
       nodeIntegration: false,
@@ -70,7 +76,7 @@ export function openPaletteWindow(): void {
   })
 
   paletteWindow.on('closed', () => {
-    logger.info('palette', 'Palette window closed')
+    logger.info('palette', 'Palette window destroyed')
     paletteWindow = null
   })
 
@@ -86,11 +92,40 @@ export function openPaletteWindow(): void {
     paletteWindow.loadFile(path.join(__dirname, '../renderer/palette.html'))
   }
 
-  logger.info('palette', 'Palette window created')
+  logger.info('palette', 'Palette window preloaded')
+}
+
+/**
+ * Opens the palette window. If preloaded, shows it instantly.
+ */
+export function openPaletteWindow(): void {
+  if (!paletteWindow || paletteWindow.isDestroyed()) {
+    // Fallback if not preloaded or was destroyed — set flag so the
+    // 'palette-ready' IPC handler will show the window once it loads.
+    pendingShow = true
+    preloadPaletteWindow()
+  } else {
+    // Already exists: notify renderer to reset state, then force to front
+    paletteWindow.webContents.send('palette-opened')
+    forceForeground(paletteWindow)
+  }
 }
 
 export function closePaletteWindow(): void {
   if (paletteWindow && !paletteWindow.isDestroyed()) {
-    paletteWindow.close()
+    paletteWindow.hide()
   }
+}
+
+/**
+ * Force the palette window to the foreground, bypassing Windows' foreground
+ * lock which blocks focus() when the calling process isn't already foreground.
+ */
+export function forceForeground(win: BrowserWindow): void {
+  // The trick: briefly set alwaysOnTop to yank the window to the front,
+  // then immediately unset it so the user can still click other windows.
+  win.setAlwaysOnTop(true, 'screen-saver')
+  win.show()
+  win.focus()
+  win.setAlwaysOnTop(false)
 }

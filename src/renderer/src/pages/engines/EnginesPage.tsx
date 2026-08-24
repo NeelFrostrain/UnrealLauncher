@@ -1,12 +1,15 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect } from 'react'
 import PageWrapper from '@renderer/layout/PageWrapper'
-import { useEngineActions } from '../../hooks/useEngineActions'
+import {
+  useEngineActions,
+  useGlobalShortcuts,
+  setEnginesCache,
+  clearEngineCompatibilityCache
+} from '../../hooks'
 import { useEnginesPageState } from './enginesPageState'
 import { EnginesPageToolbar } from './enginesPageToolbar'
 import { EnginesPageContent } from './enginesPageContent'
-import { useGlobalShortcuts } from '../../hooks/useGlobalShortcuts'
-import { setEnginesCache, clearEngineCompatibilityCache } from '../../hooks/useEngineCompatibility'
 
 const EnginesPage = (): React.ReactElement => {
   const state = useEnginesPageState()
@@ -37,23 +40,34 @@ const EnginesPage = (): React.ReactElement => {
     return () => window.removeEventListener('palette-action', handler)
   }, [handleScan, handleAddEngine])
 
+  const { setEngines, setLoading } = state
+
   // Load engines on mount
   useEffect(() => {
     const load = async (): Promise<void> => {
       if (!window.electronAPI) {
-        state.setLoading(false)
+        setLoading(false)
         return
       }
+
+      setLoading(true)
       try {
+        const savedEngines = await window.electronAPI.loadSavedEngines()
+        if (savedEngines.length > 0) {
+          setEngines(savedEngines)
+          setEnginesCache(savedEngines)
+          setLoading(false)
+        }
+
         const engines = await window.electronAPI.scanEngines()
-        state.setEngines(engines)
+        setEngines(engines)
         // Keep the compatibility badge cache in sync — free since data is already loaded
         setEnginesCache(engines)
         clearEngineCompatibilityCache()
       } catch (err) {
         console.error('Failed to load engines:', err)
       } finally {
-        state.setLoading(false)
+        setLoading(false)
       }
     }
 
@@ -62,13 +76,13 @@ const EnginesPage = (): React.ReactElement => {
     if (window.electronAPI) {
       return window.electronAPI.onSizeCalculated((data) => {
         if (data.type === 'engine')
-          state.setEngines((prev) =>
+          setEngines((prev) =>
             prev.map((e) => (e.directoryPath === data.path ? { ...e, folderSize: data.size } : e))
           )
       })
     }
     return () => {}
-  }, [])
+  }, [setEngines, setLoading])
 
   return (
     <PageWrapper>

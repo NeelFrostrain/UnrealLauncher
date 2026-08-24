@@ -3,15 +3,84 @@ import { config } from 'dotenv'
 import { app, protocol, net, globalShortcut } from 'electron'
 import { spawn } from 'child_process'
 import type { ChildProcess } from 'child_process'
+import https from 'https'
 import path from 'path'
 import fs from 'fs'
 import { setupAppLifecycle, createWindow, getMainWindow } from './window'
+import { preloadPaletteWindow, openPaletteWindow } from './window/paletteWindow'
 import { setupAutoUpdaterEvents, checkForUpdatesOnStartup } from './updater'
 import { registerIpcHandlers, cleanupWorkers } from './ipcHandlers'
 import { loadMainSettings, loadProjects, loadEngines } from './store'
 import { getNative } from './utils/native'
+import { getThumbnailCacheRoot } from './utils'
 import { setupDiscordRichPresence } from './discordPresence'
 import { initializeLogging, logger } from './logger'
+import { getSystemInfo, createSystemInfoEmbed } from './utils'
+
+// Build-time injected environment variables
+declare const __DISCORD_STARTUP_WEBHOOK__: string
+
+// --- Build-time constants injected by Vite ---
+
+let localAssetCacheTimestamp = 0
+let cachedProjectPaths = new Set<string>()
+let cachedEngineDirs = new Set<string>()
+
+function refreshLocalAssetCache(): void {
+  const now = Date.now()
+  if (localAssetCacheTimestamp && now - localAssetCacheTimestamp < 30000) return
+
+  try {
+    cachedProjectPaths = new Set(
+      loadProjects()
+        .map((project) => project.projectPath)
+        .filter(Boolean)
+        .map((p) => p!.replace(/\\/g, '/').toLowerCase())
+    )
+  } catch {
+    cachedProjectPaths = new Set()
+  }
+
+  try {
+    cachedEngineDirs = new Set(
+      loadEngines()
+        .map((engine) => engine.directoryPath)
+        .filter(Boolean)
+        .map((p) => p!.replace(/\\/g, '/').toLowerCase())
+    )
+  } catch {
+    cachedEngineDirs = new Set()
+  }
+
+  localAssetCacheTimestamp = now
+}
+
+function isProjectThumbnailPath(normalizedResolved: string, resolved: string): boolean {
+  if (!normalizedResolved.includes('/saved/')) return false
+  const savedIndex = normalizedResolved.lastIndexOf('/saved/')
+  if (savedIndex <= 0) return false
+
+  const projectDir = resolved.substring(0, resolved.length - normalizedResolved.length + savedIndex)
+  const normalizedProjectDir = projectDir.replace(/\\/g, '/').toLowerCase()
+  return cachedProjectPaths.has(normalizedProjectDir)
+}
+
+function isEnginePluginIconPath(normalizedResolved: string, resolved: string): boolean {
+  if (
+    !normalizedResolved.includes('/engine/plugins/') ||
+    !normalizedResolved.includes('/resources/') ||
+    !normalizedResolved.endsWith('icon128.png')
+  ) {
+    return false
+  }
+
+  const engineIndex = normalizedResolved.lastIndexOf('/engine/')
+  if (engineIndex <= 0) return false
+
+  const engineDir = resolved.substring(0, resolved.length - normalizedResolved.length + engineIndex)
+  const normalizedEngineDir = engineDir.replace(/\\/g, '/').toLowerCase()
+  return cachedEngineDirs.has(normalizedEngineDir)
+}
 
 // Suppress noisy deprecation warnings from transitive dependencies before optional modules load.
 process.noDeprecation = true
@@ -39,8 +108,25 @@ loadEnvironment()
 logger.info('app', 'Environment loaded')
 
 // ── Chromium flags — must be set before app is ready ─────────────────────────
-// NOTE: Hardware acceleration is intentionally kept ON — disabling it forces
-// CPU-only rendering which makes every animation and scroll choppy.
+// Read GPU preference from persisted settings (synchronous JSON read, safe here).
+{
+  let gpuDisabled = true // default: off
+  try {
+    gpuDisabled = loadMainSettings().disableGpu ?? true
+  } catch {
+    /* use default */
+  }
+  if (gpuDisabled) {
+    app.disableHardwareAcceleration()
+    app.commandLine.appendSwitch('disable-gpu')
+    app.commandLine.appendSwitch('disable-gpu-compositing')
+    app.commandLine.appendSwitch('disable-gpu-sandbox')
+    app.commandLine.appendSwitch('in-process-gpu')
+    logger.info('app', 'GPU process disabled (user setting)')
+  } else {
+    logger.info('app', 'GPU process enabled (user setting)')
+  }
+}
 app.commandLine.appendSwitch('enable-smooth-scrolling')
 app.commandLine.appendSwitch(
   'disable-features',
@@ -60,17 +146,13 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 // ── Single instance lock ──────────────────────────────────────────────────────
-const gotTheLock = app.requestSingleInstanceLock()
+// Pass argv so second-instance can detect --palette even when the first
+// instance is the full launcher.
+const gotTheLock = app.requestSingleInstanceLock({ argv: process.argv })
 if (!gotTheLock) {
   logger.warn('app', 'Second instance detected before lock; quitting this process')
   app.quit()
 } else {
-  // ── Discord Rich Presence ───────────────────────────────────────────────────
-  setupDiscordRichPresence({
-    clientId: process.env.DISCORD_CLIENT_ID || process.env.VITE_DISCORD_CLIENT_ID
-  })
-  logger.info('discord', 'Rich Presence setup requested')
-
   // ── Child process registry ──────────────────────────────────────────────────
   const childProcesses: ChildProcess[] = []
 
@@ -78,7 +160,11 @@ if (!gotTheLock) {
   app.on('before-quit', () => {
     logger.info('app', 'Before quit cleanup started', { childProcesses: childProcesses.length })
     // Release any registered global shortcuts (e.g. background Ctrl+K palette)
-    try { globalShortcut.unregisterAll() } catch { /* ignore */ }
+    try {
+      globalShortcut.unregisterAll()
+    } catch {
+      /* ignore */
+    }
     for (const cp of childProcesses) {
       try {
         cp.kill()
@@ -91,18 +177,28 @@ if (!gotTheLock) {
     logger.info('app', 'Before quit cleanup finished')
   })
 
-  // ── Second instance → focus existing window or restore from tray ────────────
-  app.on('second-instance', () => {
+  // ── Second instance → open palette or focus main window ─────────────────────
+  // When the tracer spawns `unreallauncher.exe --palette` while we're already
+  // running, Electron fires second-instance instead of starting a new process.
+  app.on('second-instance', (_event, argv) => {
+    if (argv.includes('--palette')) {
+      logger.info('app', 'Second instance requested palette open')
+      try {
+        openPaletteWindow()
+      } catch (err) {
+        logger.error('palette', 'Failed to open palette via second-instance', err)
+      }
+      return
+    }
+
     logger.info('app', 'Second instance requested focus')
     const win = getMainWindow()
     if (win && !win.isDestroyed()) {
-      // Window exists — restore and focus it
       if (win.isMinimized()) win.restore()
       if (!win.isVisible()) win.show()
       win.focus()
       logger.info('app', 'Restored and focused existing window')
     } else {
-      // Window doesn't exist or was destroyed — recreate it
       logger.info('app', 'Window not found, creating new window')
       createWindow()
     }
@@ -113,6 +209,22 @@ if (!gotTheLock) {
     .whenReady()
     .then(() => {
       logger.info('app', 'Electron app ready')
+
+      // ── Palette-only mode ─────────────────────────────────────────────────
+      // The tracer spawns `unreallauncher.exe --palette` when Ctrl+K is
+      // pressed and the launcher isn't already running.  In this mode we skip
+      // the heavy main window, show only the palette, and quit on close.
+      const paletteMode = process.argv.includes('--palette')
+      if (paletteMode) {
+        logger.info('app', 'Palette mode — skipping main window')
+        registerIpcHandlers()
+        preloadPaletteWindow()
+        setImmediate(() => openPaletteWindow())
+        // Quit cleanly when the palette closes (no main window to keep alive)
+        app.on('window-all-closed', () => app.quit())
+        return
+      }
+
       // 1. Register local-asset:// protocol handler with path traversal protection
       // Only allow thumbnails/icons from registered projects and engines
       protocol.handle('local-asset', (request) => {
@@ -122,55 +234,19 @@ if (!gotTheLock) {
         // SECURITY: Validate path is within allowed directories or registered in engines/projects
         const resolved = path.resolve(filePath)
         const normalizedResolved = resolved.replace(/\\/g, '/').toLowerCase()
-        
+
         const allowedDirs = [
           path.resolve(path.join(app.getAppPath(), 'resources')),
-          path.resolve(path.join(app.getAppPath(), 'out', 'renderer'))
-        ].map(p => p.replace(/\\/g, '/').toLowerCase())
+          path.resolve(path.join(app.getAppPath(), 'out', 'renderer')),
+          path.resolve(getThumbnailCacheRoot())
+        ].map((p) => p.replace(/\\/g, '/').toLowerCase())
 
         // Check if path is in allowed app directories
         const isInAppDir = allowedDirs.some((dir) => normalizedResolved.startsWith(dir))
 
-        // Validate thumbnails/icons: must be in /Saved/ or /Engine/Plugins/ AND match registered projects/engines
-        let isProjectThumbnail = false
-        let isEnginePluginIcon = false
-
-        if (normalizedResolved.includes('/saved/') && 
-            (normalizedResolved.endsWith('autoscreenshot.png') || normalizedResolved.endsWith('thumbnail.png'))) {
-          // Extract project directory (parent of Saved folder)
-          const savedIndex = normalizedResolved.lastIndexOf('/saved/')
-          if (savedIndex > 0) {
-            const projectDir = resolved.substring(0, resolved.length - normalizedResolved.length + savedIndex)
-            const normalizedProjectDir = projectDir.replace(/\\/g, '/').toLowerCase()
-            try {
-              const projects = loadProjects()
-              isProjectThumbnail = projects.some(p => 
-                p.projectPath && p.projectPath.replace(/\\/g, '/').toLowerCase() === normalizedProjectDir
-              )
-            } catch {
-              // ignore load errors
-            }
-          }
-        }
-
-        if (normalizedResolved.includes('/engine/plugins/') && 
-            normalizedResolved.includes('/resources/') &&
-            normalizedResolved.endsWith('icon128.png')) {
-          // Extract engine directory (parent of Engine folder)
-          const engineIndex = normalizedResolved.lastIndexOf('/engine/')
-          if (engineIndex > 0) {
-            const engineDir = resolved.substring(0, resolved.length - normalizedResolved.length + engineIndex)
-            const normalizedEngineDir = engineDir.replace(/\\/g, '/').toLowerCase()
-            try {
-              const engines = loadEngines()
-              isEnginePluginIcon = engines.some(e => 
-                e.directoryPath && e.directoryPath.replace(/\\/g, '/').toLowerCase() === normalizedEngineDir
-              )
-            } catch {
-              // ignore load errors
-            }
-          }
-        }
+        refreshLocalAssetCache()
+        const isProjectThumbnail = isProjectThumbnailPath(normalizedResolved, resolved)
+        const isEnginePluginIcon = isEnginePluginIconPath(normalizedResolved, resolved)
 
         if (!isInAppDir && !isProjectThumbnail && !isEnginePluginIcon) {
           logger.warn('protocol', 'Path access blocked — not in allowed directories', {
@@ -207,25 +283,68 @@ if (!gotTheLock) {
         }
       })
 
-      // 6. Tracer startup — fully async, never blocks main thread
+      // 7. Tracer startup — fully async, never blocks main thread
       setImmediate(() => {
         startTracerAsync().catch((error) => {
           logger.error('tracer', 'Tracer startup failed', error)
         })
       })
 
-      // 7. Defer update check until well after the window is visible
+      // 8. Defer update check until well after the window is visible
       setTimeout(() => {
         checkForUpdatesOnStartup().catch((error) => {
           logger.error('updater', 'Startup update check failed', error)
         })
-      }, 8000)
+      }, 5000)
+
+      // 9. Preload palette window in the background so it opens instantly later
+      setImmediate(() => {
+        try {
+          preloadPaletteWindow()
+        } catch (error) {
+          logger.error('palette', 'Failed to preload palette window', error)
+        }
+      })
+
+      // 11. Setup Discord Rich Presence after window is ready (if enabled in settings)
+      setTimeout(() => {
+        const settings = loadMainSettings()
+        if (settings.discordRpcEnabled ?? true) {
+          setupDiscordRichPresence({
+            clientId:
+              process.env.DISCORD_CLIENT_ID ||
+              process.env.VITE_DISCORD_CLIENT_ID ||
+              '1507980570725191740',
+            buttons: [
+              {
+                label: 'Join Discord',
+                url: `${process.env.VITE_DISCORD_INVITE_URL || 'https://discord.gg/vq4UDfevG2'}`
+              },
+              {
+                label: 'Download Launcher',
+                url: `${process.env.VITE_COMPANY_WEBSITE_URL || process.env.VITE_WEBSITE_URL || 'https://cyronicstudio.vercel.app'}`
+              }
+            ]
+          })
+          logger.info('discord', 'Rich Presence setup requested')
+        } else {
+          logger.info('discord', 'Rich Presence disabled by user settings')
+        }
+      }, 2000)
+
+      // 12. Send system startup notification to Discord (async, optional)
+      // Delay Discord startup notification to prevent command flickering
+      setTimeout(() => {
+        sendSystemStartupNotification().catch((error) => {
+          logger.warn('discord', 'Failed to send startup notification', error)
+        })
+      }, 8000) // Increased delay to 8 seconds to ensure no overlap with Rich Presence setup
     })
     .catch((error) => {
       logger.error('app', 'App ready startup failed', error)
     })
 
-  // ── Tracer startup — async, no execSync ────────────────────────────────────
+  // ── Tracer startup — delayed to prevent flickering ────────────────────────────────────
   async function startTracerAsync(): Promise<void> {
     // Tracer only supported on Windows
     if (process.platform !== 'win32') {
@@ -239,56 +358,145 @@ if (!gotTheLock) {
       return
     }
 
+    // Respect user preference: only start the tracer at app startup if the
+    // `tracerStartupEnabled` setting is enabled. Previously we always started
+    // the tracer (regardless of the setting) which forced the background
+    // tracer to run for all users.
     let tracerStartupEnabled = false
     try {
       tracerStartupEnabled = loadMainSettings().tracerStartupEnabled
-    } catch (error) {
-      logger.warn('tracer', 'Failed to read tracer startup setting', error)
-      return
-    }
-    if (!tracerStartupEnabled) {
-      logger.info('tracer', 'Tracer startup disabled in settings')
-      return
+    } catch {
+      // If settings can't be read, default to disabled
+      tracerStartupEnabled = false
     }
 
     const RUN_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
     const KEY_NAME = 'Unreal Launcher Tracer'
 
-    // Update registry key asynchronously
-    logger.info('tracer', 'Ensuring tracer startup registry entry')
-    const regProcess = spawn(
-      'reg',
-      ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
-      {
-        stdio: 'ignore'
+    if (!tracerStartupEnabled) {
+      logger.info('tracer', 'Tracer startup disabled by settings — skipping start')
+      return
+    }
+
+    // Delay tracer operations by 5 seconds to completely prevent terminal flickering during app startup
+    setTimeout(async () => {
+      try {
+        // Ensure the registry Run entry is present when the user enabled startup
+        logger.info('tracer', 'Ensuring tracer startup registry entry')
+        const regProcess = spawn(
+          'reg',
+          ['add', RUN_KEY, '/v', KEY_NAME, '/t', 'REG_SZ', '/d', `"${tracerExe}"`, '/f'],
+          {
+            stdio: 'ignore',
+            windowsHide: true,
+            shell: false // Prevent shell window creation
+          }
+        )
+        childProcesses.push(regProcess)
+
+        // Wait for registry operation to complete before checking processes
+        await new Promise<void>((resolve) => {
+          regProcess.once('close', () => resolve())
+        })
+
+        // Delay between operations to prevent rapid command execution
+        await new Promise((resolve) => setTimeout(resolve, 500))
+
+        // Check if tracer is already running — async via spawn instead of execSync
+        await new Promise<void>((resolve) => {
+          const check = spawn(
+            'tasklist',
+            ['/FI', 'IMAGENAME eq unreal_launcher_tracer.exe', '/NH', '/FO', 'CSV'],
+            {
+              stdio: ['ignore', 'pipe', 'ignore'],
+              windowsHide: true,
+              shell: false // Prevent shell window creation
+            }
+          )
+          childProcesses.push(check)
+
+          let output = ''
+          check.stdout?.on('data', (d: Buffer) => {
+            output += d.toString()
+          })
+          check.once('close', () => {
+            if (!output.toLowerCase().includes('unreal_launcher_tracer.exe')) {
+              logger.info('tracer', 'Starting tracer process', { tracerExe })
+              const tracerProcess = spawn(tracerExe, [], {
+                detached: true,
+                stdio: 'ignore',
+                windowsHide: true,
+                shell: false // Prevent shell window creation
+              })
+              childProcesses.push(tracerProcess)
+              tracerProcess.unref()
+            } else {
+              logger.info('tracer', 'Tracer already running')
+            }
+            resolve()
+          })
+        })
+      } catch (error) {
+        logger.error('tracer', 'Error during delayed tracer startup', { error })
       }
-    )
-    childProcesses.push(regProcess)
+    }, 5000) // Increased delay from 2 seconds to 5 seconds to allow main window to fully load and settle
+  }
 
-    // Check if tracer is already running — async via spawn instead of execSync
-    await new Promise<void>((resolve) => {
-      const check = spawn(
-        'tasklist',
-        ['/FI', 'IMAGENAME eq unreal_launcher_tracer.exe', '/NH', '/FO', 'CSV'],
-        { stdio: ['ignore', 'pipe', 'ignore'] }
-      )
-      childProcesses.push(check)
+  // ── Send system startup notification to Discord ─────────────────────────────
+  async function sendSystemStartupNotification(): Promise<void> {
+    const webhookUrl = process.env.DISCORD_STARTUP_WEBHOOK_URL || __DISCORD_STARTUP_WEBHOOK__
 
-      let output = ''
-      check.stdout?.on('data', (d: Buffer) => {
-        output += d.toString()
+    if (!webhookUrl) {
+      logger.info('discord', 'Discord startup webhook not configured, skipping notification')
+      return
+    }
+
+    try {
+      const systemInfo = await getSystemInfo(app.getVersion())
+      const embed = createSystemInfoEmbed(systemInfo)
+
+      const url = new URL(webhookUrl)
+
+      const payload = JSON.stringify({
+        embeds: [embed]
       })
-      check.once('close', () => {
-        if (!output.toLowerCase().includes('unreal_launcher_tracer.exe')) {
-          logger.info('tracer', 'Starting tracer process', { tracerExe })
-          const tracerProcess = spawn(tracerExe, [], { detached: true, stdio: 'ignore' })
-          childProcesses.push(tracerProcess)
-          tracerProcess.unref()
-        } else {
-          logger.info('tracer', 'Tracer already running')
+
+      const options = {
+        hostname: url.hostname,
+        port: 443,
+        path: url.pathname + url.search,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload)
         }
-        resolve()
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        const req = https.request(options, (res) => {
+          // Consume the response body to prevent socket hang
+          res.resume()
+          res.on('end', () => {
+            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+              logger.info('discord', 'System startup notification sent successfully', {
+                statusCode: res.statusCode
+              })
+              resolve()
+            } else {
+              reject(new Error(`Discord webhook returned status ${res.statusCode}`))
+            }
+          })
+        })
+
+        req.on('error', (error) => {
+          reject(error)
+        })
+
+        req.write(payload)
+        req.end()
       })
-    })
+    } catch (error) {
+      logger.warn('discord', 'Failed to send system startup notification', error)
+    }
   }
 }

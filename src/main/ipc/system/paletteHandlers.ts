@@ -1,0 +1,191 @@
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { ipcMain } from 'electron'
+import { getMainWindow } from '../../window'
+import { loadEngines, loadProjects, loadLaunchConfigs } from '../../store'
+import { handleLaunchEngine } from '../engines/engineHandlers'
+import { handleLaunchProject, handleLaunchProjectWithConfig } from '../projects/projectLaunching'
+import {
+  getPaletteWindow,
+  isPendingShow,
+  forceForeground,
+  closePaletteWindow,
+  openPaletteWindow
+} from '../../window/paletteWindow'
+import { getNative } from '../../utils'
+import { logger } from '../../logger'
+
+// Map command IDs → route to push to the main window
+const NAV_COMMANDS: Record<string, string> = {
+  'nav-engines': '/engines',
+  'nav-projects': '/projects',
+  'nav-projects-recent': '/projects/recent',
+  'nav-projects-favorites': '/projects/favorites',
+  'nav-projects-hidden': '/projects/hidden',
+  'nav-engines-plugins': '/engines/plugins',
+  'nav-engines-fab': '/engines/fab',
+  'nav-settings': '/settings'
+}
+
+function routeToMainWindow(commandId: string): void {
+  const win = getMainWindow()
+  if (!win || win.isDestroyed()) return
+
+  // Bring main window to foreground
+  if (win.isMinimized()) win.restore()
+  if (!win.isVisible()) win.show()
+  win.focus()
+
+  const route = NAV_COMMANDS[commandId]
+  if (route) {
+    win.webContents.send('palette-navigate', route)
+    return
+  }
+
+  // Scan triggers
+  if (commandId === 'action-scan-engines') {
+    win.webContents.send('palette-trigger-scan-engines')
+    return
+  }
+  if (commandId === 'action-scan-projects') {
+    win.webContents.send('palette-trigger-scan-projects')
+    return
+  }
+  if (commandId === 'action-add-project') {
+    win.webContents.send('palette-trigger-add-project')
+    return
+  }
+
+  logger.warn('palette', 'Unknown command', { commandId })
+}
+
+export function registerPaletteHandlers(ipcMain_: typeof ipcMain): void {
+  // Palette renderer is ready — the window stays hidden until explicitly opened.
+  // We only show it if it was opened via openPaletteWindow() before the renderer
+  // finished loading (i.e. the pending-show flag is set).
+  ipcMain_.on('palette-ready', (event) => {
+    try {
+      const win = getPaletteWindow()
+      if (win && !win.isDestroyed() && event.sender === win.webContents && isPendingShow()) {
+        forceForeground(win)
+      }
+    } catch (err) {
+      logger.error('palette', 'Failed to show paletteWindow', err)
+    }
+  })
+
+  // User picked a navigation/action command
+  ipcMain_.on('palette-execute', (_event, commandId: string) => {
+    logger.info('palette', 'Executing command', { commandId })
+    try {
+      closePaletteWindow()
+      routeToMainWindow(commandId)
+    } catch (err) {
+      logger.error('palette', 'Failed to close palette', err)
+    }
+  })
+
+  // User launched an engine directly from the palette
+  ipcMain_.on('palette-launch-engine', (_event, exePath: string) => {
+    logger.info('palette', 'Launch engine from palette', { exePath })
+    try {
+      closePaletteWindow()
+      handleLaunchEngine(exePath).catch((err) =>
+        logger.error('palette', 'Engine launch failed', err)
+      )
+    } catch (err) {
+      logger.error('palette', 'Failed to close palette', err)
+    }
+  })
+
+  // User launched a project directly from the palette
+  ipcMain_.on('palette-launch-project', (_event, projectPath: string) => {
+    logger.info('palette', 'Launch project from palette', { projectPath })
+    try {
+      closePaletteWindow()
+      handleLaunchProject(projectPath).catch((err) =>
+        logger.error('palette', 'Project launch failed', err)
+      )
+    } catch (err) {
+      logger.error('palette', 'Failed to close palette', err)
+    }
+  })
+
+  // User launched a project from the palette requesting a built-in launch config
+  ipcMain_.on('palette-launch-project-config', (_event, projectPath: string, configId: string) => {
+    logger.info('palette', 'Launch project from palette with config', { projectPath, configId })
+    try {
+      closePaletteWindow()
+      try {
+        const configs = loadLaunchConfigs()
+        const cfg = configs.find((c) => c.id === configId)
+        if (cfg) {
+          handleLaunchProjectWithConfig(projectPath, cfg).catch((err) =>
+            logger.error('palette', 'Project config launch failed', err)
+          )
+        } else {
+          logger.warn(
+            'palette',
+            'Requested launch config not found, falling back to normal launch',
+            { configId }
+          )
+          handleLaunchProject(projectPath).catch((err) =>
+            logger.error('palette', 'Project launch failed', err)
+          )
+        }
+      } catch (err) {
+        logger.error('palette', 'Failed to load launch configs', err)
+        handleLaunchProject(projectPath).catch((e) =>
+          logger.error('palette', 'Project launch failed', e)
+        )
+      }
+    } catch (err) {
+      logger.error('palette', 'Failed to close palette', err)
+    }
+  })
+
+  // Dismiss
+  ipcMain_.on('palette-close', () => {
+    try {
+      closePaletteWindow()
+    } catch (err) {
+      logger.error('palette', 'Failed to close palette', err)
+    }
+  })
+
+  // Fetch engines + projects from store — no scan, instant
+  ipcMain_.handle('palette-get-data', () => {
+    try {
+      const engines = loadEngines()
+      const projects = loadProjects()
+      return { engines, projects }
+    } catch (err) {
+      logger.error('palette', 'palette-get-data failed', err)
+      return { engines: [], projects: [] }
+    }
+  })
+
+  // Fast native fuzzy search for command palette
+  ipcMain_.handle(
+    'palette-fuzzy-search',
+    (
+      _e,
+      query: string,
+      items: Array<{ id: string; title: string; subtitle?: string; category: string }>
+    ) => {
+      try {
+        const native = getNative()
+        if (native?.paletteFuzzySearch) {
+          return native.paletteFuzzySearch(query, items)
+        }
+      } catch {
+        /* fallback */
+      }
+      return items.map((i) => ({ id: i.id, score: 0 }))
+    }
+  )
+
+  // Open palette programmatically
+  ipcMain_.handle('open-palette', async () => {
+    openPaletteWindow()
+  })
+}

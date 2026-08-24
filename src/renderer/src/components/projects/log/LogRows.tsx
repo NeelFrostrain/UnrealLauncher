@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type { LogLine } from './useProjectLogState'
 
 const LEVEL_CONFIG: Record<string, { color: string; bg: string; badge: string }> = {

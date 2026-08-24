@@ -1,5 +1,5 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useEffect } from 'react'
+import { CURRENT_LEGAL_POLICY_VERSION } from '../../utils/legalConstants'
 
 export function SystemInfoGrid(): React.ReactElement {
   const platform = window.electronAPI.platform
@@ -14,7 +14,7 @@ export function SystemInfoGrid(): React.ReactElement {
       if (v) setAppVersion(v)
     })
     if (platform === 'win32') window.electronAPI.isTracerRunning().then(setTracerRunning)
-  }, [])
+  }, [platform])
 
   const PLATFORM_LABEL: Record<string, string> = {
     win32: 'Windows',
@@ -46,6 +46,11 @@ export function SystemInfoGrid(): React.ReactElement {
               : 'Unavailable',
       color:
         nativeLoaded === null ? 'var(--color-text-muted)' : nativeLoaded ? '#60a5fa' : '#f87171'
+    },
+    {
+      label: 'Legal Policy',
+      value: `v${CURRENT_LEGAL_POLICY_VERSION}`,
+      color: 'var(--color-accent)'
     },
     ...(platform === 'win32'
       ? [

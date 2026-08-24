@@ -12,8 +12,9 @@ interface VirtualizedProjectGridProps {
 }
 
 const CARD_WIDTH = 212 // 200px card + 12px gap
-const CARD_HEIGHT = 212 // 200px card + 12px gap
+const CARD_HEIGHT = 185 // 200px card + 12px gap
 const BUFFER_SIZE = 3 // Extra rows to render outside viewport
+const PENDING_FRAME_THRESHOLD = 2 // Extra rows to render outside viewport
 
 export const VirtualizedProjectGrid = ({
   items,
@@ -25,11 +26,11 @@ export const VirtualizedProjectGrid = ({
   const containerRef = useRef<HTMLDivElement>(null)
   const [columnCount, setColumnCount] = useState(1)
   const [scrollTop, setScrollTop] = useState(0)
+  const [containerHeight, setContainerHeight] = useState(800)
 
   // Calculate visible range based on scroll position
   const firstVisibleRow = Math.max(0, Math.floor(scrollTop / CARD_HEIGHT) - BUFFER_SIZE)
-  const lastVisibleRow =
-    Math.ceil((scrollTop + (containerRef.current?.clientHeight || 800)) / CARD_HEIGHT) + BUFFER_SIZE
+  const lastVisibleRow = Math.ceil((scrollTop + containerHeight) / CARD_HEIGHT) + BUFFER_SIZE
   const rowCount = Math.ceil(items.length / columnCount)
 
   // Recalculate column count on resize
@@ -39,6 +40,7 @@ export const VirtualizedProjectGrid = ({
         const width = containerRef.current.clientWidth
         const newColumnCount = Math.max(1, Math.floor(width / CARD_WIDTH))
         setColumnCount(newColumnCount)
+        setContainerHeight(containerRef.current.clientHeight)
       }
     }
 
@@ -48,11 +50,25 @@ export const VirtualizedProjectGrid = ({
     return () => resizeObserver.disconnect()
   }, [])
 
+  const rafRef = useRef<number | null>(null)
+
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>): void => {
-    setScrollTop((e.currentTarget as HTMLDivElement).scrollTop)
+    const top = (e.currentTarget as HTMLDivElement).scrollTop
+    if (rafRef.current !== null) return // already a frame queued
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null
+      setScrollTop(top)
+    })
   }, [])
 
-  // Render only visible items
+  // Cancel any pending frame on unmount to avoid setState on unmounted component
+  useEffect(
+    () => () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+    },
+    []
+  )
+
   const visibleItems: React.ReactElement[] = []
   for (let row = firstVisibleRow; row < Math.min(lastVisibleRow, rowCount); row++) {
     for (let col = 0; col < columnCount; col++) {
@@ -62,16 +78,19 @@ export const VirtualizedProjectGrid = ({
       const item = items[index]
       if (!item?.projectPath) continue
 
+      // Distribute cards evenly across the full container width
+      const colWidthPct = 100 / columnCount
+
       visibleItems.push(
         <div
           key={`${item.projectPath}-${index}`}
           style={{
             position: 'absolute',
-            left: col * CARD_WIDTH,
+            left: `${col * colWidthPct}%`,
             top: row * CARD_HEIGHT,
-            width: 200,
-            height: 200,
-            padding: 6
+            width: `${colWidthPct}%`,
+            height: CARD_HEIGHT,
+            padding: PENDING_FRAME_THRESHOLD
           }}
         >
           <ProjectCardGrid
@@ -94,20 +113,17 @@ export const VirtualizedProjectGrid = ({
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="relative overflow-y-auto h-full"
-      style={{
-        width: '100%'
-      }}
+      className="relative overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden h-full"
+      style={{ width: '100%' }}
     >
-      {/* Virtual container for scrollbar and layout */}
+      {/* Virtual container — full width so cards spread evenly across the row */}
       <div
         style={{
           position: 'relative',
-          width: columnCount * CARD_WIDTH,
+          width: '100%',
           height: rowCount * CARD_HEIGHT
         }}
       >
-        {/* Rendered items positioned absolutely */}
         {visibleItems}
       </div>
     </div>

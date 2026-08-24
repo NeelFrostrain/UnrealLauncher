@@ -1,9 +1,14 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type { Project } from '../../types'
+import { getEngineCompatibilitySync } from '../../hooks'
 
 export const formatVersion = (v: string): string => {
   if (!v || v === 'Unknown') return '?'
   if (v.startsWith('{') || v.length > 12) return 'Custom'
+  const parts = v.trim().split('.')
+  if (parts.length >= 2) {
+    return `${parts[0]}.${parts[1]}`
+  }
   return v
 }
 
@@ -40,6 +45,178 @@ export const showErrorToast = (message: string): void => {
   })
   document.body.appendChild(msg)
   setTimeout(() => msg.remove(), 5000)
+}
+
+// ── Project search and activity helpers ─────────────────────────────────────
+
+const ACTIVITY_STORAGE_KEY = 'unrealLauncherProjectActivity'
+
+type ProjectActivityType =
+  'launch' | 'engine-launch' | 'plugin-change' | 'git-commit' | 'config-edit'
+
+export interface ProjectActivityEntry {
+  id: string
+  projectPath: string
+  projectName: string
+  type: ProjectActivityType
+  message: string
+  timestamp: string
+}
+
+const ACTIVITY_LABELS: Record<ProjectActivityType, string> = {
+  launch: 'Launch',
+  'engine-launch': 'Engine',
+  'plugin-change': 'Plugin',
+  'git-commit': 'Git',
+  'config-edit': 'Config'
+}
+
+export function getProjectActivityLabel(type: ProjectActivityType): string {
+  return ACTIVITY_LABELS[type]
+}
+
+export function formatActivityTimestamp(timestamp: string): string {
+  try {
+    const dt = new Date(timestamp)
+    if (Number.isNaN(dt.getTime())) return ''
+    return dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  } catch {
+    return ''
+  }
+}
+
+function readActivityStorage(): ProjectActivityEntry[] {
+  try {
+    const raw = localStorage.getItem(ACTIVITY_STORAGE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as ProjectActivityEntry[]
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function writeActivityStorage(entries: ProjectActivityEntry[]): void {
+  localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(entries))
+}
+
+export function addProjectActivity(
+  projectPath: string,
+  projectName: string,
+  type: ProjectActivityType,
+  message: string
+): void {
+  const entry: ProjectActivityEntry = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    projectPath,
+    projectName,
+    type,
+    message,
+    timestamp: new Date().toISOString()
+  }
+
+  const existing = readActivityStorage()
+  const next = [entry, ...existing.filter((item) => item.projectPath !== projectPath)]
+  writeActivityStorage(next.slice(0, 24))
+}
+
+export function getProjectActivitySummary(projectPath: string): string {
+  const entries = readActivityStorage().filter((item) => item.projectPath === projectPath)
+  if (!entries.length) return 'No recent activity'
+
+  const latest = entries[0]
+  return `${ACTIVITY_LABELS[latest.type]} · ${latest.message}`
+}
+
+export function getProjectActivityTimeline(projectPath: string): ProjectActivityEntry[] {
+  return readActivityStorage()
+    .filter((item) => item.projectPath === projectPath)
+    .slice(0, 6)
+}
+
+export function getProjectActivityFeed(): ProjectActivityEntry[] {
+  return readActivityStorage().slice(0, 20)
+}
+
+export function matchesProjectQuery(project: Project, query: string): boolean {
+  const normalized = query.trim().toLowerCase()
+  if (!normalized) return true
+
+  const haystacks = [
+    project.name,
+    project.version,
+    project.projectPath ?? '',
+    project.size,
+    project.createdAt,
+    project.lastOpenedAt ? formatDate(project.lastOpenedAt) : ''
+  ]
+
+  return haystacks.some((value) => value?.toLowerCase().includes(normalized))
+}
+
+export type EngineVersionFilter = 'all' | 'unspecified' | 'unsupported' | 'broken' | string
+
+export function toMajorMinorVersion(v: string | undefined): string {
+  if (!v || v === 'Unknown') return 'unspecified'
+  const trimmed = v.trim()
+  if (trimmed.startsWith('{') || trimmed.length > 12) return 'Custom'
+  const parts = trimmed.split('.')
+  if (parts.length >= 2) {
+    return `${parts[0]}.${parts[1]}`
+  }
+  return trimmed
+}
+
+function normalizeEngineVersion(value: string | undefined): string {
+  const normalized = (value ?? '').trim()
+  if (!normalized || normalized.toLowerCase() === 'unknown') return 'unspecified'
+  return normalized
+}
+
+export function filterProjectsByEngineVersion(
+  projects: Project[],
+  filter: EngineVersionFilter
+): Project[] {
+  if (!filter || filter === 'all') return projects
+
+  if (filter === 'broken') {
+    // Combined: projects with no version specified OR engine not installed
+    return projects.filter((project) => {
+      const version = normalizeEngineVersion(project.version)
+      if (version === 'unspecified') return true
+      const compat = getEngineCompatibilitySync(project.version || '')
+      if (!compat) return false
+      return compat.status === 'missing'
+    })
+  }
+
+  if (filter === 'unsupported') {
+    return projects.filter((project) => {
+      const version = normalizeEngineVersion(project.version)
+      if (version === 'unspecified') return false
+      const compat = getEngineCompatibilitySync(project.version || '')
+      if (!compat) {
+        // Engines not loaded yet — conservatively include projects that have a specified version
+        return version !== 'unspecified'
+      }
+      return compat.status === 'missing'
+    })
+  }
+
+  const normalizedFilter = normalizeEngineVersion(filter)
+  const filterMM = toMajorMinorVersion(normalizedFilter)
+
+  return projects.filter((project) => {
+    const rawVersion = normalizeEngineVersion(project.version)
+    if (normalizedFilter === 'unspecified') return rawVersion === 'unspecified'
+    const projectMM = toMajorMinorVersion(rawVersion)
+    return (
+      rawVersion === normalizedFilter ||
+      projectMM === filterMM ||
+      rawVersion.startsWith(filterMM + '.') ||
+      normalizedFilter.startsWith(projectMM + '.')
+    )
+  })
 }
 
 // ── Sorting ───────────────────────────────────────────────────────────────────
@@ -89,9 +266,10 @@ function toBytes(val: number, unit: string): number {
 }
 
 function toTimestamp(d: string | undefined): number {
-  if (!d) return 0
+  if (!d || d === 'Never' || d.trim() === '') return 0
   try {
-    return new Date(d).getTime()
+    const t = new Date(d).getTime()
+    return isNaN(t) ? 0 : t
   } catch {
     return 0
   }
@@ -110,15 +288,27 @@ export function sortProjects(projects: Project[], config: SortConfig): Project[]
       case 'size':
         cmp = parseSizeBytes(a.size) - parseSizeBytes(b.size)
         break
-      case 'createdAt':
-        cmp = toTimestamp(a.createdAt) - toTimestamp(b.createdAt)
+      case 'createdAt': {
+        const timeA = toTimestamp(a.createdAt)
+        const timeB = toTimestamp(b.createdAt)
+        cmp = timeA - timeB
         break
-      case 'lastOpenedAt':
-        cmp = toTimestamp(a.lastOpenedAt) - toTimestamp(b.lastOpenedAt)
+      }
+      case 'lastOpenedAt': {
+        const timeA = toTimestamp(a.lastOpenedAt)
+        const timeB = toTimestamp(b.lastOpenedAt)
+        cmp = timeA - timeB
+        if (cmp === 0) {
+          cmp = toTimestamp(a.createdAt) - toTimestamp(b.createdAt)
+        }
         break
+      }
       case 'version':
         cmp = (a.version || '').localeCompare(b.version || '', undefined, { numeric: true })
         break
+    }
+    if (cmp === 0) {
+      cmp = (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
     }
     return cmp * mul
   })

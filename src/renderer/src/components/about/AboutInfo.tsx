@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 // Re-export all about sub-components so existing imports keep working.
 export { AboutKnownIssues } from './AboutKnownIssues'
 export { AboutTechnical } from './AboutTechnical'

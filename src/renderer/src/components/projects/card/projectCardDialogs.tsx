@@ -1,11 +1,18 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useState, useEffect } from 'react'
-import ProjectContextMenu from '../ProjectContextMenu'
-import ProjectLogDialog from '../ProjectLogDialog'
-import GitCommitDialog from '../GitCommitDialog'
-import GitBranchDialog from '../GitBranchDialog'
-import ProjectFileEditorDialog from '../ProjectFileEditorDialog'
-import LaunchConfigDialog from '../../engines/LaunchConfigDialog'
+import { useState, useEffect, lazy, Suspense } from 'react'
+
+// All dialogs and the context menu are lazy-loaded — excluded from the initial
+// bundle chunk and only fetched on first user interaction.
+const ProjectContextMenu = lazy(() => import('../ProjectContextMenu'))
+const ProjectLogDialog = lazy(() => import('../dialogs/ProjectLogDialog'))
+const GitCommitDialog = lazy(() => import('../dialogs/GitCommitDialog'))
+const GitBranchDialog = lazy(() => import('../dialogs/GitBranchDialog'))
+const ProjectFileEditorDialog = lazy(() => import('../dialogs/ProjectFileEditorDialog'))
+const LaunchConfigDialog = lazy(() => import('../../engines/LaunchConfigDialog'))
+const ProjectPluginsDialog = lazy(() => import('../dialogs/ProjectPluginsDialog'))
+const ProjectHealthDialog = lazy(() => import('../dialogs/ProjectHealthDialog'))
+const ProjectAssetsDialog = lazy(() => import('../dialogs/ProjectAssetsDialog'))
+const ProjectSnapshotsDialog = lazy(() => import('../dialogs/ProjectSnapshotsDialog'))
+const ProjectCompilerDialog = lazy(() => import('../dialogs/ProjectCompilerDialog'))
 
 interface ProjectCardDialogsProps {
   ctxMenu: { x: number; y: number } | null
@@ -73,16 +80,20 @@ export function ProjectCardDialogs({
   onCloseBranchDialog,
   externalShowLaunchConfig,
   externalSetShowLaunchConfig
-}: ProjectCardDialogsProps) {
-  // File editor state lives here — survives context menu close
+}: ProjectCardDialogsProps): React.ReactElement {
   const [fileEditorMode, setFileEditorMode] = useState<'config' | 'uproject' | null>(null)
   const [internalShowLaunchConfig, internalSetShowLaunchConfig] = useState(false)
+  const [showPlugins, setShowPlugins] = useState(false)
+  const [showHealth, setShowHealth] = useState(false)
+  const [showAssets, setShowAssets] = useState(false)
+  const [showSnapshots, setShowSnapshots] = useState(false)
+  const [showCompiler, setShowCompiler] = useState(false)
   const showLaunchConfig =
     externalShowLaunchConfig !== undefined ? externalShowLaunchConfig : internalShowLaunchConfig
   const setShowLaunchConfig = externalSetShowLaunchConfig ?? internalSetShowLaunchConfig
 
   useEffect(() => {
-    const handler = (ev: Event) => {
+    const handler = (ev: Event): void => {
       try {
         const detail = (ev as CustomEvent).detail
         if (!detail) return
@@ -96,81 +107,215 @@ export function ProjectCardDialogs({
     return () => window.removeEventListener('open-project-launch-config', handler as EventListener)
   }, [projectPath, setShowLaunchConfig])
 
+  useEffect(() => {
+    const handler = (ev: Event): void => {
+      try {
+        const detail = (ev as CustomEvent).detail
+        if (!detail) return
+        if (!projectPath) return
+        if (detail.projectPath === projectPath) setShowHealth(true)
+      } catch {
+        /* ignore */
+      }
+    }
+    window.addEventListener('open-project-health-report', handler as EventListener)
+    return () => window.removeEventListener('open-project-health-report', handler as EventListener)
+  }, [projectPath])
+
+  useEffect(() => {
+    const handler = (ev: Event): void => {
+      try {
+        const detail = (ev as CustomEvent).detail
+        if (!detail) return
+        if (!projectPath) return
+        if (detail.projectPath === projectPath) setShowAssets(true)
+      } catch {
+        /* ignore */
+      }
+    }
+    window.addEventListener('open-project-assets-analysis', handler as EventListener)
+    return () =>
+      window.removeEventListener('open-project-assets-analysis', handler as EventListener)
+  }, [projectPath])
+
+  useEffect(() => {
+    const handler = (ev: Event): void => {
+      try {
+        const detail = (ev as CustomEvent).detail
+        if (!detail) return
+        if (!projectPath) return
+        if (detail.projectPath === projectPath) setShowSnapshots(true)
+      } catch {
+        /* ignore */
+      }
+    }
+    window.addEventListener('open-project-snapshots', handler as EventListener)
+    return () => window.removeEventListener('open-project-snapshots', handler as EventListener)
+  }, [projectPath])
+
+  useEffect(() => {
+    const handler = (ev: Event): void => {
+      try {
+        const detail = (ev as CustomEvent).detail
+        if (!detail) return
+        if (!projectPath) return
+        if (detail.projectPath === projectPath) setShowCompiler(true)
+      } catch {
+        /* ignore */
+      }
+    }
+    window.addEventListener('open-project-compiler', handler as EventListener)
+    return () => window.removeEventListener('open-project-compiler', handler as EventListener)
+  }, [projectPath])
+
   return (
     <>
       {ctxMenu && projectPath && (
-        <ProjectContextMenu
-          x={ctxMenu.x}
-          y={ctxMenu.y}
-          name={projectName ?? ''}
-          projectPath={projectPath}
-          projectVersion={projectVersion}
-          isFavorite={isFavorite}
-          isHidden={isHidden}
-          gitInitialized={gitInitialized}
-          gitBranch={gitBranch}
-          gitRemoteUrl={gitRemoteUrl}
-          onLaunch={onLaunch}
-          onLaunchGame={onLaunchGame}
-          onLaunchWithConfig={() => {
-            onLaunchWithConfig()
-            setShowLaunchConfig(true)
-          }}
-          onFavorite={onFavorite}
-          onOpenDir={onOpenDir}
-          onHide={onHide}
-          onViewLogs={onViewLogs}
-          onGitInit={onGitInit}
-          onOpenCommitDialog={onOpenCommitDialog}
-          onOpenBranchDialog={onOpenBranchDialog}
-          onOpenFileEditor={setFileEditorMode}
-          onClose={onCloseCtxMenu}
-        />
+        <Suspense fallback={null}>
+          <ProjectContextMenu
+            x={ctxMenu.x}
+            y={ctxMenu.y}
+            name={projectName ?? ''}
+            projectPath={projectPath}
+            projectVersion={projectVersion}
+            isFavorite={isFavorite}
+            isHidden={isHidden}
+            gitInitialized={gitInitialized}
+            gitBranch={gitBranch}
+            gitRemoteUrl={gitRemoteUrl}
+            onLaunch={onLaunch}
+            onLaunchGame={onLaunchGame}
+            onLaunchWithConfig={() => {
+              onLaunchWithConfig()
+              setShowLaunchConfig(true)
+            }}
+            onFavorite={onFavorite}
+            onOpenDir={onOpenDir}
+            onHide={onHide}
+            onViewLogs={onViewLogs}
+            onGitInit={onGitInit}
+            onOpenCommitDialog={onOpenCommitDialog}
+            onOpenBranchDialog={onOpenBranchDialog}
+            onOpenFileEditor={setFileEditorMode}
+            onOpenPlugins={() => setShowPlugins(true)}
+            onOpenHealthReport={() => setShowHealth(true)}
+            onOpenAssetAnalyzer={() => setShowAssets(true)}
+            onOpenSnapshots={() => setShowSnapshots(true)}
+            onOpenCompiler={() => setShowCompiler(true)}
+            onClose={onCloseCtxMenu}
+          />
+        </Suspense>
       )}
 
       {showLogs && projectPath && (
-        <ProjectLogDialog
-          projectName={projectName ?? ''}
-          projectPath={projectPath}
-          onClose={onCloseLogs}
-        />
+        <Suspense fallback={null}>
+          <ProjectLogDialog
+            projectName={projectName ?? ''}
+            projectPath={projectPath}
+            onClose={onCloseLogs}
+          />
+        </Suspense>
       )}
 
       {showCommitDialog && projectPath && (
-        <GitCommitDialog
-          projectName={projectName ?? ''}
-          projectPath={projectPath}
-          onClose={onCloseCommitDialog}
-        />
+        <Suspense fallback={null}>
+          <GitCommitDialog
+            projectName={projectName ?? ''}
+            projectPath={projectPath}
+            onClose={onCloseCommitDialog}
+          />
+        </Suspense>
       )}
 
       {showBranchDialog && projectPath && (
-        <GitBranchDialog
-          projectName={projectName ?? ''}
-          projectPath={projectPath}
-          currentBranch={gitBranch}
-          onBranchChanged={onBranchChanged}
-          onClose={onCloseBranchDialog}
-        />
+        <Suspense fallback={null}>
+          <GitBranchDialog
+            projectName={projectName ?? ''}
+            projectPath={projectPath}
+            currentBranch={gitBranch}
+            onBranchChanged={onBranchChanged}
+            onClose={onCloseBranchDialog}
+          />
+        </Suspense>
       )}
 
       {/* File editor — rendered here so it survives context menu unmount */}
       {fileEditorMode && projectPath && (
-        <ProjectFileEditorDialog
-          mode={fileEditorMode}
-          projectPath={projectPath}
-          projectName={projectName ?? ''}
-          onClose={() => setFileEditorMode(null)}
-        />
+        <Suspense fallback={null}>
+          <ProjectFileEditorDialog
+            mode={fileEditorMode}
+            projectPath={projectPath}
+            projectName={projectName ?? ''}
+            onClose={() => setFileEditorMode(null)}
+          />
+        </Suspense>
       )}
 
       {/* Launch config dialog */}
       {showLaunchConfig && projectPath && (
-        <LaunchConfigDialog
-          projectPath={projectPath}
-          displayName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
-          onClose={() => setShowLaunchConfig(false)}
-        />
+        <Suspense fallback={null}>
+          <LaunchConfigDialog
+            projectPath={projectPath}
+            displayName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            onClose={() => setShowLaunchConfig(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Plugins dialog */}
+      {showPlugins && projectPath && (
+        <Suspense fallback={null}>
+          <ProjectPluginsDialog
+            projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            projectPath={projectPath}
+            onClose={() => setShowPlugins(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Health dialog */}
+      {showHealth && projectPath && (
+        <Suspense fallback={null}>
+          <ProjectHealthDialog
+            projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            projectPath={projectPath}
+            onClose={() => setShowHealth(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Assets dialog */}
+      {showAssets && projectPath && (
+        <Suspense fallback={null}>
+          <ProjectAssetsDialog
+            projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            projectPath={projectPath}
+            onClose={() => setShowAssets(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Snapshots dialog */}
+      {showSnapshots && projectPath && (
+        <Suspense fallback={null}>
+          <ProjectSnapshotsDialog
+            projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            projectPath={projectPath}
+            onClose={() => setShowSnapshots(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Compiler & Build Tools dialog */}
+      {showCompiler && projectPath && (
+        <Suspense fallback={null}>
+          <ProjectCompilerDialog
+            projectName={projectName ?? projectPath.split(/[/\\]/).pop() ?? 'Project'}
+            projectPath={projectPath}
+            projectVersion={projectVersion}
+            onClose={() => setShowCompiler(false)}
+          />
+        </Suspense>
       )}
     </>
   )

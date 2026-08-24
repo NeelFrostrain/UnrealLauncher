@@ -1,12 +1,13 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import type { CppBuildOptions } from '../main/ipc/projects/projectCpp'
 
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('electronAPI', {
       scanEngines: () => ipcRenderer.invoke('scan-engines'),
+      loadSavedEngines: () => ipcRenderer.invoke('load-saved-engines'),
       scanProjects: () => ipcRenderer.invoke('scan-projects'),
       launchEngine: (exePath) => ipcRenderer.invoke('launch-engine', exePath),
       launchProject: (projectPath) => ipcRenderer.invoke('launch-project', projectPath),
@@ -19,6 +20,8 @@ if (process.contextIsolated) {
       windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
       deleteEngine: (directoryPath) => ipcRenderer.invoke('delete-engine', directoryPath),
       deleteProject: (projectPath) => ipcRenderer.invoke('delete-project', projectPath),
+      eraseProjectFromDisk: (projectPath: string) =>
+        ipcRenderer.invoke('erase-project-from-disk', projectPath),
       onSizeCalculated: (
         callback: (data: { type: 'engine' | 'project'; path: string; size: string }) => void
       ): (() => void) => {
@@ -93,9 +96,27 @@ if (process.contextIsolated) {
       electronVersion: process.versions.electron ?? '',
       saveMainSettings: (settings) => ipcRenderer.invoke('save-main-settings', settings),
       selectFolder: () => ipcRenderer.invoke('select-folder'),
+      selectFile: (filters?: Array<{ name: string; extensions: string[] }>) =>
+        ipcRenderer.invoke('select-file', filters),
       loadSavedProjects: () => ipcRenderer.invoke('load-saved-projects'),
+      updateProjectVersion: (projectPath: string, newVersion: string) =>
+        ipcRenderer.invoke('update-project-version', projectPath, newVersion),
       scanEnginePlugins: (engineDir: string) =>
         ipcRenderer.invoke('scan-engine-plugins', engineDir),
+      toggleEnginePluginDefault: (pluginPath: string, enabled: boolean) =>
+        ipcRenderer.invoke('toggle-engine-plugin-default', pluginPath, enabled),
+      clearEnginePluginCache: () => ipcRenderer.invoke('clear-engine-plugin-cache'),
+      getEnginePluginCacheTTL: () => ipcRenderer.invoke('get-engine-plugin-cache-ttl'),
+      setEnginePluginCacheTTL: (ms: number) =>
+        ipcRenderer.invoke('set-engine-plugin-cache-ttl', ms),
+      projectScanPlugins: (projectPath: string) =>
+        ipcRenderer.invoke('project-scan-plugins', projectPath),
+      clearProjectPluginCache: () => ipcRenderer.invoke('clear-project-plugin-cache'),
+      getProjectPluginCacheTTL: () => ipcRenderer.invoke('get-project-plugin-cache-ttl'),
+      setProjectPluginCacheTTL: (ms: number) =>
+        ipcRenderer.invoke('set-project-plugin-cache-ttl', ms),
+      projectTogglePlugin: (projectPath: string, pluginName: string, enabled: boolean) =>
+        ipcRenderer.invoke('project-toggle-plugin', projectPath, pluginName, enabled),
       fabGetDefaultPath: () => ipcRenderer.invoke('fab-get-default-path'),
       fabSelectFolder: () => ipcRenderer.invoke('fab-select-folder'),
       fabScanFolder: (folderPath: string) => ipcRenderer.invoke('fab-scan-folder', folderPath),
@@ -103,6 +124,25 @@ if (process.contextIsolated) {
       fabLoadPath: () => ipcRenderer.invoke('fab-load-path'),
       projectReadLog: (projectPath: string, fromByte?: number) =>
         ipcRenderer.invoke('project-read-log', projectPath, fromByte ?? 0),
+      projectCheckHealth: (projectPath: string) =>
+        ipcRenderer.invoke('project-check-health', projectPath),
+      projectAnalyzeAssets: (projectPath: string) =>
+        ipcRenderer.invoke('project-analyze-assets', projectPath),
+      projectExportAssetReport: (
+        projectPath: string,
+        reportContent: string,
+        format: 'json' | 'md'
+      ) => ipcRenderer.invoke('project-export-asset-report', projectPath, reportContent, format),
+      projectGetSnapshots: (projectPath: string) =>
+        ipcRenderer.invoke('project-get-snapshots', projectPath),
+      projectCreateSnapshot: (projectPath: string, name: string) =>
+        ipcRenderer.invoke('project-create-snapshot', projectPath, name),
+      projectCreateSnapshotWithProgress: (projectPath: string, name: string) =>
+        ipcRenderer.invoke('project-create-snapshot-with-progress', projectPath, name),
+      projectRestoreSnapshot: (projectPath: string, snapshotId: string) =>
+        ipcRenderer.invoke('project-restore-snapshot', projectPath, snapshotId),
+      projectDeleteSnapshot: (projectPath: string, snapshotId: string) =>
+        ipcRenderer.invoke('project-delete-snapshot', projectPath, snapshotId),
       projectGitStatus: (projectPath: string) =>
         ipcRenderer.invoke('project-git-status', projectPath),
       projectGitStatusBulk: (projectPaths: string[]) =>
@@ -186,20 +226,125 @@ if (process.contextIsolated) {
       onPaletteNavigate: (callback: (route: string) => void): (() => void) => {
         const listener = (_event: Electron.IpcRendererEvent, route: string): void => callback(route)
         ipcRenderer.on('palette-navigate', listener)
-        return (): void => { ipcRenderer.removeListener('palette-navigate', listener) }
+        return (): void => {
+          ipcRenderer.removeListener('palette-navigate', listener)
+        }
       },
       onPaletteAction: (callback: (commandId: string) => void): (() => void) => {
-        const listener = (_event: Electron.IpcRendererEvent, commandId: string): void => callback(commandId)
+        const listener = (_event: Electron.IpcRendererEvent, commandId: string): void =>
+          callback(commandId)
         ipcRenderer.on('palette-action', listener)
-        return (): void => { ipcRenderer.removeListener('palette-action', listener) }
+        return (): void => {
+          ipcRenderer.removeListener('palette-action', listener)
+        }
+      },
+      onSnapshotProgress: (
+        callback: (data: {
+          current: number
+          total: number
+          message: string
+          percentage: number
+        }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          data: {
+            current: number
+            total: number
+            message: string
+            percentage: number
+          }
+        ): void => callback(data)
+        ipcRenderer.on('snapshot-progress', listener)
+        return (): void => {
+          ipcRenderer.removeListener('snapshot-progress', listener)
+        }
+      },
+      taskManagerGetProcesses: () => ipcRenderer.invoke('task-manager-get-processes'),
+      taskManagerKillProcess: (pid: number) => ipcRenderer.invoke('task-manager-kill-process', pid),
+      relaunchApp: () => ipcRenderer.invoke('relaunch-app'),
+      checkVsSetup: () => ipcRenderer.invoke('vs:check-setup'),
+      repairVsSetup: (options?: { targetInstallPath?: string; missingComponentIds?: string[] }) =>
+        ipcRenderer.invoke('vs:repair-setup', options),
+      onVsLogOutput: (
+        callback: (log: {
+          timestamp: string
+          text: string
+          type: 'info' | 'success' | 'warning' | 'error'
+        }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          log: {
+            timestamp: string
+            text: string
+            type: 'info' | 'success' | 'warning' | 'error'
+          }
+        ): void => callback(log)
+        ipcRenderer.on('vs:log-output', listener)
+        return (): void => {
+          ipcRenderer.removeListener('vs:log-output', listener)
+        }
+      },
+      projectCppScan: (projectPath: string) => ipcRenderer.invoke('project-cpp-scan', projectPath),
+      projectCppCreateStructure: (projectPath: string) =>
+        ipcRenderer.invoke('project-cpp-create-structure', projectPath),
+      projectCppFixTargetRules: (projectPath: string) =>
+        ipcRenderer.invoke('project-cpp-fix-target-rules', projectPath),
+      projectCppOpenSln: (projectPath: string, ide?: 'vs' | 'rider', customRiderPath?: string) =>
+        ipcRenderer.invoke('project-cpp-open-sln', projectPath, ide, customRiderPath),
+      projectCppBuild: (options: CppBuildOptions) =>
+        ipcRenderer.invoke('project-cpp-build', options),
+      projectCppDebug: (projectPath: string, config?: string) =>
+        ipcRenderer.invoke('project-cpp-debug', projectPath, config),
+      projectCppStopDebug: (projectPath: string) =>
+        ipcRenderer.invoke('project-cpp-stop-debug', projectPath),
+      projectCppCheckDebug: (projectPath: string) =>
+        ipcRenderer.invoke('project-cpp-check-debug', projectPath),
+      projectCppCancelBuild: () => ipcRenderer.invoke('project-cpp-cancel-build'),
+      projectCppFetchSavedLogs: (projectPath: string) =>
+        ipcRenderer.invoke('project-cpp-fetch-saved-logs', projectPath),
+      projectCppSaveLogFile: (projectPath: string, content: string) =>
+        ipcRenderer.invoke('project-cpp-save-log-file', projectPath, content),
+      onCppDebugStatus: (
+        callback: (status: { isDebugging: boolean; projectPath: string; exeName?: string }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          status: { isDebugging: boolean; projectPath: string; exeName?: string }
+        ): void => callback(status)
+        ipcRenderer.on('cpp-debug-status', listener)
+        return (): void => {
+          ipcRenderer.removeListener('cpp-debug-status', listener)
+        }
+      },
+      onCppLogOutput: (
+        callback: (log: {
+          timestamp: string
+          text: string
+          type: 'info' | 'success' | 'warning' | 'error'
+          projectPath: string
+        }) => void
+      ): (() => void) => {
+        const listener = (
+          _event: Electron.IpcRendererEvent,
+          log: {
+            timestamp: string
+            text: string
+            type: 'info' | 'success' | 'warning' | 'error'
+            projectPath: string
+          }
+        ): void => callback(log)
+        ipcRenderer.on('project-cpp-log-output', listener)
+        return (): void => {
+          ipcRenderer.removeListener('project-cpp-log-output', listener)
+        }
       }
     })
   } catch (error) {
     console.error(error)
   }
 } else {
-  // @ts-ignore (define in dts)
+  // @ts-ignore
   window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
 }

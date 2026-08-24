@@ -18,6 +18,10 @@ contextBridge.exposeInMainWorld('paletteAPI', {
   launchProject: (projectPath: string): void => {
     ipcRenderer.send('palette-launch-project', projectPath)
   },
+  /** Launch a project using a built-in launch config (by id) */
+  launchProjectWithConfig: (projectPath: string, configId: string): void => {
+    ipcRenderer.send('palette-launch-project-config', projectPath, configId)
+  },
   /** Close this palette window */
   close: (): void => {
     ipcRenderer.send('palette-close')
@@ -28,7 +32,31 @@ contextBridge.exposeInMainWorld('paletteAPI', {
   },
   /** Fetch engines + projects from store (no scan — instant) */
   getData: (): Promise<{
-    engines: { version: string; exePath: string; directoryPath: string; folderSize: string; lastLaunch: string; gradient?: string; alias?: string }[]
-    projects: { name: string; version: string; size: string; createdAt: string; lastOpenedAt?: string; thumbnail?: string; projectPath?: string }[]
-  }> => ipcRenderer.invoke('palette-get-data')
+    engines: {
+      version: string
+      exePath: string
+      directoryPath: string
+      folderSize: string
+      lastLaunch: string
+      gradient?: string
+      alias?: string
+    }[]
+    projects: {
+      name: string
+      version: string
+      size: string
+      createdAt: string
+      lastOpenedAt?: string
+      thumbnail?: string
+      projectPath?: string
+    }[]
+  }> => ipcRenderer.invoke('palette-get-data'),
+  /** Listen for when the palette is shown again */
+  onOpened: (callback: () => void): (() => void) => {
+    const handler = (): void => callback()
+    ipcRenderer.on('palette-opened', handler)
+    return () => {
+      ipcRenderer.removeListener('palette-opened', handler)
+    }
+  }
 })

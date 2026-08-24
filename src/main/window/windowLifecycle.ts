@@ -4,12 +4,15 @@
  */
 
 import { app, BrowserWindow, Tray, Menu, nativeImage, globalShortcut } from 'electron'
+import type { BrowserWindowConstructorOptions } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { optimizer } from '@electron-toolkit/utils'
 import { MAIN_WINDOW_CONFIG } from './windowConfig'
 import { createSplashWindow, closeSplashWindow } from './splashWindow'
+import { openPaletteWindow } from './paletteWindow'
 import {
+  enableBackgroundMode,
   setupWindowEventHandlers,
   setupDevToolsShortcut,
   setupMemoryManagement
@@ -22,20 +25,30 @@ let isQuiting = false
 let memoryManagementTimer: NodeJS.Timeout | null = null
 
 // ── Background global shortcut ────────────────────────────────────────────────
-// Registered only when the window is hidden (tray mode). Unregistered when the
-// window is shown so the renderer can handle Ctrl+K normally while focused.
+// The tracer process now owns the system-wide Ctrl+K hotkey and signals us
+// via the named pipe.  We only register the Electron globalShortcut as a
+// fallback for when the tracer is NOT installed / running (e.g. Linux/macOS
+// or first-run before tracer starts).  On Windows with tracer running this
+// shortcut registration will silently fail (hotkey already claimed) which is
+// the correct behaviour — we don't want a double-trigger.
 const PALETTE_SHORTCUT = 'CommandOrControl+K'
 
 function registerBackgroundShortcut(): void {
   if (globalShortcut.isRegistered(PALETTE_SHORTCUT)) return
-  globalShortcut.register(PALETTE_SHORTCUT, () => {
+  // On Windows the tracer owns this key; this will fail silently — that's fine.
+  const ok = globalShortcut.register(PALETTE_SHORTCUT, () => {
     logger.info('shortcut', 'Background Ctrl+K triggered — opening palette window')
-    // Import lazily to avoid circular dependency at module load time
-    import('./paletteWindow').then(({ openPaletteWindow }) => {
+    try {
       openPaletteWindow()
-    }).catch((err) => logger.error('shortcut', 'Failed to open palette window', err))
+    } catch (err) {
+      logger.error('shortcut', 'Failed to open palette window', err)
+    }
   })
-  logger.info('shortcut', 'Background Ctrl+K registered')
+  if (ok) {
+    logger.info('shortcut', 'Background Ctrl+K registered (tracer not running)')
+  } else {
+    logger.info('shortcut', 'Background Ctrl+K not registered — tracer owns the hotkey')
+  }
 }
 
 function unregisterBackgroundShortcut(): void {
@@ -152,10 +165,11 @@ export function handleRequestedAppClose(): void {
 
   if (mainWindow && !mainWindow.isDestroyed()) {
     if (createAppTray()) {
-      logger.info('window', 'Close requested; closing window and staying in tray')
-      // Register background shortcut before closing so it's active immediately
+      logger.info('window', 'Close requested; hiding window and staying in tray')
+      // Register background shortcut before hiding so it's active immediately
       registerBackgroundShortcut()
-      mainWindow.close()
+      mainWindow.hide()
+      enableBackgroundMode(mainWindow)
     }
   }
 }
@@ -188,7 +202,7 @@ export function createWindow(): void {
   logger.info('window', 'Creating splash and main window')
   createSplashWindow()
 
-  mainWindow = new BrowserWindow(MAIN_WINDOW_CONFIG as any)
+  mainWindow = new BrowserWindow(MAIN_WINDOW_CONFIG as BrowserWindowConstructorOptions)
   logger.info('window', 'Main BrowserWindow created', {
     width: MAIN_WINDOW_CONFIG.width,
     height: MAIN_WINDOW_CONFIG.height,
@@ -199,15 +213,17 @@ export function createWindow(): void {
   clearMemoryManagementTimer()
   memoryManagementTimer = setupMemoryManagement(mainWindow)
 
-  mainWindow.on('close', () => {
+  mainWindow.on('close', (event) => {
     logger.info('window', 'Main window close event', { isQuiting })
     if (isQuiting) return
     const settings = loadMainSettings()
     if (settings.backgroundCloseEnabled && mainWindow && !mainWindow.isDestroyed()) {
+      event.preventDefault()
       if (createAppTray()) {
         // Window is going to tray — register background shortcut
         registerBackgroundShortcut()
-        return
+        mainWindow.hide()
+        enableBackgroundMode(mainWindow)
       }
     }
   })

@@ -1,4 +1,4 @@
-# Build Guide
+﻿# Build Guide
 
 This guide covers the full build process for Unreal Launcher — including the Rust native module, the UE Tracer, and the Electron app/installer.
 

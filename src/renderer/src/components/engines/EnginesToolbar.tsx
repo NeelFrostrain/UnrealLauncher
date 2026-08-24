@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type { FC } from 'react'
 import { Plus, RefreshCw, Zap } from 'lucide-react'
 
@@ -51,11 +51,12 @@ const EnginesToolbar: FC<EnginesToolbarProps> = ({
         <button
           onClick={onScan}
           disabled={scanning}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
           style={{
             backgroundColor: 'var(--color-surface-card)',
             color: 'var(--color-text-secondary)',
-            border: '1px solid var(--color-border)'
+            border: '1px solid var(--color-border)',
+            fontSize: 'calc(var(--font-size) * 0.85)'
           }}
           title="Scan for engines"
         >
@@ -65,8 +66,11 @@ const EnginesToolbar: FC<EnginesToolbarProps> = ({
         <button
           onClick={onAddEngine}
           disabled={addingEngine}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-          style={{ backgroundColor: 'var(--color-accent)' }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-white transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          style={{
+            backgroundColor: 'var(--color-accent)',
+            fontSize: 'calc(var(--font-size) * 0.85)'
+          }}
           title="Add Engine"
         >
           <Plus size={13} />

@@ -2,11 +2,13 @@
 
 > A lightweight, cross-platform Electron desktop app for discovering, launching, and managing Unreal Engine installations and projects — no Epic Games Launcher required.
 
+![S1](./docs/S1.png)
+
 <!-- Metadata Row -->
 
-[![Version](https://img.shields.io/badge/version-2.3.1-blue)](https://github.com/NeelFrostrain/UnrealLauncher/releases/tag/v2.3.0)
+[![Version](https://img.shields.io/badge/version-2.5.6-blue)](https://github.com/NeelFrostrain/UnrealLauncher/releases)
 [![Status](https://img.shields.io/badge/status-ready-brightgreen)](https://github.com/NeelFrostrain/UnrealLauncher)
-[![License](https://img.shields.io/badge/license-proprietary-red)](LICENSE)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-777777)](#-distribution)
 [![CI](https://github.com/NeelFrostrain/UnrealLauncher/actions/workflows/ci.yml/badge.svg)](https://github.com/NeelFrostrain/UnrealLauncher/actions/workflows/ci.yml)
 
@@ -36,11 +38,11 @@
 
 ## What It Does
 
-**Unreal Launcher** is a full replacement for the Epic Games Launcher for day-to-day Unreal Engine development. It auto-scans your drives for installed engines and `.uproject` files, lets you launch them with one click, browses your Fab marketplace assets, and stays completely out of your way. No bloat, no login, no waiting.
+**Unreal Launcher** is a full replacement for the Epic Games Launcher for day-to-day Unreal Engine development. It auto-scans your drives for installed engines and `.uproject` files, lets you launch them with one click, diagnoses project health, creates ZIP snapshots, monitors background tasks, browses your Fab marketplace assets, and stays completely out of your way. No bloat, no login, no waiting.
 
-Supports **Windows**, **macOS**, and **Linux** with native performance optimizations and platform-specific features.
+Supports **Windows**, **macOS**, and **Linux** with native Rust performance optimizations and platform-specific features.
 
-**Tech Stack:** TypeScript · React 19 · Electron 39 · Vite 7 · Tailwind CSS 4 · Zustand · Framer Motion · Rust (napi-rs)
+**Tech Stack:** TypeScript · React 19 · Electron 39 · Vite 7 · Tailwind CSS 4 · Zustand · Rust (napi-rs)
 
 ---
 
@@ -59,31 +61,29 @@ Supports **Windows**, **macOS**, and **Linux** with native performance optimizat
 ### Engine Management
 
 - **Auto-Scan Engines** — Discovers UE4 & UE5 installations across common paths
-- **Windows Registry Discovery** — Reads registry via `reg.exe` to find Epic-installed engines automatically
+- **Windows Registry & Manifest Discovery** — Reads Windows Registry (`HKCU\SOFTWARE\Epic Games\Unreal Engine\Builds`) & Epic Launcher manifests (`C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests`)
 - **Manual Engine Add** — Browse and validate any custom engine folder
 - **Engine Alias** — Set custom nicknames for engine instances to tell duplicates apart
 - **One-Click Launch** — Start any engine version instantly
-- **Background Size Calculation** — Folder size computed without blocking the UI
+- **Fast Multithreaded Sizing** — Zero-syscall folder size calculation powered by Rust worker pools
 - **Marketplace Plugin Browser** — Lists all installed marketplace plugins per engine
 - **Engine Deletion** — Remove engines from the list (files remain untouched)
 
-### Project Management
+### Project Management & Diagnostics
 
 - **Auto-Scan Projects** — Recursively finds all `.uproject` files across your drives
+- **Project Health Dashboard** — Deep structural analysis, missing folder checks, config validation & 1-click generated cache cleanup
+- **Snapshot Manager** — Lightweight backup & restore utility capturing ZIP archives of `Config`, `Content`, `Source` & `.uproject`
+- **Asset Usage & Duplicate Analyzer** — Byte-level SipHash duplicate detection and size breakdown of `Content` folder assets
+- **Tasks & Process Manager** — Dedicated `/tasks` page for monitoring active Unreal Engine processes, background builds, and bulk terminations
 - **Batch Import** — Add up to 20 projects at once from a single folder
-- **One-Click Launch** — Open any project in its matching engine editor
-- **Game Mode Launch** — Launch projects directly in `-game` mode
-- **List & Grid View** — Toggle between flat list and thumbnail grid (preference persisted)
-- **Favorites System** — Pin projects with a star; dedicated Favorites tab
-- **Hidden Projects Tab** — Hide projects non-destructively; restore any time
-- **Advanced Sorting** — Sort by name, last opened, date created, size, or engine version (asc/desc, persisted)
-- **Real-Time Search** — Filter projects by name instantly
-- **Per-Project Size Calculation** — Background calculation with live progress
-- **Log Viewer** — Tail the latest `.log` file from `Saved/Logs/` directly in the app
-- **Git Integration** — Detect branch, remote URL, initialize repos with UE-ready `.gitignore`
-- **File Editor** — Edit `DefaultEngine.ini` and `.uproject` files in-app with find/replace
-- **Rich Context Menu** — Git tools, project tools, organize options via right-click menu
-- **Open in Explorer** — Jump to project folder or open in terminal
+- **One-Click Launch & Game Mode** — Open projects in editor or launch directly in `-game` mode
+- **List & Grid View** — Toggle between flat list and responsive thumbnail grid
+- **Favorites & Hidden Tabs** — Star key projects or hide inactive projects non-destructively
+- **Advanced Sorting & Search** — Filter by name, engine version, last opened, date created, or size
+- **Log Viewer & In-App Editor** — Tail Saved/Logs in real time and edit `DefaultEngine.ini` / `.uproject` files in-app
+- **Git Integration** — Detect branch, remote URL, commit status, and initialize UE-ready repositories
+- **Change Engine Version** — Switch linked engine associations directly from the context menu
 
 ### Fab Marketplace Browser
 
@@ -240,15 +240,15 @@ On each scan, tracer data is merged with saved data. Tracer provides `lastOpened
 
 ### Frontend
 
-| Library       | Version | Purpose                                |
-| ------------- | ------- | -------------------------------------- |
-| React         | 19      | UI framework                           |
-| TypeScript    | 5.9     | Type safety                            |
-| Tailwind CSS  | 4       | Styling                                |
-| Zustand       | 5       | State management                       |
-| Framer Motion | 12      | Animations                             |
-| Lucide React  | 1.8     | Icons                                  |
-| React Router  | 7       | Page routing                           |
+| Library       | Version | Purpose                                          |
+| ------------- | ------- | ------------------------------------------------ |
+| React         | 19      | UI framework                                     |
+| TypeScript    | 5.9     | Type safety                                      |
+| Tailwind CSS  | 4       | Styling                                          |
+| Zustand       | 5       | State management                                 |
+| Framer Motion | 12      | Animations                                       |
+| Lucide React  | 1.8     | Icons                                            |
+| React Router  | 7       | Page routing                                     |
 | React Window  | 2       | Virtualized lists (large project sets) — planned |
 
 ### Backend (Main Process)
@@ -551,25 +551,26 @@ See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full guide.
 
 ---
 
-## License
+## License & Legal Policies
 
-Copyright (c) 2026 NeelFrostrain. All rights reserved.
+Copyright (c) 2026 NeelFrostrain.
 
-This project uses a **proprietary license**. You may download and run the compiled binary for personal use, but you may **not** copy, modify, redistribute, or use the source code in your own projects.
-
-See [LICENSE](LICENSE) for full terms.
+- **License:** Licensed under the **GNU General Public License v3.0** (GPLv3). See [LICENSE](LICENSE) for full terms.
+- **Privacy Policy:** Read how user data, telemetry, and local storage are handled in [PRIVACY_POLICY.md](PRIVACY_POLICY.md).
+- **Terms & Conditions:** Review terms of service, trademark disclaimers, and warranty limitations in [TERMS_AND_CONDITIONS.md](TERMS_AND_CONDITIONS.md).
+- **Legal Analysis:** Technical breakdown of all codebase subsystems mapped to policy clauses in [docs/LEGAL_AND_PRIVACY_ANALYSIS.md](docs/LEGAL_AND_PRIVACY_ANALYSIS.md).
 
 ---
 
 ## Support & Community
 
-| Channel            | Contact & Support Link                                                                                                                                                    |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **🐛 Bug Reports** | [![GitHub Issues](https://img.shields.io/badge/GitHub_Issues-Report_Bug-d73a49?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/issues)      |
-| **💬 Q&A & Ideas** | [![GitHub Discussions](https://img.shields.io/badge/Discussions-Join_In-24292e?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/discussions) |
-| **🎮 Community**   | [![Discord](https://img.shields.io/badge/Discord-Join_Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)                                         |
-| **✉️ Direct Mail** | [![Email](https://img.shields.io/badge/Email-nfrostrain%40gmail.com-0078d4?logo=gmail&logoColor=white)](mailto:nfrostrain@gmail.com)                                      |
-| **☕ Support Me**  | [![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy_Me_a_Coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/neelfrostrain)                                        |
+| Channel         | Contact & Support Link                                                                                                                                                    |
+| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Bug Reports** | [![GitHub Issues](https://img.shields.io/badge/GitHub_Issues-Report_Bug-d73a49?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/issues)      |
+| **Q&A & Ideas** | [![GitHub Discussions](https://img.shields.io/badge/Discussions-Join_In-24292e?logo=github&logoColor=white)](https://github.com/NeelFrostrain/UnrealLauncher/discussions) |
+| **Community**   | [![Discord](https://img.shields.io/badge/Discord-Join_Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/vq4UDfevG2)                                         |
+| **Direct Mail** | [![Email](https://img.shields.io/badge/Email-nfrostrain%40gmail.com-0078d4?logo=gmail&logoColor=white)](mailto:nfrostrain@gmail.com)                                      |
+| **Support Me**  | [![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy_Me_a_Coffee-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/neelfrostrain)                                        |
 
 **Community Badges:**
 

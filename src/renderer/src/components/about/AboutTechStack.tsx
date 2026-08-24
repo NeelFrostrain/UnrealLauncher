@@ -1,4 +1,4 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { Cpu } from 'lucide-react'
 import { SectionHeader, Card } from '../settings/SectionHelpers'
 import { TECH_STACK } from './aboutConstants'
