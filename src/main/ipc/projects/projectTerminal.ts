@@ -31,7 +31,9 @@ export async function handleProjectOpenTerminal(
     if (native?.launchProjectTerminalNative) {
       const ok = native.launchProjectTerminalNative(projectPath_safe)
       if (ok) {
-        logger.info('terminal', 'Launched project terminal via native engine', { path: projectPath_safe })
+        logger.info('terminal', 'Launched project terminal via native engine', {
+          path: projectPath_safe
+        })
         return { success: true }
       }
     }
@@ -143,7 +145,10 @@ export async function handleProjectOpenGithubDesktop(
             windowsHide: true,
             shell: false
           }).unref()
-          logger.info('terminal', 'Opened GitHub Desktop via native discovery', { exe, path: validatedPath })
+          logger.info('terminal', 'Opened GitHub Desktop via native discovery', {
+            exe,
+            path: validatedPath
+          })
           return { success: true }
         }
       }

@@ -260,7 +260,10 @@ export async function handleProjectGitHasChanges(projectPath: string): Promise<{
 
     const out = (await runGitAsync(safe, ['status', '--porcelain'])).toString().trim()
     const lines = out ? out.split('\n').filter(Boolean) : []
-    const fileList = lines.map((l) => ({ status: l.slice(0, 2).trim() || '?', file: l.slice(3).trim() }))
+    const fileList = lines.map((l) => ({
+      status: l.slice(0, 2).trim() || '?',
+      file: l.slice(3).trim()
+    }))
     const hasChanges = lines.length > 0
     const summary = hasChanges
       ? `${lines.length} file${lines.length !== 1 ? 's' : ''} changed`
@@ -278,7 +281,10 @@ export async function handleProjectGitHasChanges(projectPath: string): Promise<{
       fileList
     }
   } catch (err) {
-    logger.error('git', 'Failed to retrieve project changes', { projectPath, error: (err as Error).message })
+    logger.error('git', 'Failed to retrieve project changes', {
+      projectPath,
+      error: (err as Error).message
+    })
     return { hasChanges: false, summary: '', fileList: [], error: (err as Error).message }
   }
 }
@@ -385,7 +391,10 @@ export async function handleProjectGitBranches(
     })
     return { branches, current }
   } catch (err) {
-    logger.error('git', 'Failed to fetch git branches', { projectPath, error: (err as Error).message })
+    logger.error('git', 'Failed to fetch git branches', {
+      projectPath,
+      error: (err as Error).message
+    })
     return { branches: [], current: '', error: (err as Error).message }
   }
 }
@@ -465,7 +474,11 @@ export async function handleProjectGitSwitchBranch(
       throw err
     }
   } catch (err) {
-    logger.error('git', 'Failed to switch git branch', { projectPath, branch, error: (err as Error).message })
+    logger.error('git', 'Failed to switch git branch', {
+      projectPath,
+      branch,
+      error: (err as Error).message
+    })
     return { success: false, error: (err as Error).message }
   }
 }

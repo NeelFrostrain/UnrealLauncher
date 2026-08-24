@@ -94,7 +94,10 @@ export async function handleSelectProjectFolder(): Promise<ProjectSelectionResul
     // native loaded statically
     const native = getNative()
     if (native?.processSelectedProjectFolderNative) {
-      const nativeRes = native.processSelectedProjectFolderNative(folder, JSON.stringify(savedProjects))
+      const nativeRes = native.processSelectedProjectFolderNative(
+        folder,
+        JSON.stringify(savedProjects)
+      )
       if (nativeRes) {
         const added = nativeRes.addedProjects.slice(0, BATCH_LIMIT).map((p) => ({
           name: p.name,

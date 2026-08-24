@@ -234,7 +234,7 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
       } catch (error) {
         addToast(
           'Error changing engine version: ' +
-          (error instanceof Error ? error.message : String(error)),
+            (error instanceof Error ? error.message : String(error)),
           'error'
         )
       }
@@ -362,13 +362,13 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
             onClick={p.onLaunchGame}
             onClose={p.onClose}
           />
-            <MenuItem
-              icon={<Code2 size={11} style={{ color: '#38bdf8' }} />}
-              label="Open Compiler"
-              sub="C++ build, debug & solution tools"
-              onClick={p.onOpenCompiler}
-              onClose={p.onClose}
-            />
+          <MenuItem
+            icon={<Code2 size={11} style={{ color: '#38bdf8' }} />}
+            label="Open Compiler"
+            sub="C++ build, debug & solution tools"
+            onClick={p.onOpenCompiler}
+            onClose={p.onClose}
+          />
           <MenuItem
             icon={<Settings2 size={11} style={{ color: 'var(--color-text-muted)' }} />}
             label="Launch with Config"

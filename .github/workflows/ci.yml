@@ -103,9 +103,13 @@ jobs:
 
       # Stub tracer binary so copy:tracer doesn't error
       - name: Stub tracer binary
-        run: touch resources/unreal_launcher_tracer
+        run: |
+          mkdir -p resources
+          touch resources/unreal_launcher_tracer
+          touch resources/unreal_launcher_tracer.exe
 
-      - name: Build (electron-vite only — no Rust/Tracer)
-        run: npx electron-vite build
+      - name: Build (electron-vite bundle verification)
+        run: npm run build:app
         env:
           NODE_ENV: production
+

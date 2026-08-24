@@ -28,7 +28,8 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
         const procs = rawList.map((p: any) => ({
           pid: p.pid,
           name: p.name,
-          memoryBytes: p.memoryBytes ?? p.memory_bytes ?? (p.memory_mb ? p.memory_mb * 1024 * 1024 : 0),
+          memoryBytes:
+            p.memoryBytes ?? p.memory_bytes ?? (p.memory_mb ? p.memory_mb * 1024 * 1024 : 0),
           cpuSeconds: p.cpuSeconds ?? p.cpu_seconds,
           path: p.path,
           projectPath: p.projectPath ?? p.project_path,
@@ -63,46 +64,48 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
         }
 
         const list = Array.isArray(parsed) ? parsed : [parsed]
-        return list
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .filter((p: any) => Number(p.Id) !== currentPid)
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .map((p: any) => {
-            const name = p.ProcessName || 'Unknown'
-            let type: 'editor' | 'build' | 'service' | 'other' = 'other'
-            if (name.toLowerCase().includes('editor')) {
-              type = 'editor'
-            } else if (
-              name.toLowerCase().includes('build') ||
-              name.toLowerCase().includes('shader') ||
-              name.toLowerCase().includes('pak')
-            ) {
-              type = 'build'
-            } else if (
-              name.toLowerCase().includes('swarm') ||
-              name.toLowerCase().includes('epic')
-            ) {
-              type = 'service'
-            }
+        return (
+          list
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .filter((p: any) => Number(p.Id) !== currentPid)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .map((p: any) => {
+              const name = p.ProcessName || 'Unknown'
+              let type: 'editor' | 'build' | 'service' | 'other' = 'other'
+              if (name.toLowerCase().includes('editor')) {
+                type = 'editor'
+              } else if (
+                name.toLowerCase().includes('build') ||
+                name.toLowerCase().includes('shader') ||
+                name.toLowerCase().includes('pak')
+              ) {
+                type = 'build'
+              } else if (
+                name.toLowerCase().includes('swarm') ||
+                name.toLowerCase().includes('epic')
+              ) {
+                type = 'service'
+              }
 
-            // Extract .uproject path from command line arguments
-            let projectPath: string | undefined
-            const cmdLine: string = p.CommandLine || ''
-            const uprojectMatch = cmdLine.match(/["']?([A-Za-z]:[^"'\s]*\.uproject)["']?/i)
-            if (uprojectMatch) {
-              projectPath = uprojectMatch[1].replace(/\\\\/g, '\\')
-            }
+              // Extract .uproject path from command line arguments
+              let projectPath: string | undefined
+              const cmdLine: string = p.CommandLine || ''
+              const uprojectMatch = cmdLine.match(/["']?([A-Za-z]:[^"'\s]*\.uproject)["']?/i)
+              if (uprojectMatch) {
+                projectPath = uprojectMatch[1].replace(/\\\\/g, '\\')
+              }
 
-            return {
-              pid: Number(p.Id),
-              name,
-              memoryBytes: Number(p.WorkingSet64 || 0),
-              cpuSeconds: typeof p.CPU === 'number' ? p.CPU : undefined,
-              path: p.Path || undefined,
-              projectPath,
-              type
-            }
-          })
+              return {
+                pid: Number(p.Id),
+                name,
+                memoryBytes: Number(p.WorkingSet64 || 0),
+                cpuSeconds: typeof p.CPU === 'number' ? p.CPU : undefined,
+                path: p.Path || undefined,
+                projectPath,
+                type
+              }
+            })
+        )
       } else {
         // Fallback for macOS/Linux using ps
         const currentPid = process.pid
@@ -170,7 +173,10 @@ export function registerTaskManagerHandlers(ipcMain_: typeof ipcMain): void {
             return { success: true }
           }
         } catch (err) {
-          logger.warn('task-manager', 'Native process tree kill failed, falling back to JS', { pid, err })
+          logger.warn('task-manager', 'Native process tree kill failed, falling back to JS', {
+            pid,
+            err
+          })
         }
       }
 

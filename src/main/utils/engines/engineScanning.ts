@@ -10,7 +10,6 @@ import { getEngineInstallPaths, getBinaryExtension } from '../system/platformPat
 import type { ScannedEngine } from '../native'
 import { logger } from '../../logger'
 
-
 export async function scanEnginePaths(extraPaths: string[] = []): Promise<ScannedEngine[]> {
   logger.info('scan', 'Engine scan started', { extraPaths })
   const native = getNative()

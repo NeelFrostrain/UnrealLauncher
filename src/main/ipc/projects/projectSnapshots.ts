@@ -433,10 +433,14 @@ export function registerProjectSnapshotHandlers(ipcMain_: typeof ipcMain): void 
         try {
           const ok = native.snapshotDeleteNative(validatedPath, snapshotId)
           if (ok) {
-            logger.info('snapshot-manager', 'Successfully deleted local project snapshot via native', {
-              snapshotId,
-              projectPath: validatedPath
-            })
+            logger.info(
+              'snapshot-manager',
+              'Successfully deleted local project snapshot via native',
+              {
+                snapshotId,
+                projectPath: validatedPath
+              }
+            )
             return { success: true }
           }
         } catch {

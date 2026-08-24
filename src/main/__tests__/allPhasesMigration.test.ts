@@ -93,7 +93,8 @@ describe('All Phases Native Migration Tests (Phases 1 to 35)', () => {
   })
 
   it('Phase 8: Deep Engine Plugins & Compatibility Analyzer', () => {
-    const plugins = native!.scanEnginePluginsDeepNative?.(path.resolve(__dirname, '../../../')) ?? []
+    const plugins =
+      native!.scanEnginePluginsDeepNative?.(path.resolve(__dirname, '../../../')) ?? []
     expect(Array.isArray(plugins)).toBe(true)
   })
 
@@ -120,7 +121,13 @@ describe('All Phases Native Migration Tests (Phases 1 to 35)', () => {
     const tmpLogs = path.join(os.tmpdir(), `unreal_test_logs_${Date.now()}`)
     fs.mkdirSync(tmpLogs, { recursive: true })
 
-    const appended = native!.nativeLogAppend?.(tmpLogs, 'INFO', 'test', 'Test log message', JSON.stringify({ meta: 1 }))
+    const appended = native!.nativeLogAppend?.(
+      tmpLogs,
+      'INFO',
+      'test',
+      'Test log message',
+      JSON.stringify({ meta: 1 })
+    )
     expect(appended).toBe(true)
 
     const cleaned = native!.nativeClearOldLogs?.(tmpLogs, 30)
@@ -157,13 +164,19 @@ describe('All Phases Native Migration Tests (Phases 1 to 35)', () => {
 
   it('Phase 16: Native Asset Report Exporter & Serializer', () => {
     const tmpReport = path.join(os.tmpdir(), `asset_report_${Date.now()}.csv`)
-    const success = native!.exportAssetReportNative?.(tmpReport, 'Name,Size,Type\nAssetA,10MB,Texture')
+    const success = native!.exportAssetReportNative?.(
+      tmpReport,
+      'Name,Size,Type\nAssetA,10MB,Texture'
+    )
     expect(success).toBe(true)
     if (fs.existsSync(tmpReport)) fs.unlinkSync(tmpReport)
   })
 
   it('Phase 17: Native Thumbnail SHA-1 Cache Hash Calculator', () => {
-    const hashFile = native!.getThumbnailCacheFilenameNative?.('C:/Projects/Test/thumb.png', 12345678)
+    const hashFile = native!.getThumbnailCacheFilenameNative?.(
+      'C:/Projects/Test/thumb.png',
+      12345678
+    )
     expect(hashFile).toMatch(/^[a-f0-9]{40}\.png$/)
   })
 
@@ -215,9 +228,7 @@ describe('All Phases Native Migration Tests (Phases 1 to 35)', () => {
 
   it('Phase 23: Native Discord Webhook URL & Payload Validator', () => {
     expect(
-      native!.validateDiscordWebhookUrlNative?.(
-        'https://discord.com/api/webhooks/123456789/abcdef'
-      )
+      native!.validateDiscordWebhookUrlNative?.('https://discord.com/api/webhooks/123456789/abcdef')
     ).toBe(true)
     expect(
       native!.validateDiscordWebhookUrlNative?.('https://malicious.com/api/webhooks/123')
@@ -294,7 +305,8 @@ describe('All Phases Native Migration Tests (Phases 1 to 35)', () => {
   })
 
   it('Phase 33: Native Unreal Process Command-Line Project Extractor', () => {
-    const cmd = '"C:\\Program Files\\Epic Games\\UE_5.4\\Engine\\Binaries\\Win64\\UnrealEditor.exe" "D:\\Games\\MyActionRPG\\MyActionRPG.uproject"'
+    const cmd =
+      '"C:\\Program Files\\Epic Games\\UE_5.4\\Engine\\Binaries\\Win64\\UnrealEditor.exe" "D:\\Games\\MyActionRPG\\MyActionRPG.uproject"'
     const projName = native!.extractUprojectNameNative?.(cmd)
     expect(projName).toBe('MyActionRPG')
 

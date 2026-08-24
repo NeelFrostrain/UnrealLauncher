@@ -293,9 +293,7 @@ export interface NativeModule {
 
   // ── Project & Engine Sizing ──────────────────────────────────────────────────
   calculateFolderSizeFormattedNative?: (folderPath: string) => string
-  calculateAllProjectsSizeNative?: (
-    projectPaths: string[]
-  ) => NativeProjectSizeResult[]
+  calculateAllProjectsSizeNative?: (projectPaths: string[]) => NativeProjectSizeResult[]
 
   // ── Project Selection Pipeline ───────────────────────────────────────────────
   processSelectedProjectFolderNative?: (
@@ -311,10 +309,7 @@ export interface NativeModule {
   resolveProjectUprojectPathNative?: (projectPath: string) => string | null
 
   // ── Project File Reader & Writer ─────────────────────────────────────────────
-  readProjectTextFileNative?: (
-    filePath: string,
-    projectPath: string
-  ) => NativeProjectTextFileResult
+  readProjectTextFileNative?: (filePath: string, projectPath: string) => NativeProjectTextFileResult
   writeProjectTextFileNative?: (
     filePath: string,
     content: string,
@@ -322,10 +317,7 @@ export interface NativeModule {
   ) => NativeProjectWriteResult
 
   // ── Project Subfolder Preparer ───────────────────────────────────────────────
-  prepareProjectSubfolderNative?: (
-    projectPath: string,
-    subfolder: string
-  ) => string | null
+  prepareProjectSubfolderNative?: (projectPath: string, subfolder: string) => string | null
 
   // ── Direct Folder Sizing & Byte Formatting ───────────────────────────────────
   getFolderSizeNative?: (folderPath: string) => number
@@ -335,10 +327,7 @@ export interface NativeModule {
   validateExternalHttpsUrlNative?: (url: string) => boolean
 
   // ── Store Migration & Bootstrap ──────────────────────────────────────────────
-  migrateAndEnsureSaveDirsNative?: (
-    userDataDir: string,
-    tracerDataDir: string
-  ) => boolean
+  migrateAndEnsureSaveDirsNative?: (userDataDir: string, tracerDataDir: string) => boolean
 
   // ── Discord Presence Project Name Extractor ──────────────────────────────────
   extractUprojectNameNative?: (commandLine: string) => string | null

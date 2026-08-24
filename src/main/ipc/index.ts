@@ -4,8 +4,21 @@
  */
 import type { IpcMain } from 'electron'
 import { registerEngineHandlers } from './engines'
-import { registerProjectHandlers, registerProjectToolHandlers, registerProjectPluginHandlers, registerProjectCppHandlers } from './projects'
-import { registerTracerHandlers, registerUpdateHandlers, registerMiscHandlers, registerLaunchConfigHandlers, registerPaletteHandlers, registerTaskManagerHandlers, registerVsStatusHandlers } from './system'
+import {
+  registerProjectHandlers,
+  registerProjectToolHandlers,
+  registerProjectPluginHandlers,
+  registerProjectCppHandlers
+} from './projects'
+import {
+  registerTracerHandlers,
+  registerUpdateHandlers,
+  registerMiscHandlers,
+  registerLaunchConfigHandlers,
+  registerPaletteHandlers,
+  registerTaskManagerHandlers,
+  registerVsStatusHandlers
+} from './system'
 import { registerFabHandlers } from './marketplace'
 
 export * from './projects'

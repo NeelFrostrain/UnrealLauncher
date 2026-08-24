@@ -1,0 +1,95 @@
+name: CD (Windows Release)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      publish_mode:
+        description: 'Publish mode for electron-builder (always, onTagOrDraft, never)'
+        required: true
+        default: 'always'
+        type: choice
+        options:
+          - always
+          - onTagOrDraft
+          - never
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build & Release Windows (x64)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install Rust toolchain (MSVC)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            native -> native/target
+            tracer -> tracer/target
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Typecheck
+        run: npm run typecheck
+
+      - name: Build Rust native addon (MSVC x64)
+        run: npm run build:native
+
+      - name: Build Rust tracer binary
+        run: |
+          npm run build:tracer
+          npm run copy:tracer
+
+      - name: Build Electron App (Vite)
+        run: npm run build:app
+        env:
+          NODE_ENV: production
+
+      - name: Build & Publish Windows Installer (electron-builder)
+        shell: pwsh
+        run: |
+          $publishMode = if ('${{ github.event_name }}' -eq 'workflow_dispatch') { '${{ github.event.inputs.publish_mode }}' } else { 'always' }
+          Write-Host "Publishing Windows installer with mode: $publishMode"
+          npx electron-builder --win --publish $publishMode
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unreal-launcher-windows-x64
+          path: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/latest.yml
+          if-no-files-found: warn

@@ -199,8 +199,10 @@ export function LegalModal({
               </div>
               <p className="text-[11px] mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
                 Published by{' '}
-                <strong style={{ color: 'var(--color-text-secondary)' }}>{COMPANY_INFO.name}</strong> •
-                Updated {LEGAL_POLICY_UPDATED_DATE}
+                <strong style={{ color: 'var(--color-text-secondary)' }}>
+                  {COMPANY_INFO.name}
+                </strong>{' '}
+                • Updated {LEGAL_POLICY_UPDATED_DATE}
               </p>
             </div>
           </div>
@@ -260,9 +262,9 @@ export function LegalModal({
                   </p>
                   <p className="mt-0.5">
                     Unreal Launcher is free, open-source software under the{' '}
-                    <strong style={{ color: 'var(--color-text-primary)' }}>GNU GPLv3</strong> license.
-                    By using this desktop application, you agree to the terms below and acknowledge
-                    that this tool is not affiliated with Epic Games, Inc.
+                    <strong style={{ color: 'var(--color-text-primary)' }}>GNU GPLv3</strong>{' '}
+                    license. By using this desktop application, you agree to the terms below and
+                    acknowledge that this tool is not affiliated with Epic Games, Inc.
                   </p>
                 </div>
               </div>
@@ -313,8 +315,8 @@ export function LegalModal({
                 }}
               >
                 <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                  <span className="font-semibold">Full Terms Document:</span> Read the complete legal
-                  agreement on GitHub.
+                  <span className="font-semibold">Full Terms Document:</span> Read the complete
+                  legal agreement on GitHub.
                 </div>
                 <button
                   onClick={() =>
@@ -451,8 +453,7 @@ export function LegalModal({
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
                       style={{
-                        backgroundColor:
-                          'color-mix(in srgb, var(--color-accent) 15%, transparent)',
+                        backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)',
                         borderColor: 'color-mix(in srgb, var(--color-accent) 30%, transparent)',
                         color: 'var(--color-accent)'
                       }}
@@ -476,10 +477,8 @@ export function LegalModal({
                     onClick={() => handleOpenExternal(COMPANY_INFO.website)}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer hover:opacity-85"
                     style={{
-                      backgroundColor:
-                        'color-mix(in srgb, var(--color-accent) 12%, transparent)',
-                      borderColor:
-                        'color-mix(in srgb, var(--color-accent) 30%, transparent)',
+                      backgroundColor: 'color-mix(in srgb, var(--color-accent) 12%, transparent)',
+                      borderColor: 'color-mix(in srgb, var(--color-accent) 30%, transparent)',
                       color: 'var(--color-accent)'
                     }}
                   >
@@ -531,8 +530,7 @@ export function LegalModal({
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
                       style={{
-                        backgroundColor:
-                          'color-mix(in srgb, var(--color-accent) 15%, transparent)',
+                        backgroundColor: 'color-mix(in srgb, var(--color-accent) 15%, transparent)',
                         borderColor: 'color-mix(in srgb, var(--color-accent) 30%, transparent)',
                         color: 'var(--color-accent)'
                       }}
@@ -609,7 +607,10 @@ export function LegalModal({
                 }}
               >
                 <AlertTriangle size={16} className="shrink-0 mt-0.5 text-amber-400" />
-                <p className="text-[11px] leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+                <p
+                  className="text-[11px] leading-relaxed"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   {COMPANY_INFO.trademarkDisclaimer}
                 </p>
               </div>

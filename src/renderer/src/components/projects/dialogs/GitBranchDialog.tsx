@@ -260,7 +260,8 @@ export default function GitBranchDialog({
                         </p>
                       ) : (
                         branches.map((item) => {
-                          const b = typeof item === 'string' ? item : (item as any)?.name ?? String(item)
+                          const b =
+                            typeof item === 'string' ? item : ((item as any)?.name ?? String(item))
                           const isCurrent = b === currentBranch
                           const isSwitching = switching === b
                           return (

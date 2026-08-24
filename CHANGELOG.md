@@ -38,7 +38,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **Settings Navigation & About Section**: Moved the Legal & Privacy policy button into the *About Unreal Launcher* card in Settings and added legal version badges to the system info grid.
+- **Settings Navigation & About Section**: Moved the Legal & Privacy policy button into the _About Unreal Launcher_ card in Settings and added legal version badges to the system info grid.
 - **Font Preloading Optimization**: Added `<head>` preconnect links and baseline `:root` / `body` CSS variable defaults in `index.html`.
 
 ## [2.6.5] - 2026-08-19 — `Full Native Rust Migration (Phases 1-35) · Zero-Spawns · Modular Architecture`

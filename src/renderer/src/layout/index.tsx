@@ -21,7 +21,8 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
   const [legalModalOpen, setLegalModalOpen] = useState(() => {
     try {
       const settings = loadSettings()
-      const accepted = settings.acceptedLegalVersion || String(settings.acceptedLegalPolicyVersion || '')
+      const accepted =
+        settings.acceptedLegalVersion || String(settings.acceptedLegalPolicyVersion || '')
       return accepted !== CURRENT_LEGAL_VERSION
     } catch {
       return false
@@ -30,7 +31,8 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
   const [legalModalMandatory, setLegalModalMandatory] = useState(() => {
     try {
       const settings = loadSettings()
-      const accepted = settings.acceptedLegalVersion || String(settings.acceptedLegalPolicyVersion || '')
+      const accepted =
+        settings.acceptedLegalVersion || String(settings.acceptedLegalPolicyVersion || '')
       return accepted !== CURRENT_LEGAL_VERSION
     } catch {
       return false

@@ -49,9 +49,7 @@ export async function checkProjectHealth(projectPath: string): Promise<HealthRep
 
       const issues: HealthIssue[] = (deepReport.issues || []).map((i) => ({
         type: ((i as any).issueType || (i as any).issue_type || 'info').toLowerCase() as
-          | 'info'
-          | 'warning'
-          | 'critical',
+          'info' | 'warning' | 'critical',
         message: i.message || '',
         recommendation: i.recommendation || ''
       }))
@@ -82,7 +80,10 @@ export async function checkProjectHealth(projectPath: string): Promise<HealthRep
         score: finalScore,
         status,
         issues,
-        intermediateSize: (deepReport as any).intermediateSizeBytes ?? (deepReport as any).intermediate_size_bytes ?? 0,
+        intermediateSize:
+          (deepReport as any).intermediateSizeBytes ??
+          (deepReport as any).intermediate_size_bytes ??
+          0,
         savedSize: (deepReport as any).savedSizeBytes ?? (deepReport as any).saved_size_bytes ?? 0,
         isCpp: (deepReport as any).isCpp ?? (deepReport as any).is_cpp ?? false,
         hasEngine,
@@ -130,7 +131,9 @@ function _checkProjectHealthJS(projectPath: string): HealthReport {
       if (data.EngineAssociation) {
         engineVersion = String(data.EngineAssociation)
         const engines = loadEngines()
-        hasEngine = engines.some((e) => e.version === engineVersion || engineVersion.startsWith(e.version))
+        hasEngine = engines.some(
+          (e) => e.version === engineVersion || engineVersion.startsWith(e.version)
+        )
       }
     }
   } catch {
@@ -149,7 +152,8 @@ function _checkProjectHealthJS(projectPath: string): HealthReport {
     })
   }
 
-  const status: 'healthy' | 'warning' | 'critical' = score >= 80 ? 'healthy' : score >= 50 ? 'warning' : 'critical'
+  const status: 'healthy' | 'warning' | 'critical' =
+    score >= 80 ? 'healthy' : score >= 50 ? 'warning' : 'critical'
 
   return {
     score,

@@ -24,7 +24,10 @@ export interface EngineValidationResult {
   reason?: string
 }
 
-export function normalizeEngineVersion(rawVersion: string): { version: string; fullVersion: string } {
+export function normalizeEngineVersion(rawVersion: string): {
+  version: string
+  fullVersion: string
+} {
   const trimmed = (rawVersion || '').trim()
   const match = trimmed.match(/^(\d+\.\d+)(\.\d+)?(.*)$/)
   if (match) {

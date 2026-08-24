@@ -255,7 +255,14 @@ function scheduleReconnect(clientId: string): void {
 }
 
 async function updatePresence(): Promise<void> {
-  if (!rpcIsReady || !rpcClient || isUpdatingPresence || isShuttingDown || !isPresenceExplicitlyEnabled) return
+  if (
+    !rpcIsReady ||
+    !rpcClient ||
+    isUpdatingPresence ||
+    isShuttingDown ||
+    !isPresenceExplicitlyEnabled
+  )
+    return
   isUpdatingPresence = true
 
   try {
@@ -292,7 +299,11 @@ async function updatePresence(): Promise<void> {
       await rpcClient.setActivity(activityPayload)
       previousPresenceKey = presenceKey
     } catch (activityError) {
-      logger.warn('discord', 'Rich presence with assets failed, trying safe fallback', activityError)
+      logger.warn(
+        'discord',
+        'Rich presence with assets failed, trying safe fallback',
+        activityError
+      )
       try {
         const minimalPayload: DiscordActivity = {
           details: presence.details,
