@@ -503,7 +503,10 @@ async function findRiderExe(customPath?: string): Promise<string | null> {
     try {
       if (fs.statSync(customPath).isDirectory()) {
         const binExe = path.join(customPath, 'bin', 'rider64.exe')
-        if (fs.existsSync(binExe)) { result = binExe; return result }
+        if (fs.existsSync(binExe)) {
+          result = binExe
+          return result
+        }
       } else {
         return customPath
       }
@@ -553,9 +556,15 @@ async function findRiderExe(customPath?: string): Promise<string | null> {
       'rider64.exe'
     )
   ]) {
-    if (fs.existsSync(cand)) { result = cand; break }
+    if (fs.existsSync(cand)) {
+      result = cand
+      break
+    }
   }
-  if (result) { _cachedRiderExe = result; return result }
+  if (result) {
+    _cachedRiderExe = result
+    return result
+  }
 
   // 5. JetBrains Toolbox
   if (localAppData) {
@@ -567,7 +576,10 @@ async function findRiderExe(customPath?: string): Promise<string | null> {
           if (!fs.statSync(channelDir).isDirectory()) continue
           for (const v of fs.readdirSync(channelDir)) {
             const binRider = path.join(channelDir, v, 'bin', 'rider64.exe')
-            if (fs.existsSync(binRider)) { result = binRider; break }
+            if (fs.existsSync(binRider)) {
+              result = binRider
+              break
+            }
           }
           if (result) break
         }
@@ -576,7 +588,10 @@ async function findRiderExe(customPath?: string): Promise<string | null> {
       }
     }
   }
-  if (result) { _cachedRiderExe = result; return result }
+  if (result) {
+    _cachedRiderExe = result
+    return result
+  }
 
   // 6. Sibling of VS install: if VS is at D:\Applications\VS, scan D:\Applications\ for Rider
   const DEFAULT_VS_PATH = 'D:\\Applications\\VS'
@@ -605,7 +620,10 @@ async function findRiderExe(customPath?: string): Promise<string | null> {
     const vsParent = path.dirname(vsBase)
     result = tryDir(vsParent)
   }
-  if (result) { _cachedRiderExe = result; return result }
+  if (result) {
+    _cachedRiderExe = result
+    return result
+  }
 
   // 7. Common drive directories
   const searchDirs = [

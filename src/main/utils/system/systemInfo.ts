@@ -199,7 +199,13 @@ function getDiskInfoJS(): Array<{
 }> {
   if (process.platform !== 'win32') return []
   try {
-    const disks: Array<{ drive: string; total: string; used: string; free: string; percent: string }> = []
+    const disks: Array<{
+      drive: string
+      total: string
+      used: string
+      free: string
+      percent: string
+    }> = []
     const output = safeExec('wmic logicaldisk get name,size,freespace /format:csv', '')
     const lines = output.split('\n').filter((line) => line.trim())
     for (let i = 1; i < lines.length; i++) {
@@ -210,9 +216,16 @@ function getDiskInfoJS(): Array<{
         const freeBytes = parseInt(parts[3], 10)
         const usedBytes = sizeBytes - freeBytes
         if (sizeBytes > 0) {
-          const formatBytes = (bytes: number): string => `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
+          const formatBytes = (bytes: number): string =>
+            `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
           const percent = ((usedBytes / sizeBytes) * 100).toFixed(1)
-          disks.push({ drive: driveName, total: formatBytes(sizeBytes), used: formatBytes(usedBytes), free: formatBytes(freeBytes), percent })
+          disks.push({
+            drive: driveName,
+            total: formatBytes(sizeBytes),
+            used: formatBytes(usedBytes),
+            free: formatBytes(freeBytes),
+            percent
+          })
         }
       }
     }
@@ -279,9 +292,7 @@ export async function getSystemInfo(appVersion: string): Promise<SystemInfo> {
       const networkInterfaces = native.getNetworkInterfaces?.() ?? getNetworkInterfacesJS()
 
       const diskInfo = hw.diskInfo.map((d) => {
-        const percent = d.totalBytes > 0
-          ? ((d.usedBytes / d.totalBytes) * 100).toFixed(1)
-          : '0.0'
+        const percent = d.totalBytes > 0 ? ((d.usedBytes / d.totalBytes) * 100).toFixed(1) : '0.0'
         return {
           drive: d.drive,
           total: formatBytes(d.totalBytes),

@@ -139,8 +139,12 @@ export async function getInstalledEngines(): Promise<ScannedEngine[]> {
       // Map snake_case Rust fields to camelCase TS interface
       return results.map((e) => ({
         version: e.version,
-        exePath: (e as unknown as { exePath: string; exe_path: string }).exePath ?? (e as unknown as { exe_path: string }).exe_path,
-        directoryPath: (e as unknown as { directoryPath: string; directory_path: string }).directoryPath ?? (e as unknown as { directory_path: string }).directory_path
+        exePath:
+          (e as unknown as { exePath: string; exe_path: string }).exePath ??
+          (e as unknown as { exe_path: string }).exe_path,
+        directoryPath:
+          (e as unknown as { directoryPath: string; directory_path: string }).directoryPath ??
+          (e as unknown as { directory_path: string }).directory_path
       }))
     } catch {
       /* fall through to JS implementation */

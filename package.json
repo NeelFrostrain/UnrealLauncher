@@ -36,11 +36,12 @@
     "build:analyze": "electron-vite build && npx vite-bundle-analyzer out/renderer/assets/*.js",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "electron-vite build && electron-builder --dir",
-    "build:win": "cargo build --release --manifest-path tracer/Cargo.toml && electron-vite build && node ./scripts/copyTracer.js && electron-builder --win --publish=never",
+    "build:win": "npm run build:native && cargo build --release --manifest-path tracer/Cargo.toml && node ./scripts/copyTracer.js && electron-vite build && electron-builder --win --publish=never",
+    "build:win:publish": "npm run build:native && cargo build --release --manifest-path tracer/Cargo.toml && node ./scripts/copyTracer.js && electron-vite build && electron-builder --win --publish always",
     "build:mac": "electron-vite build && electron-builder --mac --publish=never",
     "build:linux": "cargo build --release --manifest-path tracer/Cargo.toml && electron-vite build && node ./scripts/copyTracer.js && electron-builder --linux --publish=never",
     "build:linux:unpack": "cargo build --release --manifest-path tracer/Cargo.toml && electron-vite build && node ./scripts/copyTracer.js && electron-builder --dir",
-    "build:all": "cargo build --release --manifest-path tracer/Cargo.toml && electron-vite build && node ./scripts/copyTracer.js && electron-builder --win --mac --linux --publish=never",
+    "build:all": "npm run build:native && cargo build --release --manifest-path tracer/Cargo.toml && node ./scripts/copyTracer.js && electron-vite build && electron-builder --win --mac --linux --publish=never",
     "clean": "rimraf out dist node_modules/.vite node_modules/.cache",
     "clean:build": "rimraf out dist"
   },
@@ -52,6 +53,10 @@
     "electron-updater": "^6.8.3",
     "lucide-react": "^1.8.0",
     "react-router-dom": "^7.14.0"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.62.2",
+    "@rollup/rollup-win32-x64-msvc": "^4.62.2"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",

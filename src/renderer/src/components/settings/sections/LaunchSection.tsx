@@ -56,7 +56,9 @@ const LaunchSection = ({
     }
   }
 
-  const [discordRpcEnabled, setDiscordRpcEnabled] = useState(() => getSetting('discordRpcEnabled') ?? true)
+  const [discordRpcEnabled, setDiscordRpcEnabled] = useState(
+    () => getSetting('discordRpcEnabled') ?? true
+  )
 
   const handleDiscordRpcToggle = async (): Promise<void> => {
     const next = !discordRpcEnabled
@@ -68,7 +70,8 @@ const LaunchSection = ({
   useEffect(() => {
     window.electronAPI.getMainSettings().then((s) => {
       if (s && s.disableGpu !== undefined) setGpuDisabled(s.disableGpu as boolean)
-      if (s && s.discordRpcEnabled !== undefined) setDiscordRpcEnabled(s.discordRpcEnabled as boolean)
+      if (s && s.discordRpcEnabled !== undefined)
+        setDiscordRpcEnabled(s.discordRpcEnabled as boolean)
     })
   }, [])
 
@@ -158,19 +161,21 @@ const LaunchSection = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleIdeChange('vs')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors cursor-pointer border ${preferredIde === 'vs'
-                ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
-                : 'bg-[var(--color-surface-card)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:text-[var(--color-text-primary)]'
-                }`}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors cursor-pointer border ${
+                preferredIde === 'vs'
+                  ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
+                  : 'bg-[var(--color-surface-card)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:text-[var(--color-text-primary)]'
+              }`}
             >
               Visual Studio (VS)
             </button>
             <button
               onClick={() => handleIdeChange('rider')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors cursor-pointer border ${preferredIde === 'rider'
-                ? 'bg-rose-600 text-white border-rose-600'
-                : 'bg-[var(--color-surface-card)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:text-[var(--color-text-primary)]'
-                }`}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors cursor-pointer border ${
+                preferredIde === 'rider'
+                  ? 'bg-rose-600 text-white border-rose-600'
+                  : 'bg-[var(--color-surface-card)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:text-[var(--color-text-primary)]'
+              }`}
             >
               JetBrains Rider
             </button>

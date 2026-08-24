@@ -21,7 +21,9 @@ for (const file of filesToCopy) {
       console.log(`Copied ${file} to native/dist/`)
     } catch (err) {
       if (err.code === 'EBUSY') {
-        console.log(`Note: ${file} is currently locked by running process in native/dist/ (using live native module in resources/)`)
+        console.log(
+          `Note: ${file} is currently locked by running process in native/dist/ (using live native module in resources/)`
+        )
       } else {
         console.warn(`Could not copy ${file} to native/dist/ (${err.message})`)
       }

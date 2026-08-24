@@ -43,6 +43,7 @@ This document provides a comprehensive technical analysis of the **Unreal Launch
 ## 3. Detailed Component-by-Component Mapping
 
 ### 3.1 Local Storage & State Management
+
 - **Source Files:**
   - [`src/main/store/index.ts`](../src/main/store/index.ts)
   - [`src/main/store/storePaths.ts`](../src/main/store/storePaths.ts)
@@ -62,6 +63,7 @@ This document provides a comprehensive technical analysis of the **Unreal Launch
 ---
 
 ### 3.2 Outbound Telemetry & Startup Diagnostics
+
 - **Source Files:**
   - [`src/main/index.ts`](../src/main/index.ts) (Lines 441–496)
   - [`src/main/utils/system/systemInfo.ts`](../src/main/utils/system/systemInfo.ts)
@@ -84,6 +86,7 @@ This document provides a comprehensive technical analysis of the **Unreal Launch
 ---
 
 ### 3.3 User Feedback & Bug Reporting Webhook
+
 - **Source Files:**
   - [`src/main/ipc/system/discordWebhook.ts`](../src/main/ipc/system/discordWebhook.ts)
   - [`src/renderer/src/components/settings/sections/SystemSection.tsx`](../src/renderer/src/components/settings/sections/SystemSection.tsx)
@@ -97,6 +100,7 @@ This document provides a comprehensive technical analysis of the **Unreal Launch
 ---
 
 ### 3.4 Discord Rich Presence Integration
+
 - **Source Files:**
   - [`src/main/discordPresence.ts`](../src/main/discordPresence.ts)
 - **What it does:**
@@ -110,6 +114,7 @@ This document provides a comprehensive technical analysis of the **Unreal Launch
 ---
 
 ### 3.5 Background UE Tracer & System Hooks
+
 - **Source Files:**
   - [`tracer/src/main.rs`](../tracer/src/main.rs)
   - [`src/main/ipc/system/tracer.ts`](../src/main/ipc/system/tracer.ts)
@@ -123,6 +128,7 @@ This document provides a comprehensive technical analysis of the **Unreal Launch
 ---
 
 ### 3.6 Project Diagnostics, Snapshots & File Manipulation
+
 - **Source Files:**
   - [`native/src/projects/mod.rs`](../native/src/projects/mod.rs)
   - [`src/main/ipc/projects/projectTools.ts`](../src/main/ipc/projects/projectTools.ts)
@@ -140,6 +146,7 @@ This document provides a comprehensive technical analysis of the **Unreal Launch
 ---
 
 ### 3.7 Third-Party Intellectual Property & Trademark Protection
+
 - **Disclaimers Required:**
   - Unreal®, Unreal Engine®, UE4®, UE5®, Epic Games®, and Fab™ are trademarks or registered trademarks of **Epic Games, Inc.**
   - Discord® is a trademark of **Discord Inc.**
@@ -150,8 +157,8 @@ This document provides a comprehensive technical analysis of the **Unreal Launch
 
 ## 4. Summary of Created Policy Files
 
-| Document | Location | Purpose |
-| :--- | :--- | :--- |
-| **Privacy Policy** | [`PRIVACY_POLICY.md`](../PRIVACY_POLICY.md)<br>[`docs/PRIVACY_POLICY.md`](PRIVACY_POLICY.md) | Discloses local data storage, diagnostic telemetry, webhooks, Discord RPC, updater calls, permissions, and user rights. |
+| Document                 | Location                                                                                                             | Purpose                                                                                                                                                           |
+| :----------------------- | :------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Privacy Policy**       | [`PRIVACY_POLICY.md`](../PRIVACY_POLICY.md)<br>[`docs/PRIVACY_POLICY.md`](PRIVACY_POLICY.md)                         | Discloses local data storage, diagnostic telemetry, webhooks, Discord RPC, updater calls, permissions, and user rights.                                           |
 | **Terms and Conditions** | [`TERMS_AND_CONDITIONS.md`](../TERMS_AND_CONDITIONS.md)<br>[`docs/TERMS_AND_CONDITIONS.md`](TERMS_AND_CONDITIONS.md) | Sets legal agreement, GPLv3 licensing, Epic Games trademark disclaimer, user responsibilities for project backups, "AS IS" warranty, and limitation of liability. |
-| **Technical Analysis** | [`docs/LEGAL_AND_PRIVACY_ANALYSIS.md`](LEGAL_AND_PRIVACY_ANALYSIS.md) | Developer and contributor audit reference connecting each code module to legal provisions. |
+| **Technical Analysis**   | [`docs/LEGAL_AND_PRIVACY_ANALYSIS.md`](LEGAL_AND_PRIVACY_ANALYSIS.md)                                                | Developer and contributor audit reference connecting each code module to legal provisions.                                                                        |

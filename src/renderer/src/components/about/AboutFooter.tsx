@@ -103,7 +103,11 @@ export const AboutFooter = (): React.ReactElement => (
     >
       Owned by{' '}
       <button
-        onClick={() => window.electronAPI.openExternal(config.companyWebsite || 'https://cyronicstudio.vercel.app')}
+        onClick={() =>
+          window.electronAPI.openExternal(
+            config.companyWebsite || 'https://cyronicstudio.vercel.app'
+          )
+        }
         className="font-semibold transition-colors cursor-pointer hover:underline"
         style={{ color: 'var(--color-accent)' }}
       >

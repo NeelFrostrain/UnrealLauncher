@@ -223,8 +223,7 @@ export default function ProjectCompilerDialog({
 
   // Launch with Config state — store full config objects as received from main process
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [launchConfigs, setLaunchConfigs] = useState<Array<Record<string, any>>>([]
-  )
+  const [launchConfigs, setLaunchConfigs] = useState<Array<Record<string, any>>>([])
   const [showLaunchConfigMenu, setShowLaunchConfigMenu] = useState(false)
   const [launchingWithConfig, setLaunchingWithConfig] = useState(false)
   const launchConfigBtnRef = useRef<HTMLDivElement>(null)
@@ -280,7 +279,10 @@ export default function ProjectCompilerDialog({
     const configName = String(config.name ?? 'Config')
     appendLog(`Launching project with config: ${configName}…`, 'info')
     try {
-      const result = await window.electronAPI.launchProjectWithConfig(projectPath, config as LaunchConfig)
+      const result = await window.electronAPI.launchProjectWithConfig(
+        projectPath,
+        config as LaunchConfig
+      )
       const res = result as { success?: boolean; error?: string }
       if (res.success) {
         appendLog(`✅ Launched with config "${configName}" successfully.`, 'success')
@@ -1208,13 +1210,11 @@ export default function ProjectCompilerDialog({
                                 'color-mix(in srgb, var(--color-accent) 12%, transparent)'
                             }}
                             onMouseLeave={(e) => {
-                              ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+                              ;(e.currentTarget as HTMLElement).style.backgroundColor =
+                                'transparent'
                             }}
                           >
-                            <Play
-                              size={13}
-                              className="text-violet-400 mt-0.5 shrink-0"
-                            />
+                            <Play size={13} className="text-violet-400 mt-0.5 shrink-0" />
                             <div className="min-w-0">
                               <p className="text-xs font-semibold truncate">{cfg.name}</p>
                               {cfg.description && (

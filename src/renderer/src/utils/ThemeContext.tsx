@@ -1,5 +1,13 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode } from 'react'
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  ReactNode
+} from 'react'
 import {
   type ThemeToken,
   type ThemeTokenMap,

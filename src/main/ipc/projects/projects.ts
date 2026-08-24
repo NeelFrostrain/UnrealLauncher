@@ -1,6 +1,11 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { ipcMain } from 'electron'
-import { openFileOrDirectory, isRegisteredProjectPath, resolveOpenableDirectory, type LaunchConfig } from '../../utils'
+import {
+  openFileOrDirectory,
+  isRegisteredProjectPath,
+  resolveOpenableDirectory,
+  type LaunchConfig
+} from '../../utils'
 import {
   handleSelectProjectFolder,
   handleLaunchProject,

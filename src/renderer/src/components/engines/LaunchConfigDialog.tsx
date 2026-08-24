@@ -469,7 +469,10 @@ export default function LaunchConfigDialog({
                   label="Rendering Features"
                   accent="#818cf8"
                 />
-                <div className="overflow-hidden divide-y divide-[var(--color-border)]" style={divStyle}>
+                <div
+                  className="overflow-hidden divide-y divide-[var(--color-border)]"
+                  style={divStyle}
+                >
                   {RENDERING_FEATURES.map(([key, label, cvar, isHeavy]) => (
                     <FeatureRow
                       key={key}
@@ -487,7 +490,10 @@ export default function LaunchConfigDialog({
 
                 {/* Startup flags */}
                 <SectionHead icon={<Terminal size={13} />} label="Startup Flags" accent="#4ade80" />
-                <div className="overflow-hidden divide-y divide-[var(--color-border)]" style={divStyle}>
+                <div
+                  className="overflow-hidden divide-y divide-[var(--color-border)]"
+                  style={divStyle}
+                >
                   {STARTUP_FLAGS.map(([key, label, flag]) => (
                     <FeatureRow
                       key={key}

@@ -583,7 +583,8 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
                   Terms of Service, Privacy & Legal Ownership
                 </h3>
                 <p className="text-[11px] mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
-                  Published & Owned by <strong>{config.companyName || 'Cyronic Studio'}</strong> &bull; Policy Version v{CURRENT_LEGAL_POLICY_VERSION}
+                  Published & Owned by <strong>{config.companyName || 'Cyronic Studio'}</strong>{' '}
+                  &bull; Policy Version v{CURRENT_LEGAL_POLICY_VERSION}
                 </p>
               </div>
             </div>
@@ -656,7 +657,11 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
         <p className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
           Unreal Launcher &bull; Owned by{' '}
           <button
-            onClick={() => window.electronAPI.openExternal(config.companyWebsite || 'https://cyronicstudio.vercel.app')}
+            onClick={() =>
+              window.electronAPI.openExternal(
+                config.companyWebsite || 'https://cyronicstudio.vercel.app'
+              )
+            }
             className="font-bold underline transition-colors cursor-pointer hover:opacity-80"
             style={{ color: 'var(--color-accent)' }}
           >
@@ -672,7 +677,8 @@ export const AboutPage = ({ modal = false }: { modal?: boolean }): React.ReactEl
           </button>
         </p>
         <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-          Copyright &copy; 2026 {config.companyName || 'Cyronic Studio'} / NeelFrostrain. Licensed under GNU GPLv3.
+          Copyright &copy; 2026 {config.companyName || 'Cyronic Studio'} / NeelFrostrain. Licensed
+          under GNU GPLv3.
         </p>
       </div>
     </div>
