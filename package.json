@@ -54,6 +54,10 @@
     "lucide-react": "^1.8.0",
     "react-router-dom": "^7.14.0"
   },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.62.2",
+    "@rollup/rollup-win32-x64-msvc": "^4.62.2"
+  },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",

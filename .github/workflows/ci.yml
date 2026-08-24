@@ -36,7 +36,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --include=optional
 
       - name: Typecheck (node)
         run: npm run typecheck:node
@@ -57,7 +57,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --include=optional
 
       - name: Lint
         run: npm run lint
@@ -75,7 +75,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --include=optional
 
       - name: Run tests
         run: npm run test:run
@@ -102,7 +102,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --include=optional
 
       # Provide a stub native module so electron-vite build doesn't fail when
       # the Rust .node file is absent
