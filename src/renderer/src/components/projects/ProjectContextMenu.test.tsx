@@ -16,7 +16,7 @@ describe('ProjectContextMenu', () => {
     })
   })
 
-  it('renders project status badges in the header', () => {
+  it('renders project status badges in the header', async () => {
     render(
       <ToastProvider>
         <ProjectContextMenu
@@ -50,7 +50,7 @@ describe('ProjectContextMenu', () => {
       </ToastProvider>
     )
 
-    expect(screen.getByText('My Project')).toBeInTheDocument()
+    expect(await screen.findByText('My Project')).toBeInTheDocument()
     expect(screen.getByText('Favorite')).toBeInTheDocument()
     expect(screen.getByText('Git')).toBeInTheDocument()
   })
@@ -92,7 +92,7 @@ describe('ProjectContextMenu', () => {
     expect(await screen.findByText('Ready')).toBeInTheDocument()
   })
 
-  it('does not render history content inside the context menu', () => {
+  it('does not render history content inside the context menu', async () => {
     render(
       <ToastProvider>
         <ProjectContextMenu
@@ -126,11 +126,12 @@ describe('ProjectContextMenu', () => {
       </ToastProvider>
     )
 
+    expect(await screen.findByText('My Project')).toBeInTheDocument()
     expect(screen.queryByText('Recent activity')).not.toBeInTheDocument()
     expect(screen.queryByText('No recent activity yet')).not.toBeInTheDocument()
   })
 
-  it('renders Open Compiler menu option and triggers onOpenCompiler when clicked', () => {
+  it('renders Open Compiler menu option and triggers onOpenCompiler when clicked', async () => {
     const onOpenCompiler = vi.fn()
     const onClose = vi.fn()
     render(
@@ -167,7 +168,7 @@ describe('ProjectContextMenu', () => {
       </ToastProvider>
     )
 
-    const compilerBtn = screen.getByText('Open Compiler')
+    const compilerBtn = await screen.findByText('Open Compiler')
     expect(compilerBtn).toBeInTheDocument()
     compilerBtn.click()
     expect(onOpenCompiler).toHaveBeenCalledTimes(1)
