@@ -2,9 +2,20 @@ name: CI
 
 on:
   push:
-    branches: [main, master, develop]
+    branches:
+      - main
+      - master
+      - develop
+      - devlop
+      - release
   pull_request:
-    branches: [main, master, develop]
+    branches:
+      - main
+      - master
+      - develop
+      - devlop
+      - release
+  workflow_dispatch:
 
 # Cancel in-flight runs for the same branch/PR to save minutes
 concurrency:
