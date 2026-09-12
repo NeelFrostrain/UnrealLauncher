@@ -143,12 +143,17 @@ function _checkProjectHealthJS(projectPath: string): HealthReport {
   const issues: HealthIssue[] = []
   let score = 100
 
-  if (!fs.existsSync(path.join(root, '.git'))) {
+  const hasGit = fs.existsSync(path.join(root, '.git'))
+  const hasPerforce = fs.existsSync(path.join(root, '.p4config')) // This one is tricky because Perforce doesn't create a directory, and p4config is not required but should be in the UE project, so this is the best shot, I guess.
+  const hasPlastic = fs.existsSync(path.join(root, '.plastic'))
+
+  if (!hasGit && !hasPerforce && !hasPlastic) {
     score -= 10
     issues.push({
       type: 'info',
       message: 'No Version Control Detected',
-      recommendation: 'Project is not using Git. Consider initializing a repository.'
+      recommendation:
+        'Project is not using any version control system. Consider configuring a version control like git'
     })
   }
 
