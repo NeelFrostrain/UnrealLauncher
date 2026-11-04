@@ -3,6 +3,7 @@
  * Engines Components Barrel Export.
  */
 export { default as EngineCard } from './EngineCard'
+export { default as EngineGridCard } from './EngineGridCard'
 export { default as EnginesToolbar } from './EnginesToolbar'
 export { default as FabTab } from './FabTab'
 export { default as InstalledPluginsTab } from './InstalledPluginsTab'

@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import type { EngineCardProps } from '../../types'
 
 type EngineTab = 'engines' | 'plugins' | 'fab'
+export type EngineViewMode = 'list' | 'grid'
 
 const TAB_PATHS: Record<EngineTab, string> = {
   engines: '/engines',
@@ -41,6 +42,8 @@ export function useEnginesPageState(): {
   TAB_PATHS: Record<EngineTab, string>
   sortDirection: 'asc' | 'desc'
   toggleSortDirection: () => void
+  viewMode: EngineViewMode
+  setViewMode: (mode: EngineViewMode) => void
 } {
   const { tab: tabParam } = useParams<{ tab?: string }>()
   const navigate = useNavigate()
@@ -59,6 +62,25 @@ export function useEnginesPageState(): {
     }
     return 'desc'
   })
+
+  const [viewMode, setViewModeState] = useState<EngineViewMode>(() => {
+    try {
+      const saved = localStorage.getItem('unreal-launcher:engines-view-mode')
+      if (saved === 'list' || saved === 'grid') return saved
+    } catch {
+      /* ignore */
+    }
+    return 'list'
+  })
+
+  const setViewMode = useCallback((mode: EngineViewMode) => {
+    setViewModeState(mode)
+    try {
+      localStorage.setItem('unreal-launcher:engines-view-mode', mode)
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   const toggleSortDirection = useCallback(() => {
     setSortDirection((prev) => {
@@ -114,6 +136,8 @@ export function useEnginesPageState(): {
     activeEngine,
     TAB_PATHS,
     sortDirection,
-    toggleSortDirection
+    toggleSortDirection,
+    viewMode,
+    setViewMode
   }
 }

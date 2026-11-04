@@ -12,11 +12,14 @@ import {
   Activity,
   Hammer,
   ArrowDown,
-  ArrowUp
+  ArrowUp,
+  LayoutList,
+  LayoutGrid
 } from 'lucide-react'
 import DropdownPortal from '../../components/ui/DropdownPortal'
 import type { EngineCardProps } from '../../types'
 import { Tabs } from '../../components/ui/Tabs'
+import type { EngineViewMode } from './enginesPageState'
 
 type EngineTab = 'engines' | 'plugins' | 'fab'
 
@@ -30,10 +33,12 @@ interface EnginesPageToolbarProps {
   scanning: boolean
   addingEngine: boolean
   sortDirection: 'asc' | 'desc'
+  viewMode: EngineViewMode
   onTabChange: (tab: EngineTab) => void
   onScan: () => void
   onAddEngine: () => void
   onToggleSort: () => void
+  onViewChange: (mode: EngineViewMode) => void
   onSelectEngine: (engine: EngineCardProps) => void
   onDropdownToggle: (open: boolean) => void
 }
@@ -57,10 +62,12 @@ export function EnginesPageToolbar({
   scanning,
   addingEngine,
   sortDirection,
+  viewMode,
   onTabChange,
   onScan,
   onAddEngine,
   onToggleSort,
+  onViewChange,
   onSelectEngine,
   onDropdownToggle
 }: EnginesPageToolbarProps): React.ReactElement {
@@ -173,6 +180,47 @@ export function EnginesPageToolbar({
         )}
         {activeTab === 'engines' && (
           <>
+            {/* View Mode Toggle (Classic List vs Grid) */}
+            <div
+              className="flex items-center overflow-hidden"
+              style={{
+                borderRadius: 'var(--radius)',
+                border: '1px solid var(--color-border)'
+              }}
+            >
+              <button
+                onClick={() => onViewChange('list')}
+                aria-label="Classic list view"
+                aria-pressed={viewMode === 'list'}
+                className="flex items-center p-1.5 cursor-pointer transition-colors"
+                style={{
+                  backgroundColor:
+                    viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+                  color:
+                    viewMode === 'list' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+                }}
+                title="Classic list view"
+              >
+                <LayoutList size={13} />
+              </button>
+              <button
+                onClick={() => onViewChange('grid')}
+                aria-label="Grid view"
+                aria-pressed={viewMode === 'grid'}
+                className="flex items-center p-1.5 cursor-pointer transition-colors"
+                style={{
+                  backgroundColor:
+                    viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
+                  color:
+                    viewMode === 'grid' ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+                }}
+                title="Grid view"
+              >
+                <LayoutGrid size={13} />
+              </button>
+            </div>
+
+            {/* Sort Toggle */}
             <button
               onClick={onToggleSort}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer select-none"
@@ -191,6 +239,7 @@ export function EnginesPageToolbar({
               )}
               <span>{sortDirection === 'desc' ? 'Version (Newest)' : 'Version (Oldest)'}</span>
             </button>
+
             <button
               onClick={onScan}
               disabled={scanning}

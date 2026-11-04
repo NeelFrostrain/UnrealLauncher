@@ -110,10 +110,12 @@ const EnginesPage = (): React.ReactElement => {
         scanning={scanning}
         addingEngine={addingEngine}
         sortDirection={state.sortDirection}
+        viewMode={state.viewMode}
         onTabChange={state.switchTab}
         onScan={handleScan}
         onAddEngine={handleAddEngine}
         onToggleSort={state.toggleSortDirection}
+        onViewChange={state.setViewMode}
         onSelectEngine={state.setSelectedEngine}
         onDropdownToggle={state.setDropdownOpen}
       />
@@ -126,6 +128,7 @@ const EnginesPage = (): React.ReactElement => {
         itemsPerBatch={state.ITEMS_PER_BATCH}
         activeEngine={state.activeEngine}
         containerRef={state.containerRef as React.RefObject<HTMLDivElement | null>}
+        viewMode={state.viewMode}
         onScroll={state.handleScroll}
         onLaunch={(exePath: string) => handleLaunch(exePath)}
         onOpenDir={(dirPath: string) => handleOpenDir(dirPath)}

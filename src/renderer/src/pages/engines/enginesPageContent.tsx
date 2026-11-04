@@ -1,7 +1,9 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import React, { lazy, Suspense } from 'react'
 import type { EngineCardProps } from '../../types'
 import EngineCard from '@renderer/components/engines/EngineCard'
+import EngineGridCard from '@renderer/components/engines/EngineGridCard'
+import type { EngineViewMode } from './enginesPageState'
 
 const InstalledPluginsTab = lazy(() => import('@renderer/components/engines/InstalledPluginsTab'))
 const FabTab = lazy(() => import('@renderer/components/engines/FabTab'))
@@ -14,6 +16,7 @@ interface EnginesPageContentProps {
   itemsPerBatch: number
   activeEngine: EngineCardProps | null
   containerRef: React.RefObject<HTMLDivElement | null>
+  viewMode: EngineViewMode
   onScroll: (e: React.UIEvent<HTMLDivElement>) => void
   onLaunch: (exePath: string) => void
   onOpenDir: (dirPath: string) => void
@@ -34,6 +37,7 @@ export function EnginesPageContent({
   itemsPerBatch: _itemsPerBatch,
   activeEngine,
   containerRef,
+  viewMode,
   onScroll,
   onLaunch,
   onOpenDir,
@@ -68,23 +72,46 @@ export function EnginesPageContent({
             />
           </div>
         ) : engines.length > 0 ? (
-          <div
-            ref={containerRef}
-            onScroll={onScroll}
-            className="space-y-2 overflow-y-auto py-2 h-full"
-          >
-            {engines.map((data, idx) => (
-              <EngineCard
-                key={data.directoryPath}
-                {...data}
-                index={idx}
-                onLaunch={onLaunch}
-                onOpenDir={onOpenDir}
-                onDelete={onDelete}
-                onUpdateAlias={onUpdateAlias}
-              />
-            ))}
-          </div>
+          viewMode === 'grid' ? (
+            <div
+              ref={containerRef}
+              onScroll={onScroll}
+              className="grid gap-3.5 overflow-y-auto py-2 h-full content-start"
+              style={{
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))'
+              }}
+            >
+              {engines.map((data, idx) => (
+                <EngineGridCard
+                  key={data.directoryPath}
+                  {...data}
+                  index={idx}
+                  onLaunch={onLaunch}
+                  onOpenDir={onOpenDir}
+                  onDelete={onDelete}
+                  onUpdateAlias={onUpdateAlias}
+                />
+              ))}
+            </div>
+          ) : (
+            <div
+              ref={containerRef}
+              onScroll={onScroll}
+              className="space-y-2 overflow-y-auto py-2 h-full"
+            >
+              {engines.map((data, idx) => (
+                <EngineCard
+                  key={data.directoryPath}
+                  {...data}
+                  index={idx}
+                  onLaunch={onLaunch}
+                  onOpenDir={onOpenDir}
+                  onDelete={onDelete}
+                  onUpdateAlias={onUpdateAlias}
+                />
+              ))}
+            </div>
+          )
         ) : (
           <div
             className="flex flex-col items-center justify-center h-full text-center"
