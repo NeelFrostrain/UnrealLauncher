@@ -83,29 +83,31 @@ export function EnginesPageToolbar({
       <div className="flex-1" />
 
       {/* Actions */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1">
         <button
           onClick={() => navigate('/tasks')}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
+          className="h-7 flex items-center gap-1 px-2 text-xs font-medium transition-all cursor-pointer whitespace-nowrap"
           style={{
             borderRadius: 'var(--radius)',
             backgroundColor: 'var(--color-surface-card)',
             color: 'var(--color-text-secondary)',
             border: '1px solid var(--color-border)'
           }}
+          title="Background Tasks"
         >
           <Activity size={12} />
           Tasks
         </button>
         <button
           onClick={() => navigate('/vs-status')}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
+          className="h-7 flex items-center gap-1 px-2 text-xs font-medium transition-all cursor-pointer whitespace-nowrap"
           style={{
             borderRadius: 'var(--radius)',
             backgroundColor: 'var(--color-surface-card)',
             color: 'var(--color-text-secondary)',
             border: '1px solid var(--color-border)'
           }}
+          title="Visual Studio Status"
         >
           <Hammer size={12} />
           VS Status
@@ -115,7 +117,7 @@ export function EnginesPageToolbar({
             <button
               ref={dropdownAnchorRef}
               onClick={() => onDropdownToggle(!dropdownOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer"
+              className="h-7 flex items-center gap-1 px-2 text-xs font-medium transition-all cursor-pointer whitespace-nowrap"
               style={{
                 borderRadius: 'var(--radius)',
                 backgroundColor: 'var(--color-surface-card)',
@@ -182,7 +184,7 @@ export function EnginesPageToolbar({
           <>
             {/* View Mode Toggle (Classic List vs Grid) */}
             <div
-              className="flex items-center overflow-hidden"
+              className="h-7 flex items-center overflow-hidden"
               style={{
                 borderRadius: 'var(--radius)',
                 border: '1px solid var(--color-border)'
@@ -192,7 +194,7 @@ export function EnginesPageToolbar({
                 onClick={() => onViewChange('list')}
                 aria-label="Classic list view"
                 aria-pressed={viewMode === 'list'}
-                className="flex items-center p-1.5 cursor-pointer transition-colors"
+                className="h-full px-1.5 flex items-center justify-center cursor-pointer transition-colors"
                 style={{
                   backgroundColor:
                     viewMode === 'list' ? 'var(--color-accent)' : 'var(--color-surface-card)',
@@ -207,7 +209,7 @@ export function EnginesPageToolbar({
                 onClick={() => onViewChange('grid')}
                 aria-label="Grid view"
                 aria-pressed={viewMode === 'grid'}
-                className="flex items-center p-1.5 cursor-pointer transition-colors"
+                className="h-full px-1.5 flex items-center justify-center cursor-pointer transition-colors"
                 style={{
                   backgroundColor:
                     viewMode === 'grid' ? 'var(--color-accent)' : 'var(--color-surface-card)',
@@ -223,7 +225,7 @@ export function EnginesPageToolbar({
             {/* Sort Toggle */}
             <button
               onClick={onToggleSort}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer select-none"
+              className="h-7 flex items-center gap-1 px-2 text-xs font-medium transition-all cursor-pointer select-none whitespace-nowrap"
               title={`Sort by version: ${sortDirection === 'desc' ? 'Newest first (5.x → 4.x)' : 'Oldest first (4.x → 5.x)'}. Click to reverse.`}
               style={{
                 borderRadius: 'var(--radius)',
@@ -233,35 +235,37 @@ export function EnginesPageToolbar({
               }}
             >
               {sortDirection === 'desc' ? (
-                <ArrowDown size={12} style={{ color: 'var(--color-accent)' }} />
+                <ArrowDown size={11} style={{ color: 'var(--color-accent)' }} />
               ) : (
-                <ArrowUp size={12} style={{ color: 'var(--color-accent)' }} />
+                <ArrowUp size={11} style={{ color: 'var(--color-accent)' }} />
               )}
-              <span>{sortDirection === 'desc' ? 'Version (Newest)' : 'Version (Oldest)'}</span>
+              <span>{sortDirection === 'desc' ? 'Newest' : 'Oldest'}</span>
             </button>
 
             <button
               onClick={onScan}
               disabled={scanning}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+              className="h-7 flex items-center gap-1 px-2 text-xs font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed whitespace-nowrap"
               style={{
                 borderRadius: 'var(--radius)',
                 backgroundColor: 'var(--color-surface-card)',
                 color: 'var(--color-text-secondary)',
                 border: '1px solid var(--color-border)'
               }}
+              title="Scan for engines"
             >
-              <RefreshCw size={12} className={scanning ? 'animate-spin' : ''} />
-              {scanning ? 'Scanning…' : 'Scan'}
+              <RefreshCw size={11} className={scanning ? 'animate-spin' : ''} />
+              <span>{scanning ? 'Scanning…' : 'Scan'}</span>
             </button>
             <button
               onClick={onAddEngine}
               disabled={addingEngine}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+              className="h-7 flex items-center gap-1 px-2.5 text-xs font-semibold text-white transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed whitespace-nowrap"
               style={{ borderRadius: 'var(--radius)', backgroundColor: 'var(--color-accent)' }}
+              title="Add engine manually"
             >
               <Plus size={12} />
-              Add Engine
+              <span>Add Engine</span>
             </button>
           </>
         )}
