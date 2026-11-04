@@ -71,12 +71,13 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
   const compatibility = useEngineCompatibility(p.projectVersion)
   const { addToast } = useToast()
 
+  const { projectPath, name, onClose } = p
   const handleEraseFromDisk = useCallback(() => {
-    if (!p.projectPath) return
+    if (!projectPath) return
     const confirmErase = window.confirm(
-      `Are you sure you want to erase "${p.name}" from disk?\n\nThis will move the project folder to the Recycle Bin:\n${p.projectPath}`
+      `Are you sure you want to erase "${name}" from disk?\n\nThis will move the project folder to the Recycle Bin:\n${projectPath}`
     )
-    p.onClose()
+    onClose()
     if (!confirmErase) return
 
     if (!window.electronAPI?.eraseProjectFromDisk) {
@@ -85,10 +86,10 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
     }
 
     window.electronAPI
-      .eraseProjectFromDisk(p.projectPath)
+      .eraseProjectFromDisk(projectPath)
       .then((res) => {
         if (res?.success) {
-          addToast(`Moved "${p.name}" to Recycle Bin`, 'info')
+          addToast(`Moved "${name}" to Recycle Bin`, 'info')
         } else {
           addToast(`Failed to erase project: ${res?.error || 'Unknown error'}`, 'error')
         }
@@ -99,7 +100,7 @@ export default function ProjectContextMenu(p: ProjectContextMenuProps): React.Re
           'error'
         )
       })
-  }, [p.projectPath, p.name, p.onClose, addToast])
+  }, [projectPath, name, onClose, addToast])
 
   useEffect(() => {
     window.electronAPI.loadSavedEngines().then((saved) => {

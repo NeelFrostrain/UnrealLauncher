@@ -212,8 +212,8 @@ const S = {
   root: {
     display: 'flex',
     flexDirection: 'column' as const,
-    width: '100vw',
-    height: '100vh', // own the full viewport — no parent dependency
+    width: '100%',
+    height: '100%', // own the full viewport — no parent dependency
     backgroundColor: 'var(--color-surface-elevated)',
     overflow: 'hidden',
     fontFamily: 'inherit'

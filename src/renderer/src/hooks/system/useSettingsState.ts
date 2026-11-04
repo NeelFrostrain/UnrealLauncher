@@ -66,6 +66,12 @@ export function useSettingsState() {
     setScale(1.0)
     applyScale(1.0)
     persistScale(1.0)
+    try {
+      localStorage.removeItem('sidebarWidth')
+      localStorage.removeItem('sidebarCollapsed')
+    } catch {
+      /* ignore */
+    }
   }, [resetOverrides])
 
   const handleSaveProfile = useCallback((): void => {

@@ -164,7 +164,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
       style={{ borderColor: 'var(--color-border)' }}
     >
       {/* Left: Tabs + optional inline search */}
-      <div className="flex flex-wrap w-full items-center gap-2">
+      <div className="flex items-center gap-2 min-w-0">
         <Tabs tabs={tabs} activeTab={currentTab} onChange={onTabClick} />
 
         {/* {searchOpen && (
@@ -206,7 +206,7 @@ const ProjectsToolbar: FC<ProjectsToolbarProps> = ({
         </div>
 
         {/* Right: View, history, refresh, add */}
-        <div className="flex w-full justify-end items-center gap-1">
+        <div className="flex justify-end items-center gap-1">
           <div
             className="flex items-center"
             style={{

@@ -801,7 +801,7 @@ export default function ProjectCompilerDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 select-none"
       style={{ backgroundColor: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)' }}
       onClick={(e) => {
         if (e.target === e.currentTarget && !isBuilding) onClose()

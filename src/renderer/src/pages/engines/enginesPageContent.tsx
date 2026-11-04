@@ -30,8 +30,8 @@ export function EnginesPageContent({
   activeTab,
   engines,
   loading,
-  displayStart,
-  itemsPerBatch,
+  displayStart: _displayStart,
+  itemsPerBatch: _itemsPerBatch,
   activeEngine,
   containerRef,
   onScroll,
@@ -73,11 +73,11 @@ export function EnginesPageContent({
             onScroll={onScroll}
             className="space-y-2 overflow-y-auto py-2 h-full"
           >
-            {engines.slice(displayStart, displayStart + itemsPerBatch).map((data, idx) => (
+            {engines.map((data, idx) => (
               <EngineCard
                 key={data.directoryPath}
                 {...data}
-                index={displayStart + idx}
+                index={idx}
                 onLaunch={onLaunch}
                 onOpenDir={onOpenDir}
                 onDelete={onDelete}

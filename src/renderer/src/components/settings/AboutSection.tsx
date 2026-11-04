@@ -75,7 +75,7 @@ export const AboutSection = ({ onClose: _onClose }: AboutSectionProps): React.Re
 
       {/* About modal */}
       {showAbout && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div
             className="relative max-w-4xl max-h-[90vh] overflow-hidden"
             style={{

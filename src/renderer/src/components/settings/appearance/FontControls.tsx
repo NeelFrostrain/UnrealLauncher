@@ -50,7 +50,8 @@ const FontControls = ({
   const currentFontFamily = customOverrides['font-family'] ?? activeThemeTokens?.['font-family']
   const currentFontSizeRaw =
     customOverrides['font-size'] ?? activeThemeTokens?.['font-size'] ?? '15px'
-  const currentFontSize = Number(currentFontSizeRaw.replace('px', ''))
+  const parsedSize = parseInt(currentFontSizeRaw.replace('px', ''), 10)
+  const currentFontSize = Number.isFinite(parsedSize) ? Math.min(20, Math.max(12, parsedSize)) : 15
 
   return (
     <>

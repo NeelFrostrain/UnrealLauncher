@@ -9,9 +9,9 @@ interface RadiusControlProps {
   setScale: (value: number) => void
 }
 
-const SCALE_PRESETS = [0.8, 0.9, 1.0, 1.1, 1.2, 1.25]
-const SCALE_MIN = 0.7
-const SCALE_MAX = 1.5
+const SCALE_PRESETS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
+const SCALE_MIN = 0.5
+const SCALE_MAX = 2.0
 
 function scalePct(v: number): string {
   return `${((v - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)) * 100}%`

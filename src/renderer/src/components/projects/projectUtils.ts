@@ -87,6 +87,7 @@ export function formatActivityTimestamp(timestamp: string): string {
 
 function readActivityStorage(): ProjectActivityEntry[] {
   try {
+    if (typeof localStorage === 'undefined' || !localStorage?.getItem) return []
     const raw = localStorage.getItem(ACTIVITY_STORAGE_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw) as ProjectActivityEntry[]
@@ -97,7 +98,13 @@ function readActivityStorage(): ProjectActivityEntry[] {
 }
 
 function writeActivityStorage(entries: ProjectActivityEntry[]): void {
-  localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(entries))
+  try {
+    if (typeof localStorage !== 'undefined' && localStorage?.setItem) {
+      localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(entries))
+    }
+  } catch {
+    /* ignore */
+  }
 }
 
 export function addProjectActivity(

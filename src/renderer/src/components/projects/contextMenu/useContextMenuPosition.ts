@@ -23,13 +23,13 @@ export function useContextMenuPosition(
     // Calculate vertical position
     let t = anchor.top
     if (t + subH > window.innerHeight - 8) {
-      t = window.innerHeight - subH - 8
+      t = Math.max(8, window.innerHeight - subH - 8)
     }
 
     // Calculate horizontal position (try right side first, then left)
     let l = parentLeft + parentWidth - 4
     if (l + subW > window.innerWidth - 8) {
-      l = parentLeft - subW + 4
+      l = Math.max(8, parentLeft - subW + 4)
     }
 
     setPos((prev) => (prev.top === t && prev.left === l ? prev : { top: t, left: l }))

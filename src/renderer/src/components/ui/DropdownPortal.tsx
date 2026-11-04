@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -22,8 +22,11 @@ const DropdownPortal = ({
     if (!open || !anchorRef.current) return
     const rect = anchorRef.current.getBoundingClientRect()
     setPos({
-      top: rect.bottom + 6,
-      right: window.innerWidth - rect.right
+      top:
+        rect.bottom + 6 + 160 > window.innerHeight - 8
+          ? Math.max(8, rect.top - 166)
+          : rect.bottom + 6,
+      right: Math.max(8, window.innerWidth - rect.right)
     })
   }, [open, anchorRef])
 
