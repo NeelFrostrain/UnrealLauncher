@@ -4,7 +4,7 @@ import { Minus, Square, Minimize2, X, MessageSquarePlus, MessageCircle, Heart } 
 const FeedbackDialog = lazy(() => import('./FeedbackDialog'))
 import { SupportModal } from '../ui/SupportModal'
 import { getSetting } from '../../utils/settings'
-import { usePageVisibility, useAppVersion } from '../../hooks'
+import { useAppVersion } from '../../hooks'
 import config from '../../../../config'
 
 // const IS_MAC = navigator.platform.toLowerCase().includes('mac')
@@ -41,8 +41,6 @@ const Titlebar = (): React.ReactElement => {
   }
   const handleClose = (): void => window.electronAPI?.windowClose()
 
-  const isVisible = usePageVisibility()
-
   // Auto-show support modal once per app version update
   useEffect(() => {
     if (!appVersion) return
@@ -55,24 +53,22 @@ const Titlebar = (): React.ReactElement => {
   }, [appVersion])
 
   useEffect(() => {
-    const update = async (): Promise<void> => {
-      const maximized = await window.electronAPI?.windowIsMaximized()
+    window.electronAPI?.windowIsMaximized().then((maximized) => {
       setIsMaximized(!!maximized)
-    }
-    update()
-    if (!isVisible) return undefined
-
-    const interval = setInterval(update, 500)
+    })
+    const unsub = window.electronAPI?.onWindowMaximizedChange?.((maximized) => {
+      setIsMaximized(maximized)
+    })
 
     // React to setting changes from the Settings page
     const onSettingChanged = (): void => setShowButtons(getSetting('showTitlebarButtons'))
     window.addEventListener('app-settings-changed', onSettingChanged)
 
     return () => {
-      clearInterval(interval)
+      unsub?.()
       window.removeEventListener('app-settings-changed', onSettingChanged)
     }
-  }, [isVisible])
+  }, [])
 
   const drag = { WebkitAppRegion: 'drag' } as React.CSSProperties
   const noDrag = { WebkitAppRegion: 'no-drag' } as React.CSSProperties

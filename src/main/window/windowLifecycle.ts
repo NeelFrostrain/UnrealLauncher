@@ -1,9 +1,10 @@
+import { computeSafeWindowBounds } from './windowBoundsHelper'
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * App lifecycle and window management.
  */
 
-import { app, BrowserWindow, Tray, Menu, nativeImage, globalShortcut } from 'electron'
+import { app, BrowserWindow, Tray, Menu, nativeImage, globalShortcut, screen } from 'electron'
 import type { BrowserWindowConstructorOptions } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -17,7 +18,8 @@ import {
   setupDevToolsShortcut,
   setupMemoryManagement
 } from './windowHandlers'
-import { loadMainSettings } from '../store'
+import { loadMainSettings, saveMainSettings } from '../store'
+import { getNative } from '../utils/native'
 import { logger } from '../logger'
 
 let appTray: Tray | null = null
@@ -202,25 +204,86 @@ export function createWindow(): void {
   logger.info('window', 'Creating splash and main window')
   createSplashWindow()
 
-  mainWindow = new BrowserWindow(MAIN_WINDOW_CONFIG as BrowserWindowConstructorOptions)
+  const settings = loadMainSettings()
+  let windowOptions: BrowserWindowConstructorOptions = {
+    ...(MAIN_WINDOW_CONFIG as BrowserWindowConstructorOptions)
+  }
+  let shouldMaximize = false
+
+  if (settings.windowBounds) {
+    const safeBounds = computeSafeWindowBounds(
+      settings.windowBounds,
+      screen.getAllDisplays(),
+      screen.getPrimaryDisplay(),
+      getNative()?.clampWindowBoundsNative
+    )
+    windowOptions = {
+      ...windowOptions,
+      x: safeBounds.x,
+      y: safeBounds.y,
+      width: safeBounds.width,
+      height: safeBounds.height
+    }
+    shouldMaximize = safeBounds.isMaximized
+  }
+
+  mainWindow = new BrowserWindow(windowOptions)
   logger.info('window', 'Main BrowserWindow created', {
-    width: MAIN_WINDOW_CONFIG.width,
-    height: MAIN_WINDOW_CONFIG.height,
-    frame: MAIN_WINDOW_CONFIG.frame
+    width: windowOptions.width,
+    height: windowOptions.height,
+    frame: windowOptions.frame
   })
   setupWindowEventHandlers(mainWindow)
   setupDevToolsShortcut(mainWindow)
   clearMemoryManagementTimer()
   memoryManagementTimer = setupMemoryManagement(mainWindow)
 
+  let saveTimer: NodeJS.Timeout | null = null
+  const queueSaveBounds = (): void => {
+    if (saveTimer) clearTimeout(saveTimer)
+    saveTimer = setTimeout(() => {
+      if (!mainWindow || mainWindow.isDestroyed()) return
+      const isMax = mainWindow.isMaximized()
+      if (isMax) {
+        const currentBounds = loadMainSettings().windowBounds
+        saveMainSettings({
+          windowBounds: {
+            x: currentBounds?.x ?? 0,
+            y: currentBounds?.y ?? 0,
+            width: currentBounds?.width ?? 1200,
+            height: currentBounds?.height ?? 800,
+            isMaximized: true
+          }
+        })
+      } else {
+        const bounds = mainWindow.getNormalBounds
+          ? mainWindow.getNormalBounds()
+          : mainWindow.getBounds()
+        saveMainSettings({
+          windowBounds: {
+            x: bounds.x,
+            y: bounds.y,
+            width: bounds.width,
+            height: bounds.height,
+            isMaximized: false
+          }
+        })
+      }
+    }, 500)
+  }
+
+  mainWindow.on('resize', queueSaveBounds)
+  mainWindow.on('move', queueSaveBounds)
+  mainWindow.on('maximize', queueSaveBounds)
+  mainWindow.on('unmaximize', queueSaveBounds)
+
   mainWindow.on('close', (event) => {
     logger.info('window', 'Main window close event', { isQuiting })
     if (isQuiting) return
-    const settings = loadMainSettings()
-    if (settings.backgroundCloseEnabled && mainWindow && !mainWindow.isDestroyed()) {
+    const currentSettings = loadMainSettings()
+    if (currentSettings.backgroundCloseEnabled && mainWindow && !mainWindow.isDestroyed()) {
       event.preventDefault()
       if (createAppTray()) {
-        // Window is going to tray — register background shortcut
         registerBackgroundShortcut()
         mainWindow.hide()
         enableBackgroundMode(mainWindow)
@@ -231,6 +294,9 @@ export function createWindow(): void {
   mainWindow.once('ready-to-show', () => {
     if (mainWindow) {
       logger.info('window', 'Main window ready to show')
+      if (shouldMaximize) {
+        mainWindow.maximize()
+      }
       mainWindow.show()
       closeSplashWindow()
     }
@@ -238,6 +304,7 @@ export function createWindow(): void {
 
   mainWindow.on('closed', () => {
     logger.info('window', 'Main window closed')
+    if (saveTimer) clearTimeout(saveTimer)
     clearMemoryManagementTimer()
     closeSplashWindow()
     mainWindow = null

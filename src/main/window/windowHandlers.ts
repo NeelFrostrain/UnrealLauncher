@@ -1,12 +1,9 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Window event handlers and control functions.
  */
 
-import { BrowserWindow, screen } from 'electron'
-
-let isMaximized = false
-let previousBounds: { x: number; y: number; width: number; height: number } | null = null
+import { BrowserWindow } from 'electron'
 
 export function enableBackgroundMode(mainWindow: BrowserWindow): void {
   try {
@@ -27,8 +24,9 @@ function enableForegroundMode(mainWindow: BrowserWindow): void {
   }
 }
 
-export function getIsMaximized(): boolean {
-  return isMaximized
+export function getIsMaximized(mainWindow: BrowserWindow | null): boolean {
+  if (!mainWindow || mainWindow.isDestroyed()) return false
+  return mainWindow.isMaximized()
 }
 
 export function handleWindowMinimize(mainWindow: BrowserWindow | null): void {
@@ -37,29 +35,32 @@ export function handleWindowMinimize(mainWindow: BrowserWindow | null): void {
 
 export function handleWindowMaximize(mainWindow: BrowserWindow | null): void {
   if (!mainWindow || mainWindow.isDestroyed()) return
-  const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().bounds
-
-  if (isMaximized) {
-    if (previousBounds) {
-      mainWindow.setPosition(previousBounds.x, previousBounds.y)
-      mainWindow.setSize(previousBounds.width, previousBounds.height)
-    }
-    isMaximized = false
+  if (mainWindow.isMaximized()) {
+    mainWindow.unmaximize()
   } else {
-    previousBounds = mainWindow.getBounds()
-    mainWindow.setPosition(0, 0)
-    mainWindow.setSize(screenWidth, screenHeight)
-    isMaximized = true
+    mainWindow.maximize()
   }
 }
 
 export function setupWindowEventHandlers(mainWindow: BrowserWindow): void {
   mainWindow.once('ready-to-show', () => {
-    if (mainWindow) mainWindow.show()
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show()
   })
 
   mainWindow.on('closed', () => {
     // Cleanup handled by caller
+  })
+
+  mainWindow.on('maximize', () => {
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('window-maximized-change', true)
+    }
+  })
+
+  mainWindow.on('unmaximize', () => {
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('window-maximized-change', false)
+    }
   })
 
   // Free renderer memory and throttle timers when not visible.
@@ -68,10 +69,6 @@ export function setupWindowEventHandlers(mainWindow: BrowserWindow): void {
   })
 
   mainWindow.on('hide', () => {
-    enableBackgroundMode(mainWindow)
-  })
-
-  mainWindow.on('blur', () => {
     enableBackgroundMode(mainWindow)
   })
 

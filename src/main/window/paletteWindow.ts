@@ -11,6 +11,7 @@ import { BrowserWindow, screen } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { logger } from '../logger'
+import { getMainWindow } from './windowLifecycle'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -34,6 +35,24 @@ export function isPaletteOpen(): boolean {
   return paletteWindow !== null && !paletteWindow.isDestroyed() && paletteWindow.isVisible()
 }
 
+function getTargetDisplay(): Electron.Display {
+  const mainWindow = getMainWindow()
+  if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
+    return screen.getDisplayMatching(mainWindow.getBounds())
+  }
+  return screen.getDisplayNearestPoint(screen.getCursorScreenPoint())
+}
+
+function calculatePaletteBounds(): { x: number; y: number; width: number; height: number } {
+  const display = getTargetDisplay()
+  const { x: wx, y: wy, width: sw, height: sh } = display.workArea
+  const W = Math.round(Math.min(600, sw * 0.5))
+  const H = Math.round(Math.min(600, sh * 0.75))
+  const x = wx + Math.round((sw - W) / 2)
+  const y = wy + Math.round(sh * 0.08) // ~8% from top
+  return { x, y, width: W, height: H }
+}
+
 /**
  * Preloads the palette window silently in the background.
  * Should be called once during app startup.
@@ -41,22 +60,10 @@ export function isPaletteOpen(): boolean {
 export function preloadPaletteWindow(): void {
   if (paletteWindow && !paletteWindow.isDestroyed()) return
 
-  // Use workAreaSize with scaleFactor to correctly size the window on
-  // high-DPI displays (125%, 150%, 200% Windows scaling)
-  const display = screen.getPrimaryDisplay()
-  const { width: sw, height: sh } = display.workAreaSize
-
-  // Window dimensions in logical pixels — Electron handles DPI scaling internally
-  const W = Math.round(Math.min(600, sw * 0.5))
-  const H = Math.round(Math.min(600, sh * 0.75))
-  const x = Math.round((sw - W) / 2)
-  const y = Math.round(sh * 0.08) // ~8% from top
+  const bounds = calculatePaletteBounds()
 
   paletteWindow = new BrowserWindow({
-    width: W,
-    height: H,
-    x,
-    y,
+    ...bounds,
     frame: false,
     transparent: false,
     resizable: false,
@@ -105,7 +112,9 @@ export function openPaletteWindow(): void {
     pendingShow = true
     preloadPaletteWindow()
   } else {
-    // Already exists: notify renderer to reset state, then force to front
+    // Re-position to target display in case main window moved or active monitor changed
+    const bounds = calculatePaletteBounds()
+    paletteWindow.setBounds(bounds)
     paletteWindow.webContents.send('palette-opened')
     forceForeground(paletteWindow)
   }

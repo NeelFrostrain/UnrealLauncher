@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Window configuration constants and preload paths.
  */
@@ -11,6 +11,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export const MAIN_WINDOW_CONFIG = {
   width: 1200,
   height: 800,
+  minWidth: 800,
+  minHeight: 550,
   webPreferences: {
     nodeIntegration: false,
     contextIsolation: true,
@@ -70,10 +72,12 @@ export const SPLASH_HTML = `
             --neo-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
         }
 
-        body {
+        html, body {
             margin: 0;
             padding: 0;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
             font-family: 'Space Grotesk', sans-serif;
             background-color: var(--color-obsidian);
             color: var(--color-text);

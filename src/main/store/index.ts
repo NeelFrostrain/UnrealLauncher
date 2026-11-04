@@ -39,7 +39,15 @@ export { getTracerEnginesPath, getTracerProjectsPath } from './storePaths'
 
 // ── Settings ──────────────────────────────────────────────────────────────────
 
-interface MainSettings {
+export interface SavedWindowBounds {
+  x: number
+  y: number
+  width: number
+  height: number
+  isMaximized?: boolean
+}
+
+export interface MainSettings {
   tracerMergeEnabled: boolean
   tracerStartupEnabled: boolean
   registryEnginesEnabled: boolean
@@ -47,6 +55,7 @@ interface MainSettings {
   disableGpu: boolean
   excludedScannerPaths: string[]
   discordRpcEnabled: boolean
+  windowBounds?: SavedWindowBounds
 }
 
 const DEFAULT_SETTINGS: MainSettings = {
