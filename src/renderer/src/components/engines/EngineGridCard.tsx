@@ -1,7 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type { FC, ReactElement, KeyboardEvent } from 'react'
 import { useState, useRef, memo, useCallback, useEffect, lazy, Suspense } from 'react'
-import { Play, FolderOpen, XCircle, Pencil, Settings2 } from 'lucide-react'
+import { Play, FolderOpen, XCircle, Pencil, Settings2, Database } from 'lucide-react'
 import type { EngineCardProps } from '../../types'
 import { generateGradient } from '@renderer/utils/generateGradient'
 
@@ -32,6 +32,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
     onUpdateAlias
   }): ReactElement => {
     const [currentGradient] = useState(gradient || generateGradient())
+    const [hovered, setHovered] = useState(false)
     const [launching, setLaunching] = useState(false)
     const [calculating, setCalculating] = useState(false)
     const [showConfigDialog, setShowConfigDialog] = useState(false)
@@ -98,56 +99,99 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
       else if (e.key === 'Escape') cancelEditAlias()
     }
 
+    const displayName = alias || `Unreal Engine ${version}`
+
     return (
       <>
         <div
-          className="w-full flex flex-col rounded-[var(--radius)] overflow-hidden select-text transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 group shrink-0"
+          className="relative w-full h-[185px] overflow-hidden select-none border-2 transition-all duration-300 group cursor-pointer"
           style={{
+            borderRadius: 'var(--radius)',
             backgroundColor: 'var(--color-surface-card)',
-            border: '1px solid var(--color-border)',
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)'
+            borderColor: hovered ? 'var(--color-accent)' : 'var(--color-border)',
+            boxShadow: hovered ? '0 8px 24px rgba(0, 0, 0, 0.35)' : '0 4px 16px rgba(0, 0, 0, 0.15)'
           }}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
         >
-          {/* ── Compact Gradient Header ─────────────────────────────────── */}
+          {/* ── Background Gradient Visual with Zoom on Hover ──────────── */}
           <div
-            className="w-full h-20 p-2.5 flex flex-col justify-between relative select-none shrink-0"
-            style={{ background: currentGradient }}
+            className="absolute inset-0 w-full h-full"
+            style={{
+              background: currentGradient,
+              transform: hovered ? 'scale(1.05)' : 'scale(1)',
+              transition: 'transform 400ms ease'
+            }}
           >
-            <div className="absolute inset-0 bg-black/15 backdrop-blur-[1px]" />
-
-            {/* Top row: Version label & quick actions */}
-            <div className="relative z-10 flex items-center justify-between">
-              <span className="opacity-90 uppercase text-[9px] font-bold tracking-[0.2em] text-white">
-                Version
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setShowConfigDialog(true)}
-                  className="p-1 rounded text-white/80 hover:text-white hover:bg-white/20 transition-all cursor-pointer"
-                  title="Launch with config profile"
-                >
-                  <Settings2 size={12} />
-                </button>
-                <button
-                  onClick={() => onDelete(directoryPath)}
-                  className="p-1 rounded text-white/80 hover:text-red-300 hover:bg-red-500/20 transition-all cursor-pointer"
-                  title="Remove from list"
-                >
-                  <XCircle size={13} />
-                </button>
-              </div>
-            </div>
-
-            {/* Version Number */}
-            <h1 className="relative z-10 text-2xl font-black tracking-tight text-white leading-none">
-              {fullVersion || version}
-            </h1>
+            {/* Subtle frosted texture */}
+            <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px]" />
           </div>
 
-          {/* ── Compact Rearranged Content Body ─────────────────────────── */}
-          <div className="flex flex-col p-2.5 gap-2">
-            {/* Row 1: Title on left, Size on right */}
-            <div className="flex items-center justify-between gap-2 min-w-0">
+          {/* ── Dark Vignette Overlay from Top and Bottom ─────────────────── */}
+          <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/45 to-black/35 pointer-events-none" />
+
+          {/* ── Top Bar: Glassmorphic Badges & Actions ───────────────────── */}
+          <div className="absolute top-2 inset-x-2 z-10 flex items-center justify-between">
+            {/* Left: Glassmorphic Version Badge */}
+            <div
+              className="bg-black/55 backdrop-blur-md px-2 py-0.5 text-[10px] font-mono tracking-wider font-semibold text-white/95"
+              style={{
+                borderRadius: 'calc(var(--radius) * 0.5)',
+                border: '1px solid rgba(255, 255, 255, 0.14)'
+              }}
+            >
+              UE {fullVersion || version}
+            </div>
+
+            {/* Right: Quick Settings & Delete */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowConfigDialog(true)
+                }}
+                className="p-1 rounded bg-black/55 backdrop-blur-md text-white/80 hover:text-white hover:bg-black/80 transition-all cursor-pointer"
+                style={{
+                  borderRadius: 'calc(var(--radius) * 0.5)',
+                  border: '1px solid rgba(255, 255, 255, 0.14)'
+                }}
+                title="Launch Configuration"
+              >
+                <Settings2 size={11} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete(directoryPath)
+                }}
+                className="p-1 rounded bg-black/55 backdrop-blur-md text-white/80 hover:text-red-300 hover:bg-red-500/30 transition-all cursor-pointer"
+                style={{
+                  borderRadius: 'calc(var(--radius) * 0.5)',
+                  border: '1px solid rgba(255, 255, 255, 0.14)'
+                }}
+                title="Remove from list"
+              >
+                <XCircle size={11} />
+              </button>
+            </div>
+          </div>
+
+          {/* ── Center Watermark Number ─────────────────────────────────── */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+            <span
+              className="text-4xl font-black tracking-tight text-white/20 transition-all duration-300"
+              style={{
+                transform: hovered ? 'scale(1.08)' : 'scale(1)'
+              }}
+            >
+              {fullVersion || version}
+            </span>
+          </div>
+
+          {/* ── Bottom Info & Action Buttons ─────────────────────────────── */}
+          <div className="absolute bottom-0 inset-x-0 z-10 px-2.5 py-2 flex flex-col gap-1.5">
+            {/* Title & Size row */}
+            <div className="flex items-center justify-between gap-1.5 min-w-0">
               {/* Alias / Title */}
               <div className="group/alias min-w-0 flex-1">
                 {editingAlias ? (
@@ -157,57 +201,44 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                     onChange={(e) => setAliasInput(e.target.value.slice(0, MAX_ALIAS))}
                     onKeyDown={handleAliasKeyDown}
                     onBlur={commitAlias}
+                    onClick={(e) => e.stopPropagation()}
                     maxLength={MAX_ALIAS}
                     placeholder={`Unreal Engine ${version}`}
-                    className="w-full text-xs font-semibold bg-transparent outline-none pb-px"
+                    className="w-full text-xs font-semibold text-white bg-black/60 px-1 py-0.5 rounded outline-none"
                     style={{
-                      color: 'var(--color-text-primary)',
                       borderBottom: '1px solid var(--color-accent)',
                       caretColor: 'var(--color-accent)'
                     }}
                   />
                 ) : (
                   <button
-                    onClick={startEditAlias}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      startEditAlias()
+                    }}
                     className="flex items-center gap-1 max-w-full text-left cursor-pointer group/btn"
-                    title={alias ? `${alias} (Unreal Engine ${version})` : 'Click to set alias'}
+                    title={alias ? `${alias} (UE ${version})` : 'Click to set alias'}
                   >
-                    <span
-                      className="text-xs font-semibold truncate"
-                      style={{
-                        color: alias ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
-                      }}
-                    >
-                      {alias || `Unreal Engine ${version}`}
-                    </span>
+                    <span className="text-xs font-semibold text-white truncate">{displayName}</span>
                     <Pencil
                       size={9}
-                      className="shrink-0 opacity-0 group-hover/alias:opacity-50 transition-opacity"
-                      style={{ color: 'var(--color-text-muted)' }}
+                      className="shrink-0 opacity-0 group-hover/alias:opacity-60 transition-opacity text-white/70"
                     />
                   </button>
                 )}
               </div>
 
               {/* Size Badge */}
-              <div className="flex items-center gap-1 shrink-0">
-                <span
-                  className="text-[10px] font-medium"
-                  style={{
-                    color: calculating ? 'var(--color-text-muted)' : 'var(--color-text-secondary)'
-                  }}
-                  title="Disk size"
-                >
-                  {displaySize}
-                </span>
+              <div className="flex items-center gap-1 shrink-0 text-white/70">
+                <Database size={9} className="opacity-70" />
+                <span className="text-[10px] font-mono font-medium">{displaySize}</span>
                 {!calculating && folderSize.startsWith('~') && (
                   <button
-                    onClick={handleCalculateSize}
-                    className="text-[8px] px-1 py-0.2 rounded cursor-pointer transition-colors"
-                    style={{
-                      color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
-                      backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleCalculateSize()
                     }}
+                    className="text-[8px] px-1 py-0.2 rounded cursor-pointer transition-colors text-white/90 bg-white/15 hover:bg-white/25"
                     title="Calculate exact size"
                   >
                     calc
@@ -216,49 +247,45 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
               </div>
             </div>
 
-            {/* Row 2: Compact Path Pill */}
+            {/* Path pill */}
             <div
-              className="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-mono select-all min-w-0"
-              style={{
-                backgroundColor: 'var(--color-surface-elevated)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-text-secondary)'
-              }}
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono select-all truncate bg-black/45 backdrop-blur-sm border border-white/10 text-white/70"
               title={directoryPath}
+              onClick={(e) => e.stopPropagation()}
             >
-              <FolderOpen size={11} className="shrink-0 opacity-60" />
+              <FolderOpen size={10} className="shrink-0 opacity-60" />
               <span className="truncate">{directoryPath}</span>
             </div>
 
-            {/* Row 3: Action Buttons */}
+            {/* Action Buttons Row */}
             <div className="flex items-center gap-1.5 pt-0.5">
               <button
-                onClick={() => onOpenDir(directoryPath)}
-                className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium transition-all cursor-pointer hover:bg-white/[0.04] hover:text-[var(--color-text-primary)]"
-                style={{
-                  backgroundColor: 'var(--color-surface-elevated)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  color: 'var(--color-text-secondary)'
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onOpenDir(directoryPath)
                 }}
+                className="flex-1 flex items-center justify-center gap-1 py-1 text-[11px] font-medium rounded transition-all cursor-pointer bg-white/10 hover:bg-white/20 text-white border border-white/10"
+                style={{ borderRadius: 'calc(var(--radius) * 0.75)' }}
                 title="Open in Explorer"
               >
                 <FolderOpen size={11} />
                 Directory
               </button>
               <button
-                onClick={handleLaunch}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleLaunch()
+                }}
                 disabled={launching}
-                className={`flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-bold transition-all ${
-                  launching ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'
+                className={`flex-1 flex items-center justify-center gap-1 py-1 text-[11px] font-bold rounded text-white transition-all ${
+                  launching
+                    ? 'cursor-not-allowed'
+                    : 'cursor-pointer hover:brightness-110 hover:scale-[1.02]'
                 } ease-in-out duration-100`}
                 style={{
-                  borderRadius: 'var(--radius)',
-                  color: 'var(--color-text-primary)',
+                  borderRadius: 'calc(var(--radius) * 0.75)',
                   backgroundColor: 'var(--color-accent)',
-                  boxShadow: launching
-                    ? 'none'
-                    : '0 4px 12px color-mix(in srgb, var(--color-accent) 30%, transparent)'
+                  boxShadow: '0 2px 8px color-mix(in srgb, var(--color-accent) 40%, transparent)'
                 }}
                 title="Launch Engine"
               >
@@ -267,13 +294,34 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
               </button>
             </div>
           </div>
+
+          {/* ── Launching Overlay (matching ProjectCardGrid) ─────────────── */}
+          <div
+            className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm"
+            style={{
+              opacity: launching ? 1 : 0,
+              pointerEvents: launching ? 'auto' : 'none',
+              transition: 'opacity 0.15s ease'
+            }}
+          >
+            <div
+              className="w-8 h-8 rounded-full border-2 animate-spin mb-2"
+              style={{
+                borderColor: 'color-mix(in srgb, var(--color-accent) 30%, transparent)',
+                borderTopColor: 'var(--color-accent)'
+              }}
+            />
+            <p className="text-xs tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
+              Launching Engine…
+            </p>
+          </div>
         </div>
 
         {showConfigDialog && (
           <Suspense fallback={null}>
             <LaunchConfigDialog
               exePath={exePath}
-              displayName={alias || `Unreal Engine ${version}`}
+              displayName={displayName}
               onClose={() => setShowConfigDialog(false)}
             />
           </Suspense>
