@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState, useRef, useCallback } from 'react'
 import type React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
@@ -39,6 +39,8 @@ export function useEnginesPageState(): {
   handleScroll: (e: React.UIEvent<HTMLDivElement>) => void
   activeEngine: EngineCardProps | null
   TAB_PATHS: Record<EngineTab, string>
+  sortDirection: 'asc' | 'desc'
+  toggleSortDirection: () => void
 } {
   const { tab: tabParam } = useParams<{ tab?: string }>()
   const navigate = useNavigate()
@@ -48,6 +50,27 @@ export function useEnginesPageState(): {
   const [displayStart, setDisplayStart] = useState(0)
   const [selectedEngine, setSelectedEngine] = useState<EngineCardProps | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(() => {
+    try {
+      const saved = localStorage.getItem('unreal-launcher:engines-sort-dir')
+      if (saved === 'asc' || saved === 'desc') return saved
+    } catch {
+      /* ignore */
+    }
+    return 'desc'
+  })
+
+  const toggleSortDirection = useCallback(() => {
+    setSortDirection((prev) => {
+      const next = prev === 'desc' ? 'asc' : 'desc'
+      try {
+        localStorage.setItem('unreal-launcher:engines-sort-dir', next)
+      } catch {
+        /* ignore */
+      }
+      return next
+    })
+  }, [])
 
   const dropdownAnchorRef = useRef<HTMLButtonElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -89,6 +112,8 @@ export function useEnginesPageState(): {
     switchTab,
     handleScroll,
     activeEngine,
-    TAB_PATHS
+    TAB_PATHS,
+    sortDirection,
+    toggleSortDirection
   }
 }

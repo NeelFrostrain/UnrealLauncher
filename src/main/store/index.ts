@@ -137,6 +137,48 @@ function dedupeProjects(projects: Project[]): Project[] {
   return Array.from(seen.values())
 }
 
+function parseVersionParts(v: string | undefined): number[] {
+  if (!v) return []
+  const clean = String(v)
+    .trim()
+    .replace(/^[^\d]*/, '')
+  const match = clean.match(/^\d+(\.\d+)*/)
+  if (!match) return []
+  return match[0].split('.').map((n) => parseInt(n, 10))
+}
+
+function compareEngineVersions(
+  verA: string | undefined,
+  verB: string | undefined,
+  direction: 'asc' | 'desc' = 'desc'
+): number {
+  const pA = parseVersionParts(verA)
+  const pB = parseVersionParts(verB)
+  const max = Math.max(pA.length, pB.length)
+  for (let i = 0; i < max; i++) {
+    const numA = pA[i] ?? 0
+    const numB = pB[i] ?? 0
+    if (numA !== numB) {
+      return direction === 'asc' ? numA - numB : numB - numA
+    }
+  }
+  const strCmp = String(verA || '').localeCompare(String(verB || ''), undefined, {
+    numeric: true,
+    sensitivity: 'base'
+  })
+  return direction === 'asc' ? strCmp : -strCmp
+}
+
+export function sortEngines(engines: Engine[], direction: 'asc' | 'desc' = 'desc'): Engine[] {
+  return [...engines].sort((a, b) => {
+    const verA = a.fullVersion || a.version || ''
+    const verB = b.fullVersion || b.version || ''
+    const cmp = compareEngineVersions(verA, verB, direction)
+    if (cmp !== 0) return cmp
+    return (a.directoryPath || '').localeCompare(b.directoryPath || '')
+  })
+}
+
 function normalizeEnginePath(p: string): string {
   if (!p) return ''
   return path.normalize(p).toLowerCase()
@@ -202,7 +244,7 @@ export function loadEngines(): Engine[] {
       fullVersion: fullVersion || version
     }
   })
-  const deduped = dedupeEngines(mapped)
+  const deduped = sortEngines(dedupeEngines(mapped), 'desc')
   if (deduped.length !== raw.length) {
     writeJson(
       getEnginesDataPath(),
@@ -214,7 +256,7 @@ export function loadEngines(): Engine[] {
 }
 
 export function saveEngines(engines: Engine[]): void {
-  const deduped = dedupeEngines(engines)
+  const deduped = sortEngines(dedupeEngines(engines), 'desc')
   writeJson(getEnginesDataPath(), deduped, `engines (${deduped.length})`)
 }
 

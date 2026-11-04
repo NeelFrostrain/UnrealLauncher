@@ -1,6 +1,11 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { describe, it, expect } from 'vitest'
-import { dedupeEngineList, normalizeEnginePathKey } from '../enginePathUtils'
+import {
+  dedupeEngineList,
+  normalizeEnginePathKey,
+  compareEngineVersions,
+  sortEngineList
+} from '../enginePathUtils'
 
 describe('Engine Path Normalization and Deduplication', () => {
   const duplicateEngines = [
@@ -79,5 +84,46 @@ describe('Engine Path Normalization and Deduplication', () => {
     ]
     const deduped = dedupeEngineList(mixed)
     expect(deduped.length).toBe(1)
+  })
+})
+
+describe('Engine Version Sorting', () => {
+  const userEngines = [
+    { version: '5.4', fullVersion: '5.4.4', directoryPath: 'D:\\Enignes\\UnrealEngine\\UE_5.4' },
+    { version: '5.6', fullVersion: '5.6.1', directoryPath: 'D:\\Enignes\\UnrealEngine\\UE_5.6' },
+    { version: '5.7', fullVersion: '5.7.4', directoryPath: 'D:\\Enignes\\UnrealEngine\\UE_5.7' },
+    { version: '5.8', fullVersion: '5.8.4', directoryPath: 'D:\\Enignes\\UnrealEngine\\UE_5.8' },
+    {
+      version: '4.27',
+      fullVersion: '4.27.2',
+      directoryPath: 'D:\\Enignes\\UnrealEngine_Old\\UE_4.27'
+    }
+  ]
+
+  it('sorts engines descending (newest first) by default', () => {
+    const sorted = sortEngineList(userEngines, 'desc')
+    expect(sorted.map((e) => e.fullVersion)).toEqual(['5.8.4', '5.7.4', '5.6.1', '5.4.4', '4.27.2'])
+  })
+
+  it('sorts engines ascending (oldest first) when requested', () => {
+    const sorted = sortEngineList(userEngines, 'asc')
+    expect(sorted.map((e) => e.fullVersion)).toEqual(['4.27.2', '5.4.4', '5.6.1', '5.7.4', '5.8.4'])
+  })
+
+  it('handles two-digit minor version numbers correctly (numeric aware)', () => {
+    const versions = ['5.2', '5.10.1', '5.3.1', '4.27.2']
+    const sortedDesc = [...versions].sort((a, b) => compareEngineVersions(a, b, 'desc'))
+    expect(sortedDesc).toEqual(['5.10.1', '5.3.1', '5.2', '4.27.2'])
+
+    const sortedAsc = [...versions].sort((a, b) => compareEngineVersions(a, b, 'asc'))
+    expect(sortedAsc).toEqual(['4.27.2', '5.2', '5.3.1', '5.10.1'])
+  })
+
+  it('handles non-numeric build branch tags gracefully', () => {
+    const tags = [{ version: 'UE5-Main' }, { version: '5.4.0' }]
+    const sorted = sortEngineList(tags, 'desc')
+    expect(sorted.length).toBe(2)
+    expect(sorted[0].version).toBe('5.4.0')
+    expect(sorted[1].version).toBe('UE5-Main')
   })
 })

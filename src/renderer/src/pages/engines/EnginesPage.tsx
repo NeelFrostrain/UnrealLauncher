@@ -1,7 +1,11 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import PageWrapper from '@renderer/layout/PageWrapper'
-import { dedupeEngineList, normalizeEnginePathKey } from '../../utils/enginePathUtils'
+import {
+  dedupeEngineList,
+  normalizeEnginePathKey,
+  sortEngineList
+} from '../../utils/enginePathUtils'
 import {
   useEngineActions,
   useGlobalShortcuts,
@@ -57,14 +61,14 @@ const EnginesPage = (): React.ReactElement => {
         if (savedEngines.length > 0) {
           const deduped = dedupeEngineList(savedEngines)
           setEngines(deduped)
-          setEnginesCache(deduped)
+          setEnginesCache(sortEngineList(deduped, 'desc'))
           setLoading(false)
         }
 
         const engines = await window.electronAPI.scanEngines()
         const deduped = dedupeEngineList(engines)
         setEngines(deduped)
-        setEnginesCache(deduped)
+        setEnginesCache(sortEngineList(deduped, 'desc'))
         clearEngineCompatibilityCache()
       } catch (err) {
         console.error('Failed to load engines:', err)
@@ -90,27 +94,33 @@ const EnginesPage = (): React.ReactElement => {
     return () => {}
   }, [setEngines, setLoading])
 
+  const sortedEngines = useMemo(() => {
+    return sortEngineList(state.engines, state.sortDirection)
+  }, [state.engines, state.sortDirection])
+
   return (
     <PageWrapper>
       <EnginesPageToolbar
         activeTab={state.activeTab}
-        engines={state.engines}
+        engines={sortedEngines}
         activeEngine={state.activeEngine}
         selectedEngine={state.selectedEngine}
         dropdownOpen={state.dropdownOpen}
         dropdownAnchorRef={state.dropdownAnchorRef as React.RefObject<HTMLButtonElement | null>}
         scanning={scanning}
         addingEngine={addingEngine}
+        sortDirection={state.sortDirection}
         onTabChange={state.switchTab}
         onScan={handleScan}
         onAddEngine={handleAddEngine}
+        onToggleSort={state.toggleSortDirection}
         onSelectEngine={state.setSelectedEngine}
         onDropdownToggle={state.setDropdownOpen}
       />
 
       <EnginesPageContent
         activeTab={state.activeTab}
-        engines={state.engines}
+        engines={sortedEngines}
         loading={state.loading}
         displayStart={state.displayStart}
         itemsPerBatch={state.ITEMS_PER_BATCH}

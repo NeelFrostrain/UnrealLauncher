@@ -10,7 +10,9 @@ import {
   Check,
   Store,
   Activity,
-  Hammer
+  Hammer,
+  ArrowDown,
+  ArrowUp
 } from 'lucide-react'
 import DropdownPortal from '../../components/ui/DropdownPortal'
 import type { EngineCardProps } from '../../types'
@@ -27,9 +29,11 @@ interface EnginesPageToolbarProps {
   dropdownAnchorRef: React.RefObject<HTMLButtonElement | null>
   scanning: boolean
   addingEngine: boolean
+  sortDirection: 'asc' | 'desc'
   onTabChange: (tab: EngineTab) => void
   onScan: () => void
   onAddEngine: () => void
+  onToggleSort: () => void
   onSelectEngine: (engine: EngineCardProps) => void
   onDropdownToggle: (open: boolean) => void
 }
@@ -52,9 +56,11 @@ export function EnginesPageToolbar({
   dropdownAnchorRef,
   scanning,
   addingEngine,
+  sortDirection,
   onTabChange,
   onScan,
   onAddEngine,
+  onToggleSort,
   onSelectEngine,
   onDropdownToggle
 }: EnginesPageToolbarProps): React.ReactElement {
@@ -167,6 +173,24 @@ export function EnginesPageToolbar({
         )}
         {activeTab === 'engines' && (
           <>
+            <button
+              onClick={onToggleSort}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all cursor-pointer select-none"
+              title={`Sort by version: ${sortDirection === 'desc' ? 'Newest first (5.x → 4.x)' : 'Oldest first (4.x → 5.x)'}. Click to reverse.`}
+              style={{
+                borderRadius: 'var(--radius)',
+                backgroundColor: 'var(--color-surface-card)',
+                color: 'var(--color-text-secondary)',
+                border: '1px solid var(--color-border)'
+              }}
+            >
+              {sortDirection === 'desc' ? (
+                <ArrowDown size={12} style={{ color: 'var(--color-accent)' }} />
+              ) : (
+                <ArrowUp size={12} style={{ color: 'var(--color-accent)' }} />
+              )}
+              <span>{sortDirection === 'desc' ? 'Version (Newest)' : 'Version (Oldest)'}</span>
+            </button>
             <button
               onClick={onScan}
               disabled={scanning}
