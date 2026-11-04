@@ -26,7 +26,6 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
     folderSize,
     gradient,
     alias,
-    lastLaunch,
     onLaunch,
     onOpenDir,
     onDelete,
@@ -111,12 +110,12 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
         >
           {/* ── Compact Gradient Header ─────────────────────────────────── */}
           <div
-            className="w-full h-24 p-3 flex flex-col justify-between relative select-none shrink-0"
+            className="w-full h-20 p-2.5 flex flex-col justify-between relative select-none shrink-0"
             style={{ background: currentGradient }}
           >
             <div className="absolute inset-0 bg-black/15 backdrop-blur-[1px]" />
 
-            {/* Top row: Label & quick actions */}
+            {/* Top row: Version label & quick actions */}
             <div className="relative z-10 flex items-center justify-between">
               <span className="opacity-90 uppercase text-[9px] font-bold tracking-[0.2em] text-white">
                 Version
@@ -134,149 +133,108 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                   className="p-1 rounded text-white/80 hover:text-red-300 hover:bg-red-500/20 transition-all cursor-pointer"
                   title="Remove from list"
                 >
-                  <XCircle size={14} />
+                  <XCircle size={13} />
                 </button>
               </div>
             </div>
 
-            {/* Large Version Display */}
+            {/* Version Number */}
             <h1 className="relative z-10 text-2xl font-black tracking-tight text-white leading-none">
               {fullVersion || version}
             </h1>
           </div>
 
-          {/* ── Content Body ────────────────────────────────────────────── */}
-          <div className="flex flex-col p-3 gap-2.5">
-            {/* Alias / Title */}
-            <div className="group/alias min-w-0">
-              {editingAlias ? (
-                <input
-                  ref={inputRef}
-                  value={aliasInput}
-                  onChange={(e) => setAliasInput(e.target.value.slice(0, MAX_ALIAS))}
-                  onKeyDown={handleAliasKeyDown}
-                  onBlur={commitAlias}
-                  maxLength={MAX_ALIAS}
-                  placeholder={`Unreal Engine ${version}`}
-                  className="w-full text-xs font-semibold bg-transparent outline-none pb-px"
-                  style={{
-                    color: 'var(--color-text-primary)',
-                    borderBottom: '1px solid var(--color-accent)',
-                    caretColor: 'var(--color-accent)'
-                  }}
-                />
-              ) : (
-                <button
-                  onClick={startEditAlias}
-                  className="flex items-center gap-1.5 max-w-full text-left cursor-pointer group/btn"
-                  title="Click to set alias"
-                >
-                  <span
-                    className="text-xs font-semibold truncate"
+          {/* ── Compact Rearranged Content Body ─────────────────────────── */}
+          <div className="flex flex-col p-2.5 gap-2">
+            {/* Row 1: Title on left, Size on right */}
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              {/* Alias / Title */}
+              <div className="group/alias min-w-0 flex-1">
+                {editingAlias ? (
+                  <input
+                    ref={inputRef}
+                    value={aliasInput}
+                    onChange={(e) => setAliasInput(e.target.value.slice(0, MAX_ALIAS))}
+                    onKeyDown={handleAliasKeyDown}
+                    onBlur={commitAlias}
+                    maxLength={MAX_ALIAS}
+                    placeholder={`Unreal Engine ${version}`}
+                    className="w-full text-xs font-semibold bg-transparent outline-none pb-px"
                     style={{
-                      color: alias ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+                      color: 'var(--color-text-primary)',
+                      borderBottom: '1px solid var(--color-accent)',
+                      caretColor: 'var(--color-accent)'
                     }}
-                  >
-                    {alias || `Unreal Engine ${version}`}
-                  </span>
-                  <Pencil
-                    size={10}
-                    className="shrink-0 opacity-0 group-hover/alias:opacity-50 transition-opacity"
-                    style={{ color: 'var(--color-text-muted)' }}
                   />
-                </button>
-              )}
-
-              {alias && !editingAlias && (
-                <p
-                  className="text-[10px] mt-0.5 font-medium truncate"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
-                  Unreal Engine {version}
-                </p>
-              )}
-            </div>
-
-            {/* Ending Path Box */}
-            <div className="flex flex-col gap-1 min-w-0">
-              <span
-                className="text-[9px] uppercase tracking-wide font-semibold"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                Ending Path
-              </span>
-              <p
-                className="text-[11px] font-mono truncate px-2 py-1 rounded select-all"
-                style={{
-                  backgroundColor: 'var(--color-surface-elevated)',
-                  border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-secondary)'
-                }}
-                title={directoryPath}
-              >
-                {directoryPath}
-              </p>
-            </div>
-
-            {/* Stats Row */}
-            <div className="flex items-center justify-between pt-1 border-t border-[var(--color-border)]">
-              {/* Size */}
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1">
-                  <span
-                    className="text-[9px] uppercase tracking-wide font-semibold"
-                    style={{ color: 'var(--color-text-muted)' }}
+                ) : (
+                  <button
+                    onClick={startEditAlias}
+                    className="flex items-center gap-1 max-w-full text-left cursor-pointer group/btn"
+                    title={alias ? `${alias} (Unreal Engine ${version})` : 'Click to set alias'}
                   >
-                    Size
-                  </span>
-                  {!calculating && folderSize.startsWith('~') && (
-                    <button
-                      onClick={handleCalculateSize}
-                      className="text-[8px] px-1 py-0.2 rounded cursor-pointer transition-colors"
+                    <span
+                      className="text-xs font-semibold truncate"
                       style={{
-                        color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
-                        backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
+                        color: alias ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
                       }}
-                      title="Calculate exact size"
                     >
-                      calc
-                    </button>
-                  )}
-                </div>
+                      {alias || `Unreal Engine ${version}`}
+                    </span>
+                    <Pencil
+                      size={9}
+                      className="shrink-0 opacity-0 group-hover/alias:opacity-50 transition-opacity"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    />
+                  </button>
+                )}
+              </div>
+
+              {/* Size Badge */}
+              <div className="flex items-center gap-1 shrink-0">
                 <span
-                  className="text-[11px] font-medium"
+                  className="text-[10px] font-medium"
                   style={{
                     color: calculating ? 'var(--color-text-muted)' : 'var(--color-text-secondary)'
                   }}
+                  title="Disk size"
                 >
                   {displaySize}
                 </span>
+                {!calculating && folderSize.startsWith('~') && (
+                  <button
+                    onClick={handleCalculateSize}
+                    className="text-[8px] px-1 py-0.2 rounded cursor-pointer transition-colors"
+                    style={{
+                      color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
+                      backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
+                    }}
+                    title="Calculate exact size"
+                  >
+                    calc
+                  </button>
+                )}
               </div>
-
-              {/* Last Launch */}
-              {lastLaunch && lastLaunch !== 'Unknown' && (
-                <div className="flex flex-col items-end gap-0.5">
-                  <span
-                    className="text-[9px] uppercase tracking-wide font-semibold"
-                    style={{ color: 'var(--color-text-muted)' }}
-                  >
-                    Last Launch
-                  </span>
-                  <span
-                    className="text-[11px] font-medium"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  >
-                    {lastLaunch}
-                  </span>
-                </div>
-              )}
             </div>
 
-            {/* Action Buttons Row */}
-            <div className="flex items-center gap-2 pt-1">
+            {/* Row 2: Compact Path Pill */}
+            <div
+              className="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-mono select-all min-w-0"
+              style={{
+                backgroundColor: 'var(--color-surface-elevated)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-text-secondary)'
+              }}
+              title={directoryPath}
+            >
+              <FolderOpen size={11} className="shrink-0 opacity-60" />
+              <span className="truncate">{directoryPath}</span>
+            </div>
+
+            {/* Row 3: Action Buttons */}
+            <div className="flex items-center gap-1.5 pt-0.5">
               <button
                 onClick={() => onOpenDir(directoryPath)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium transition-all cursor-pointer hover:bg-white/[0.04] hover:text-[var(--color-text-primary)]"
+                className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium transition-all cursor-pointer hover:bg-white/[0.04] hover:text-[var(--color-text-primary)]"
                 style={{
                   backgroundColor: 'var(--color-surface-elevated)',
                   border: '1px solid var(--color-border)',
@@ -285,13 +243,13 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                 }}
                 title="Open in Explorer"
               >
-                <FolderOpen size={12} />
+                <FolderOpen size={11} />
                 Directory
               </button>
               <button
                 onClick={handleLaunch}
                 disabled={launching}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-bold transition-all ${
                   launching ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'
                 } ease-in-out duration-100`}
                 style={{
@@ -304,7 +262,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                 }}
                 title="Launch Engine"
               >
-                <Play size={12} className={launching ? 'animate-pulse' : ''} />
+                <Play size={11} className={launching ? 'animate-pulse' : ''} />
                 {launching ? 'Launching…' : 'Launch'}
               </button>
             </div>
