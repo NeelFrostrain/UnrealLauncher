@@ -5,6 +5,14 @@ import { ArrowUpDown, ArrowUp, ArrowDown, Check } from 'lucide-react'
 import type { SortConfig, SortKey } from '../projectUtils'
 import { SORT_OPTIONS } from '../projectUtils'
 
+const SHORT_LABELS: Record<SortKey, string> = {
+  name: 'Name',
+  lastOpenedAt: 'Recent',
+  createdAt: 'Created',
+  size: 'Size',
+  version: 'Version'
+}
+
 interface Props {
   sortConfig: SortConfig
   onSortChange: (config: SortConfig) => void
@@ -33,13 +41,14 @@ export function SortDropdown({ sortConfig, onSortChange }: Props): React.ReactEl
   }
 
   const activeLabel = SORT_OPTIONS.find((o) => o.key === sortConfig.key)?.label ?? 'Sort'
+  const displayLabel = SHORT_LABELS[sortConfig.key] ?? activeLabel
   const DirIcon = sortConfig.direction === 'asc' ? ArrowUp : ArrowDown
 
   return (
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer whitespace-nowrap"
+        className="h-7 flex items-center gap-1 px-2 text-xs font-medium transition-all cursor-pointer whitespace-nowrap"
         aria-label={`Sort by ${activeLabel}`}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -51,13 +60,13 @@ export function SortDropdown({ sortConfig, onSortChange }: Props): React.ReactEl
           border: `1px solid ${open ? 'var(--color-accent)' : 'var(--color-border)'}`,
           color: 'var(--color-text-secondary)'
         }}
-        title="Sort projects"
+        title={`Sort projects: ${activeLabel} (${sortConfig.direction === 'asc' ? 'Ascending' : 'Descending'})`}
       >
         <ArrowUpDown
-          size={12}
+          size={11}
           style={{ color: open ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
         />
-        <span>{activeLabel}</span>
+        <span>{displayLabel}</span>
         <DirIcon size={10} style={{ color: 'var(--color-text-muted)' }} />
       </button>
 
