@@ -76,9 +76,9 @@ export function EnginesPageContent({
             <div
               ref={containerRef}
               onScroll={onScroll}
-              className="grid gap-3.5 overflow-y-auto py-2 h-full content-start"
+              className="grid gap-3 overflow-y-auto py-2 h-full content-start"
               style={{
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))'
+                gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))'
               }}
             >
               {engines.map((data, idx) => (

@@ -102,54 +102,53 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
     return (
       <>
         <div
-          className="w-full flex flex-col overflow-hidden select-text transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group"
+          className="w-full flex flex-col rounded-[var(--radius)] overflow-hidden select-text transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 group shrink-0"
           style={{
             backgroundColor: 'var(--color-surface-card)',
             border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)',
             boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)'
           }}
         >
-          {/* ── Gradient Header ─────────────────────────────────────────── */}
+          {/* ── Compact Gradient Header ─────────────────────────────────── */}
           <div
-            className="w-full h-32 p-4 flex flex-col justify-between relative select-none shrink-0"
+            className="w-full h-24 p-3 flex flex-col justify-between relative select-none shrink-0"
             style={{ background: currentGradient }}
           >
             <div className="absolute inset-0 bg-black/15 backdrop-blur-[1px]" />
 
-            {/* Header top bar: Version label & card actions */}
+            {/* Top row: Label & quick actions */}
             <div className="relative z-10 flex items-center justify-between">
-              <span className="opacity-90 uppercase text-[10px] font-bold tracking-[0.2em] text-white">
+              <span className="opacity-90 uppercase text-[9px] font-bold tracking-[0.2em] text-white">
                 Version
               </span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <button
                   onClick={() => setShowConfigDialog(true)}
-                  className="p-1 rounded-md text-white/80 hover:text-white hover:bg-white/15 transition-all cursor-pointer"
+                  className="p-1 rounded text-white/80 hover:text-white hover:bg-white/20 transition-all cursor-pointer"
                   title="Launch with config profile"
                 >
-                  <Settings2 size={13} />
+                  <Settings2 size={12} />
                 </button>
                 <button
                   onClick={() => onDelete(directoryPath)}
-                  className="p-1 rounded-md text-white/80 hover:text-red-300 hover:bg-red-500/20 transition-all cursor-pointer"
+                  className="p-1 rounded text-white/80 hover:text-red-300 hover:bg-red-500/20 transition-all cursor-pointer"
                   title="Remove from list"
                 >
-                  <XCircle size={15} />
+                  <XCircle size={14} />
                 </button>
               </div>
             </div>
 
-            {/* Large Version Number */}
-            <h1 className="relative z-10 text-3xl font-black tracking-tight text-white leading-none">
+            {/* Large Version Display */}
+            <h1 className="relative z-10 text-2xl font-black tracking-tight text-white leading-none">
               {fullVersion || version}
             </h1>
           </div>
 
           {/* ── Content Body ────────────────────────────────────────────── */}
-          <div className="flex-1 flex flex-col p-4 justify-between gap-3">
+          <div className="flex flex-col p-3 gap-2.5">
             {/* Alias / Title */}
-            <div className="group/alias">
+            <div className="group/alias min-w-0">
               {editingAlias ? (
                 <input
                   ref={inputRef}
@@ -159,7 +158,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                   onBlur={commitAlias}
                   maxLength={MAX_ALIAS}
                   placeholder={`Unreal Engine ${version}`}
-                  className="w-full text-sm font-semibold bg-transparent outline-none pb-px"
+                  className="w-full text-xs font-semibold bg-transparent outline-none pb-px"
                   style={{
                     color: 'var(--color-text-primary)',
                     borderBottom: '1px solid var(--color-accent)',
@@ -173,7 +172,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                   title="Click to set alias"
                 >
                   <span
-                    className="text-sm font-semibold truncate"
+                    className="text-xs font-semibold truncate"
                     style={{
                       color: alias ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
                     }}
@@ -181,7 +180,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                     {alias || `Unreal Engine ${version}`}
                   </span>
                   <Pencil
-                    size={11}
+                    size={10}
                     className="shrink-0 opacity-0 group-hover/alias:opacity-50 transition-opacity"
                     style={{ color: 'var(--color-text-muted)' }}
                   />
@@ -190,7 +189,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
 
               {alias && !editingAlias && (
                 <p
-                  className="text-[11px] mt-0.5 font-medium"
+                  className="text-[10px] mt-0.5 font-medium truncate"
                   style={{ color: 'var(--color-text-muted)' }}
                 >
                   Unreal Engine {version}
@@ -198,8 +197,8 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
               )}
             </div>
 
-            {/* Directory Path */}
-            <div className="flex flex-col gap-1">
+            {/* Ending Path Box */}
+            <div className="flex flex-col gap-1 min-w-0">
               <span
                 className="text-[9px] uppercase tracking-wide font-semibold"
                 style={{ color: 'var(--color-text-muted)' }}
@@ -207,7 +206,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                 Ending Path
               </span>
               <p
-                className="text-xs font-mono truncate px-2 py-1 rounded select-all"
+                className="text-[11px] font-mono truncate px-2 py-1 rounded select-all"
                 style={{
                   backgroundColor: 'var(--color-surface-elevated)',
                   border: '1px solid var(--color-border)',
@@ -219,7 +218,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
               </p>
             </div>
 
-            {/* Stats Row: Size & Last Launch */}
+            {/* Stats Row */}
             <div className="flex items-center justify-between pt-1 border-t border-[var(--color-border)]">
               {/* Size */}
               <div className="flex flex-col gap-0.5">
@@ -233,7 +232,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                   {!calculating && folderSize.startsWith('~') && (
                     <button
                       onClick={handleCalculateSize}
-                      className="text-[8px] px-1 py-0.5 rounded cursor-pointer transition-colors"
+                      className="text-[8px] px-1 py-0.2 rounded cursor-pointer transition-colors"
                       style={{
                         color: 'color-mix(in srgb, var(--color-accent) 90%, white)',
                         backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)'
@@ -245,7 +244,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                   )}
                 </div>
                 <span
-                  className="text-xs font-medium"
+                  className="text-[11px] font-medium"
                   style={{
                     color: calculating ? 'var(--color-text-muted)' : 'var(--color-text-secondary)'
                   }}
@@ -261,10 +260,10 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                     className="text-[9px] uppercase tracking-wide font-semibold"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
-                    Last Launched
+                    Last Launch
                   </span>
                   <span
-                    className="text-xs font-medium"
+                    className="text-[11px] font-medium"
                     style={{ color: 'var(--color-text-secondary)' }}
                   >
                     {lastLaunch}
@@ -273,11 +272,11 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
               )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 pt-2">
+            {/* Action Buttons Row */}
+            <div className="flex items-center gap-2 pt-1">
               <button
                 onClick={() => onOpenDir(directoryPath)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium transition-all cursor-pointer hover:bg-white/[0.03] hover:text-[var(--color-text-primary)]"
+                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium transition-all cursor-pointer hover:bg-white/[0.04] hover:text-[var(--color-text-primary)]"
                 style={{
                   backgroundColor: 'var(--color-surface-elevated)',
                   border: '1px solid var(--color-border)',
@@ -286,13 +285,15 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                 }}
                 title="Open in Explorer"
               >
-                <FolderOpen size={13} />
+                <FolderOpen size={12} />
                 Directory
               </button>
               <button
                 onClick={handleLaunch}
                 disabled={launching}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold transition-all ${launching ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'} ease-in-out duration-100`}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold transition-all ${
+                  launching ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'
+                } ease-in-out duration-100`}
                 style={{
                   borderRadius: 'var(--radius)',
                   color: 'var(--color-text-primary)',
@@ -303,7 +304,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                 }}
                 title="Launch Engine"
               >
-                <Play size={13} className={launching ? 'animate-pulse' : ''} />
+                <Play size={12} className={launching ? 'animate-pulse' : ''} />
                 {launching ? 'Launching…' : 'Launch'}
               </button>
             </div>
