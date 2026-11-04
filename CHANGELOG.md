@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+
+## [2.6.9] - 2026-11-04 — `Comprehensive Scaling Architecture · Chromium webFrame Zoom · Multi-Monitor Bounds Restore · Responsive Layout Hardening`
+
+### Added
+
+- Added **Chromium `webFrame.setZoomFactor` Architecture** (`preload/index.ts`, `themeApplication.ts`): Replaced buggy CSS `body { zoom }` with native Chromium webFrame zoom, providing crisp subpixel font rendering, correct mouse hit test coordinates, and distortion-free portal dialog placement from 50% to 200% scaling.
+- Added **Multi-Monitor Window Bounds Persistence & Clamping** (`windowBoundsHelper.ts`, `windowLifecycle.ts`, `store/index.ts`): Automatically remembers window position, size, and maximized state across sessions. Validates bounds against connected displays on startup and leverages `clampWindowBoundsNative` to safely rescue windows stranded on disconnected or rearranged monitors.
+- Added **Window Maximize Push Notification** (`windowHandlers.ts`, `Titlebar.tsx`): Replaced 500ms IPC polling in `Titlebar` with native event-driven `window-maximized-change` IPC push notifications from Electron main.
+- Added **Automated Scaling & Bounds Unit Test Suite** (`themeScaling.test.ts`, `windowBounds.test.ts`): 18 comprehensive tests covering UI scale clamping (0.5–2.0), radius bounds (0–24px), font-size sanitization, responsive sidebar constraint calculations, and multi-monitor geometry recovery.
+
+### Fixed
+
+- Fixed **Windows Frameless Window Maximization & Taskbar Occlusion** (`windowHandlers.ts`): Replaced manual bounds calculation (`setPosition(0,0)` and `getPrimaryDisplay().bounds`) with native `mainWindow.maximize()` and `unmaximize()`, preventing the launcher from covering the Windows taskbar or breaking on secondary displays with differing DPI scales.
+- Fixed **Engine List Scrollbar Jitter & Infinite Bounce Loops** (`enginesPageContent.tsx`, `enginesPageState.ts`): Eliminated broken pseudo-virtualization that sliced engine arrays without top/bottom spacer heights, restoring butter-smooth native scrolling.
+- Fixed **Narrow Window Projects Toolbar Layout Starvation** (`ProjectsToolbar.tsx`): Removed unconstrained `w-full` on the left tabs container in flex rows, ensuring action buttons (Sort, Filter, Grid/List, History, Add Project) stay visible and uncompressed on narrow windows.
+- Fixed **Sidebar Dragging Stutter & Viewport Monopolization** (`sidebarState.ts`, `Sidebar.tsx`): Disabled CSS transitions while dragging (`isDragging` state) for 60fps responsive drag interactions, and clamped sidebar width to preserve at least 320px for main content even on compact viewports.
+- Fixed **Dropdown & Context Menu Screen Edge Clipping** (`DropdownPortal.tsx`, `useContextMenuPosition.ts`): Added automatic edge clamping and upward flipping when dropdowns or context submenus near screen boundaries.
+- Fixed **Modal Dialog & Toast Notification Z-Index Hierarchy** (`ToastContext.tsx`, `*.Dialog.tsx`): Standardized dialog overlays to `z-[9999]`, context submenus to `z-[10000]`, and elevated toasts to `z-[10010]` so notifications are never hidden behind modals or dialogs.
+- Fixed **Command Palette & Splash Screen High-DPI Sizing** (`PaletteWindow.tsx`, `windowConfig.ts`, `paletteWindow.ts`): Switched root containers from `100vw`/`100vh` to `100%`, eliminating 1px overflow scrollbars under Windows DPI scaling. Centered Command Palette dynamically on the monitor containing the main window or cursor.
+- Fixed **Window Blur Aggressive Cache Purging** (`windowHandlers.ts`): Removed `session.defaultSession.clearCache()` on window blur which previously degraded asset loading and app responsiveness.
+- Fixed **App Relaunch IPC Handler** (`ipc/system/windowHandlers.ts`): Added `app.relaunch()` before `app.exit(0)` so the app successfully restarts.
+- Fixed **Corrupted Number & NaN Fallbacks** (`themePersistence.ts`, `FontControls.tsx`): Added `Number.isFinite` guards to scale, radius, and font-size loaders with safe fallback to defaults.
+- Fixed **Appearance Reset Completeness** (`useSettingsState.ts`): "Reset appearance" now also resets sidebar dimensions (`sidebarWidth`, `sidebarCollapsed`) alongside theme tokens, scale, and radius.
+
 ## [2.6.8] - 2026-08-19 — `Tailwind v4 Theme Sync · ThemeContext Live Sync · Divider & Border Fixes · Launch Config Dialog`
 
 ### Added

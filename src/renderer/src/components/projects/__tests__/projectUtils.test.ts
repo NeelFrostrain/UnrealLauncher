@@ -1,5 +1,5 @@
-// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 // @vitest-environment jsdom
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { beforeEach, describe, it, expect } from 'vitest'
 import {
   formatVersion,
@@ -106,8 +106,31 @@ describe('filterProjectsByEngineVersion', () => {
 })
 
 describe('project activity helpers', () => {
+  let store: Record<string, string> = {}
+  const mockStorage = {
+    getItem: (key: string) => store[key] ?? null,
+    setItem: (key: string, val: string) => {
+      store[key] = val
+    },
+    removeItem: (key: string) => {
+      delete store[key]
+    },
+    clear: () => {
+      store = {}
+    }
+  }
+
   beforeEach(() => {
-    localStorage.clear()
+    store = {}
+    try {
+      Object.defineProperty(globalThis, 'localStorage', {
+        value: mockStorage,
+        configurable: true,
+        writable: true
+      })
+    } catch {
+      // ignore
+    }
   })
 
   it('stores and summarizes recent activity', () => {
