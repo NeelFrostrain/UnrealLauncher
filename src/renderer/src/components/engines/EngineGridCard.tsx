@@ -118,7 +118,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
             if (!editingAlias && !launching) handleLaunch()
           }}
         >
-          {/* ── Background Gradient Visual with Zoom on Hover ──────────── */}
+          {/* ── Bright Vivid Background Gradient (No permanent dark tint) ── */}
           <div
             className="absolute inset-0 w-full h-full"
             style={{
@@ -126,22 +126,34 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
               transform: hovered ? 'scale(1.05)' : 'scale(1)',
               transition: 'transform 400ms ease'
             }}
-          >
-            {/* Subtle frosted texture */}
-            <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px]" />
-          </div>
+          />
 
-          {/* ── Dark Vignette Overlay from Top and Bottom ─────────────────── */}
-          <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/45 to-black/35 pointer-events-none" />
+          {/* ── Soft bottom vignette for text legibility (Non-hover) ─────── */}
+          <div
+            className="absolute bottom-0 inset-x-0 h-20 bg-linear-to-t from-black/75 via-black/35 to-transparent pointer-events-none"
+            style={{
+              opacity: hovered ? 0 : 1,
+              transition: 'opacity 200ms ease'
+            }}
+          />
+
+          {/* ── Dark Tint & Vignette — Shown on HOVER ONLY ───────────────── */}
+          <div
+            className="absolute inset-0 bg-linear-to-t from-black/95 via-black/60 to-black/30 backdrop-blur-[1px] pointer-events-none"
+            style={{
+              opacity: hovered ? 1 : 0,
+              transition: 'opacity 200ms ease'
+            }}
+          />
 
           {/* ── Top Bar: Glassmorphic Badges & Actions ───────────────────── */}
           <div className="absolute top-2.5 inset-x-2.5 z-10 flex items-center justify-between">
             {/* Left: Glassmorphic Version Badge */}
             <div
-              className="bg-black/55 backdrop-blur-md px-2 py-0.5 text-[10px] font-mono tracking-wider font-semibold text-white/95"
+              className="bg-black/50 backdrop-blur-md px-2 py-0.5 text-[10px] font-mono tracking-wider font-semibold text-white/95"
               style={{
                 borderRadius: 'calc(var(--radius) * 0.5)',
-                border: '1px solid rgba(255, 255, 255, 0.14)'
+                border: '1px solid rgba(255, 255, 255, 0.15)'
               }}
             >
               UE {fullVersion || version}
@@ -154,10 +166,10 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                   e.stopPropagation()
                   setShowConfigDialog(true)
                 }}
-                className="p-1 rounded bg-black/55 backdrop-blur-md text-white/80 hover:text-white hover:bg-black/80 transition-all cursor-pointer"
+                className="p-1 rounded bg-black/50 backdrop-blur-md text-white/80 hover:text-white hover:bg-black/75 transition-all cursor-pointer"
                 style={{
                   borderRadius: 'calc(var(--radius) * 0.5)',
-                  border: '1px solid rgba(255, 255, 255, 0.14)'
+                  border: '1px solid rgba(255, 255, 255, 0.15)'
                 }}
                 title="Launch Configuration"
               >
@@ -168,10 +180,10 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                   e.stopPropagation()
                   onDelete(directoryPath)
                 }}
-                className="p-1 rounded bg-black/55 backdrop-blur-md text-white/80 hover:text-red-300 hover:bg-red-500/30 transition-all cursor-pointer"
+                className="p-1 rounded bg-black/50 backdrop-blur-md text-white/80 hover:text-red-300 hover:bg-red-500/30 transition-all cursor-pointer"
                 style={{
                   borderRadius: 'calc(var(--radius) * 0.5)',
-                  border: '1px solid rgba(255, 255, 255, 0.14)'
+                  border: '1px solid rgba(255, 255, 255, 0.15)'
                 }}
                 title="Remove from list"
               >
@@ -183,16 +195,17 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
           {/* ── Center Watermark Number ─────────────────────────────────── */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
             <span
-              className="text-4xl font-black tracking-tight text-white/20 transition-all duration-300"
+              className="text-4xl font-black tracking-tight text-white/30 transition-all duration-300"
               style={{
-                transform: hovered ? 'scale(1.08)' : 'scale(1)'
+                transform: hovered ? 'scale(1.08)' : 'scale(1)',
+                textShadow: '0 2px 10px rgba(0, 0, 0, 0.25)'
               }}
             >
               {fullVersion || version}
             </span>
           </div>
 
-          {/* ── Bottom Info (Default visible when NOT hovered) ──────────── */}
+          {/* ── Bottom Info (Visible when NOT hovered) ──────────────────── */}
           <div
             className={`absolute bottom-0 inset-x-0 z-10 px-3 py-2.5 flex flex-col gap-1 transition-opacity duration-150 ${
               hovered && !launching && !editingAlias
@@ -229,12 +242,12 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                       className="flex items-center gap-1 max-w-[calc(100%-24px)] text-left cursor-pointer group/btn"
                       title={alias ? `${alias} (UE ${version})` : 'Click to set alias'}
                     >
-                      <span className="text-xs font-semibold text-white truncate">
+                      <span className="text-xs font-semibold text-white truncate drop-shadow-sm">
                         {displayName}
                       </span>
                       <Pencil
                         size={9}
-                        className="shrink-0 opacity-0 group-hover/alias:opacity-60 transition-opacity text-white/70"
+                        className="shrink-0 opacity-0 group-hover/alias:opacity-70 transition-opacity text-white/80"
                       />
                     </button>
 
@@ -244,7 +257,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                         e.stopPropagation()
                         onOpenDir(directoryPath)
                       }}
-                      className="p-0.5 rounded text-white/50 hover:text-white/90 hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                      className="p-0.5 rounded text-white/60 hover:text-white hover:bg-white/15 transition-colors cursor-pointer shrink-0"
                       title={directoryPath}
                       aria-label={directoryPath}
                     >
@@ -255,8 +268,8 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
               </div>
 
               {/* Size Badge */}
-              <div className="flex items-center gap-1 shrink-0 text-white/70">
-                <Database size={9} className="opacity-70" />
+              <div className="flex items-center gap-1 shrink-0 text-white/85 drop-shadow-sm">
+                <Database size={9} className="opacity-80" />
                 <span className="text-[10px] font-mono font-medium">{displaySize}</span>
                 {!calculating && folderSize.startsWith('~') && (
                   <button
@@ -264,7 +277,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                       e.stopPropagation()
                       handleCalculateSize()
                     }}
-                    className="text-[8px] px-1 py-0.2 rounded cursor-pointer transition-colors text-white/90 bg-white/15 hover:bg-white/25"
+                    className="text-[8px] px-1 py-0.2 rounded cursor-pointer transition-colors text-white/90 bg-white/20 hover:bg-white/30"
                     title="Calculate exact size"
                   >
                     calc
@@ -273,17 +286,13 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
               </div>
             </div>
 
-            {/* Sub-row: Last Launch or Hint */}
-            <div className="flex items-center justify-between text-[10px] text-white/50">
-              {lastLaunch && lastLaunch !== 'Unknown' ? (
-                <div className="flex items-center gap-1 truncate">
-                  <Clock size={9} className="opacity-70" />
-                  <span className="truncate">{lastLaunch}</span>
-                </div>
-              ) : (
-                <span className="text-[9px] opacity-60">Ready to launch</span>
-              )}
-            </div>
+            {/* Sub-row: Last Launch date (only if available, no placeholder) */}
+            {lastLaunch && lastLaunch !== 'Unknown' && (
+              <div className="flex items-center gap-1 text-[10px] text-white/70 truncate drop-shadow-sm">
+                <Clock size={9} className="opacity-80" />
+                <span className="truncate">{lastLaunch}</span>
+              </div>
+            )}
           </div>
 
           {/* ── Hover Overlay with Action Buttons (Hover Only) ──────────── */}
