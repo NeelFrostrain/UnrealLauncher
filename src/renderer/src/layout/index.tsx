@@ -89,7 +89,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }): React.React
     // select-none is intentionally removed from the root to allow text selection in log viewers,
     // file editors, and other content areas. Chrome elements apply it locally where needed.
     <div
-      className="w-screen h-screen p-px overflow-hidden"
+      className="w-full h-full p-px overflow-hidden"
       style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
     >
       <div id="app-scale-root" className="w-full h-full flex flex-col">

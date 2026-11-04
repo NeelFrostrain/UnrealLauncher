@@ -253,6 +253,9 @@ declare global {
       windowMaximize: () => void
       windowClose: () => void
       windowIsMaximized: () => Promise<boolean>
+      setZoomFactor: (factor: number) => void
+      getZoomFactor: () => number
+      onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void
       // Size events
       onSizeCalculated: (callback: (data: SizeCalculatedData) => void) => () => void
       onProjectRemoved: (callback: (data: { projectPath: string }) => void) => () => void

@@ -45,10 +45,7 @@
   }
 }
 
-/* ── UI Scale — applied uniformly across the entire app and all modals/portals ── */
-body {
-  zoom: var(--ui-scale, 1);
-}
+/* UI Scale is handled via webFrame.setZoomFactor for native crisp scaling */
 
 /* ── Override Tailwind's hardcoded blue-600/500 to follow the accent token ── */
 /* Outside @layer so specificity always wins over Tailwind generated classes.  */

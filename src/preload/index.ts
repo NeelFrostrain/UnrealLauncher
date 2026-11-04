@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webFrame } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type { CppBuildOptions } from '../main/ipc/projects/projectCpp'
 
@@ -18,6 +18,20 @@ if (process.contextIsolated) {
       windowMaximize: () => ipcRenderer.send('window-maximize'),
       windowClose: () => ipcRenderer.send('window-close'),
       windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
+      setZoomFactor: (factor: number): void => {
+        webFrame.setZoomFactor(factor)
+      },
+      getZoomFactor: (): number => {
+        return webFrame.getZoomFactor()
+      },
+      onWindowMaximizedChange: (callback: (isMaximized: boolean) => void): (() => void) => {
+        const listener = (_event: Electron.IpcRendererEvent, isMaximized: boolean): void =>
+          callback(isMaximized)
+        ipcRenderer.on('window-maximized-change', listener)
+        return (): void => {
+          ipcRenderer.removeListener('window-maximized-change', listener)
+        }
+      },
       deleteEngine: (directoryPath) => ipcRenderer.invoke('delete-engine', directoryPath),
       deleteProject: (projectPath) => ipcRenderer.invoke('delete-project', projectPath),
       eraseProjectFromDisk: (projectPath: string) =>

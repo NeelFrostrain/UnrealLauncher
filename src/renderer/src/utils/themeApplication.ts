@@ -12,7 +12,9 @@ export function applyTheme(tokens: ThemeTokenMap, overrides: Partial<ThemeTokenM
     if (key === 'font-family') {
       root.style.setProperty('--font-family', value)
     } else if (key === 'font-size') {
-      root.style.setProperty('--font-size', value)
+      const parsed = parseInt(value, 10)
+      const safeSize = Number.isFinite(parsed) ? Math.min(24, Math.max(10, parsed)) : 15
+      root.style.setProperty('--font-size', `${safeSize}px`)
     } else {
       root.style.setProperty(`--color-${key}`, value)
     }
@@ -20,9 +22,18 @@ export function applyTheme(tokens: ThemeTokenMap, overrides: Partial<ThemeTokenM
 }
 
 export function applyRadius(px: number): void {
-  document.documentElement.style.setProperty('--radius', `${px}px`)
+  const safePx = Math.min(24, Math.max(0, Number.isFinite(px) ? Math.round(px) : 8))
+  document.documentElement.style.setProperty('--radius', `${safePx}px`)
 }
 
 export function applyScale(scale: number): void {
-  document.documentElement.style.setProperty('--ui-scale', String(scale))
+  const safeScale = Math.min(2.0, Math.max(0.5, Number.isFinite(scale) ? scale : 1.0))
+  document.documentElement.style.setProperty('--ui-scale', String(safeScale))
+  if (typeof window !== 'undefined' && window.electronAPI?.setZoomFactor) {
+    try {
+      window.electronAPI.setZoomFactor(safeScale)
+    } catch {
+      /* ignore */
+    }
+  }
 }

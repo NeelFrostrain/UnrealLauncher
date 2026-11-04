@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Theme persistence and storage management.
  */
@@ -19,7 +19,19 @@ export function loadPersistedTheme(): PersistedTheme {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as PersistedTheme
-      if (BUILT_IN_THEMES.some((t) => t.id === parsed.id)) return parsed
+      if (BUILT_IN_THEMES.some((t) => t.id === parsed.id)) {
+        // Sanitize overrides if font-size is present
+        const safeOverrides = { ...(parsed.overrides || {}) }
+        if (safeOverrides['font-size']) {
+          const parsedSize = parseInt(safeOverrides['font-size'], 10)
+          if (Number.isFinite(parsedSize)) {
+            safeOverrides['font-size'] = `${Math.min(24, Math.max(10, parsedSize))}px`
+          } else {
+            delete safeOverrides['font-size']
+          }
+        }
+        return { id: parsed.id, overrides: safeOverrides }
+      }
     }
   } catch {
     /* ignore */
@@ -38,7 +50,12 @@ export function persistTheme(id: string, overrides: Partial<ThemeTokenMap>): voi
 export function loadPersistedRadius(): number {
   try {
     const v = localStorage.getItem(RADIUS_KEY)
-    if (v !== null) return Math.min(24, Math.max(0, Number(v)))
+    if (v !== null) {
+      const num = Number(v)
+      if (Number.isFinite(num)) {
+        return Math.min(24, Math.max(0, Math.round(num)))
+      }
+    }
   } catch {
     /* ignore */
   }
@@ -47,7 +64,8 @@ export function loadPersistedRadius(): number {
 
 export function persistRadius(px: number): void {
   try {
-    localStorage.setItem(RADIUS_KEY, String(px))
+    const safePx = Math.min(24, Math.max(0, Number.isFinite(px) ? Math.round(px) : 8))
+    localStorage.setItem(RADIUS_KEY, String(safePx))
   } catch {
     /* ignore */
   }
@@ -56,7 +74,12 @@ export function persistRadius(px: number): void {
 export function loadPersistedScale(): number {
   try {
     const v = localStorage.getItem(SCALE_KEY)
-    if (v !== null) return Math.min(1.5, Math.max(0.7, Number(v)))
+    if (v !== null) {
+      const num = Number(v)
+      if (Number.isFinite(num)) {
+        return Math.min(2.0, Math.max(0.5, Math.round(num * 100) / 100))
+      }
+    }
   } catch {
     /* ignore */
   }
@@ -65,7 +88,8 @@ export function loadPersistedScale(): number {
 
 export function persistScale(scale: number): void {
   try {
-    localStorage.setItem(SCALE_KEY, String(scale))
+    const safeScale = Math.min(2.0, Math.max(0.5, Number.isFinite(scale) ? scale : 1.0))
+    localStorage.setItem(SCALE_KEY, String(safeScale))
   } catch {
     /* ignore */
   }
