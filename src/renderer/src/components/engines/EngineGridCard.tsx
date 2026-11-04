@@ -1,7 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import type { FC, ReactElement, KeyboardEvent } from 'react'
 import { useState, useRef, memo, useCallback, useEffect, lazy, Suspense } from 'react'
-import { Play, FolderOpen, XCircle, Pencil, Settings2, Database } from 'lucide-react'
+import { Play, FolderOpen, XCircle, Pencil, Settings2, Database, Clock } from 'lucide-react'
 import type { EngineCardProps } from '../../types'
 import { generateGradient } from '@renderer/utils/generateGradient'
 
@@ -26,6 +26,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
     folderSize,
     gradient,
     alias,
+    lastLaunch,
     onLaunch,
     onOpenDir,
     onDelete,
@@ -113,6 +114,9 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
           }}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
+          onClick={() => {
+            if (!editingAlias && !launching) handleLaunch()
+          }}
         >
           {/* ── Background Gradient Visual with Zoom on Hover ──────────── */}
           <div
@@ -131,7 +135,7 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
           <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/45 to-black/35 pointer-events-none" />
 
           {/* ── Top Bar: Glassmorphic Badges & Actions ───────────────────── */}
-          <div className="absolute top-2 inset-x-2 z-10 flex items-center justify-between">
+          <div className="absolute top-2.5 inset-x-2.5 z-10 flex items-center justify-between">
             {/* Left: Glassmorphic Version Badge */}
             <div
               className="bg-black/55 backdrop-blur-md px-2 py-0.5 text-[10px] font-mono tracking-wider font-semibold text-white/95"
@@ -188,12 +192,17 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
             </span>
           </div>
 
-          {/* ── Bottom Info & Action Buttons ─────────────────────────────── */}
-          <div className="absolute bottom-0 inset-x-0 z-10 px-2.5 py-2 flex flex-col gap-1.5">
-            {/* Title & Size row */}
+          {/* ── Bottom Info (Default visible when NOT hovered) ──────────── */}
+          <div
+            className={`absolute bottom-0 inset-x-0 z-10 px-3 py-2.5 flex flex-col gap-1 transition-opacity duration-150 ${
+              hovered && !launching && !editingAlias
+                ? 'opacity-0 pointer-events-none'
+                : 'opacity-100'
+            }`}
+          >
+            {/* Title row with small path tooltip icon */}
             <div className="flex items-center justify-between gap-1.5 min-w-0">
-              {/* Alias / Title */}
-              <div className="group/alias min-w-0 flex-1">
+              <div className="group/alias min-w-0 flex items-center gap-1 flex-1">
                 {editingAlias ? (
                   <input
                     ref={inputRef}
@@ -211,20 +220,37 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
                     }}
                   />
                 ) : (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      startEditAlias()
-                    }}
-                    className="flex items-center gap-1 max-w-full text-left cursor-pointer group/btn"
-                    title={alias ? `${alias} (UE ${version})` : 'Click to set alias'}
-                  >
-                    <span className="text-xs font-semibold text-white truncate">{displayName}</span>
-                    <Pencil
-                      size={9}
-                      className="shrink-0 opacity-0 group-hover/alias:opacity-60 transition-opacity text-white/70"
-                    />
-                  </button>
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        startEditAlias()
+                      }}
+                      className="flex items-center gap-1 max-w-[calc(100%-24px)] text-left cursor-pointer group/btn"
+                      title={alias ? `${alias} (UE ${version})` : 'Click to set alias'}
+                    >
+                      <span className="text-xs font-semibold text-white truncate">
+                        {displayName}
+                      </span>
+                      <Pencil
+                        size={9}
+                        className="shrink-0 opacity-0 group-hover/alias:opacity-60 transition-opacity text-white/70"
+                      />
+                    </button>
+
+                    {/* Small icon to view path in tooltip and click to open */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onOpenDir(directoryPath)
+                      }}
+                      className="p-0.5 rounded text-white/50 hover:text-white/90 hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                      title={directoryPath}
+                      aria-label={directoryPath}
+                    >
+                      <FolderOpen size={11} />
+                    </button>
+                  </>
                 )}
               </div>
 
@@ -247,52 +273,63 @@ const EngineGridCard: FC<EngineGridCardComponentProps> = memo(
               </div>
             </div>
 
-            {/* Path pill */}
-            <div
-              className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono select-all truncate bg-black/45 backdrop-blur-sm border border-white/10 text-white/70"
-              title={directoryPath}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <FolderOpen size={10} className="shrink-0 opacity-60" />
-              <span className="truncate">{directoryPath}</span>
+            {/* Sub-row: Last Launch or Hint */}
+            <div className="flex items-center justify-between text-[10px] text-white/50">
+              {lastLaunch && lastLaunch !== 'Unknown' ? (
+                <div className="flex items-center gap-1 truncate">
+                  <Clock size={9} className="opacity-70" />
+                  <span className="truncate">{lastLaunch}</span>
+                </div>
+              ) : (
+                <span className="text-[9px] opacity-60">Ready to launch</span>
+              )}
             </div>
+          </div>
 
-            {/* Action Buttons Row */}
-            <div className="flex items-center gap-1.5 pt-0.5">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onOpenDir(directoryPath)
-                }}
-                className="flex-1 flex items-center justify-center gap-1 py-1 text-[11px] font-medium rounded transition-all cursor-pointer bg-white/10 hover:bg-white/20 text-white border border-white/10"
-                style={{ borderRadius: 'calc(var(--radius) * 0.75)' }}
-                title="Open in Explorer"
-              >
-                <FolderOpen size={11} />
-                Directory
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleLaunch()
-                }}
-                disabled={launching}
-                className={`flex-1 flex items-center justify-center gap-1 py-1 text-[11px] font-bold rounded text-white transition-all ${
-                  launching
-                    ? 'cursor-not-allowed'
-                    : 'cursor-pointer hover:brightness-110 hover:scale-[1.02]'
-                } ease-in-out duration-100`}
-                style={{
-                  borderRadius: 'calc(var(--radius) * 0.75)',
-                  backgroundColor: 'var(--color-accent)',
-                  boxShadow: '0 2px 8px color-mix(in srgb, var(--color-accent) 40%, transparent)'
-                }}
-                title="Launch Engine"
-              >
-                <Play size={11} className={launching ? 'animate-pulse' : ''} />
-                {launching ? 'Launching…' : 'Launch'}
-              </button>
-            </div>
+          {/* ── Hover Overlay with Action Buttons (Hover Only) ──────────── */}
+          <div
+            className="absolute bottom-0 inset-x-0 z-20 px-2.5 py-2.5 flex items-center gap-2 bg-linear-to-t from-black/95 via-black/85 to-transparent"
+            style={{
+              opacity: hovered && !launching && !editingAlias ? 1 : 0,
+              transform:
+                hovered && !launching && !editingAlias ? 'translateY(0)' : 'translateY(12px)',
+              transition: 'opacity 0.18s ease, transform 0.18s ease',
+              pointerEvents: hovered && !launching && !editingAlias ? 'auto' : 'none'
+            }}
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onOpenDir(directoryPath)
+              }}
+              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded transition-all cursor-pointer bg-white/15 hover:bg-white/25 text-white border border-white/15 backdrop-blur-md"
+              style={{ borderRadius: 'calc(var(--radius) * 0.75)' }}
+              title={directoryPath}
+            >
+              <FolderOpen size={12} />
+              Directory
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                handleLaunch()
+              }}
+              disabled={launching}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold rounded text-white transition-all ${
+                launching
+                  ? 'cursor-not-allowed'
+                  : 'cursor-pointer hover:brightness-110 hover:scale-[1.02]'
+              } ease-in-out duration-100`}
+              style={{
+                borderRadius: 'calc(var(--radius) * 0.75)',
+                backgroundColor: 'var(--color-accent)',
+                boxShadow: '0 2px 10px color-mix(in srgb, var(--color-accent) 45%, transparent)'
+              }}
+              title="Launch Engine"
+            >
+              <Play size={12} className={launching ? 'animate-pulse' : ''} />
+              {launching ? 'Launching…' : 'Launch'}
+            </button>
           </div>
 
           {/* ── Launching Overlay (matching ProjectCardGrid) ─────────────── */}
