@@ -1,6 +1,7 @@
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useEffect } from 'react'
 import PageWrapper from '@renderer/layout/PageWrapper'
+import { dedupeEngineList, normalizeEnginePathKey } from '../../utils/enginePathUtils'
 import {
   useEngineActions,
   useGlobalShortcuts,
@@ -54,15 +55,16 @@ const EnginesPage = (): React.ReactElement => {
       try {
         const savedEngines = await window.electronAPI.loadSavedEngines()
         if (savedEngines.length > 0) {
-          setEngines(savedEngines)
-          setEnginesCache(savedEngines)
+          const deduped = dedupeEngineList(savedEngines)
+          setEngines(deduped)
+          setEnginesCache(deduped)
           setLoading(false)
         }
 
         const engines = await window.electronAPI.scanEngines()
-        setEngines(engines)
-        // Keep the compatibility badge cache in sync — free since data is already loaded
-        setEnginesCache(engines)
+        const deduped = dedupeEngineList(engines)
+        setEngines(deduped)
+        setEnginesCache(deduped)
         clearEngineCompatibilityCache()
       } catch (err) {
         console.error('Failed to load engines:', err)
@@ -77,7 +79,11 @@ const EnginesPage = (): React.ReactElement => {
       return window.electronAPI.onSizeCalculated((data) => {
         if (data.type === 'engine')
           setEngines((prev) =>
-            prev.map((e) => (e.directoryPath === data.path ? { ...e, folderSize: data.size } : e))
+            prev.map((e) =>
+              normalizeEnginePathKey(e.directoryPath) === normalizeEnginePathKey(data.path)
+                ? { ...e, folderSize: data.size }
+                : e
+            )
           )
       })
     }

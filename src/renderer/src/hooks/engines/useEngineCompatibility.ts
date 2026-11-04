@@ -1,4 +1,5 @@
-﻿// Copyright (c) 2026 NeelFrostrain. All rights reserved.
+import { dedupeEngineList } from '../../utils/enginePathUtils'
+// Copyright (c) 2026 NeelFrostrain. All rights reserved.
 /**
  * Engine compatibility badge hook.
  *
@@ -24,7 +25,7 @@ let _loadPromise: Promise<EngineData[]> | null = null
 
 /** Called by the EnginesPage after it loads its engine list — free sync update */
 export function setEnginesCache(engines: EngineData[]): void {
-  _engines = engines
+  _engines = dedupeEngineList(engines)
   _loadPromise = Promise.resolve(engines) // satisfy pending callers immediately
   // Clear per-version result cache since engine availability changed
   _resultCache.clear()

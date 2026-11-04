@@ -1,3 +1,4 @@
+import { dedupeEngineList, normalizeEnginePathKey } from '../../utils/enginePathUtils'
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { useState } from 'react'
 import { useToast } from '../../components/ui/ToastContext'
@@ -26,7 +27,7 @@ export function useEngineActions(
     setScanning(true)
     try {
       const engines = await window.electronAPI.scanEngines()
-      setEngines(engines)
+      setEngines(dedupeEngineList(engines))
       logActivity('Engine refresh completed', { count: engines.length })
     } catch (err) {
       logActivity('Engine refresh failed', {
@@ -91,7 +92,8 @@ export function useEngineActions(
         logActivity('Delete engine failed', { dirPath, reason: 'API returned false' })
         return
       }
-      setEngines((prev) => prev.filter((e) => e.directoryPath !== dirPath))
+      const target = normalizeEnginePathKey(dirPath)
+      setEngines((prev) => prev.filter((e) => normalizeEnginePathKey(e.directoryPath) !== target))
       addToast('Engine removed from list', 'success')
       logActivity('Delete engine completed', { dirPath })
     } catch (error) {
@@ -158,7 +160,7 @@ export function useEngineActions(
       }
       setEngines((prev) =>
         prev.map((e) =>
-          e.directoryPath === directoryPath
+          normalizeEnginePathKey(e.directoryPath) === normalizeEnginePathKey(directoryPath)
             ? { ...e, alias: alias.trim().slice(0, 32) || undefined }
             : e
         )

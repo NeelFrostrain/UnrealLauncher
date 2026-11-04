@@ -149,34 +149,49 @@ function generateGradient() {
 }
 
 async function run() {
+  const normKey = (p) => (p ? path.normalize(p).toLowerCase() : '');
   const saved = Array.isArray(workerData.saved) ? workerData.saved : [];
   const savedByDirectory = new Map();
   for (const engine of saved) {
     if (!engine?.directoryPath) continue;
-    savedByDirectory.set(engine.directoryPath, engine);
+    savedByDirectory.set(normKey(engine.directoryPath), engine);
   }
   const rawScanned = await scanEnginePaths();
   const scanned = rawScanned.map(e => {
-    const ex = savedByDirectory.get(e.directoryPath);
-    return { version: e.version, exePath: e.exePath, directoryPath: e.directoryPath,
+    const normDir = path.normalize(e.directoryPath);
+    const normExe = e.exePath ? path.normalize(e.exePath) : e.exePath;
+    const ex = savedByDirectory.get(normKey(e.directoryPath));
+    return {
+      version: e.version,
+      exePath: normExe,
+      directoryPath: normDir,
       folderSize: ex?.folderSize || '~35-45 GB',
       lastLaunch: ex?.lastLaunch || 'Unknown',
-      gradient: ex?.gradient || generateGradient() };
+      gradient: ex?.gradient || generateGradient()
+    };
   });
-  const merged = [];
+  const mergedMap = new Map();
   for (const s of scanned) {
-    const ex = savedByDirectory.get(s.directoryPath);
+    const k = normKey(s.directoryPath);
+    const ex = savedByDirectory.get(k);
     if (ex) {
       if (ex.gradient) s.gradient = ex.gradient;
       if (ex.folderSize && !ex.folderSize.startsWith('~')) s.folderSize = ex.folderSize;
       if (ex.lastLaunch) s.lastLaunch = ex.lastLaunch;
     }
-    merged.push(s);
+    mergedMap.set(k, s);
   }
-  const mergedDirectoryPaths = new Set(merged.map((m) => m.directoryPath));
   for (const e of saved) {
-    if (!mergedDirectoryPaths.has(e.directoryPath)) merged.push(e);
+    const k = normKey(e.directoryPath);
+    if (!mergedMap.has(k)) {
+      mergedMap.set(k, {
+        ...e,
+        directoryPath: path.normalize(e.directoryPath),
+        exePath: e.exePath ? path.normalize(e.exePath) : e.exePath
+      });
+    }
   }
+  const merged = Array.from(mergedMap.values());
   parentPort.postMessage(merged.filter(e => fs.existsSync(e.exePath)));
 }
 

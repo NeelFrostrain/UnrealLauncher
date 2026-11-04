@@ -203,24 +203,37 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
       for (const e of workerScanned) {
         if (e.directoryPath) {
           const { version, fullVersion } = normalizeEngineVersion(e.version)
-          scannedMap.set(e.directoryPath.toLowerCase(), { ...e, version, fullVersion })
+          const key = path.normalize(e.directoryPath).toLowerCase()
+          scannedMap.set(key, {
+            ...e,
+            directoryPath: path.normalize(e.directoryPath),
+            exePath: e.exePath ? path.normalize(e.exePath) : e.exePath,
+            version,
+            fullVersion
+          })
         }
       }
       for (const e of registryEngines) {
         if (!e.directoryPath) continue
-        const key = e.directoryPath.toLowerCase()
+        const key = path.normalize(e.directoryPath).toLowerCase()
+        const normDirectory = path.normalize(e.directoryPath)
+        const normExe = e.exePath ? path.normalize(e.exePath) : e.exePath
         const { version, fullVersion } = normalizeEngineVersion(e.version)
         const existing = scannedMap.get(key)
         if (existing) {
-          // Registry has authoritative version/exePath — update
-          scannedMap.set(key, { ...existing, version, fullVersion, exePath: e.exePath })
+          scannedMap.set(key, {
+            ...existing,
+            version,
+            fullVersion,
+            exePath: normExe,
+            directoryPath: normDirectory
+          })
         } else {
-          // New engine found only in registry — add it with defaults
           scannedMap.set(key, {
             version,
             fullVersion,
-            exePath: e.exePath,
-            directoryPath: e.directoryPath,
+            exePath: normExe,
+            directoryPath: normDirectory,
             folderSize: '~35-45 GB',
             lastLaunch: 'Unknown',
             gradient: generateGradient(),
@@ -231,30 +244,31 @@ export async function scanAndMergeEngines(): Promise<Engine[]> {
       const scanned = Array.from(scannedMap.values())
 
       // Merge: preserve app-managed fields (gradient, folderSize, lastLaunch)
-      const savedPaths = new Set(saved.map((e) => e.directoryPath?.toLowerCase()))
+      const savedPaths = new Set(saved.map((e) => path.normalize(e.directoryPath).toLowerCase()))
       const newEngines = scanned.filter(
-        (e) => e.directoryPath && !savedPaths.has(e.directoryPath.toLowerCase())
+        (e) => e.directoryPath && !savedPaths.has(path.normalize(e.directoryPath).toLowerCase())
       )
 
       const merged: Engine[] = saved.map((s): Engine => {
-        const fresh = scanned.find(
-          (e) => e.directoryPath?.toLowerCase() === s.directoryPath?.toLowerCase()
-        )
+        const sKey = path.normalize(s.directoryPath).toLowerCase()
+        const fresh = scanned.find((e) => path.normalize(e.directoryPath).toLowerCase() === sKey)
         const { version, fullVersion } = normalizeEngineVersion(fresh?.version ?? s.version)
         const savedFull = s.fullVersion || fresh?.fullVersion || fullVersion
         if (!fresh) {
           return {
             ...s,
+            directoryPath: path.normalize(s.directoryPath),
+            exePath: s.exePath ? path.normalize(s.exePath) : s.exePath,
             version,
             fullVersion: savedFull
           }
         }
         return {
           ...s,
+          directoryPath: path.normalize(fresh.directoryPath || s.directoryPath),
+          exePath: path.normalize(fresh.exePath ?? s.exePath),
           version,
-          fullVersion: fresh.fullVersion || savedFull,
-          exePath: fresh.exePath ?? s.exePath
-          // alias, gradient, folderSize, lastLaunch preserved via ...s spread
+          fullVersion: fresh.fullVersion || savedFull
         }
       })
 

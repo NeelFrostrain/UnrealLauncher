@@ -56,7 +56,8 @@ export function mergeTracerEngines(
 
   for (const te of tracerEngines) {
     if (!te.directoryPath) continue
-    const existing = result.find((e) => e.directoryPath === te.directoryPath)
+    const teNorm = path.normalize(te.directoryPath).toLowerCase()
+    const existing = result.find((e) => path.normalize(e.directoryPath).toLowerCase() === teNorm)
     if (existing) {
       if (te.lastLaunch && te.lastLaunch !== existing.lastLaunch) {
         existing.lastLaunch = formatDateDisplay(te.lastLaunch)
@@ -65,8 +66,8 @@ export function mergeTracerEngines(
     } else {
       result.push({
         version: te.version || 'Unknown',
-        exePath: te.exePath || '',
-        directoryPath: te.directoryPath,
+        exePath: te.exePath ? path.normalize(te.exePath) : '',
+        directoryPath: path.normalize(te.directoryPath),
         folderSize: '~35-45 GB',
         lastLaunch: formatDateDisplay(te.lastLaunch) || 'Unknown',
         gradient: generateGradient()

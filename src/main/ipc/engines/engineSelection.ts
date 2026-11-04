@@ -1,3 +1,4 @@
+import path from 'path'
 // Copyright (c) 2026 NeelFrostrain. All rights reserved.
 import { dialog } from 'electron'
 import { loadEngines, saveEngines } from '../../store'
@@ -24,8 +25,9 @@ export async function handleSelectEngineFolder(): Promise<EngineSelectionResult 
     return null
   }
 
-  const folder = result.filePaths[0]
-  logger.info('engine', 'Engine folder selected', { folder })
+  const folder = path.normalize(result.filePaths[0])
+  const folderKey = folder.toLowerCase()
+
   const validation = validateEngineInstallation(folder)
 
   if (!validation.valid) {
@@ -34,7 +36,7 @@ export async function handleSelectEngineFolder(): Promise<EngineSelectionResult 
   }
 
   const engines = loadEngines()
-  const byPath = engines.find((e) => e.directoryPath === folder)
+  const byPath = engines.find((e) => path.normalize(e.directoryPath).toLowerCase() === folderKey)
   const byVersion = engines.find((e) => e.version === validation.version)
 
   if (byPath || byVersion) {

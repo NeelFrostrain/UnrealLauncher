@@ -137,9 +137,56 @@ function dedupeProjects(projects: Project[]): Project[] {
   return Array.from(seen.values())
 }
 
+function normalizeEnginePath(p: string): string {
+  if (!p) return ''
+  return path.normalize(p).toLowerCase()
+}
+
+function dedupeEngines(engines: Engine[]): Engine[] {
+  const seen = new Map<string, Engine>()
+  for (const engine of engines) {
+    if (!engine.directoryPath) continue
+    const key = normalizeEnginePath(engine.directoryPath)
+    const normalizedDir = path.normalize(engine.directoryPath)
+    const normalizedExe = engine.exePath ? path.normalize(engine.exePath) : engine.exePath
+    const existing = seen.get(key)
+    if (!existing) {
+      seen.set(key, {
+        ...engine,
+        directoryPath: normalizedDir,
+        exePath: normalizedExe
+      })
+    } else {
+      const fullVersion = existing.fullVersion || engine.fullVersion || existing.version
+      const folderSize =
+        existing.folderSize && !existing.folderSize.startsWith('~')
+          ? existing.folderSize
+          : engine.folderSize || existing.folderSize
+      const lastLaunch =
+        existing.lastLaunch && existing.lastLaunch !== 'Unknown'
+          ? existing.lastLaunch
+          : engine.lastLaunch || existing.lastLaunch
+      const alias = existing.alias || engine.alias
+      const gradient = existing.gradient || engine.gradient
+      seen.set(key, {
+        ...existing,
+        ...engine,
+        directoryPath: normalizedDir,
+        exePath: normalizedExe,
+        fullVersion,
+        folderSize,
+        lastLaunch,
+        alias,
+        gradient
+      })
+    }
+  }
+  return Array.from(seen.values())
+}
+
 export function loadEngines(): Engine[] {
   const raw = readJsonArray<Engine>(getEnginesDataPath(), 'engines')
-  return raw.map((e) => {
+  const mapped = raw.map((e) => {
     let fullVersion = e.fullVersion || e.version
     let version = e.version
     const match = fullVersion.match(/^(\d+\.\d+)(\.\d+)?(.*)$/)
@@ -149,13 +196,26 @@ export function loadEngines(): Engine[] {
     }
     return {
       ...e,
+      directoryPath: e.directoryPath ? path.normalize(e.directoryPath) : e.directoryPath,
+      exePath: e.exePath ? path.normalize(e.exePath) : e.exePath,
       version,
       fullVersion: fullVersion || version
     }
   })
+  const deduped = dedupeEngines(mapped)
+  if (deduped.length !== raw.length) {
+    writeJson(
+      getEnginesDataPath(),
+      deduped,
+      `engines (auto-deduped from ${raw.length} to ${deduped.length})`
+    )
+  }
+  return deduped
 }
+
 export function saveEngines(engines: Engine[]): void {
-  writeJson(getEnginesDataPath(), engines, `engines (${engines.length})`)
+  const deduped = dedupeEngines(engines)
+  writeJson(getEnginesDataPath(), deduped, `engines (${deduped.length})`)
 }
 
 // ── Projects ──────────────────────────────────────────────────────────────────
