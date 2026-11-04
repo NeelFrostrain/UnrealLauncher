@@ -91,3 +91,4 @@ export function computeSafeWindowBounds(
     isMaximized: Boolean(saved.isMaximized)
   }
 }
+

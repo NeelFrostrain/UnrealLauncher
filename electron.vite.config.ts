@@ -77,7 +77,6 @@ export default defineConfig({
             if (normalizedId.includes('/node_modules/')) {
               if (normalizedId.includes('react-router')) return 'router'
               if (normalizedId.includes('lucide-react')) return 'lucide'
-              if (normalizedId.includes('zustand')) return 'state'
               return 'vendor'
             }
             if (normalizedId.includes('/src/renderer/src/pages/')) {
@@ -96,7 +95,7 @@ export default defineConfig({
     },
     plugins: [react(), tailwindcss()],
     optimizeDeps: {
-      include: ['react', 'react-dom', 'react-router-dom', 'zustand', 'lucide-react']
+      include: ['react', 'react-dom', 'react-router-dom', 'lucide-react']
     }
   }
 })

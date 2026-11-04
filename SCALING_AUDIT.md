@@ -102,3 +102,4 @@
 | # | File Path & Line | Issue / Root Cause | Severity | Status |
 |---|------------------|--------------------|----------|--------|
 | 10.1 | `src/renderer/src/hooks/system/useSettingsState.ts:61` | "Reset appearance" only reset theme tokens, radius, and scale, omitting sidebar persisted layout (`sidebarWidth`, `sidebarCollapsed`). | Low | Fixed |
+
